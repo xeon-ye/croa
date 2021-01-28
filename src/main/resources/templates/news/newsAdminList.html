@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <meta charset="UTF-8">
+    <title>新闻资讯</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/layui/layui.js"></script>
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css"/>
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/news/newsAdminList.js"></script>
+    <style type="text/css">
+        .tbodyWrap{
+            border: 0px solid red;
+            width: 100%;
+            flex:1;
+            overflow: auto;
+        }
+        /*滚动条样式*/
+        .tbodyWrap::-webkit-scrollbar {
+            width: 2px;
+        }
+        .ellipsisContent{
+            width: 98%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .tableButton{
+            padding: 1px 4px;
+            height: 20px;
+            line-height: 19px;
+            font-size: 12px;
+            font-family: Candara;
+            float: left;
+            margin-top: 2px;
+            border-radius: 3px;
+            margin-right: 3px;
+        }
+        .blueBtn{
+            border: 1px solid #4BBBFD;
+            color: #4BBBFD;
+            background-color: #E1F2FB;
+        }
+        .orangeBtn{
+            border: 1px solid #F0736A;
+            color: #EC695F;
+            background-color: #FCECEA;
+        }
+        .jituan{
+            color:#1ab394;
+        }
+
+        .youxiu{
+            color:rgb(256,182,187)
+        }
+
+        .gongsi{
+            color:rgb(250,186,174)
+        }
+    </style>
+    <script type="text/javascript">
+        layui.use('form', function(){
+            var form = layui.form;
+
+            //新闻资讯-表格复选框事件
+            form.on('checkbox(newsAllChoose)', function(data){
+                var child = $(data.elem).closest(".newsContentWrap").find('tbody input[type="checkbox"]');
+                child.each(function(index, item){
+                    item.checked = data.elem.checked;
+                });
+                form.render('checkbox');
+            });
+
+            //新闻资讯-文章标签
+            form.on('select(type)', function(data){
+                newsObj.init();
+            });
+
+            form.render();
+        });
+    </script>
+</head>
+<body>
+<div class="row" style="height: 100%;">
+    <div class="ibox-content" style="width: 100%;height: 100%;">
+        <form id="newsQueryForm" autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;">
+            <div style="width: 100%;height: 100%;display: flex;flex-direction: column;overflow: hidden;">
+                <!--搜索条件-->
+                <div style="border:0px solid red;width: 100%;height: 50px;line-height: 50px;padding: 0 15px;">
+                    <div class="col-md-12" style="display: flex;align-items: center;padding-left: 0px;">
+                        <label class="col-md-1 control-label" style="padding-top: 0px;padding-left: 0px;width: unset;">
+                            文章标签:
+                        </label>
+                        <div class="col-md-2">
+                            <select name="type" class="form-control height18" lay-search lay-filter="type">
+                                <option value="">请选择文章标签</option>
+                                <option value="1">集团新闻</option>
+                                <option value="2">公司新闻</option>
+                                <option value="4">优秀事迹</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="queryValue" class="form-control" placeholder="搜索文章关键字">
+                        </div>
+                        <div class="col-sm-1" style="margin-top: -2px;">
+                            <button type="button" class="btn btn-primary" onclick="newsObj.init();">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!--内容列表-->
+                <div class="newsContentWrap layui-form" style="border: 0px solid red;width: 100%;flex: 1;float: left;overflow: auto;display: flex;flex-direction: column;">
+                    <div class="paramDiv" style="text-align: left;float: left; width: 20%;height: 40px;">
+                        <button class="btn btn-primary" type="button" onclick="newsObj.addClick();">
+                            <i class="fa fa-plus"></i>&nbsp;新增
+                        </button>
+                        <button id="batchDelNews" class="btn btn-danger" type="button" onclick="newsObj.batchDel();">
+                            <i class="fa fa-close"></i>&nbsp;批量删除
+                        </button>
+                    </div>
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                        <colgroup>
+                            <col width="4%">
+                            <col width="6%">
+                            <col width="15%">
+                            <col width="50%">
+                            <col width="15%">
+                            <col width="10%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="ellipsisContent">
+                                    <input id="newsAllChoose" type="checkbox" lay-skin="primary" lay-filter="newsAllChoose">
+                                </div>
+                            </th>
+                            <th title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </th>
+                            <th title="文章标签">
+                                <div class="ellipsisContent">
+                                    文章标签
+                                </div>
+                            </th>
+                            <th title="文章标题">
+                                <div class="ellipsisContent">
+                                    文章标题
+                                </div>
+                            </th>
+                            <th title="发布时间">
+                                <div class="ellipsisContent">
+                                    发布时间
+                                </div>
+                            </th>
+                            <th title="操作">
+                                <div class="ellipsisContent">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <div class="tbodyWrap">
+                        <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                            <colgroup>
+                                <col width="4%">
+                                <col width="6%">
+                                <col width="15%">
+                                <col width="50%">
+                                <col width="15%">
+                                <col width="10%">
+                            </colgroup>
+                            <tbody class="newsList">
+                                <!--<tr>
+                                <td title="1">
+                                    <div class="ellipsisContent">
+                                        <input type="checkbox" lay-skin="primary">
+                                    </div>
+                                </td>
+                                <td title="1">
+                                    <div class="ellipsisContent">
+                                        1
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="业务培训课程">
+                                    <div class="ellipsisContent">
+                                        业务培训课程
+                                    </div>
+                                </td>
+                                </tr>-->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--分页插件-->
+                <div id="newsPager" style="text-align: right;margin-right: 25px;"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增新闻-->
+<div class="modal inmodal fade" id="addNews" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2 id="modalTitle">新增新闻</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 400px;">
+                <form id="newsForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                    <!--主键ID-->
+                    <input type="hidden" id="newsId" name="id">
+                    <div class="col-md-12">
+                        <label class="col-md-2 control-label">
+                            <span class="text-red">*</span>新闻标题:
+                        </label>
+                        <div class="col-md-6">
+                            <input id="newsTitle" name="title" maxlength="200" placeholder="新闻标题" class="form-control" required/>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="newsType" name="type" class="form-control height18" lay-search>
+                                <option value="1">集团新闻</option>
+                                <option value="2">公司新闻</option>
+                                <!--<option value="3">图文新闻</option>-->
+                                <option value="4">优秀事迹</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 10px;">
+                        <label class="col-md-2 control-label">
+                            <span class="text-red">*</span>新闻内容:
+                        </label>
+                        <div class="col-md-9">
+                            <textarea id="content" name="content" style="width:100%;height:300px;"></textarea>
+                        </div>
+                        <div class="col-md-1">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn" type="button" class="btn btn-primary" onclick="newsObj.add();">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button id="editBtn" type="button" class="btn btn-primary" onclick="newsObj.edit();">
+                    <i class="fa fa-save"></i>&nbsp;编辑
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

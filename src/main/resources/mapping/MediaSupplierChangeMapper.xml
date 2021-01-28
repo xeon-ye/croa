@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaSupplierChangeMapper">
+  <sql id="selectColumn">
+    tmsc.id as id,
+    tmsc.plate_id as plateId,
+    tmsc.media_id as mediaId,
+    tmsc.media_name as mediaName,
+    tmsc.media_supplier_relate_id as mediaSupplierRelateId,
+    tmsc.supplier_id as supplierId,
+    tmsc.user_id as userId,
+    tmsc.create_date as createDate,
+    tmsc.audit_user_id as auditUserId,
+    tmsc.audit_user_name as auditUserName,
+    tmsc.change_content as changeContent,
+    tmsc.company_code as companyCode,
+    tmsc.state as state
+  </sql>
+
+    <!--新增所有列-->
+  <insert id="save" keyProperty="id" useGeneratedKeys="true">
+    insert into t_media_supplier_change
+    (
+      plate_id,
+      media_id,
+      media_name,
+      media_supplier_relate_id,
+      supplier_id,
+      user_id,
+      create_date,
+      audit_user_id,
+      audit_user_name,
+      change_content,
+      company_code,
+      state
+     )
+     values
+     (
+      <if test="plateId != null">#{plateId},</if>
+      <if test="mediaId != null">#{mediaId},</if>
+      <if test="mediaName != null and mediaName != ''">#{mediaName},</if>
+      <if test="mediaSupplierRelateId != null">#{mediaSupplierRelateId},</if>
+      <if test="supplierId != null">#{supplierId},</if>
+      <if test="userId != null">#{userId},</if>
+      <if test="createDate != null">#{createDate},</if>
+      <if test="auditUserId != null">#{auditUserId},</if>
+      <if test="auditUserName != null and auditUserName != ''">#{auditUserName},</if>
+      <if test="changeContent != null and changeContent != ''">#{changeContent},</if>
+      <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+      <if test="state != null">#{state}</if>
+     )
+    </insert>
+
+  <!--批量插入媒体异动表-->
+  <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_media_supplier_change
+        (
+          plate_id,
+          media_id,
+          media_name,
+          media_supplier_relate_id,
+          supplier_id,
+          user_id,
+          create_date,
+          audit_user_id,
+          audit_user_name,
+          change_content,
+          company_code,
+          state
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierChange" index="index" separator=",">
+        (
+          #{mediaSupplierChange.plateId},
+          #{mediaSupplierChange.mediaId},
+          #{mediaSupplierChange.mediaName},
+          #{mediaSupplierChange.mediaSupplierRelateId},
+          #{mediaSupplierChange.supplierId},
+          #{mediaSupplierChange.userId},
+          now(),
+          #{mediaSupplierChange.auditUserId},
+          #{mediaSupplierChange.auditUserName},
+          #{mediaSupplierChange.changeContent},
+          #{mediaSupplierChange.companyCode},
+          0
+        )
+        </foreach>
+    </insert>
+
+  <!--根据媒体ID获取异动列表-->
+  <select id="listMediaSupplierChangeByParam" resultType="com.qinfei.qferp.entity.media1.MediaSupplierChange">
+      SELECT
+        <include refid="selectColumn"/>
+      FROM
+        t_media_supplier_change tmsc
+      WHERE tmsc.media_supplier_relate_id in
+      <foreach collection="mediaSupplierRelateIds" item="mediaSupplierRelateId" open="(" close=")" separator=",">
+          #{mediaSupplierRelateId}
+      </foreach>
+      ORDER BY tmsc.create_date DESC
+  </select>
+
+  <!--根据媒体ID获取异动列表-->
+  <select id="listMediaSupplierChangeByMediaIds" resultType="com.qinfei.qferp.entity.media1.MediaSupplierChange">
+      SELECT
+      <include refid="selectColumn"/>, tms.name as supplierName, tms.contactor, su.name as userName
+      FROM
+      t_media_supplier_change tmsc
+      left join sys_user su on su.id = tmsc.user_id
+      left join t_media_supplier tms on tms.id = tmsc.supplier_id
+      WHERE tmsc.media_id in
+      <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+          #{mediaId}
+      </foreach>
+      ORDER BY tmsc.media_id, tmsc.supplier_id, tmsc.create_date DESC
+  </select>
+
+  <!--获取指定异动信息-->
+  <select id="getMediaSupplierChangeById" resultType="com.qinfei.qferp.entity.media1.MediaSupplierChange">
+      SELECT
+        <include refid="selectColumn"/>
+      FROM
+        t_media_supplier_change tmsc
+      WHERE tmsc.id = #{id}
+  </select>
+</mapper>

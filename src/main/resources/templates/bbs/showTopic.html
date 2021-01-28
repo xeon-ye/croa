@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>论坛详情</title>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link rel="stylesheet" href="/js/plugins/jquery-emoji/jquery.emoji.css">
+    <link rel="stylesheet" href="/js/plugins/jquery-emoji/index.css">
+    <link rel="stylesheet" href="/js/plugins/jquery-emoji/jquery.mCustomScrollbar.min.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jquery-emoji/jquery.emoji.js"></script>
+    <script type="text/javascript" src="/js/plugins/jquery-emoji/jquery.mCustomScrollbar.min.js"></script>
+    <script type="text/javascript" src="/js/bbs/showTopic.js"></script>
+    <style type="text/css">
+        *{
+            padding: 0px;
+            margin: 0px;
+        }
+        .contact-box{
+            border: 0px;
+            margin: 0 auto;
+            padding: 0px;
+        }
+        a{
+            text-decoration: none!important;
+        }
+        .dianzan-style{
+            width:150px;
+            height:64px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background-color: #3396fb;
+            border-radius: 20px;
+        }
+        .dianzan-style:hover{
+            cursor: pointer;
+        }
+        .layui-laypage-em{
+            background-color: #3396fb!important;
+        }
+        .bbs_number{
+            background: #3396fb;
+            color: #ffffff;
+        }
+        .commonTodayStyle{
+            margin-right: 14px;
+            padding: 3px 5px;
+            font-size: 12px;
+        }
+        .li-cell-style{
+            padding: 10px 0px 20px 10px;
+            max-width: 260px;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+        }
+        .hotTitleStyle{
+            color: #999999;
+            font-size: 14px;
+        }
+        .commDiv{
+            display: flex;
+            background-color: #F0F0F0;
+            padding: 30px 30px 0;
+            border-radius: 2px;
+        }
+        #showPublicTopic a:hover{
+            cursor: pointer;
+        }
+        #showPublicTopic li{
+            list-style: none;
+        }
+        .noDataStyle{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80%;
+        }
+        textarea{resize:none;}
+        .form-group{margin: 0px;}
+        .hf-text{ border: 1px solid #eee;width:600px;display: block;height: 30px;resize: none; color: #999999; font-size:12px;}
+        .fatie-style{
+            width: 260px;
+            height: 40px;
+            border: #3396fb;
+            background-color: #3396fb;
+            font-size: 14px;
+            color: #ffffff;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        #showRoad a{
+            color: grey;
+        }
+        #showRoad a:hover{
+            cursor: pointer;
+            color: blue;
+        }
+        .load-box {
+            display: flex;
+            justify-content: space-between;
+        }
+        .w-65 {
+            width: 94%;
+        }
+        @media (min-width: 1366px) {
+            .w-65 {
+                width: 96%;
+            }
+        }
+        .w-60 {
+            width: 80%;
+        }
+        @media (min-width: 1366px) {
+            .w-60 {
+                width: 80%;
+            }
+        }
+        #show{
+            width:100%;
+            height: 100px;
+            overflow-x: hidden;
+            background:#fff;
+            border: 0px;
+        }
+        #showBiaoQing{
+            padding:2px 5px 5px;
+        }
+        .publishComment{
+            margin-top: 3px;
+            height:30px;
+            width: 80px;
+            background-color: #555555;
+            font-size: 12px;
+            color: #ffffff;
+            border-radius: 4px;
+            border: 0px;
+        }
+        .floatComment{
+            background-color: #3296fa;
+            font-size: 12px;
+            color: #ffffff;
+            height:50px;
+            width: 120px;
+            border-radius: 20px;
+            border: 0px;
+            margin-left: 24px;
+        }
+        #showFloatDiv{
+            width: 600px;
+            height:50px;
+            border-radius: 20px;
+            padding: 15px 36px 15px 15px;
+            overflow: hidden;
+            border: #ebebeb 1px solid;
+            background-color: #fff;
+        }
+        #showFloatDiv:focus{
+            outline: none;
+        }
+        #show:focus{
+            outline: none;
+        }
+        .reply-div-style{
+            background-color: #F0F0F0;
+            margin:10px 0 0 60px;
+            padding: 20px;
+        }
+        .reply-nodata-style{
+            background-color: #ffffff;
+        }
+        .reply-button-style{
+            margin-left: 10px;
+            width: 51px;
+            height: 30px;
+            background-color: #ffffff;
+            border: #ebebeb 1px solid;
+        }
+        .tips{
+            display: flex;
+            justify-content:space-between;
+            color: #999999;
+            background-color: #F0F0F0;
+            font-size: 12px;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 20px;
+        }
+        .float-div{
+            position: fixed; //关键
+        width:800px;
+            height: 50px;
+            z-index: 99999;
+            bottom: 60px;
+            display: flex;
+            opacity: 0.8;
+            justify-content: center;
+            width: 80%;
+        }
+        .floatEmotion{
+            margin: 15px 0 0 -30px;
+            width: 20px;
+            height: 20px;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .article-content {
+            padding: 40px 10px;
+            letter-spacing: 2pt;
+            font-size: 15px;
+            color: #686B6D;
+            overflow: hidden;
+        }
+        .article-content p {
+            text-indent: 2em;
+            margin: 5px 0 0;
+            /*字大小16排序,行高30px*/
+            font: 16px/30px Microsoft Yahei;
+        }
+        .article-content div{
+            font: 16px/30px Microsoft Yahe
+        }
+        .article-content li{
+            margin: 5px 0 0;
+            font: 16px/30px Microsoft Yahei;
+        }
+        .article-content img {
+            max-height: 600px;
+            padding-bottom: 10px;
+        }
+        #emoji_container_1{
+            position: fixed;
+            top: inherit!important;
+            bottom: 102px!important;
+            overflow: hidden;
+        }
+        .modal-header{
+            border: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="roadFlag" style="height: 60px;border-bottom: #ebebeb 1px solid; display: flex; justify-content: center">
+    <div class="w-65 load-box">
+        <div style="height: 60px;line-height:60px;" id="showRoad">
+            <div style="font-size: 14px;color: #555555;">
+                <span style="color: #555555;">你的位置<b>:</b></span>&nbsp;&nbsp;
+                <a href="/bbs/firstTopic" style="color: #555555">首页</a>&nbsp;&nbsp;
+                <i class="glyphicon glyphicon-menu-right" style="color: #999999"></i>&nbsp;&nbsp;
+                <a href="javascript:void(0)" onclick="changeUrl()"><span id="forumName"></span></a>&nbsp;&nbsp;
+                <i class="glyphicon glyphicon-menu-right" style="color: #999999"></i>&nbsp;&nbsp;<span id="showTopicName" style="color: #999999"></span>
+            </div>
+        </div>
+        <div style="height: 60px;line-height:60px;font-size: 14px;color: #999999;">
+            <div style="width: 120px;height: 40px;">
+                <img src="/img/bbs/guanli.png" id="manageCenter"/>
+            </div>
+        </div>
+    </div>
+</div>
+<form id="termForm" style="display: none">
+    <input id="flag" type="hidden" value="0"/>
+    <input id="lookFlag" type="hidden" value="0"/>
+    <input id="moderator" name="moderator" type="hidden"/>
+    <input id="bbsName" name="bbsName"/>
+</form>
+</div>
+<!--论坛信息展示页面-->
+<div style="width: 100%;display: flex;justify-content: space-around;margin-top: 20px;">
+    <div class="w-65" id="topicList" style="display: flex;">
+        <div id="queryForm" class="w-60 topic-left" style="flex: 1;margin-right: 40px;">
+            <div id="showTopicHtml" style="width: 100%">
+                <input type="hidden" name="id" id="topicId">
+                <input type="hidden" name="userId" id="userId">
+                <input type="hidden" name="forumId" id="forumId">
+                <input type='hidden' id='goPageValue'/>
+                <input type='hidden' id='companyCode'/>
+                <!--判断是回复一级还是二级，1为一级，2为二级-->
+                <input type="hidden" id="replyFlag">
+                <div>
+                    <div style="display: flex;justify-content: center;background-color: #fafafa">
+                        <h1 id="queryTitle" name="title" style="font-size: 28px;font-weight:normal;height: 70px;line-height: 70px;"></h1>
+                    </div>
+                    <div class="tips">
+                        <p>楼主<b>:</b>&nbsp;&nbsp;<span id="userName3" name="userName2"></span>&nbsp;&nbsp;
+                            发表时间<b>:</b>&nbsp;&nbsp;<span id="createTime3" name="createTime2"></span>&nbsp;&nbsp;
+                            <span id="operateDiv"></span>
+                        </p>
+                        <p>
+                            <a id="applyToTop" style="display: none"  href="javascript:void(0)" title="申请上首页" onclick="applicationTop()">申请置顶</a>&nbsp;&nbsp;
+                            <a id="applyToHigh" style="display: none" href="javascript:void(0)" title="申请精华" onclick="applicationHighlight()">申请精华</a>&nbsp;&nbsp;
+                            <span>浏览:&nbsp;&nbsp;<span id="viewNum3" name="viewNum">0</span>次&nbsp;&nbsp;</span>
+                            <span>评论:&nbsp;&nbsp;<span id="commNum" name="commNum">0</span>次&nbsp;&nbsp;</span>
+                            <span id="fileDiv" style="display: none">附件:</span>&nbsp;&nbsp;<a id="affixLink3" href="" target="_blank"><span id="affixName3"></span></a>
+                        </p>
+                    </div>
+                </div>
+                <div class='article-content' id="queryContent" name="content2"></div>
+                <div id="chooseInfo" style="padding-bottom: 30px;clear: both;">
+                    <div style="display: flex;justify-content: center">
+                        <div class="dianzan-style" style="margin-right: 30px;">
+                            <a href="javascript:void(0);" onclick="vote(1)" style="line-height: 30px;height: 30px;">
+                                <img style="margin-right: 10px;" src="/img/bbs/dianzan.png"/>
+                                <span style="position: relative;color: #ffffff;font-size: 14px;"> 点 赞
+                                <span id="likeNum3" name="likeNum" style="margin-left: 20px;">0</span>
+                                </span>
+                            </a>
+                        </div>
+                        <div class="dianzan-style">
+                            <a href="javascript:void(0);" onclick="vote(2)" style="line-height: 30px;height: 30px;">
+                                <img style="margin-right: 10px;" src="/img/bbs/guanshui.png"/>
+                                <span style="position: relative;color: #ffffff;font-size: 14px;"> 灌 水
+                                <span id="dislikeNum3" name="dislikeNum" style="margin-left: 20px">0</span>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: relative;margin-bottom: 30px;" class="commDiv">
+                    <div style="margin-right: 10px">
+                        <img alt="image" class="img-circle" style="position:relative; width:40px;height: 40px;"
+                             onerror="this.src='/img/mrtx_2.png'" src="/img/mrtx_2.png"
+                             data-th-src="${session.user.image}"/>
+                        <span id="pointName" style="display: block;margin-top: 20px;width: 60px"></span>
+                    </div>
+                    <div style="width: 100%">
+                        <div id="show" contenteditable="true"></div>
+                        <div id="showBiaoQing" style="display: flex;justify-content: space-between">
+                            <div style="margin: 5px 0 0;">
+                                <input type="image" id="emotion" src="/img/bbs/biaoqing.png"/>
+                                <!--<label id="showError"></label>-->
+                            </div>
+                            <div style="display: flex;align-items: center">
+                                <!--<span id="countNumber" style="margin-right: 20px;color: #555555">0/500</span>-->
+                                <button type="button" id="commentBtn" class="form-control publishComment">发表评论</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="float-div">
+                    <div style="display: flex;">
+                        <div id="showFloatDiv" contenteditable="true" placeholder="请输入评论内容"></div>
+                        <input type="image" class="floatEmotion" id="floatEmotion" src="/img/bbs/biaoqing.png"/>
+                        <button type="button" onclick="emotionObj.publishComment()" style="height:50px;" id="floatCommBtn" class="form-control floatComment">评论</button>
+                    </div>
+                </div>
+                <hr style="background-color: #555555;height: 2px;"/>
+                <div style="height: 40px;line-height: 40px;" id="newsComment">
+                    <p style="color: #222222;font-size: 18px;">最新评论</p>
+                </div>
+                <div id="updateStyle">
+                    <div id="commentShow"></div>
+                    <!--<div id="query_pager_logs" class="contact-box" style="margin-top: 10px;text-align: center;"></div>-->
+                </div>
+                <!--分页插件-->
+                <div id="queryTablePager" style="text-align: center;margin-top: 40px;vertical-align: bottom;"></div>
+            </div>
+        </div>
+        <div class="topic-right" >
+            <div style="display: flex;justify-content: center;color: #999999;margin-bottom: 20px;">
+                <div style="width: 80px;height: 80px;margin-right: 16px">
+                    <img id="userImage" src="" onerror="this.src='/img/mrtx_2.png'" style="width: 80px;height: 80px;border-radius: 50%"/>
+                </div>
+                <div style="margin: 10px 0;font-size: 14px">
+                    <div style="height: 30px">
+                        <p style="height: 30px;line-height: 30px;color: #222222">我的发帖</p>
+                    </div>
+                    <div style="height: 30px;">
+                        <p style="height: 30px;line-height: 30px;">
+                            今日<b>:</b>&nbsp;&nbsp;<span style="color: #222222" id="showTodayNum">0</span>&nbsp;
+                            总帖子<b>:</b>&nbsp;&nbsp;<span style="color: #222222" id="showYourTopicNum">0</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!--<div style="display: flex;justify-content: center">-->
+            <!--<button id="addBtn" onclick="startTopic()" class="fatie-style">我要发帖</button>-->
+            <!--</div>-->
+            <div style="border-top: #ebebeb 1px solid; padding-bottom: 20px">
+                <div>
+                    <p style="height: 50px;line-height: 50px;font-size: 18px;color: #3396fb;">总发帖</p>
+                </div>
+                <div style="display: flex;">
+                    <div style="display: inline-block; width: 50%; text-align: center">
+                        <span id="showTopicNum" style="color: #222222;font-size: 18px">0</span>
+                        <span style="color: #999999;font-size: 14px; margin-top: 10px; display: block;">今日</span>
+                    </div>
+                    <div style="display: inline-block; width: 50%; text-align: center">
+                        <span id="showTotalTopicNum" style="color: #222222;font-size: 18px">0</span>
+                        <span style="color: #999999;font-size: 14px; margin-top: 10px; display: block;">总帖子</span>
+                    </div>
+                </div>
+            </div>
+            <div id="showHotTopicDiv">
+                <div id="showHotTitle" style="border-top: #ebebeb 1px solid;padding: 20px 0px 10px;">
+                    <h3 style="color: #3396fb"><b>热门推荐</b></h3>
+                </div>
+                <div id="showPublicTopicDiv">
+                    <ul id="showPublicTopic"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--提交删除理由页面-->
+<div class="modal inmodal" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="delForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span style="color: #c9302c;">删除操作</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="topicId" id="topicId3">
+                                <div class="form-group">
+                                    <label class="col-sm-1"></label>
+                                    <div class="col-sm-10">
+                                        <textarea cols="25" rows="15" class="form-control" id="reason" name="reason" placeholder="亲，请输入删除理由...">
+
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" onclick="delTopic()">提交</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--申请置顶页面-->
+<div class="modal inmodal" id="topModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="topForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span style="color: #c9302c;">申请置顶</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="goTopId" id="goTopId">
+                                <div class="form-group">
+                                    <label class="col-sm-1"></label>
+                                    <div class="col-sm-10">
+                                        <textarea cols="25" rows="15" class="form-control" id="topReason" name="topReason" maxlength="100" onkeyup="checkContent2(this)" placeholder="亲，请输入...">
+
+                                        </textarea>
+                                        <label id="showError2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" id="applyTop" onclick="topTopic(1)">确认</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--申请加精页面-->
+<div class="modal inmodal" id="hightModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="hightForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span style="color: #c9302c;">申请加精</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="hightTopicId" id="hightTopicId">
+                                <div class="form-group">
+                                    <label class="col-sm-1"></label>
+                                    <div class="col-sm-10">
+                                        <textarea cols="25" rows="15" class="form-control" id="hightReason" name="hightReason" maxlength="100" onkeyup="checkContent3(this)" placeholder="亲，请输入...">
+
+                                        </textarea>
+                                        <label id="showError3"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" id="applyHight" onclick="hightTopic(1)">确认</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

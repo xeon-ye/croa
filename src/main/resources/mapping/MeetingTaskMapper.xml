@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingTaskMapper">
+    <sql id="selectColumn">
+        tmt.id,
+        tmt.meet_id as meetId,
+        tmt.title,
+        tmt.content,
+        tmt.start_time as startTime,
+        tmt.end_time as endTime,
+        tmt.create_date as createDate,
+        tmt.create_id as createId,
+        tmt.update_date as updateDate,
+        tmt.update_id as updateId,
+        tmt.company_code as companyCode,
+        tmt.state
+    </sql>
+    <insert id="addMeetingTask" parameterType="com.qinfei.qferp.entity.meeting.MeetingTask" useGeneratedKeys="true" keyProperty="id">
+        insert INTO  t_meeting_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetId != null">meet_id,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="companyCode != null">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=" )" suffixOverrides = ",">
+            <if test="meetId != null">#{meetId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="companyCode != null">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+    <select id="meetingTaskListPg" resultType="com.qinfei.qferp.entity.meeting.MeetingTask">
+         select
+         tm.title as meetTitle,
+        <include refid="selectColumn"/>
+          from  t_meeting_task tmt
+         LEFT JOIN  t_meeting_user tmu on tmt.id = tmu.meet_task_id
+        LEFT JOIN t_meeting tm on tm.id = tmt.meet_id
+        where tmt.state>-2 and tmu.user_id= #{userId} and tm.state>-9
+    </select>
+    <select id="meMeet" resultType="com.qinfei.qferp.entity.meeting.MeetingTask">
+        select
+        tm.title as meetTitle,
+        <include refid="selectColumn"/>
+        from  t_meeting_task tmt
+        LEFT JOIN  t_meeting_user tmu on tmt.id = tmu.meet_task_id
+        LEFT JOIN t_meeting tm on tm.id = tmt.meet_id
+        where tmt.state>-2 and tmu.user_id= #{userId} and tmu.user_type=3 and tm.state>-9
+    </select>
+
+    <select id="duMeet" resultType="com.qinfei.qferp.entity.meeting.MeetingTask">
+        select
+        tm.title as meetTitle,
+        <include refid="selectColumn"/>
+        from  t_meeting_task tmt
+        LEFT JOIN  t_meeting_user tmu on tmt.id = tmu.meet_task_id
+        LEFT JOIN t_meeting tm on tm.id = tmt.meet_id
+        where tmt.state>-2 and tmu.user_id= #{userId} and tmu.user_type=4 and tm.state>-9
+    </select>
+
+    <select id="meetingTask" resultType="com.qinfei.qferp.entity.meeting.MeetingTask">
+        select <include refid="selectColumn"/>
+        from t_meeting_task tmt
+        LEFT JOIN t_meeting tm on tm.id = tmt.meet_id
+        where tmt.state>-2 and tmt.meet_id = #{meetId} and tm.state>-9
+    </select>
+
+    <!--查看会议总任务数-->
+    <select id="getMeetingTaskTotal" resultType="java.lang.Integer">
+        select count(*)
+        from t_meeting_task tmt
+        where tmt.state>-2 and tmt.meet_id = #{meetId}
+    </select>
+
+    <select id="meetingUser" resultType="com.qinfei.qferp.entity.meeting.MeetingUser">
+      SELECT
+    tmt.id as meetTaskId,
+    tmu.user_type as userType ,
+    GROUP_CONCAT(su.id ) AS nameId,
+    GROUP_CONCAT(su.name) AS NAME
+    FROM
+        t_meeting_task tmt
+    LEFT JOIN t_meeting_user tmu on tmt.id= tmu.meet_task_id
+    LEFT JOIN sys_user su on tmu.user_id = su.id
+    WHERE
+    tmt.state >- 2
+    <if test="ids !=null and ids.size() >0">
+      and tmt.id in
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+        #{id}
+    </foreach>
+    </if>
+    GROUP BY
+    tmu.user_type ,tmt.id
+    </select>
+
+    <update id="meetingDelay"  parameterType="java.lang.Integer">
+        UPDATE t_meeting_task
+        <set>
+            <if test="title !=null">title = #{title},</if>
+            <if test="content !=null">content = #{content},</if>
+            <if test="state !=null">state = #{state},</if>
+            <if test="startTime !=null">start_time =#{startTime},</if>
+            <if test="endTime !=null">end_time =#{endTime},</if>
+            <if test="updateDate !=null">update_date = #{updateDate},</if>
+            <if test="updateId !=null">update_id = #{updateId},</if>
+        </set>
+        where id =#{id}
+    </update>
+    <select id="getMeetingTask" resultType="com.qinfei.qferp.entity.meeting.MeetingTask">
+        select <include refid="selectColumn"/>
+        from t_meeting_task tmt
+        where tmt.id = #{id}
+    </select>
+</mapper>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.plan.UserGroupTypeMapper">
+    <sql id="selectColumn">
+      tugt.id,
+      tugt.name,
+      tugt.state,
+      tugt.is_sys_default as isSysDefault,
+      tugt.create_date as createDate,
+      tugt.create_id as createId,
+      tugt.update_date as updateDate,
+      tugt.update_id as updateId,
+      tugt.company_code as companyCode
+    </sql>
+
+    <!--新增群组类型-->
+    <insert id="save" parameterType="com.qinfei.qferp.entity.plan.UserGroupType" useGeneratedKeys="true" keyProperty="id">
+        insert into t_user_group_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="state != null">state,</if>
+            <if test="isSysDefault != null">is_sys_default,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="state != null">#{state},</if>
+            <if test="isSysDefault != null">#{isSysDefault},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--根据ID修改群组类型-->
+    <update id="updateById" parameterType="com.qinfei.qferp.entity.plan.UserGroupType">
+        UPDATE t_user_group_type tupt
+        <set>
+            tupt.update_date = now(),
+            <if test="name != null and name != ''">tupt.name = #{name},</if>
+            <if test="updateId != null">tupt.update_id = #{updateId},</if>
+        </set>
+        WHERE
+        tupt.id = #{id}
+    </update>
+
+    <!--根据ID修改群组类型状态-->
+    <update id="updateStateById" parameterType="com.qinfei.qferp.entity.plan.UserGroupType">
+        UPDATE t_user_group_type tupt
+        SET
+         tupt.update_date = now(),
+         tupt.state = #{state},
+         tupt.update_id = #{updateId}
+        WHERE
+        tupt.id = #{id}
+    </update>
+
+    <!--根据ID获取-->
+    <select id="getGroupTypeById" resultType="com.qinfei.qferp.entity.plan.UserGroupType">
+        select <include refid="selectColumn"/>
+        from t_user_group_type tugt
+        WHERE
+        tugt.id = #{id}
+    </select>
+
+    <!--判断是否存在相同的群组类型-->
+    <select id="getSameNameCount" resultType="com.qinfei.qferp.entity.plan.UserGroupType">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_user_group_type tugt
+        WHERE
+          tugt.`name` = #{name}
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND tugt.company_code = #{companyCode}
+        </if>
+        AND tugt.is_sys_default = 0 and tugt.state = 0
+        <if test="id != null">
+            AND tugt.id <![CDATA[<>]]> #{id}
+        </if>
+        UNION
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+        	t_user_group_type tugt
+        WHERE
+          tugt.`name` = #{name} and tugt.state = 0
+        AND tugt.company_code = 'JT'
+        AND tugt.is_sys_default = 1
+    </select>
+
+    <!--查询用户公司的群组-->
+    <select id="listAllGroupType" resultType="com.qinfei.qferp.entity.plan.UserGroupType">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+        	t_user_group_type  tugt
+        WHERE tugt.state = 0
+        AND tugt.company_code = 'JT'
+        AND tugt.is_sys_default = 1
+        UNION
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_user_group_type tugt
+        WHERE tugt.state = 0
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND tugt.company_code = #{companyCode}
+        </if>
+        AND tugt.is_sys_default = 0
+
+    </select>
+
+
+</mapper>

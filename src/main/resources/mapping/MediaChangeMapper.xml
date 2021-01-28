@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaChangeMapper">
+  <sql id="selectColumn">
+    tmc.id as id,
+    tmc.plate_id as plateId,
+    tmc.media_id as mediaId,
+    tmc.media_name as mediaName,
+    tmc.user_id as userId,
+    tmc.create_date as createDate,
+    tmc.audit_user_id as auditUserId,
+    tmc.audit_user_name as auditUserName,
+    tmc.change_content as changeContent,
+    tmc.company_code as companyCode,
+    tmc.state as state
+  </sql>
+
+  <!--新增所有列-->
+  <insert id="save" keyProperty="id" useGeneratedKeys="true">
+        insert into t_media_change
+        (
+          plate_id,
+          media_id,
+          media_name,
+          user_id,
+          create_date,
+          audit_user_id,
+          audit_user_name,
+          change_content,
+          company_code,
+          state
+        )
+        values 
+        (
+          <if test="plateId != null">
+              #{plateId},
+          </if>
+          <if test="mediaId != null">
+              #{mediaId},
+          </if>
+          <if test="mediaName != null and mediaName != ''">
+              #{mediaName},
+          </if>
+          <if test="userId != null">
+              #{userId},
+          </if>
+          <if test="createDate != null">
+              #{createDate},
+          </if>
+          <if test="auditUserId != null">
+              #{auditUserId},
+          </if>
+          <if test="auditUserName != null and auditUserName != ''">
+              #{auditUserName},
+          </if>
+          <if test="changeContent != null and changeContent != ''">
+              #{changeContent},
+          </if>
+          <if test="companyCode != null and companyCode != ''">
+              #{companyCode},
+          </if>
+          <if test="state != null">
+              #{state}
+          </if>
+         )
+    </insert>
+
+  <!--批量插入媒体异动表-->
+  <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+    insert into t_media_change
+    (
+      plate_id,
+      media_id,
+      media_name,
+      user_id,
+      create_date,
+      audit_user_id,
+      audit_user_name,
+      change_content,
+      company_code,
+      state
+    )
+    VALUES
+    <foreach collection="list" item="mediaChange" index="index" separator=",">
+    (
+      #{mediaChange.plateId},
+      #{mediaChange.mediaId},
+      #{mediaChange.mediaName},
+      #{mediaChange.userId},
+      now(),
+      #{mediaChange.auditUserId},
+      #{mediaChange.auditUserName},
+      #{mediaChange.changeContent},
+      #{mediaChange.companyCode},
+      0
+    )
+    </foreach>
+  </insert>
+
+  <!--根据媒体ID获取异动列表-->
+  <select id="listMediaChangeByParam" resultType="com.qinfei.qferp.entity.media1.MediaChange">
+    SELECT
+    	<include refid="selectColumn"/>, su.name as userName
+    FROM
+    	t_media_change tmc
+    left join sys_user su on su.id = tmc.user_id
+    WHERE tmc.media_id in
+    <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+      #{mediaId}
+    </foreach>
+    ORDER BY tmc.media_id, tmc.create_date DESC
+  </select>
+
+  <!--获取指定异动信息-->
+  <select id="getMediaChangeById" resultType="com.qinfei.qferp.entity.media1.MediaChange">
+    SELECT
+      <include refid="selectColumn"/>
+    FROM
+    t_media_change tmc
+    WHERE tmc.id = #{id}
+  </select>
+
+</mapper>

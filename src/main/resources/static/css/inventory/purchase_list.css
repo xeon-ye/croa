@@ -1,0 +1,348 @@
+/*通用*/
+.input-readonly{
+    border: unset;
+    background-color: white!important;
+}
+
+.layui-tab{
+    margin: unset !important;
+}
+.ellipsisContent{
+    width: 98%;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow:hidden;
+}
+.operateContent{
+    width: 30%;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    color: #81CBFE;
+}
+.contentOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/*顶部搜索*/
+.topSearchOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 42px;
+    padding: 0 15px;
+    margin-bottom: 5px;
+    float: left;
+    background-color: white;
+}
+
+/*处理顶部搜索按钮*/
+.topSearchOuter > ul > li:last-child{
+    float: right;
+}
+.topSearchOuter > ul > li:last-child > input{
+    width: 240px;
+    height: 25px;
+    border: 1px solid #009688;
+    color: #009688;
+    padding-left: 5px;
+    border-radius: 3px;
+}
+.topSearchOuter > ul > li:last-child:after{
+    border-bottom: unset !important;
+}
+
+.searchIcon{
+    border: 0px solid red;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    opacity: 0.6;
+    color: #009688;
+}
+
+/*tab整体内容*/
+.bottomContentOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 91%;
+    background-color: white;
+    float: left;
+}
+
+/*tab内容搜索栏目*/
+.searchParamOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 50px;
+    float: left;
+    padding-top: 7px;
+}
+
+.paramDiv{
+    width: 20%;
+    height: 40px;
+    float: left;
+}
+.paramDiv > .layui-form-select, .paramDiv > input{
+    width: 60%;
+    display: inline-block;
+}
+.paramDiv > select{
+    width: 60%;
+}
+.paramDiv > button{
+    height: 37px;
+}
+
+.param2Div{
+    width: 21%;
+    height: 40px;
+    float: left;
+}
+
+.param2Div > .layui-form-select, .paramDiv > input{
+    width: 60%;
+    display: inline-block;
+}
+.param2Div > select{
+    width: 60%;
+}
+
+/*tab内容列表上方按钮*/
+.buttonGroupOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 40px;
+    float: left;
+    text-align: left;
+}
+.buttonGroupOuter > button{
+    margin-right: 10px;
+}
+
+/*tab内容列表*/
+.listContentOuter{
+    border: 0px solid red;
+    width: 100%;
+    flex: 1;
+    float: left;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/*表格单元格中控件样式*/
+.editInput{
+    width: 60px;
+    height: 20px;
+    text-align: center;
+    border: unset;
+    /*float: left;*/
+    margin-top: 2px;
+}
+.editButton{
+    height: 20px;
+    width: 20px;
+    border: unset;
+    /*float: left;*/
+    margin-top: 2px;
+    background-color: white;
+}
+
+.submitButton{
+    border: 1px solid #65C6FD;
+    height: 20px;
+    line-height: 20px;
+    color: #70C5FB;
+    font-size: 10px;
+    font-family: Candara;
+    margin-right: 5px;
+    padding: 2px 2px;
+    background-color: #E0F1F9;
+}
+
+.submitButton2{
+    border: 1px solid #65C6FD;
+    width: 30px;
+    height: 20px;
+    line-height: 20px;
+    display: none;
+    color: #70C5FB;
+    font-size: 10px;
+    font-family: Candara;
+    /*float: left;*/
+    margin-top: 2px;
+    background-color: #E0F1F9;
+}
+
+.button-style{
+    border: 1px solid #65C6FD;
+    height: 18px;
+    line-height: 18px;
+    color: #70C5FB;
+    font-size: 10px;
+    font-family: Candara;
+    margin-right: 5px;
+    padding: 2px 2px;
+    background-color: #E0F1F9;
+}
+
+.divStyle{
+    border: 1px solid #65C6FD;
+    height: 30px;
+    line-height: 30px;
+    color: #70C5FB;
+    font-size: 12px;
+    font-family: Candara;
+    margin-right: 5px;
+    padding: 10px 20px;
+    background-color: #E0F1F9;
+}
+
+.modalTableTotal{
+    display: flex;
+    justify-content: left;
+    padding-bottom:16px;
+}
+
+.modalTableTotal > div > span{
+    font-size: 14px;
+    font-family:Candara;
+}
+
+.modalTableTotal > div > .spanBox{
+    font-weight: bold;
+}
+
+/*弹出模态框-通用*/
+.stockModalCommon{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.stockModalBtnOuter{
+    border-bottom: 1px solid #E6E6E6;
+    width: 100%;
+    height: 50px;
+    float: left;
+    display: flex;
+    padding-left: 10px;
+    background-color: #F9FAFC;
+}
+
+.stockModalTitle{
+    border: 0px solid red;
+    width: 150px;
+    height: 50px;
+    line-height: 50px;
+    float: left;
+    text-align: left;
+    font-size: 15px;
+    font-family: Candara;
+    font-weight: bold;
+}
+
+.stockModalBtn{
+    border: 0px solid red;
+    width: 150px;
+    height: 50px;
+    flex: 1;
+    float: right;
+}
+
+.stockModalBtn > div{
+    height: 50px;
+    line-height: 50px;
+    border-left: 1px solid #E6E6E6;
+    width: 90px;
+    text-align: center;
+    cursor: pointer;
+    float: right;
+    font-weight: 400;
+}
+
+.stockModalBtn > div > i{
+    color: #A6C3DD;
+}
+
+.stockModalFormOuter{
+    border: 0px solid red;
+    width: 100%;
+    float: left;
+    padding-top: 20px;
+}
+
+.stockModalTableOuter{
+    border: 0px solid red;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    float: left;
+    padding-left: 5px;
+}
+
+.modalTableTitle{
+    border: 0px solid red;
+    height: 30px;
+    line-height: 30px;
+    float: left;
+    font-weight: bold;
+    padding-right: 40px;
+}
+
+.modalTableContent{
+    border: 0px solid red;
+    width: 100%;
+    flex: 1;
+    float: left;
+}
+.modalTableBottomContent{
+    border: 0px solid red;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    float: left;
+}
+
+.overFlowDiv{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+    overflow: visible !important;
+}
+/*解决下拉框被表格覆盖样式问题*/
+.layui-form-select dl {
+    z-index: 9999;
+}
+.layui-table-box {
+    overflow: visible
+}
+.layui-table-body{
+    overflow:visible;
+}
+/*去除单选框间距*/
+.layui-form-radio{
+    margin: 0px;
+    padding: 0px;
+}
+
+.layui-form-radio>i{
+    margin-right: 5px;
+}

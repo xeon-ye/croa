@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>会议管理</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <!--审核详情-->
+    <script src="/js/process/approveTask.js"></script>
+    <!--会议详情-->
+    <link href="/css/meeting/meetingDetail.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/meeting/meetingDetailCompont.js"></script>
+    <script type="text/javascript" src="/js/meeting/meetingManage.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <style type="text/css">
+
+        /*富文本编辑器背景颜色*/
+        .note-editable{
+            background-color: white;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script id="excludePeopleHtml" type="text/html">
+        {{each data value index}}
+        <hr>
+        <div class="col-sm-12">
+            <div class="col-md-2">
+                <input type="hidden" name="deptId" class="form-control" value="{{value[0].deptId}}">
+                <span class="i-checks">
+                    <input class="deptSpan" sign="dept{{value[0].deptId}}" type="checkbox" deptId="{{value[0].deptId}}"><i></i>
+                    <span>{{value[0].deptName}}</span>
+                </span>
+            </div>
+            <div id="all" class="col-sm-10">
+                {{each value v i}}
+                <div class="col-sm-3">
+                    <span class="i-checks">
+                        <input class="userSpan" type="checkbox" userId="{{v.id}}" userName="{{v.name}}" deptId="{{v.deptId}}"><i></i>
+                        <span>{{v.name}}</span>
+                    </span>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        <hr>
+        {{/each}}
+    </script>
+    <style type="text/css">
+        .userDivClass{
+            border: 1px solid #C7C7CD;
+            height: 100%;
+            width: 21%;
+            float: left;
+            height: 30px;
+            margin-top: 5px;
+            margin-left: 5px;
+            padding-right: 10px;
+            padding-left: 10px;
+            background-color: #f2f5ee;
+        }
+        .userClass{
+            width: 75%;
+            text-align: center;
+            float: left;
+            font-weight:bold;
+            height: 30px;
+            line-height: 30px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .deleteClass{
+            margin-left: 3%;
+            width: 17%;
+            float:right;
+            height: 30px;
+            line-height: 30px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .deleteClass:hover{
+            color: red;
+        }
+        .layui-layer-content{
+            overflow: hidden !important;
+            /*background-color: #f7f7f7 !important;*/
+        }
+    </style>
+    <script>
+        $(function () {
+            meetingorganization($("#meetUnit1"));
+            loadAllUserSearch3($("#empName"));
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    reflushTable();
+                }
+            });
+
+            //设置会议开始时间
+            var  startDate1 = {
+                elem:'#startDate1',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    if (this.dateTime.hours==0){
+                        alert("请选择会议详细时间");
+                        $("#startDate1").empty();
+                        return;
+                    }
+                },
+                ready:function (date) {
+                    this.dateTime.hours=8;
+                    this.dateTime.minutes=00;
+                    this.dateTime.seconds=00;
+                }
+            };
+            laydate.render(startDate1);
+            var  endDate1 = {
+                elem:'#endDate1',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    if (this.dateTime.hours==0){
+                        alert("请选择会议详细时间");
+                        $("#endDate1").empty();
+                        return;
+                    }
+                    if($("#startDate1").val()>value){
+                        alert("会议结束时间要大于开始时间");
+                    }
+
+                },
+                ready:function (date) {
+                    this.dateTime.hours=18;
+                    this.dateTime.minutes=00;
+                    this.dateTime.seconds=00;
+                }
+
+            };
+            laydate.render(endDate1);
+
+            var  startDelayDate1 = {
+                elem:'#startDelayDate1',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (vale,data) {
+
+                }
+            };
+            laydate.render(startDelayDate1);
+            var  endDelayDate1 = {
+                elem:'#endDelayDate1',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (vale,data) {
+
+                }
+            };
+            laydate.render(endDelayDate1);
+            var  startDate2 = {
+                elem:'#startDate2',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    commonObj.validateTaskTime(value, "#startDate2-error", "#endDate2-error", 1, "#endDate2");
+                }
+            };
+            laydate.render(startDate2);
+            var  endDate2 = {
+                elem:'#endDate2',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    commonObj.validateTaskTime(value, "#endDate2-error", "#startDate2-error", 0, "#startDate2");
+                }
+            };
+            laydate.render(endDate2);
+
+
+
+
+            var  startTime = {
+                elem:'#startTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    commonObj.validateTaskTime(value, "#startDate2-error", "#endDate2-error", 1, "#endDate2");
+                }
+            };
+            laydate.render(startTime);
+            var  endTime = {
+                elem:'#endTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,data) {
+                    commonObj.validateTaskTime(value, "#endDate2-error", "#startDate2-error", 0, "#startDate2");
+                },
+                ready:function (date) {
+                    this.dateTime.hours=23;
+                    this.dateTime.minutes=59;
+                    this.dateTime.seconds=59;
+                }
+            };
+            laydate.render(endTime);
+            //添加switch监听
+            layui.use('form', function(){
+                var form = layui.form;
+                form.on('switch', function(data) {
+                    var status = data.elem.checked;//开关是否开启，true或者false
+                    if(status){
+                        $(data.elem).val(0);
+                    }else {
+                        $(data.elem).val(1);
+                    }
+                });
+            });
+        });
+        //加载tab页
+        layui.use('element', function(){
+            var element = layui.element;
+            element.on('tab(docDemoTabBrief)', function(data){
+                commonObj.tabChange(data.index);
+            });
+            element.on('tab(docDemoTabBrief1)', function(data){
+                commonObj.tabChange1(data.index);
+            });
+
+        });
+
+
+        //搜索单击事件
+        function searchBtn() {
+            reflushTable();
+        }
+    </script>
+</head>
+<body>
+
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0px;">
+    <ul class="layui-tab-title">
+        <li class="layui-this">会议管理</li>
+        <li>会议任务</li>
+    </ul>
+    <!--会议管理-->
+    <div class="row tabContent" id="meetingTab" style="display: none;" >
+        <div class="ibx-content">
+            <div class="ibox-title">
+                <button id="tableExportBtn" onclick="addBtnClick();" class="btn btn-primary" style="margin-left: 3px" type="button">
+                    <i class="fa fa-plus"></i>&nbsp;新增会议
+                </button>
+            </div>
+            <div class="wrapper wrapper-content animated fadeInRight">
+                <form id="queryForm">
+                    <div class="row">
+                        <div class="col-sm-12" style="padding-right: 0px; padding-left: 0px;">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="ibox-title">
+                                    <h5 style="font-weight:bold">查询条件</h5>
+                                </div>
+                                <div class="ibox-content col-sm-12" style="display: table">
+                                    <div class="col-sm-12 form-group">
+                                        <label class="control-label col-sm-1" style="float: left;text-align: right;margin-top: 7px">会议室地址：</label>
+                                        <div class="col-sm-1">
+                                            <input type="text"  name="address" class="form-control">
+                                        </div>
+                                        <label class=" col-sm-1 control-label" style="float: left;text-align: right;margin-top: 7px">会议名称：</label>
+                                        <div class="col-sm-1">
+                                            <input type="text"  name="title" class="form-control">
+                                        </div>
+                                        <label class="col-sm-1 control-label" style="float: left;text-align: right;margin-top: 7px">预定人：</label>
+                                        <div class="col-sm-1">
+                                            <input type="text"  name="userName" class="form-control">
+                                        </div>
+                                        <label class="col-sm-1 control-label" style="float: left;text-align: right;margin-top: 7px">会议时间:</label>
+                                        <div class="col-sm-4">
+                                            <input placeholder="开始时间" id="startTime" name="startTime"  style="width:37%;margin-right: 10px;vertical-align: middle" class="col-sm-1 form-control  layer-date laydate-icon "  readonly="readonly"> &nbsp;&nbsp;
+                                                <input placeholder="结束时间" id="endTime" name="endTime" style="width:37%;vertical-align: middle" class="col-sm-1 form-control layer-date laydate-icon "  readonly="readonly">
+                                        </div>
+                                        <button type="button" id="dataSearch" class="btn btn-warning">
+                                            <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+            <div class="ibox-content" style="padding-top: 0px !important;">
+                <div class="jqGrid_wrapper">
+                    <table id="meetingTable"></table>
+                    <div id="meetingPaper"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--会议任务-->
+    <div id="meetingTestTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="row">
+            <div class="ibox-title">
+                <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief1" style="margin: 0px;">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this">全部</li>
+                        <li>我的任务</li>
+                        <li>督办任务</li>
+                    </ul>
+                </div>
+            </div>
+            <!--全部-->
+            <div class="tabContent1 " id="allMeetingTask">
+                <div style="padding-top: 0px !important;">
+                    <div class="jqGrid_wrapper">
+                        <table id="meetingTest"></table>
+                        <div id="meetingTestPaper"></div>
+                    </div>
+                </div>
+            </div>
+            <!--我的-->
+
+            <div class="tabContent1" id="meMeetingTask">
+                <div style="padding-top: 0px !important;">
+                    <div class="jqGrid_wrapper">
+                        <table id="meetingTest1"></table>
+                        <div id="meetingTestPaper1"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!--督办-->
+            <div class="tabContent1" id="duMeetingTask">
+                <div style="padding-top: 0px !important;">
+                    <div class="jqGrid_wrapper">
+                        <table id="meetingTest2"></table>
+                        <div id="meetingTestPaper2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<!--新增、查看会议-->
+<div class="modal inmodal fade" id="addMeetingRoom" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2 class="modal-title add">新增会议</h2>
+                <h2 class="modal-title edit">编辑会议</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 600px;">
+                <form id="addMeetingFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <div class="col-md-12">
+                        <input type="hidden" name="id">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议类型:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <select id="meetType" name="meetType" class="form-control height18" lay-search lay-filter="meetUnit" >
+                                    <option value="">请选择会议类型</option>
+                                    <option value="1">年会</option>
+                                    <option value="2">年中大会</option>
+                                    <option value="3">月总结大会</option>
+                                    <option value="4">复盘会</option>
+                                    <option value="5">业务交流会</option>
+                                    <option value="6">部长会</option>
+                                    <option value="7">部长月总结大会</option>
+                                    <option value="8">部门会</option>
+                                    <option value="9">述职会</option>
+                                    <option value="10">股东会</option>
+                                    <option value="11">董事会</option>
+                                    <option value="12">战略研讨会</option>
+                                    <option value="13">管理经营会</option>
+                                    <option value="14">其他临时会</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议名称:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="title" placeholder="会议名称" class="form-control" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议开始时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="startTime" id="startDate1" placeholder="会议开始时间" class="form-control"required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议结束时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="endTime" id="endDate1" placeholder="会议时间" class="form-control"required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议地址:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="address" placeholder="会议地址" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议纪要人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <select id="empName" name="meetSummaryId" class="form-control" lay-verify="" lay-search placeholder="请选择记录人名称">
+                                    <option value="">请选择</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议主持人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDiv" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showUserDiv" type="button" id="savaInsiders" onclick="tast(this);" class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>添加公司人员
+                                </button>
+                                <button type="button" data-divId="showUserDiv" id="savaExternal" class="btn btn-primary" onclick="addExternal(this)" style="margin-left: -17px;">
+                                    <i class="fa fa-search"></i>添加外部人员
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议组织人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDiv1" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showUserDiv1" type="button" id="savaInsiders1" onclick="tast(this);" class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>添加公司人员
+                                </button>
+                                <button data-divId="showUserDiv1"  type="button" id="savaExternal1" class="btn btn-primary" onclick="addExternal(this)" style="margin-left: -17px;">
+                                    <i class="fa fa-search"></i>添加外部人员
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议参与人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDiv2" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showUserDiv2"  type="button" id="savaInsiders2" onclick="tast(this);"class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>添加公司人员
+                                </button>
+                                <button data-divId="showUserDiv2"  type="button" id="savaExternal2" class="btn btn-primary" onclick="addExternal(this)" style="margin-left: -17px;">
+                                    <i class="fa fa-search"></i>添加外部人员
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                会议内容:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-12">
+                                <textarea name="content" id="content" maxlength="300" placeholder="请输入会议内容  " style="width: 92%;" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                关联会议:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <select name="relateMeetId" id="meetUnit1" class="form-control height18" lay-verify="meetUnit" lay-search>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                附件:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <input type="hidden" name="affixLink">
+                            <input type="hidden" name="affixName">
+                            <div class="col-sm-12">
+                                <div id="affixDiv" name="attachment" ></div>
+                                <input type="file" id="attachmentName" name="attachment" class="form-control showOnEdit" multiple>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="taskId" name="taskId" class="form-control">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn" type="button" class="btn btn-primary add" onclick="addMeeting(this,'/meeting/addMeeting')"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button id="editMeetingBtn" type="button" class="btn btn-primary edit" onclick="addMeeting(this,'/meeting/updateMeeting')"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--查看会议-->
+<div class="modal inmodal fade" id="viewMeetingRoom" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2  class="modal-title view">查看会议</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 600px;">
+                <form id="viewMeetingFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议类型:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <!--<select id="meetType" name="meetType" class="form-control height18" lay-search lay-filter="meetUnit" >-->
+                                    <!--<option value="">请选择会议类型</option>-->
+                                    <!--<option value="1">年会</option>-->
+                                    <!--<option value="2">年中大会</option>-->
+                                    <!--<option value="3">月总结大会</option>-->
+                                    <!--<option value="4">复盘会</option>-->
+                                    <!--<option value="5">业务交流会</option>-->
+                                    <!--<option value="6">部长会</option>-->
+                                    <!--<option value="7">部长月总结大会</option>-->
+                                    <!--<option value="8">部门会</option>-->
+                                    <!--<option value="9">述职会</option>-->
+                                    <!--<option value="10">股东会</option>-->
+                                    <!--<option value="11">董事会</option>-->
+                                    <!--<option value="12">战略研讨会</option>-->
+                                    <!--<option value="13">管理经营会</option>-->
+                                    <!--<option value="14">其他临时会</option>-->
+                                <!--</select>-->
+                                <input name="meetType" id="meetTypeView" placeholder="会议类型" class="form-control" required >
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议名称:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="title" placeholder="会议名称" class="form-control" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议开始时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="startTime" placeholder="会议开始时间" class="form-control"required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议结束时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="endTime"  placeholder="会议时间" class="form-control"required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议地址:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="address" placeholder="会议地址" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议纪要人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <!--<select id="empName" name="meetSummaryId" class="form-control" lay-verify="" lay-search placeholder="请选择记录人名称">-->
+                                    <!--<option value="">请选择</option>-->
+                                <!--</select>-->
+                                <input name="meetSummaryName" placeholder="会议纪要人" class="form-control" required/>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议主持人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDivView" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议组织人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDiv1View" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议参与人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="showUserDiv2View" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                会议内容:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-12">
+                                <textarea name="content" id="contentView" maxlength="300" placeholder="请输入会议内容  " style="width: 92%;" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                关联会议:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12 layui-form">
+                                <!--<select name="relateMeetId" id="meetUnit1" class="form-control height18" lay-verify="meetUnit" lay-search>-->
+                                <!--</select>-->
+                                <input name="relateMeetName" placeholder="关联会议" class="form-control" required >
+
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                附件:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <input type="hidden" name="attachmentLink">
+                            <input type="hidden" name="attachmentName">
+                            <div class="col-sm-12">
+                                <div  class="form-group" style="display:none"  id="affixDivView" name="attachment"  ></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="taskId2" name="taskId" class="form-control">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" class="btn btn-success view" id="timeWorkPassView"
+                        onclick="approve(this)">审核通过
+                </button>
+                <button type="button" class="btn btn-danger view" id="timeWorkRejectView"
+                        onclick="reject(this)">审核驳回
+                </button>
+                <!--<button id="saveBtn" type="button" class="btn btn-primary add" onclick="addMeeting(this,'/meeting/addMeeting')"><i class="fa fa-save"></i>&nbsp;保存-->
+                <!--</button>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--增加会议记录/纪要框-->
+<div class="modal inmodal fade" id="addMeetingRecordModal"  role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h6 class="modal-title record">会议记录</h6>
+                <h6 class="modal-title minutes">会议纪要</h6>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 580px;">
+                <form id="addFormData" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <input type="hidden" id="recordType" name="recordType" class="form-control">
+                    <input type="hidden" id="meetId1" name="meetId" class="form-control">
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-2">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议名称:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input id="title1" name="title" placeholder="会议名称" class="form-control" readonly="readonly" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 add">
+                        <div class="form-group col-sm-2">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议可见人员:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <div class="col-sm-10">
+                                <div id="visibleUser" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 add">
+                                <button data-divId="visibleUser" type="button" id="visiblebtn"  onclick="tast(this);" class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>添加公司人员
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-2">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>内容:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-10">
+                            <div class="col-sm-10">
+                                <input type="hidden" class="form-control" name="content">
+                                <textarea id="editTool" style="width:800px;height:400px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" class="btn btn-primary" onclick="addRecord1(this,'/meetingRecordViewUser/addMeetingRecord')"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--查看会议任务框modal-->
+<div class="modal inmodal fade" id="meetingTastModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>会议任务表</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 750px;">
+                <form id="meetingTastFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <div class="ibox-content" >
+                        <input type="hidden" id="meetId2" name="">
+                        <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 15px !important;">
+                            <div class="jqGrid_wrapper">
+                                <table id="meetingTask"></table>
+                                <div id="meetingTaskPager"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增会议任务模态-->
+<div class="modal inmodal fade" id="addMeetingTest" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>新增会议任务</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 425px;">
+                <form id="addMeetingTestFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <input type="hidden" id="meetId" name="meetId" class="form-control">
+                    <input type="hidden" id="id" name="id" class="form-control">
+                    <input type="hidden" id="tableId"  class="form-control">
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>会议类型:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input id="meetType1" name="meetType" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>任务标题:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input id="title" name="title" placeholder="任务标题" class="form-control" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>开始时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="startTime" id="startDate2" placeholder="任务开始时间" class="form-control"required/>
+                                <!--这个当点击提交有表单校验信息，会覆盖内容，所以我们可以在结束日期确定事件中改变值-->
+                                <label class="error" id="startDate2-error" for="startDate2">
+
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>结束时间:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <input name="endTime" id="endDate2" placeholder="任务结束时间" class="form-control"required/>
+                                <!--这个当点击提交有表单校验信息，会覆盖内容，所以我们可以在结束日期确定事件中改变值-->
+                                <label class="error" id="endDate2-error" for="endDate2">
+
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>负责人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="headUser" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;"></div>
+                            </div>
+                            <div class="col-sm-1 add">
+                                <button data-divId="headUser" type="button" class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;" onclick="tast(this);">
+                                    <i class="fa fa-search"></i>&nbsp;添加公司人员
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>检查人:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-9">
+                                <div id="checkUser" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;"></div>
+                            </div>
+                            <div class="col-sm-1 add">
+                                <button data-divId="checkUser" type="button" class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;" onclick="tast(this);">
+                                    <i class="fa fa-search"></i>&nbsp;添加公司人员
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-12 control-label">
+                                <span class="text-red">*</span>任务内容:
+                            </label>
+                        </div>
+                        <div class="form-group col-sm-9">
+                            <div class="col-sm-12">
+                                <textarea id="content1" name="content" required maxlength="500" placeholder="请输入任务内容" class="form-control" style="width: 92%;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="margin-top: 0px;">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn1" type="button" class="btn btn-primary add" onclick="addMeetingTask(this,'/meetingTask/addMeetingTask',1,$('#tableId').val())"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button id="editBtn" type="button" class="btn btn-primary edit" onclick="addMeetingTask(this,'/meetingTask/editBaoMeetTask',2,$('#tableId').val())"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--任务延期日期-->
+<div class="modal inmodal fade" id="meetingDelayModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 30%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>会议延期日期设置</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 100px;">
+                <form id="meetingdelayFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <div class="ibox-content" >
+                        <div class="col-md-12">
+                            <input type="hidden" id="state" name="state">
+                            <input type="hidden" id="oldEndTime">
+                            <input type="hidden" id="taskId1" name="id">
+                            <input type="hidden" id="buttonId">
+                            <div class="form-group col-sm-4">
+                                <label class="col-sm-12 control-label">
+                                    <span class="text-red">*</span>任务延期结束时间:
+                                </label>
+                            </div>
+                            <div class="form-group col-sm-8">
+                                <div class="col-sm-12">
+                                    <input name="endTime" id="endDelayDate1" placeholder="任务延期结束时间" class="form-control"required/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="save1" onclick="baocData(this,1,$('#buttonId').val())" type="button">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--查看会议纪要 记录 列表-->
+<div class="modal inmodal fade" id="meetingRecordModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h6 class="modal-title record">会议记录表</h6>
+                <h6 class="modal-title minutes">会议纪要表</h6>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 750px;">
+                <form id="meetingRecordFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data" >
+                    <div class="ibox-content" >
+                        <input type="hidden" id="recordType1" name="recordType">
+                        <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 15px !important;">
+                            <div class="jqGrid_wrapper">
+                                <table id="meetingRecord"></table>
+                                <div id="meetingRecordPager"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增外部人员框modal-->
+<div class="modal inmodal" id="saveExternalModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content animated bounceInRight" style="height:240px">
+            <div class="modal-header">
+                <h4 class="modal-title">添加外部人员</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="row">
+                    <form id="addExternalForm" class="form-horizontal col-sm-12">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">外部人员名<span class="text-red">*</span>:</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="wordName" id="wordName" class="form-control" required>
+                            </div>
+                            <input type="hidden" name="groupId" id="groupId">
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12" style="text-align: right">
+                                <button class="btn btn-success" id="saveExternal" onclick="addUserword()" type="button">
+                                    <i class="fa fa-save"></i>&nbsp;保存
+                                </button>
+                                <button class="btn btn-danger backButton" id="cance3" data-dismiss="modal" type="button">
+                                    <i class="fa fa-close"></i>&nbsp;关闭
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--公司内部人员显示-->
+<div class="modal fade" id="evaluationModal" tabindex="-1" role="dialog" aria-labelledby="evaluationModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:70%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="evaluationModalLabel">公司人员</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label right0">员工姓名:</label>
+                        <div class="col-sm-5">
+                            <input type="text" data-id="meetingRoomId" id="nameQc" name="meetingRoomUser" class="form-control">
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" data-id="search" class="btn btn-primary" id="userSearch">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                        <span class="i-checks">
+                            <input data-id="all" type="checkbox" class=" level1"><i></i>
+                            <span style="font-size: 20px;">全选</span>
+                        </span>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 20px;">
+                        <div data-id="groups">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitEvaluationPeople">提交更改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</html>

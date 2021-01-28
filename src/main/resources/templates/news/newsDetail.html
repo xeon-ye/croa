@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <meta charset="UTF-8">
+    <title th:text="${#strings.abbreviate(news.title,10)}"></title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link href="/css/plugins/summernote/summernote.css" rel="stylesheet">
+    <link href="/css/plugins/summernote/summernote-bs3.css" rel="stylesheet">
+    <script src="/js/plugins/summernote/summernote.min.js"></script>
+    <script src="/js/plugins/summernote/summernote-zh-CN.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css"/>
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+
+    <script th:inline="javascript">
+    </script>
+    <style type="text/css">
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .article, .row, .ibox, .ibox-content {
+            height: 100%;
+        }
+
+        .indexHref {
+            color: #555;
+            font-size: 14px;
+            margin-right: 3px;
+        }
+
+        .bottom_href > a {
+            color: #999;
+            font-size: 16px;
+            margin-top: 60px;
+        }
+
+        .bottom_href > a:hover {
+            color: #1ab394;
+        }
+
+        .article h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2F4050;
+        }
+
+        .ibox-content {
+            display: table;
+            width: 100%;
+            height: 100%;
+        }
+
+        .article-content {
+            padding: 0 10px;
+            letter-spacing: 2pt;
+            font-size: 15px;
+            color: #686B6D;
+            overflow-y: auto;
+        }
+
+        .article-content p {
+            line-height: 26px;
+        }
+    </style>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight article">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1" style="height: 100%">
+            <div class="ibox">
+                <div class="ibox-content" style="padding: 10px;position: absolute">
+                    <div class="text-left col-sm-6 indexHref">
+                        <i class="fa fa-home"></i>
+                        <a href="/homePage" class="indexHref">首页</a> >
+                        <a href="/news/newsList" class="indexHref">列表</a> >
+                        <span class="text-danger">新闻详情</span>
+                    </div>
+                    <div class="pull-right">
+                        <span>发布日期：</span>
+                        <span class="btn btn-white btn-xs"
+                              th:text="${#dates.format(news.createTime, 'yyyy-MM-dd HH:mm')}"></span>
+                        <span class="btn btn-danger btn-xs" th:if="${news.type ==1}">集团新闻</span>
+                        <span class="btn btn-primary btn-xs" th:if="${news.type ==2}">公司新闻</span>
+                        <span class="btn btn-warning btn-xs" th:if="${news.type ==3}">图文新闻</span>
+                        <span class="btn btn-default btn-xs" th:if="${news.type ==4}">优秀事迹</span>
+                    </div>
+                    <div class="article-title">
+                        <h1 th:text="${news.title}"></h1>
+                    </div>
+
+                    <div th:utext="${news.content}" class="article-content">
+
+                    </div>
+                    <div class="modal-footer" style="bottom: 0;width: 99%;text-align: left">
+                        <div style="float: left;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;width: 400px;">
+                            <span th:if="${pre == null}">
+                                <a href="#">上一篇没有了</a>
+                            </span>
+                            <span th:if="${pre != null}">
+                                    <a th:title="${pre.title}" th:href="@{'/news/view/'+${pre.id}}" th:text="${'上一篇:'+pre.title}"></a>
+                            </span>
+                        </div>
+                        <div style="float: right;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;width: 400px;text-align: right;">
+                            <span th:if="${next == null}">
+                                <a href="#">下一篇没有了</a>
+                            </span>
+                            <span th:if="${next != null}">
+                                    <a th:title="${next.title}" th:href="@{'/news/view/'+${next.id}}" th:text="${'下一篇:'+next.title}"></a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+
+</script>
+</html>

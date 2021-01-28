@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>考核计划新增</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script th:src="@{//js/performance/performanceProgramAdd.js(v=${version})}"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+</head>
+<style type="text/css">
+    .float-div{
+        position: fixed;
+        width: 100%;
+        text-align: center;
+        z-index: 1;
+        bottom: 60px;
+    }
+    .control-label2{
+        padding-top: 7px!important;
+        text-align: right;
+    }
+    .modal-header{
+        border-bottom: 1px solid #e5e5e5!important;
+    }
+</style>
+<body>
+<div id="content">
+    <form id="editForm" class="form-horizontal" action="" type="post">
+        <input name="proId" id="proId" type="hidden">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">绩效考核计划</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal" style="margin-top: 10px">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label2">是否启用:</label>
+                                <div class="col-sm-2 radio i-checks">
+                                    <input checked type="radio" value="0" name="proUsed"/>启用
+                                    <input type="radio" value="1" name="proUsed"/>禁用
+                                </div>
+                                <label class="col-sm-1 control-label2">计划名称<span class="text-red">*</span>:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="proName" autocomplete="off" name="proName" class="form-control" required>
+                                </div>
+                                <label class="col-sm-1 control-label2">计划编码:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="proCode" name="proCode" class="form-control" readonly="readonly">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label2" style="float: left;text-align: right">计划类型<span class="text-red">*</span>：</label>
+                                <div class="col-sm-2">
+                                    <select id="proType" name="proType" class="form-control" required>
+                                        <option value="">请选择</option>
+                                        <option value="0">月度考核</option>
+                                        <option value="1">季度考核</option>
+                                        <option value="2">年中考核</option>
+                                        <option value="3">年终考核</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label2">统分比例<span class="text-red">*</span>:</label>
+                                <div class="col-sm-1">
+                                    <input type="text" style="width:85%;display:inline" id="proportionSelf" placeholder="自评权重"
+                                           name="proportionSelf" class="form-control" value="20" required>
+                                    <span class="text-red">%</span>
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" style="width:85%;display:inline" id="proportionLeader" placeholder="上级权重"
+                                           name="proportionLeader" class="form-control" value="80" required>
+                                    <span class="text-red">%</span>
+                                </div>
+                                <label class="col-sm-1 control-label2" style="text-align: right;float: left">考核日期<span class="text-red">*</span>：</label>
+                                <div class="col-sm-2">
+                                    <input class="input-sm form-control layer-date" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                           name="proBegin" placeholder="开始时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})" readonly/>
+                                    <input class="input-sm form-control layer-date" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                           name="proEnd" placeholder="结束时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})" readonly/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label2">考核方案:</label>
+                                <button type="button" class="btn btn-primary btn-circle glyphicon glyphicon-plus " style="margin-left: 20px;"
+                                        id="addSupplier" onclick="getPlate()"></button>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label2"></label>
+                                <div class="col-sm-8">
+                                    <table class="table table-bordered">
+                                        <colgroup>
+                                            <col width="20%">
+                                            <col width="70%">
+                                            <col width="10%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <td>考核方案</td>
+                                            <td>考核对象</td>
+                                            <td>合格等级</td>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="schemeDetail">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label2">备注:</label>
+                                <div class="col-sm-8">
+                                    <textarea cols="30" rows="5" id="proDesc" name="proDesc" class="form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="float-div form-group">
+                                <button type="button" id="save" class="btn btn-success save" onclick="submitHander(this,0)">
+                                    <i class="fa fa-save"></i>&nbsp;保存&nbsp;&nbsp;
+                                </button>
+                                <button type="button" class="btn btn-success cancelPlate">
+                                    取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--获取考核方案-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <form id="editForm1" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:600px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title ">考核方案列表</h4>
+                </div>
+                <div class="col-sm-12 form-horizontal" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label">方案类型:</label>
+                        <div class="layui-form col-sm-2">
+                            <select type="text" lay-filter="type" lay-verify="" lay-search id="schemeType" name="schemeType" class="form-control">
+                                <option value="">请选择</option>
+                                <option value="1">KPI方案</option>
+                                <option value="2">OKR方案</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-1 control-label">方案名称:</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="schName" name="schName" class="form-control"/>
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="button" id="schemeSearch" class="btn btn-primary" style="margin-right: 15px;">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div>
+                                <div class="jqGrid_wrapper">
+                                    <table id="entryTable"></table>
+                                    <div id="entryTableNav"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12" style="text-align: right;margin-top: 10px;">
+                            <button type="button" class="btn btn-primary " id="selectArticle">下一步</button>
+                            <button type="button" class="btn btn-danger" id="outWorkCancel1" data-dismiss="modal">
+                                <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

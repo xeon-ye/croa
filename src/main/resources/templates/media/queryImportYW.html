@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>临时稿件管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/media/queryImportYW.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script>
+        getTax();
+        function getTax() {
+            $.ajax({
+                type: "get",
+                url: "/dict/listByTypeCode2",
+                data: {typeCode: 'tax'},
+                dataType: "json",
+                success: function (data) {
+                    $("#taxesDiv").empty();
+                    var html = "<select class='form-control m-b' name='taxType' id='taxType'>";
+                    html += "<option value=''></option>";
+                    if (data != null) {
+                        html += "<option value='0' >" + "不开票" + "</option>";
+                        for (var i = 0; i < data.length; i++) {
+                            html += "<option value='" + data[i].name + "' >" + data[i].name + "</option>";
+                        }
+                        html += "</select>";
+                        $("#taxesDiv").append(html);
+                    }
+                    $("#taxType").change(function () {
+                        changeTax();
+                    })
+                }
+            })
+        }
+
+        function changeTax() {
+            var taxType = $("#taxType").val() ;
+            if (taxType != undefined && taxType != null) {
+                if(taxType=='0'){
+                    $("#tax").val(null);
+                }
+                $.ajax({
+                    type: "post",
+                    url: "/dict/view",
+                    data: {typeCode: 'tax', name: taxType},
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.code == 200) {
+                            if (data.data.entity != null) {
+                                $("#tax").val(data.data.entity.code);
+                            }
+                        } else {
+                            if (getResCode(data))
+                                return;
+                        }
+                    }
+                })
+            }else{
+                $("#tax").val(null);
+            }
+        }
+
+        $(function () {
+
+            var startTime = {
+                elem: '#startTime',
+                format: 'YYYY/MM/DD',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    endTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    endTime.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var endTime = {
+                elem: '#endTime',
+                format: 'YYYY/MM/DD',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    startTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            laydate(startTime);
+            laydate(endTime);
+
+            Views.loadParentMediaType("mType");
+        })
+    </script>
+</head>
+<body>
+<div>
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label right0">媒体板块:</label>
+                                <div class="col-sm-2">
+                                    <select name="mType" class="form-control height18">
+                                        <option value="">请选择</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">品牌:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="brand" name="brand" class="form-control">
+                                </div>
+                                <label class="col-sm-1 control-label">媒体:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="mediaName" name="mediaName" class="form-control">
+                                </div>
+                                <label class="col-sm-1 control-label">媒介:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="mediaUserName" name="mediaUserName" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">业务员:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="userName" name="userName" class="form-control">
+                                </div>
+                                <label class="col-sm-1 control-label">标题:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="title" name="title" class="form-control">
+                                </div>
+                                <label class="col-sm-1 control-label">发布时间:</label>
+                                <div class="col-sm-4" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:31%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="startTime" name="startTime">
+                                    <input placeholder="结束日期" style="width:31%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="endTime" name="endTime">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="completeBtn" class="btn btn-primary " type="button">
+                        <i class="glyphicon glyphicon-ok"></i>&nbsp; 完善订单
+                    </button>
+                    <button id="exportArticle" class="btn btn-primary" type="button">
+                        <i class="glyphicon glyphicon-export"></i>&nbsp;导出选中
+                    </button>
+                    <button id="exportAll" class="btn btn-primary" type="button">
+                        <i class="glyphicon glyphicon-export"></i>&nbsp;导出全部
+                    </button>
+                    <button id="importArticle" class="btn btn-primary" type="button">
+                        <i class="glyphicon glyphicon-import"></i>&nbsp;导入报价
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<label style="color: red;">提示：双击稿件修改品牌和收入金额，按enter键保存数据！</label>
+                </div>
+                <div class="ibox-content">
+                    <div class="jqGrid_wrapper">
+                        <table id="query_table_logs"></table>
+                        <div id="query_pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<form action="/articleImport/exportArticleYW" method="post" id="exportForm">
+    <input name="datas" type="hidden">
+</form>
+<!--完善订单-->
+<div class="modal inmodal" id="orderModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title ">完善订单</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="orderForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">客户公司名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" id="companyId" name="companyId" class="form-control"
+                                               readonly="readonly">
+                                        <input type="text" id="companyName" name="companyName" class="form-control"
+                                               readonly="readonly" required="">
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button type="button"
+                                                class="btn btn-primary btn-circle glyphicon  glyphicon-search"
+                                                id="selCust"></button>
+                                        <button type="button"
+                                                class="btn btn-warning btn-circle glyphicon  glyphicon-remove"
+                                                id="cleanCust"></button>
+                                    </div>
+                                    <label class="col-sm-1 control-label">客户对接人<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="custId" name="custId" class="form-control"
+                                               readonly="readonly">
+                                        <input type="text" id="custName" name="custName" class="form-control"
+                                               readonly="readonly" required="">
+                                    </div>
+                                    <label class="col-sm-1 control-label">税种:</label>
+                                    <div class="col-sm-3" id="taxesDiv">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">税点:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="tax" name="tax" class="form-control" placeholder="只允许小数，最多3位小数" >
+                                    </div>
+                                    <label class="col-sm-1 control-label">客户答应到款时间<span
+                                            class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="promiseDay" name="promiseDay" class="form-control"
+                                               onkeyup="this.value=this.value.toString().match(/^\d{1,3}/)"
+                                               placeholder="发稿后多少天打款，最大输入值999" required="">
+                                    </div>
+                                    <label class="col-sm-1 control-label">均价:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="avgPrice" name="avgPrice" class="form-control"
+                                               onkeyup="this.value=this.value.replace(/[^\d\.\-]/g,'')">
+                                    </div>
+                                    <!--<label class="col-sm-1 control-label">百分比<span class="text-red">*</span>:</label>-->
+                                    <!--<div class="col-sm-3 input-group m-b">-->
+                                        <!--<input type="text" id="percent" name="percent" class="form-control"-->
+                                               <!--onkeyup="this.value=this.value.toString().match(/^\d+(?:\.\d{0,2})?/)"-->
+                                               <!--required="">-->
+                                        <!--<span class="input-group-addon">%</span>-->
+                                    <!--</div>-->
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-1 control-label">订单标题：</label>
+                                    <div class="col-md-11">
+                                        <input name="title" id="title2" class="form-control"
+                                               placeholder="请输入订单标题"/>
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <label class="col-md-1 control-label">订单说明：</label>
+                                    <div class="col-md-11">
+                                    <textarea class="form-control" id="desc" name="desc"
+                                              style="resize:none;"
+                                              placeholder="请输入备注信息"></textarea>
+                                    </div>
+                                </div>
+                                <!--<div class="form-group">-->
+                                    <!--<div id="tips"><span>-->
+                                        <!--提示：1、如果临时稿件中的报价这一列没有值或为0，生成实际订单时系统自动计算：报价=成本*(1+利润)<br/>-->
+                                            <!--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+                                        <!--2、如果临时稿件中的报价这一列有值，生成实际订单时以该值作为报价。-->
+                                    <!--</span></div>-->
+                                <!--</div>-->
+                                <div class="form-group">
+                                    <div id="tips">
+                                        <span class="col-md-1"><span class="text-red">提示：</span></span>
+                                        <span class="col-md-11" >1、税种和税点仅供参考，稿件的实际税金以开票流程为准！<br/>
+                                            <span><strong>2、均价说明：填写后选中的稿件报价都将更新为均价。</strong></span>
+                                        </span>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="ibox-content">
+                                    <div class="form-horizontal" id="tj">
+                                        <div class="col-sm-offset-4 col-sm-2">
+                                            <label>报价合计:￥</label><span id="saleAmountSum"  class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label>成本合计:￥</label><span id="payAmountSum" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="jqGrid_wrapper">
+                                <table id="selected_article_table_logs"></table>
+                                <div id="selected_article_pager_logs"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div align="center">
+                                <input type="hidden" name="ids" id="ids">
+                                <button type="button" class="btn btn-primary " id="complete1"
+                                        onclick="complete(this)">确定订单
+                                </button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <button type="button" class="btn btn-danger" id="cancel" data-dismiss="modal">
+                                    &nbsp;关&nbsp;&nbsp;闭&nbsp;
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--查看页面-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title ">查看临时稿件信息</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="viewForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id1" name="id1" class="form-control">
+                                <div class="form-group update">
+                                    <label class="col-sm-2 control-label">板块类型<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="mediaTypeName1" name="mediaTypeName" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">媒体名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="mediaName1" name="mediaName" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                        <label class="col-sm-2 control-label">业务员<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" id="userName1" name="userName" class="form-control"
+                                                   required="" readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-2 control-label">媒介<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" id="mediaUserName1" name="mediaUserName" class="form-control"
+                                                   required="" readonly="readonly">
+                                        </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" id="title1" name="title" class="form-control" required=""
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">链接:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" id="link1" name="link" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">发布日期:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="发布日期" name="issuedDate" id="issuedDate"
+                                               class="form-control layer-date laydate-icon"
+                                               onclick="laydate({istime: true, format: 'YYYY-MM-DD'})" required=""
+                                               readonly="readonly"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">数量:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="num1" name="num" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">报价类型<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="priceType" name="priceType" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">成本<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="payAmount1" name="payAmount" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">品牌:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="brand1" name="brand" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">报价<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="saleAmount" name="saleAmount" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" id="remark1" name="remark" class="form-control"
+                                                  required="" readonly="readonly"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div id="auditFalse" class="">
+                                        <button type="button" class="btn btn-white" id="cancel1" data-dismiss="modal">
+                                            关闭
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--选择客户账号-->
+<div class="modal inmodal" id="custModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title ">选择客户信息</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="">
+                    <form id="custForm">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="">
+                                    <div class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">客户公司名称:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" id="companyNameQc1" name="companyName"
+                                                       class="form-control">
+                                            </div>
+                                            <label class="col-sm-2 control-label">客户联系人:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" id="custNameQc1" name="custName"
+                                                       class="form-control">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" id="custSearch" class="btn btn-primary">
+                                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox ">
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="select_cust_table_logs"></table>
+                                        <div id="select_cust_pager_logs"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="selectSupplier">选择</button>
+                                    <button type="button" class="btn btn-white" id="cancel2" data-dismiss="modal">关闭</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--批量导入报价-->
+<div class="modal inmodal" id="importModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="importForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">批量导入报价</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <span>提示：导出临时稿件列表，只允许修改【品牌】和【报价】，修改后通过【导入报价】按钮更新数据！</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">上传excel:</label>
+                                    <div class="col-sm-10">
+                                        <a id="" href="">
+                                            <span id="affixName"></span>
+                                        </a>
+                                        <input type="file" id="file" name="file" class="form-control">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary"
+                            onclick="submitHander(this,'/articleImport/batchSaleAmount')">批量导入报价
+                    </button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div style="display:none">
+    <a onfocus="this.blur();" download="导入失败详情.txt" id="createInvote" class="ipt-todo hide" >进账导入失败详情</a>
+</div>
+</body>
+</html>

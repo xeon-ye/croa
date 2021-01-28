@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="ballot" name="开票申请" isExecutable="true">
+    <documentation>开票申请的流程。</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <sequenceFlow id="sid-48C39814-EAAC-4308-B14A-F9E998F8DAD6" name="开始" sourceRef="startEvent" targetRef="leaderApprove"></sequenceFlow>
+    <userTask id="leaderApprove" name="主管领导审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.ballot.LeaderTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-A4F5C631-AB95-476C-8866-5CE9B6ADE48B" name="通过" sourceRef="leaderApprove" targetRef="financialSecretary"></sequenceFlow>
+    <userTask id="financialSecretary" name="财务部长审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.ballot.SecretaryFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-DF60EB8A-30D0-4F23-B9EA-920FF5A92972" name="通过" sourceRef="financialSecretary" targetRef="financeApprove"></sequenceFlow>
+
+    <userTask id="financeApprove" name="财务总监审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.ballot.FinanceTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-653258EC-A227-4880-9BB9-D3D44A7F9D41" name="通过" sourceRef="financeApprove" targetRef="FinancialAssistant"></sequenceFlow>
+
+    <userTask id="FinancialAssistant" name="财务助理开票">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.ballot.FinancialAssistantHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.ballot.ProcessFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-29CF61EC-C087-4AF3-8C26-F4F1A81DCDED" name="结束" sourceRef="FinancialAssistant" targetRef="endEvent"></sequenceFlow>
+    <endEvent id="endEvent" name="结束流程"></endEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ballot">
+    <bpmndi:BPMNPlane bpmnElement="ballot" id="BPMNPlane_ballot">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="270.0" y="163.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="390.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="financeApprove" id="BPMNShape_financeApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="765.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="1110.0" y="164.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="financialSecretary" id="BPMNShape_financialSecretary">
+        <omgdc:Bounds height="80.0" width="100.0" x="570.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="FinancialAssistant" id="BPMNShape_FinancialAssistant">
+        <omgdc:Bounds height="80.0" width="100.0" x="945.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-48C39814-EAAC-4308-B14A-F9E998F8DAD6" id="BPMNEdge_sid-48C39814-EAAC-4308-B14A-F9E998F8DAD6">
+        <omgdi:waypoint x="299.9499992392744" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="389.9999999999684" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-A4F5C631-AB95-476C-8866-5CE9B6ADE48B" id="BPMNEdge_sid-A4F5C631-AB95-476C-8866-5CE9B6ADE48B">
+        <omgdi:waypoint x="489.9499999999431" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="569.9999999998699" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-29CF61EC-C087-4AF3-8C26-F4F1A81DCDED" id="BPMNEdge_sid-29CF61EC-C087-4AF3-8C26-F4F1A81DCDED">
+        <omgdi:waypoint x="1044.95" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1110.0" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-DF60EB8A-30D0-4F23-B9EA-920FF5A92972" id="BPMNEdge_sid-DF60EB8A-30D0-4F23-B9EA-920FF5A92972">
+        <omgdi:waypoint x="669.9499999999999" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="765.0" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-653258EC-A227-4880-9BB9-D3D44A7F9D41" id="BPMNEdge_sid-653258EC-A227-4880-9BB9-D3D44A7F9D41">
+        <omgdi:waypoint x="864.9499999999431" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="944.9999999998699" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

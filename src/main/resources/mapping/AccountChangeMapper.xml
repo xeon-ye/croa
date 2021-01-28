@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.fee.AccountChangeMapper">
+  <sql id="selectColumn">
+    fac.id as id,
+    fac.account_id as accountId,
+    fac.account_name as accountName,
+    fac.account_owner as accountOwner,
+    fac.user_id as userId,
+    fac.user_name as userName,
+    fac.change_content as changeContent,
+    fac.create_date as createDate,
+    fac.state as state
+  </sql>
+
+  <!--新增所有列-->
+  <insert id="save" keyProperty="id" useGeneratedKeys="true">
+    insert into fee_account_change
+    (
+      account_id,
+      account_name,
+      account_owner,
+      user_id,
+      user_name,
+      change_content,
+      create_date,
+      state
+    )
+    values
+    (
+      <if test="accountId != null">#{accountId},</if>
+      <if test="accountName != null and accountName != ''">#{accountName},</if>
+      <if test="accountOwner != null and accountOwner != ''">#{accountOwner},</if>
+      <if test="userId != null">#{userId},</if>
+      <if test="userName != null and userName != ''">#{userName},</if>
+      <if test="changeContent != null and changeContent != ''">#{changeContent},</if>
+      now(),
+      <if test="state != null">#{state}</if>
+    )
+    </insert>
+
+  <!--批量插入供应商账户异动表-->
+  <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into fee_account_change
+        (
+          account_id,
+          account_name,
+          account_owner,
+          user_id,
+          user_name,
+          change_content,
+          create_date,
+          state
+        )
+        VALUES
+        <foreach collection="list" item="accountChange" index="index" separator=",">
+            (
+            #{accountChange.accountId},
+            #{accountChange.accountName},
+            #{accountChange.accountOwner},
+            #{accountChange.userId},
+            #{accountChange.userName},
+            #{accountChange.changeContent},
+            now(),
+            0
+            )
+        </foreach>
+    </insert>
+
+  <!--根据账户ID获取异动列表-->
+  <select id="listAccountChangeByParam" resultType="com.qinfei.qferp.entity.fee.AccountChange">
+    SELECT
+      <include refid="selectColumn"/>
+    FROM
+      fee_account_change fac
+    WHERE fac.account_id in
+    <foreach collection="accountIds" item="accountId" open="(" close=")" separator=",">
+        #{accountId}
+    </foreach>
+    ORDER BY fac.create_date DESC
+  </select>
+
+  <!--获取指定异动信息-->
+  <select id="getAccountChangeById" resultType="com.qinfei.qferp.entity.fee.AccountChange">
+    SELECT
+      <include refid="selectColumn"/>
+    FROM
+      fee_account_change fac
+    WHERE fac.id = #{id}
+  </select>
+</mapper>

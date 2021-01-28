@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>离职申请审核</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/process/approveTask.js"></script>
+    <script type="text/javascript" src="/js/employ/approve/leaveApprove.js"></script>
+</head>
+<body>
+<!-- 审核页面； -->
+<div class="modal inmodal" id="employModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width: 880px;">
+        <form id="approveForm">
+            <input type="hidden" name="agree"/>
+            <input type="hidden" name="deptId"/>
+            <input type="hidden" name="taskId"/>
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h4 class="modal-title">员工离职</h4>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">基本资料</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">姓名：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empName" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入姓名" maxlength="10" special="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">上级：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="deptLeaderName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入上级领导姓名" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">部门：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empDeptName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入部门名称" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职位：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empProfessionName"
+                                                   class="form-control" style="width: 78%;" placeholder="请输入职位名称"
+                                                   maxlength="10" special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">入职日期：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empDate" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入入职日期" maxlength="10" special="true"
+                                                   disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">员工状态：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" data="empState" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入员工状态" maxlength="10" special="true"
+                                                   disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">离职性质：</label>
+                                        <div class="col-sm-5" id="typeElement">
+                                            <span class="radio-inline i-checks">
+                                                <input type="radio" name="leaveType" value="0" disabled/>公司劝退
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="radio" name="leaveType" value="1" checked disabled/>个人离职
+                                            </span>
+                                        </div>
+                                        <label class="col-sm-1 control-label">离职日期：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="leaveDate" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入离职时间" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">离职缘由：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="leaveTypeContent" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入离职缘由" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">公司原因：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="0" disabled/>薪资福利差
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="1" disabled/>缺少培训提升机会
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="2" disabled/>工作环境不佳
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="3" disabled/>与同事关系不融洽
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="4" disabled/>不满公司的政策和制度
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="5" disabled/>与上司产生矛盾
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="6" disabled/>缺少晋升机会
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="7" disabled/>工作压力大
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leaveCompany" value="8" disabled/>其他
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">备注：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="leaveCompanyOther"
+                                                      placeholder="请输入公司其他原因备注" maxlength="500"
+                                                      special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">个人原因：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="0" disabled/>找到更好的职位
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="1" disabled/>身体健康原因
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="2" disabled/>自行创业
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="3" disabled/>转换行业
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="4" disabled/>家庭原因
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="5" disabled/>不续签劳动合同
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="6" disabled/>继续升学（研修深造）
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="leavePerson" value="7" disabled/>其他
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">备注：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="leavePersonOther"
+                                                      placeholder="请输入个人其他原因备注" maxlength="500"
+                                                      special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他原因：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="otherReason" value="0" disabled/>自动离职
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="otherReason" value="1" disabled/>工作不胜任职位要求
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="otherReason" value="2" disabled/>解雇
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="otherReason" value="3" disabled/>其他
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">备注：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="otherReasonRemark"
+                                                      placeholder="请输入其他原因备注" maxlength="500"
+                                                      special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">审批意见</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="desc" placeholder="请输入审核意见"
+                                                      maxlength="500" special="true" style="resize:none;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title approveUser">
+                    <h5 style="font-weight:bold">下一步审核</h5>
+                </div>
+                <div class="ibox-content approveUser">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label approveUser">审核人：</label>
+                                        <div class="col-sm-4 layui-form">
+                                            <input name="userName" type="hidden"/>
+                                            <select name="userId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="userId">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="text-align: center;">
+                    <button type="button" class="btn btn-primary" id="agreeEmploy" onclick="completeApprove(0)">
+                        <i class="fa fa-check"></i>&nbsp;&nbsp;同意
+                    </button>
+                    <button type="button" class="btn btn-danger" id="rejectEmploy" onclick="completeApprove(1)">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;拒绝
+                    </button>
+                    <button type="button" class="btn btn-white" onclick="returnApprove()">
+                        <i class="fa fa-backward"></i>&nbsp;&nbsp;返回
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

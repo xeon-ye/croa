@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 考核计划关联考核方案； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformanceProgramMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformanceProgram">
+        <id column="gra_id" jdbcType="INTEGER" property="graId"/>
+        <result column="pro_id" jdbcType="INTEGER" property="proId"/>
+        <result column="pro_name" jdbcType="VARCHAR" property="proName"/>
+        <result column="sch_id" jdbcType="INTEGER" property="schId"/>
+        <result column="sch_name" jdbcType="VARCHAR" property="schName"/>
+        <result column="sch_user_id" jdbcType="VARCHAR" property="schUserId"/>
+        <result column="sch_user_name" jdbcType="VARCHAR" property="schUserName"/>
+        <result column="post_id" jdbcType="INTEGER" property="postId"/>
+        <result column="post_name" jdbcType="VARCHAR" property="postName"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        gra_id, pro_id, pro_name, sch_id, sch_name, sch_user_id, sch_user_name, post_id, post_name,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_program
+        where gra_id = #{graId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!--通过计划id获取数据-->
+    <select id="selectByProId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.performance.PerformanceProgram" useCache="true">
+        select p.gra_id, p.pro_id, p.pro_name, p.sch_id, s.sch_name, p.sch_user_id, p.sch_user_name, p.post_id, p.post_name,
+        s.state schState,s.sch_level schLevel,s.sch_suffice schSuffice,s.scheme_type schemeType
+        from e_performance_program p
+        left join e_performance_scheme s on p.sch_id=s.sch_id
+        where p.pro_id = #{proId,jdbcType=INTEGER}
+        and p.state &lt;&gt; -1
+    </select>
+
+    <!--通过计划id进行伪删除-->
+    <update id="deleteByProId"  parameterType="java.lang.Integer">
+        update e_performance_program
+        set state = -1
+        where pro_id = #{proId} and state &lt;&gt; -1
+    </update>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformanceProgram" useGeneratedKeys="true"
+            keyProperty="graId">
+        insert into e_performance_program (gra_id, pro_id, pro_name, sch_id,
+        sch_name, sch_user_id, sch_user_name,
+        post_id, post_name,<include refid="EmployCommon.commonColumn"/>)
+        values (#{graId,jdbcType=INTEGER}, #{proId,jdbcType=INTEGER}, #{proName,jdbcType=VARCHAR},
+        #{schId,jdbcType=INTEGER}, #{schName,jdbcType=VARCHAR}, #{schUserId,jdbcType=VARCHAR},
+        #{schUserName,jdbcType=VARCHAR}, #{postId,jdbcType=INTEGER}, #{postName,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>)
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceProgram"
+            useGeneratedKeys="true" keyProperty="graId">
+        insert into e_performance_program
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="graId != null">
+                gra_id,
+            </if>
+            <if test="proId != null">
+                pro_id,
+            </if>
+            <if test="proName != null">
+                pro_name,
+            </if>
+            <if test="schId != null">
+                sch_id,
+            </if>
+            <if test="schName != null">
+                sch_name,
+            </if>
+            <if test="schUserId != null">
+                sch_user_id,
+            </if>
+            <if test="schUserName != null">
+                sch_user_name,
+            </if>
+            <if test="postId != null">
+                post_id,
+            </if>
+            <if test="postName != null">
+                post_name,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="graId != null">
+                #{graId,jdbcType=INTEGER},
+            </if>
+            <if test="proId != null">
+                #{proId,jdbcType=INTEGER},
+            </if>
+            <if test="proName != null">
+                #{proName,jdbcType=VARCHAR},
+            </if>
+            <if test="schId != null">
+                #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="schName != null">
+                #{schName,jdbcType=VARCHAR},
+            </if>
+            <if test="schUserId != null">
+                #{schUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="schUserName != null">
+                #{schUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="postId != null">
+                #{postId,jdbcType=INTEGER},
+            </if>
+            <if test="postName != null">
+                #{postName,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceProgram">
+        update e_performance_program
+        <include refid="EmployCommon.deleteInfo"/>
+        where gra_id = #{graId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceProgram">
+        update e_performance_program
+        <set>
+            <if test="proId != null">
+                pro_id = #{proId,jdbcType=INTEGER},
+            </if>
+            <if test="proName != null">
+                pro_name = #{proName,jdbcType=VARCHAR},
+            </if>
+            <if test="schId != null">
+                sch_id = #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="schName != null">
+                sch_name = #{schName,jdbcType=VARCHAR},
+            </if>
+            <if test="schUserId != null">
+                sch_user_id = #{schUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="schUserName != null">
+                sch_user_name = #{schUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="postId != null">
+                post_id = #{postId,jdbcType=INTEGER},
+            </if>
+            <if test="postName != null">
+                post_name = #{postName,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where gra_id = #{graId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceProgram">
+        update e_performance_program
+        set pro_id = #{proId,jdbcType=INTEGER},
+        pro_name = #{proName,jdbcType=VARCHAR},
+        sch_id = #{schId,jdbcType=INTEGER},
+        sch_name = #{schName,jdbcType=VARCHAR},
+        sch_user_id = #{schUserId,jdbcType=VARCHAR},
+        sch_user_name = #{schUserName,jdbcType=VARCHAR},
+        post_id = #{postId,jdbcType=INTEGER},
+        post_name = #{postName,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where gra_id = #{graId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

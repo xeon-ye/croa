@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title data-th-text="'异动统计-'+${AppName}"></title>
+    <!--    <link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script type="text/javascript" src="/js/biz/statistics/queryArticleChange.js"></script>
+    <script>
+        $(function () {
+            var issuedStartTime = {
+                elem: '#issuedStartTime',
+                format: 'YYYY-MM-DD ',
+                // max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    var issuedStartTime = $("#issuedStartTime").val();
+                    var issuedEndTime = $("#issuedEndTime").val();
+                    if(issuedStartTime && issuedEndTime && issuedStartTime > issuedEndTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#issuedStartTime").val("")
+                        return;
+                    }
+                }
+            };
+            var issuedEndTime = {
+                elem: '#issuedEndTime',
+                format: 'YYYY-MM-DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    var issuedStartTime = $("#issuedStartTime").val();
+                    var issuedEndTime = $("#issuedEndTime").val();
+                    if(issuedStartTime && issuedEndTime && issuedStartTime > issuedEndTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#issuedEndTime").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(issuedStartTime);
+            laydate(issuedEndTime);
+
+            var createStartTime = {
+                elem: '#createStartTime',
+                format: 'YYYY-MM-DD',
+                // max: laydate.now(),//最大日期
+
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    var createStartTime = $("#createStartTime").val();
+                    var createEndTime = $("#createEndTime").val();
+                    if(createStartTime && createEndTime && createStartTime > createEndTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#createStartTime").val("")
+                        return;
+                    }
+                }
+            };
+            var createEndTime = {
+                elem: '#createEndTime',
+                format: 'YYYY-MM-DD',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    var createStartTime = $("#createStartTime").val();
+                    var createEndTime = $("#createEndTime").val();
+                    if(createStartTime && createEndTime && createStartTime > createEndTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#createEndTime").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(createStartTime);
+            laydate(createEndTime);
+        });
+    </script>
+</head>
+<body>
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true">异动统计（发布日期）</a>
+                    </li>
+                    <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">异动统计（修改日期）</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="tab-1" class="tab-pane active">
+                        <div class="panel-body">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="">
+                                    <div class="form-horizontal" id="queryDiv">
+                                        <form id="queryForm">
+                                            <div class="form-group">
+                                                <input type="text" name="type" value="1" style="display:none"/>
+                                                <label class="col-sm-1 control-label">发布年月:</label>
+                                                <div class="col-sm-1">
+                                                    <select id="year" name="year" class="form-control">
+                                                        <option value="2019">2019</option>
+                                                        <option value="2020">2020</option>
+                                                        <option value="2021">2021</option>
+                                                        <option value="2022">2022</option>
+                                                        <option value="2023">2023</option>
+                                                        <option value="2024">2024</option>
+                                                        <option value="2025">2025</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <select id="month" name="month" class="form-control">
+                                                        <option value="1">一月</option>
+                                                        <option value="2">二月</option>
+                                                        <option value="3">三月</option>
+                                                        <option value="4">四月</option>
+                                                        <option value="5">五月</option>
+                                                        <option value="6">六月</option>
+                                                        <option value="7">七月</option>
+                                                        <option value="8">八月</option>
+                                                        <option value="9">九月</option>
+                                                        <option value="10">十月</option>
+                                                        <option value="11">十一月</option>
+                                                        <option value="12">十二月</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="margin-top:-8px;margin-bottom:-36px;">
+                                <div class="form-horizontal" id="tj">
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>业绩合计: ￥ </label><span id="saleSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>回款合计: ￥ </label><span id="incomeSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>税金合计: ￥ </label><span id="taxSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>退款合计: ￥ </label><span id="refundSum" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>其它支出合计: ￥ </label><span id="otherPaySum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>成本合计: ￥ </label><span id="outgoSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>利润合计: ￥ </label><span id="profitSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>提成合计: ￥ </label><span id="commSum" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>原始业绩合计: ￥ </label><span id="saleSumOriginal" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-title">
+                                <button class="btn btn-info alterBtn" type="button">
+                                    <i class="glyphicon glyphicon-link"></i>&nbsp;业绩统计&nbsp;
+                                </button>
+                                <button id="exportBtn" class="btn btn-default" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导&nbsp;出&nbsp;
+                                </button>
+                            </div>
+                            <div id="" class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="query_table_logs"></table>
+                                    <div id="query_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-2" class="tab-pane">
+                        <div class="panel-body">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="">
+                                    <div class="form-horizontal"  id="queryUserDiv">
+                                        <form id="queryUserForm">
+                                            <div class="form-group">
+                                                <input type="text" name="type" value="2" style="display:none"/>
+                                                <label class="col-sm-1 control-label">修改年月:</label>
+                                                <div class="col-sm-1">
+                                                    <select id="year1" name="year" class="form-control">
+                                                        <option value="2019">2019</option>
+                                                        <option value="2020">2020</option>
+                                                        <option value="2021">2021</option>
+                                                        <option value="2022">2022</option>
+                                                        <option value="2023">2023</option>
+                                                        <option value="2024">2024</option>
+                                                        <option value="2025">2025</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <select id="month1" name="month" class="form-control">
+                                                        <option value="1">一月</option>
+                                                        <option value="2">二月</option>
+                                                        <option value="3">三月</option>
+                                                        <option value="4">四月</option>
+                                                        <option value="5">五月</option>
+                                                        <option value="6">六月</option>
+                                                        <option value="7">七月</option>
+                                                        <option value="8">八月</option>
+                                                        <option value="9">九月</option>
+                                                        <option value="10">十月</option>
+                                                        <option value="11">十一月</option>
+                                                        <option value="12">十二月</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <button type="button" id="queryUserSearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="margin-top:-8px;margin-bottom:-36px;">
+                                <div class="form-horizontal" id="tj1">
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>业绩合计: ￥ </label><span id="saleSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>回款合计: ￥ </label><span id="incomeSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>税金合计: ￥ </label><span id="taxSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>退款合计: ￥ </label><span id="refundSum1" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>其它支出合计: ￥ </label><span id="otherPaySum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>成本合计: ￥ </label><span id="outgoSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>利润合计: ￥ </label><span id="profitSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>提成合计: ￥ </label><span id="commSum1" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-title">
+                                <button class="btn btn-info alterBtn" type="button">
+                                    <i class="glyphicon glyphicon-link"></i>&nbsp;业绩统计&nbsp;
+                                </button>
+                                <button id="exportUserBtn" class="btn btn-default" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导&nbsp;出&nbsp;
+                                </button>
+                            </div>
+                            <div id="notIncome1" class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="query_user_table_logs"></table>
+                                    <div id="query_user_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--异动详情-->
+<div class="modal inmodal" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">异动详情</h4>
+            </div>
+            <div class="">
+                <div class="">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="ibox-title">
+                                    <h5 style="font-weight: bold">查询条件</h5>
+                                </div>
+                                <div class="ibox-content" >
+                                    <div class="form-horizontal"  id="accountDiv">
+                                        <form id="detailForm">
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">发布时间:</label>
+                                                <div class="col-sm-3" style="min-width: 240px;">
+                                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                                           class="form-control layer-date laydate-icon " id="issuedStartTime" name="issuedStartTime" readonly="readonly">
+                                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                                           class="form-control layer-date laydate-icon" id="issuedEndTime" name="issuedEndTime" readonly="readonly">
+                                                </div>
+                                                <label class="col-sm-1 control-label">修改时间:</label>
+                                                <div class="col-sm-3" style="min-width: 240px;">
+                                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                                           class="form-control layer-date laydate-icon " id="createStartTime" name="createStartTime" readonly="readonly">
+                                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                                           class="form-control layer-date laydate-icon" id="createEndTime" name="createEndTime" readonly="readonly">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" name="deptName" class="form-control" placeholder="业务部门">
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <input type="text" name="userName"
+                                                           class="form-control" placeholder="业务员">
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <input type="text" name="mediaUserName"
+                                                           class="form-control" placeholder="媒介">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-sm-2 ">
+                                                    <input type="text" name="mediaName" class="form-control" placeholder="媒体名称">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" name="title"
+                                                           class="form-control" placeholder="标题">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" name="editDesc"
+                                                           class="form-control" placeholder="修改方式">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <button type="button" id="detailSearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;搜索&nbsp;
+                                                    </button>
+                                                    <button type="button" id="exportDetailBtn" class="btn btn-default">
+                                                        <i class="glyphicon glyphicon-export"></i>&nbsp;导出&nbsp;
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ibox-content" style="margin-top:-8px;margin-bottom:-36px;">
+                        <div class="form-horizontal" id="detailTj">
+                            <div class="form-group">
+                                <div class="col-sm-3">
+                                    <label>业绩合计: ￥ </label><span id="sale" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>回款合计: ￥ </label><span id="income" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>税金合计: ￥ </label><span id="tax" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>退款合计: ￥ </label><span id="refund" class="text-danger">0</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-3">
+                                    <label>其它支出合计: ￥ </label><span id="otherPay" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>成本合计: ￥ </label><span id="outgo" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>利润合计: ￥ </label><span id="profit" class="text-danger">0</span>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label>提成合计: ￥ </label><span id="comm" class="text-danger">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox ">
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="detail_table_logs"></table>
+                                        <div id="detail_pager_logs"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

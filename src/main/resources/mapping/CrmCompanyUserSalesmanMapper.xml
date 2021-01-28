@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmCompanyUserSalesmanMapper">
+
+    <resultMap type="com.qinfei.qferp.entity.crm.CrmCompanyUserSalesman" id="CrmCompanyUserSalesmanMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="companyUserId" column="companyUserId" jdbcType="VARCHAR"/>
+        <result property="typeIn" column="typeIn" jdbcType="VARCHAR"/>
+        <result property="typeOut" column="typeOut" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="INTEGER"/>
+        <result property="userName" column="userName" jdbcType="VARCHAR"/>
+        <result property="deptId" column="deptId" jdbcType="INTEGER"/>
+        <result property="deptName" column="deptName" jdbcType="VARCHAR"/>
+        <result property="startTime" column="startTime" jdbcType="TIMESTAMP"/>
+        <result property="endTime" column="endTime" jdbcType="TIMESTAMP"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="deleteFlag" column="deleteFlag" jdbcType="INTEGER"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="creator" column="creator" jdbcType="INTEGER"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="updateUserId" column="updateUserId" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 通用查询结果列-->
+    <sql id="Base_Column_List">
+    id as id,
+    company_user_id as companyUserId,
+    type_in as typeIn,
+    type_out as typeOut,
+    user_id as userId,
+    user_name as userName,
+    dept_id as deptId,
+    dept_name as deptName,
+    start_time as startTime,
+    end_time as endTime,
+    remark as remark,
+    state as state,
+    delete_flag as deleteFlag,
+    create_time as createTime,
+    creator as creator,
+    update_time as updateTime,
+    update_user_id as updateUserId
+    </sql>
+    <!--查询单个-->
+    <select id="getByCompanyUserId" resultMap="CrmCompanyUserSalesmanMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user_salesman
+        where company_user_id=#{companyUserId} and state = 1
+    </select>
+
+    <update id="expireSalesman">
+        update t_crm_company_user_salesman set
+            update_time = now(),
+            end_time = now(),
+            state = 0,
+            type_out = #{typeOut},
+            remark = #{remark},
+            update_user_id=#{loginUserId}
+            where state = 1 and company_user_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item.companyUserId}
+        </foreach>
+    </update>
+
+    <update id="expireSalesmanSingle">
+        update t_crm_company_user_salesman set
+        update_time = now(),
+        end_time = now(),
+        state = 0,
+        type_out = #{typeOut},
+        remark = #{remark},
+        update_user_id=#{loginUserId}
+        where state = 1 and company_user_id = #{companyUserId}
+    </update>
+
+    <select id="queryByCompanyUserId" resultType="map">
+        select
+            a.id as id,
+            c.name as companyName,
+            b.name as companyUserName,
+            a.user_name as userName,
+            a.type_in as typeIn,
+            a.type_out as typeOut,
+            DATE_FORMAT(a.create_time,'%Y-%m-%d %H:%i') as createTime,
+            a.remark as remark,
+            DATE_FORMAT(a.start_time,'%Y-%m-%d %H:%i') as startTime,
+            DATE_FORMAT(a.end_time,'%Y-%m-%d %H:%i') as endTime,
+            a.state as state
+        from t_crm_company_user_salesman a
+        left join t_crm_company_user b on a.company_user_id=b.id
+        left join t_crm_company c on b.company_id = c.id
+        where a.company_user_id = #{companyUserId} and b.delete_flag = 0 and a.delete_flag = 0
+        order by a.id desc
+    </select>
+
+    <!--保存-->
+    <insert id="saveSalesman" parameterType="map">
+        INSERT INTO `t_crm_company_user_salesman` (
+        `company_user_id`,
+        `type_in`,
+        `user_id`,
+        `user_name`,
+        `dept_id`,
+        `dept_name`,
+         `start_time`,
+         `end_time`,
+         `remark`,
+         `state`,
+         `delete_flag`,
+         `create_time`,
+         `creator`)
+        VALUES (#{companyUserId},
+            #{typeIn},
+            #{userId},
+            #{userName},
+            #{deptId},
+            #{deptName},
+            '2019-01-01 00:00:00',
+            '2099-12-31 23:59:59',
+            #{remark},
+            1,
+            0,
+            now(),
+            #{creator}
+        );
+    </insert>
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        insert into t_crm_company_user_salesman
+        ( company_user_id,
+        type_in,
+        user_id,
+        user_name,
+        dept_id,
+        dept_name,
+        start_time,
+        end_time,
+        remark,
+        state,
+        delete_flag,
+        create_time,
+        creator)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.companyUserId},
+            #{item.typeIn},
+            #{item.userId},
+            #{item.userName},
+            #{item.deptId},
+            #{item.deptName},
+            now(),
+            '2099-12-31 23:59:59',
+            #{item.remark},
+            1,
+            0,
+            now(),
+            #{item.loginUserId}
+            )
+        </foreach>
+    </insert>
+
+    <!--查询单个公司用户群体-->
+    <update id="updateSalesman" parameterType="map">
+        update t_crm_company_user_salesman
+        <set>
+            update_time = now(),
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+</mapper>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>未填写计划总结</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/plan/planNotEnterList.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <style type="text/css">
+        .ui-jqgrid{
+            width: 99% !important;
+        }
+        .ui-jqgrid-bdiv{/*表格展示滚动条*/
+            overflow: auto !important;
+        }
+        .subTitle{
+            height: 40px;
+            line-height: 40px;
+            width: 100%;
+            text-align: center;
+            background-color: #C7C7CD;
+            font-size: 16px;
+            font-weight: bold;
+            float: left;
+            margin-top: 20px;
+        }
+        .subContent{
+            border:1px solid #eee;
+            padding: 0px;
+            padding-top: 10px;
+            float: left;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+
+            //加载时间控件
+            var startDate = {
+                elem: '#startDate',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startDate").val("")
+                        return;
+                    }
+                    reflushTable();//刷新数据
+                }
+            };
+            laydate(startDate);
+            var endDate = {
+                elem: '#endDate',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#endDate").val("")
+                        return;
+                    }
+                    reflushTable();//刷新数据
+                }
+            };
+            laydate(endDate);
+
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //时间改变事件
+                form.on('select(timeQuantum)', function(data){
+                    searchForm.showDate(data.value);
+                });
+
+                //业务员改变事件
+                form.on('select(user)', function(data){
+                    reflushTable();//刷新数据
+                });
+
+                //期号改变事件
+                form.on('select(userGroup)', function(data){
+                    reflushTable();//刷新数据
+                });
+            });
+
+            //单选框注册
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            //单选和复选框添加选中事件
+            $("#queryForm").find('.i-checks').on('ifClicked', function (event) {
+                var input = $(this).find(" input");
+                $("#isOvertime").val(input.val());
+                reflushTable();
+            });
+
+            //导出功能
+            $("#tableExportBtn").click(function () {
+                var params = $("#queryForm").serializeJson();
+                location.href = "/userPlan/exportNotEnterPlanByParam" + "?" + $.param(params);
+            })
+        });
+    </script>
+</head>
+<body>
+<!--查询条件-->
+<form id="queryForm">
+    <div class="ibox-title">
+        <h4>查询条件</h4>
+    </div>
+    <div class="ibox-content" style="padding:0 0 0 0">
+        <div class="form-horizontal">
+            <div class="form-group" style="margin-top:5px;">
+                <label class="col-sm-1 control-label right0">时间范围:</label>
+                <div class="col-sm-1 layui-form">
+                    <!--时间段-->
+                    <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                        <option value="" selected>请选择时间</option>
+                        <option value="1">本周</option>
+                        <option value="2">本月</option>
+                        <option value="3">时间区间</option>
+                    </select>
+                </div>
+
+                <div id ="deptDiv" style="display:none">
+                    <label class="col-sm-1 control-label right0" id="deptLabel">部门:</label>
+                    <div class="col-sm-1" style="text-align:center">
+                        <input type="hidden" id="currentDeptId" name="currentDeptId" class="form-control">
+                        <input type="text" id="deptName" class="form-control height18" readonly="readonly"
+                               style="width:120%">
+                    </div>
+                    <div class="col-sm-1" style="text-align:center">
+                        <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                                id="selDept"></button>
+                        <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"
+                                id="cleanDept"></button>
+                    </div>
+                </div>
+
+                <label class="col-sm-1 control-label right0" id="userLabel">业务员:</label>
+                <div class="col-sm-1 layui-form">
+                    <select lay-filter="user" lay-search name="currentUserId" id="currentUserId" class="form-control height18">
+                    </select>
+                </div>
+
+                <label class="col-sm-1 control-label right0">期号:</label>
+                <div class="col-sm-1 layui-form">
+                    <select lay-filter="userGroup" lay-search id="userGroup" name="groupId" class="form-control height18">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="button" id="searchButton" class="btn btn-primary"
+                            style="float:left;margin-left:15px;"
+                            onclick="reflushTable();">
+                        <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                    </button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:5px;">
+                <div id="dateFormGroup" style="display: none">
+                    <label class="col-sm-1 control-label right0">选择时间范围:</label>
+                    <div class="col-sm-2" style="min-width:240px;">
+                        <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                               class="form-control layer-date" id="startDate" name="startDate">
+                        <span style="display:inline-block;padding:0 10px;">至</span>
+                        <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                               class="form-control layer-date" id="endDate" name="endDate">
+                    </div>
+                </div>
+
+               <!-- <label class="col-sm-1 control-label right0">是否超时:</label>
+                <div class="col-sm-2">
+                    <input type="hidden" id="isOvertime" name="isOvertime"/>
+                    <label class="radio-inline i-checks"><input type="radio" name="overtime">全部</label>
+                    <label class="radio-inline i-checks"><input type="radio" name="overtime" value="0">正常</label>
+                    <label class="radio-inline i-checks"><input type="radio" name="overtime" value="1">超时</label>
+                </div>-->
+
+
+            </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row">
+    <div class="ibox">
+        <div class="ibox-title">
+            <button id="tableExportBtn" class="btn btn-info" type="button">
+                <i class="fa fa-download"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+            </button>
+        </div>
+        <div class="ibox-content" style="padding-right: 0px !important;padding-left: 15px !important;">
+            <div class="jqGrid_wrapper" style="width: 100%;">
+                <table id="planTable"></table>
+                <div id="planTablePaper"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <h5>部门信息</h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增计划-->
+<div class="modal inmodal fade" id="addPlan" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>每日计划录入</h2>
+            </div>
+            <div class="modal-body" style="display: table">
+                <form id="addPlateFrom" autocomplete="off" class="form-horizontal" method="post">
+                    <div class="col-md-12 subContent">
+                        <div class="col-md-12">
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    录入人:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input id="userName" readonly type="text" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    所属部门:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input id="userDept" readonly type="text" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    当前日期:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input id="currentDate" readonly type="text" class="form-control"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="subTitle">
+                        昨天总结
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <div class="col-md-12">
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>业绩（元):
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="perfoSummary" type="number" onkeypress="return inPrice(event);" placeholder="业绩（元)" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>利润业绩（元）:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="profitSummary" type="number" onkeypress="return inPrice(event);" placeholder="利润业绩（元）" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>有效客户量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="yxCustomNumSummary" type="number" onkeypress="return inPrice(event);" placeholder="有效客户量" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>新成交客户量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="xcjCustomNumSummary" type="number" onkeypress="return inPrice(event);" placeholder="新成交客户量" class="form-control" required/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>跟进客户数量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="gjCustomNumSummary" type="number" onkeypress="return inPrice(event);" placeholder="跟进客户数量" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>推资源客户数量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="tzyCustomNumSummary" type="number" onkeypress="return inPrice(event);" placeholder="推资源客户数量" class="form-control" required/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="subTitle">
+                        今日计划
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <div class="col-md-12">
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>业绩（元):
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="perfoPlan" type="number" onkeypress="return inPrice(event);" placeholder="业绩（元)" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>利润业绩（元）:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="profitPlan" type="number" onkeypress="return inPrice(event);" placeholder="利润业绩（元）" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>有效客户量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="yxCustomNumPlan" type="number" onkeypress="return inPrice(event);" placeholder="有效客户量" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>新成交客户量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="xcjCustomNumPlan" type="number" onkeypress="return inPrice(event);" placeholder="新成交客户量" class="form-control" required/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>跟进客户数量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="gjCustomNumPlan" type="number" onkeypress="return inPrice(event);" placeholder="跟进客户数量" class="form-control" required/>
+                                </div>
+                            </div>
+                            <div class="form-group col-sm-3">
+                                <label class="col-sm-5 control-label">
+                                    <span class="text-red"> * </span>推资源客户数量:
+                                </label>
+                                <div class="col-sm-7">
+                                    <input name="tzyCustomNumPlan" type="number" onkeypress="return inPrice(event);" placeholder="推资源客户数量" class="form-control" required/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn" type="button" class="btn btn-primary" onclick="savePlan()"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

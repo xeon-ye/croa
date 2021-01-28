@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.WorkDateMapper">
+    <sql id="selectColumn">
+       twd.id,
+       DATE_FORMAT(twd.work_date,'%Y-%m-%d') AS workDate,
+       twd.date_type as dateType,
+       twd.create_date as createDate,
+       twd.create_id as createId,
+       twd.update_date as updateDate,
+       twd.update_id as updateId,
+       twd.company_code as companyCode,
+       twd.remarks,
+       twd.state
+    </sql>
+
+    <!--设置查询时间：默认本月-->
+    <sql id="recentTime">
+        <choose>
+            <!--本周-->
+            <when test="timeQuantum == 1">
+                and YEARWEEK(${timeField} - INTERVAL 1 DAY) = YEARWEEK(date_format(NOW(),'%Y-%m-%d') - INTERVAL 1 DAY)
+            </when>
+            <!--本月-->
+            <when test="timeQuantum == 2">
+                and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+            </when>
+            <!--本年-->
+            <when test="timeQuantum == 3">
+                and DATE_FORMAT(${timeField}, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+            </when>
+            <!--时间区间-->
+            <when test="timeQuantum == 4">
+                <choose>
+                    <when test="(startDate != null and startDate != '') || (endDate != null and endDate != '')">
+                        <if test="startDate != null and startDate != ''">
+                            AND ${timeField} <![CDATA[>=]]> #{startDate}
+                        </if>
+                        <if test="endDate != null and endDate != ''">
+                            AND ${timeField} <![CDATA[<=]]> #{endDate}
+                        </if>
+                    </when>
+                    <otherwise>
+                        and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+                    </otherwise>
+                </choose>
+            </when>
+            <!--当月-->
+            <otherwise>
+                and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!--新增日期-->
+    <insert id="save" parameterType="com.qinfei.qferp.entity.sys.WorkDate">
+        insert into t_work_date
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workDate != null">work_date,</if>
+            <if test="dateType != null">date_type,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="remarks != null">remarks,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="workDate != null">#{workDate},</if>
+            <if test="dateType != null">#{dateType},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="remarks != null">#{remarks},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增日期-->
+    <insert id="batchSave">
+        INSERT INTO t_work_date (
+          work_date,
+          date_type,
+          create_date,
+          create_id,
+          update_date,
+          update_id,
+          company_code,
+          remarks,
+          state
+        )
+        VALUES
+        <foreach collection="list" item="workdate" index="index" separator=",">
+            (
+              #{workdate.workDate},
+              #{workdate.dateType},
+              now(),
+              #{workdate.createId},
+              now(),
+              #{workdate.createId},
+              #{workdate.companyCode},
+              #{workdate.remarks},
+              0
+            )
+        </foreach>
+    </insert>
+
+    <!--根据ID修改日期-->
+    <update id="updateById" parameterType="com.qinfei.qferp.entity.sys.WorkDate">
+        UPDATE t_work_date
+        <set>
+            <if test="workDate != null">work_date = #{workDate},</if>
+            <if test="dateType != null">date_type = #{dateType},</if>
+            <if test="updateDate != null">update_date = #{updateDate},</if>
+            <if test="updateId != null">update_id = #{updateId},</if>
+            remarks = #{remarks},
+        </set>
+        WHERE
+          id = #{id}
+    </update>
+
+    <!--批量更新媒体扩展表-->
+    <update id="batchUpdate">
+        update t_work_date
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            <trim prefix="date_type = case " suffix="else date_type end,">
+                <foreach collection="workDateList" item="workDate" index="index">
+                    <if test="workDate.dateType != null">
+                        when id = #{workDate.id} then #{workDate.dateType}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="update_id = case " suffix="else update_id end,">
+                <foreach collection="workDateList" item="workDate" index="index">
+                    <if test="workDate.updateId != null">
+                        when id = #{workDate.id} then #{workDate.updateId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="remarks = case " suffix="else remarks end,">
+                <foreach collection="workDateList" item="workDate" index="index">
+                    <if test="workDate.remarks != null and workDate.remarks != ''">
+                        when id = #{workDate.id} then #{workDate.remarks}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where id in
+        <foreach item="workDate" collection="workDateList" index="index" open="(" close=")" separator=",">
+            #{workDate.id}
+        </foreach>
+    </update>
+
+    <!--根据ID修改日期状态-->
+    <update id="updateStateById">
+        UPDATE t_work_date
+          SET state = #{state}
+        WHERE
+          id = #{id}
+    </update>
+
+    <!--根据参数修改日期状态-->
+    <update id="updateStateByParam">
+        UPDATE t_work_date
+          SET state = #{state}
+        WHERE 1=1
+        <if test="workDate != null">
+            AND  work_date = #{workDate}
+        </if>
+        <if test="dateType != null">
+            AND  date_type = #{dateType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND  company_code = #{companyCode}
+        </if>
+        <if test="(startDate != null and startDate != '') || (endDate != null and endDate != '')">
+            <if test="startDate != null and startDate != ''">
+                AND  work_date <![CDATA[>=]]> #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND  work_date <![CDATA[<=]]> #{endDate}
+            </if>
+        </if>
+    </update>
+
+    <!--根据ID获取信息-->
+    <select id="getWorkDateById" resultType="com.qinfei.qferp.entity.sys.WorkDate">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_work_date twd
+        WHERE twd.state = 0
+        AND twd.id = #{id}
+    </select>
+
+    <!--根据工作日获取信息-->
+    <select id="getWorkDateByDate" resultType="com.qinfei.qferp.entity.sys.WorkDate">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_work_date twd
+        WHERE twd.state = 0
+          AND twd.work_date = #{workDate}
+          AND twd.company_code = #{companyCode}
+    </select>
+
+    <!--根据参数获取日期列表-->
+    <select id="listAllByParam" resultType="com.qinfei.qferp.entity.sys.WorkDate">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_work_date twd
+        WHERE twd.state = 0
+        <if test="workDate != null">
+            AND twd.work_date = #{workDate}
+        </if>
+        <if test="dateType != null">
+            AND twd.date_type = #{dateType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND twd.company_code = #{companyCode}
+        </if>
+        <if test="(startDate != null and startDate != '') || (endDate != null and endDate != '')">
+            <if test="startDate != null and startDate != ''">
+                AND twd.work_date <![CDATA[>=]]> #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND twd.work_date <![CDATA[<=]]> #{endDate}
+            </if>
+        </if>
+    </select>
+
+    <!--根据参数获取日期列表-->
+    <select id="listByParam" resultType="com.qinfei.qferp.entity.sys.WorkDate">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_work_date twd
+        WHERE twd.state = 0
+        <if test="workDate != null">
+            AND twd.work_date = #{workDate}
+        </if>
+        <if test="dateType != null">
+            AND twd.date_type = #{dateType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND twd.company_code = #{companyCode}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="twd.work_date"/>
+        </include>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                twd.date_type desc, twd.work_date Asc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--根据参数获取日期列表-->
+    <select id="listMapByParam" resultType="java.util.Map">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_work_date twd
+        WHERE twd.state = 0
+        <if test="workDate != null">
+            AND twd.work_date = #{workDate}
+        </if>
+        <if test="dateType != null">
+            AND twd.date_type = #{dateType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND twd.company_code = #{companyCode}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="twd.work_date"/>
+        </include>
+        ORDER BY twd.date_type desc, twd.work_date Asc
+    </select>
+
+</mapper>

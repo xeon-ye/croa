@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.inventory.InventoryCheckDetailsMapper">
+    <sql id="selectColumn">
+       cr.id,
+       cr.check_id as checkId,
+       cr.goods_id as goodsId,
+       cr.state,
+       cr.stock_amount as stockAmount,
+       cr.check_amount as checkAmount,
+       cr.profit_amount as profitAmount,
+       cr.loss_amount as lossAmount,
+       cr.create_id as createId,
+       cr.create_name as createName,
+       cr.create_time as createTime,
+       cr.update_user_id as updateUserId,
+       cr.update_time as updateTime,
+       cr.remark remark
+  </sql>
+    <!--查询库存预警分页数量-->
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+           SELECT
+             count(*)
+           FROM
+           (
+            SELECT
+                g.goods_id
+            FROM
+                t_saves_goods g
+            LEFT JOIN t_saves_goods_type gt ON gt.id = g.goods_id
+            WHERE g.state = 0
+            AND g.company_code =#{companyCode}
+            <if test="foreTypeIdQc!=null and foreTypeIdQc!=''">
+                and gt.parent_id=#{foreTypeIdQc}
+            </if>
+            <if test="foreGoodsNameQc!=null and foreGoodsNameQc!=''">
+                and gt.name like concat('%',#{foreGoodsNameQc},'%')
+            </if>
+            <if test="foreWareIdQc!=null and foreWareIdQc!=''">
+                and g.warehouse_id =#{foreWareIdQc}
+            </if>
+            GROUP BY
+                g.goods_id
+           ) t
+    </select>
+
+    <!--根据id查询库存预警数据-->
+    <select id="getStockData" resultType="java.util.Map" parameterType="java.util.List">
+        select gt.id goodsId,gt.code,gt.parent_id typeId,gt.name goodsName,gt.specs,gt.unit,
+        gt.stock_max_amount stockMaxAmount,gt.stock_min_amount stockMinAmount,
+        (
+          SELECT count(*) from t_saves_goods g where g.goods_id=gt.id and g.state=0
+          <if test="foreWareIdQc!=null and foreWareIdQc!=''">
+              and g.warehouse_id =#{foreWareIdQc}
+          </if>
+        ) amount
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <if test="foreTypeIdQc!=null and foreTypeIdQc!=''">
+            and gt.parent_id=#{foreTypeIdQc}
+        </if>
+        <if test="foreGoodsNameQc!=null and foreGoodsNameQc!=''">
+            and gt.name like concat('%',#{foreGoodsNameQc},'%')
+        </if>
+    </select>
+
+    <!--查询产品库存id-->
+    <select id="getStockIds" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select g.goods_id goodsId from t_saves_goods g
+        where g.state=0 and g.company_code=#{companyCode}
+        <if test="foreWareIdQc!=null and foreWareIdQc!=''">
+            and g.warehouse_id =#{foreWareIdQc}
+        </if>
+        group by g.goods_id
+    </select>
+
+    <select id="getCheckDetailsById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventoryStock.InventoryCheckDetails">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_check_details cr
+        where cr.id=#{id}
+    </select>
+
+    <select id="queryByCheckId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventoryStock.InventoryCheckDetails">
+        select gt.code goodsCode,gt.name goodsName,gt.specs,gt.unit,gt.price,
+        <include refid="selectColumn"/>
+        from t_saves_check_details cr
+        left join t_saves_goods_type gt on cr.goods_id=gt.id
+        where cr.check_id=#{id}
+    </select>
+
+    <select id="queryGoodsIdsByCheckId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select cr.goods_id
+        from t_saves_check_details cr
+        where cr.check_id=#{id}
+    </select>
+
+    <!--批量添加库存盘点明细-->
+    <insert id="addCheckDetailsBatch" parameterType="com.qinfei.qferp.entity.inventoryStock.InventoryCheckDetails">
+        insert into t_saves_check_details
+        (
+          check_id,
+          goods_id,
+          state,
+          stock_amount,
+          check_amount,
+          profit_amount,
+          loss_amount,
+          create_id,
+          create_name,
+          create_time,
+          update_user_id,
+          update_time,
+          remark
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+             #{item.checkId},
+             #{item.goodsId},
+             #{item.state},
+             #{item.stockAmount},
+             #{item.checkAmount},
+             #{item.profitAmount},
+             #{item.lossAmount},
+             #{item.createId},
+             #{item.createName},
+             #{item.createTime},
+             #{item.updateUserId},
+             #{item.updateTime},
+             #{item.remark}
+            )
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="editInventoryCheckDetails" parameterType="com.qinfei.qferp.entity.inventoryStock.InventoryCheckDetails">
+        update t_saves_check_details
+        <set>
+            <if test="goodsId != null">
+                goods_id = #{goodsId},
+            </if>
+            <if test="stockAmount != null">
+                stock_amount = #{stockAmount},
+            </if>
+            <if test="checkAmount != null">
+                check_amount = #{checkAmount},
+            </if>
+            <if test="profitAmount != null">
+                profit_amount = #{profitAmount},
+            </if>
+            <if test="lossAmount != null">
+                loss_amount = #{lossAmount},
+            </if>
+            <if test="createId != null">
+                create_id = #{createId},
+            </if>
+            <if test="createName != null and createName != ''">
+                create_name = #{createName},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                company_code = #{companyCode},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteCheckDetails">
+        update t_saves_check_details set state=#{state} where check_id=#{id}
+    </update>
+</mapper>

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 个人评分明细； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformanceDetailMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformanceDetail">
+        <id column="detail_id" jdbcType="INTEGER" property="detailId"/>
+        <result column="score_id" jdbcType="INTEGER" property="scoreId"/>
+        <result column="plate_id" jdbcType="INTEGER" property="plateId"/>
+        <result column="plate_level" jdbcType="INTEGER" property="plateLevel"/>
+        <result column="plate_proportion" jdbcType="REAL" property="plateProportion"/>
+        <result column="plate_parent" jdbcType="INTEGER" property="plateParent"/>
+        <result column="plate_content" jdbcType="VARCHAR" property="plateContent"/>
+        <result column="plate_target" jdbcType="VARCHAR" property="plateTarget"/>
+        <result column="plate_demand" jdbcType="VARCHAR" property="plateDemand"/>
+        <result column="score_self" jdbcType="REAL" property="scoreSelf"/>
+        <result column="score_leader" jdbcType="REAL" property="scoreLeader"/>
+        <result column="score_group" jdbcType="REAL" property="scoreGroup"/>
+        <result column="score_total" jdbcType="REAL" property="scoreTotal"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        detail_id, score_id, plate_id, plate_level, plate_proportion, plate_parent, plate_content,plate_target,plate_demand,
+        score_self, score_leader, score_group, score_total,remark,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_detail
+        where detail_id = #{detailId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_detail
+        where score_id = #{scoreId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail" useGeneratedKeys="true"
+            keyProperty="detailId">
+        insert into e_performance_detail (detail_id, score_id, plate_id,
+        plate_level, plate_proportion, plate_parent,
+        plate_content,plate_target,plate_demand, score_self, score_leader,
+        score_group, score_total,
+        <include refid="EmployCommon.commonColumn"/>)
+        values (#{detailId,jdbcType=INTEGER}, #{scoreId,jdbcType=INTEGER}, #{plateId,jdbcType=INTEGER},
+        #{plateLevel,jdbcType=INTEGER}, #{plateProportion,jdbcType=REAL}, #{plateParent,jdbcType=INTEGER},
+        #{plateContent,jdbcType=VARCHAR},#{plateTarget,jdbcType=VARCHAR},#{plateDemand,jdbcType=VARCHAR}, #{scoreSelf,jdbcType=REAL}, #{scoreLeader,jdbcType=REAL},
+        #{scoreGroup,jdbcType=REAL}, #{scoreTotal,jdbcType=VARCHAR},<include refid="EmployCommon.commonColumnInsert"/>)
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail"
+            useGeneratedKeys="true" keyProperty="detailId">
+        insert into e_performance_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="detailId != null">
+                detail_id,
+            </if>
+            <if test="scoreId != null">
+                score_id,
+            </if>
+            <if test="plateId != null">
+                plate_id,
+            </if>
+            <if test="plateLevel != null">
+                plate_level,
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion,
+            </if>
+            <if test="plateParent != null">
+                plate_parent,
+            </if>
+            <if test="plateContent != null">
+                plate_content,
+            </if>
+            <if test="plateTarget != null">
+                plate_target,
+            </if>
+            <if test="plateDemand != null">
+                plate_demand,
+            </if>
+            <if test="scoreSelf != null">
+                score_self,
+            </if>
+            <if test="scoreLeader != null">
+                score_leader,
+            </if>
+            <if test="scoreGroup != null">
+                score_group,
+            </if>
+            <if test="scoreTotal != null">
+                score_total,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="detailId != null">
+                #{detailId,jdbcType=INTEGER},
+            </if>
+            <if test="scoreId != null">
+                #{scoreId,jdbcType=INTEGER},
+            </if>
+            <if test="plateId != null">
+                #{plateId,jdbcType=INTEGER},
+            </if>
+            <if test="plateLevel != null">
+                #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateTarget != null">
+                #{plateTarget,jdbcType=VARCHAR},
+            </if>
+            <if test="plateDemand != null">
+                #{plateDemand,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreSelf != null">
+                #{scoreSelf,jdbcType=REAL},
+            </if>
+            <if test="scoreLeader != null">
+                #{scoreLeader,jdbcType=REAL},
+            </if>
+            <if test="scoreGroup != null">
+                #{scoreGroup,jdbcType=REAL},
+            </if>
+            <if test="scoreTotal != null">
+                #{scoreTotal,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <!-- 批量插入数据； -->
+    <insert id="insertBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="detailId">
+        insert into e_performance_detail(score_id, plate_id, plate_level, plate_proportion, plate_parent, plate_content,
+        plate_target,plate_demand,score_self, score_total, remark,create_id, create_name, create_time, state, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.scoreId,jdbcType=INTEGER},
+            #{item.plateId,jdbcType=INTEGER},
+            #{item.plateLevel,jdbcType=INTEGER},
+            #{item.plateProportion,jdbcType=REAL},
+            #{item.plateParent,jdbcType=INTEGER},
+            #{item.plateContent,jdbcType=VARCHAR},
+            #{item.plateTarget,jdbcType=VARCHAR},
+            #{item.plateDemand,jdbcType=VARCHAR},
+            #{item.scoreSelf,jdbcType=REAL},
+            #{item.scoreTotal,jdbcType=VARCHAR},
+            #{item.remark,jdbcType=VARCHAR},
+            #{item.createId,jdbcType=INTEGER},
+            #{item.createName,jdbcType=VARCHAR},
+            #{item.createTime,jdbcType=TIMESTAMP},
+            #{item.state,jdbcType=INTEGER},
+            #{item.version,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail">
+        update e_performance_detail
+        <include refid="EmployCommon.deleteInfo"/>
+        where detail_id = #{detailId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新评分； -->
+    <update id="updateScoreData" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail">
+        update e_performance_detail
+        <set>
+            <if test="scoreSelf != null">
+                score_self = #{scoreSelf,jdbcType=REAL},
+                score_total = #{scoreTotal,jdbcType=VARCHAR},
+                remark = #{remark,jdbcType=VARCHAR},
+                plate_target = #{plateTarget,jdbcType=VARCHAR},
+                plate_demand = #{plateDemand,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreLeader != null">
+                score_leader = #{scoreLeader,jdbcType=REAL},
+                score_total = #{scoreTotal,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreGroup != null">
+                score_group = #{scoreGroup,jdbcType=REAL},
+                score_total = #{scoreTotal,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where detail_id = #{detailId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail">
+        update e_performance_detail
+        <set>
+            <if test="scoreId != null">
+                score_id = #{scoreId,jdbcType=INTEGER},
+            </if>
+            <if test="plateId != null">
+                plate_id = #{plateId,jdbcType=INTEGER},
+            </if>
+            <if test="plateLevel != null">
+                plate_level = #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion = #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                plate_parent = #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                plate_content = #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateTarget != null">
+                plate_target = #{plateTarget,jdbcType=VARCHAR},
+            </if>
+            <if test="plateDemand != null">
+                plate_demand = #{plateDemand,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreSelf != null">
+                score_self = #{scoreSelf,jdbcType=REAL},
+            </if>
+            <if test="scoreLeader != null">
+                score_leader = #{scoreLeader,jdbcType=REAL},
+            </if>
+            <if test="scoreGroup != null">
+                score_group = #{scoreGroup,jdbcType=REAL},
+            </if>
+            <if test="scoreTotal != null">
+                score_total = #{scoreTotal,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where detail_id = #{detailId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceDetail">
+        update e_performance_detail
+        set score_id = #{scoreId,jdbcType=INTEGER},
+        plate_id = #{plateId,jdbcType=INTEGER},
+        plate_level = #{plateLevel,jdbcType=INTEGER},
+        plate_proportion = #{plateProportion,jdbcType=REAL},
+        plate_parent = #{plateParent,jdbcType=INTEGER},
+        plate_content = #{plateContent,jdbcType=VARCHAR},
+        plate_target = #{plateTarget,jdbcType=VARCHAR},
+        plate_demand = #{plateDemand,jdbcType=VARCHAR},
+        score_self = #{scoreSelf,jdbcType=REAL},
+        score_leader = #{scoreLeader,jdbcType=REAL},
+        score_group = #{scoreGroup,jdbcType=REAL},
+        score_total = #{scoreTotal,jdbcType=VARCHAR},
+        remark = #{remark,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where detail_id = #{detailId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:halign="http://www.w3.org/1999/xhtml">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>出差总结</title>
+    <link rel="stylesheet" href="/js/employ/rating/css/star-rating.min.css">
+    <link rel="stylesheet" href="/js/employ/rating/themes/krajee-fa/theme.css">
+
+    <script type="text/javascript" src="/js/employ/rating/js/star-rating.min.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/js/locales/zh.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/themes/krajee-fa/theme.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/image.util.js"></script>
+    <script type="text/javascript" src="/js/administrative/onBusiness.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form method="post" id="editForm">
+                        <input type="hidden" id="administrativeId" name="administrativeId">
+                        <input type="hidden" id="id" name="id">
+                        <table border="1px" width="50%" align="center" id="recordTable">
+                            <tr>
+                                <td colspan="6">
+                                    <h1 align="center">出差总结报告</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>报告日期</td>
+                                <td colspan="5"><input type="text" name="reportDate" id="reportDate" style="width: 100%; height: 100%"/></td>
+                            </tr>
+                            <tr>
+                                <td>汇报人</td>
+                                <input type="hidden" id="empId" name="empId">
+                                <td><input type="text" name="empName" id="empName" style="width: 100%; height: 100%"/></td>
+                                <td>所在部门</td>
+                                <input type="hidden" id="empDept" name="empDept">
+                                <td><input type="text" name="empDeptName" id="empDeptName" style="width: 100%; height: 100%"/></td>
+                                <td>职务</td>
+                                <td><input type="text" name="empDuty" id="empDuty" style="width: 100%; height: 100%"/></td>
+                            </tr>
+                            <tr>
+                                <td >出差汇报</td>
+                                <td colspan="5">
+                                    <textarea type="text" id="reportContent" name ="reportContent" style="width: 100%; height: 500px"></textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="6">
+                                    出差经费标准及流程与要求：<br/>
+                                    1）吃：每人每餐30元<br/>
+                                    2）住：300元/每人每晚，（北上广）如2人出差超过600元自费，600元以内实报实销<br/>
+                                    4）出差陪同人员2人以上<br/>
+                                    3）行：北京/广州首选普通火车（卧铺），上海首选动车/高铁<br/>
+                                    5）如需出差，出差人员提前3天申请，并填写《出差申请表》提交到相关领导批示后转行政和财务部门，走OA出差假期及预借款流程<br/>
+                                    6）出差完成后两个工作日提交出差总结报告给相关领导<br/>
+                                    7）出差完一周之内要把所有的出差费用清账报销<br/>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="col-sm-2" style="float: right; top: -15px;" align="center">
+
+                            <button type="button" class="btn btn-white" onclick="closePage()" style="float: right;">
+                                <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                            </button>
+                            <button type="button" class="btn btn-success save" id="baocun" style="float: right;margin-right: 10px;"
+                                    onclick="submitHander(this,'/onbusinessReport/addReport',0)">
+                                <i class="fa fa-pencil"></i>&nbsp;&nbsp;保存
+                            </button>
+                            <button type="button" class="btn btn-success update" id="baocun2" style="float: right;margin-right: 10px;"
+                                    onclick="submitHander(this,'/onbusinessReport/updateReport',0,1)">
+                                <i class="fa fa-pencil"></i>&nbsp;&nbsp;保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

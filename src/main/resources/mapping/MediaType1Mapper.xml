@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaType1Mapper">
+    <sql id="selectColumn">
+         tm.id,
+         tm.name,
+         tm.plate_id as plateId,
+         tm.parent_id as parentId,
+         tm.create_date as createDate,
+         tm.update_date as updateDate,
+         tm.is_delete as isDelete,
+         tm.versions
+    </sql>
+
+
+    <!--获取指定板块的媒体类型-->
+    <select id="listByPlateId" resultType="com.qinfei.qferp.entity.media1.MediaType1">
+        select
+          <include refid="selectColumn"/>
+        FROM
+        	t_media_type1 tm
+        WHERE tm.is_delete = 0 and tm.plate_id = #{plateId}
+    </select>
+
+
+
+</mapper>

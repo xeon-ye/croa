@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaExtendMapper">
+    <sql id="selectColumn">
+        tme.id,
+        tme.create_date as createDate,
+        tme.is_delete as isDelete,
+        tme.update_date as updateDate,
+        tme.versions,
+        tme.cell,
+        tme.cell_name as cellName,
+        tme.cell_value as cellValue,
+        tme.cell_value_text as cellValueText,
+        tme.db_type as dbType,
+        tme.type,
+        tme.media_id as mediaId
+    </sql>
+
+    <!--批量插入媒体扩展表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_media_extend (
+            create_date,
+            is_delete,
+            update_date,
+            versions,
+            cell,
+            cell_name,
+            cell_value,
+            cell_value_text,
+            db_type,
+            type,
+            media_id
+        )
+        VALUES
+        <foreach collection="list" item="mediaExtend" index="index" separator=",">
+        (
+            now(),
+            0,
+            now(),
+            0,
+            #{mediaExtend.cell},
+            #{mediaExtend.cellName},
+            #{mediaExtend.cellValue},
+            #{mediaExtend.cellValueText},
+            #{mediaExtend.dbType},
+            #{mediaExtend.type},
+            #{mediaExtend.mediaId}
+        )
+        </foreach>
+    </insert>
+
+    <!--批量插入媒体扩展表（含ID，数据迁移使用）-->
+    <insert id="saveBatchForId" parameterType="java.util.List">
+        INSERT INTO t_media_extend (
+        id,
+        create_date,
+        is_delete,
+        update_date,
+        versions,
+        cell,
+        cell_name,
+        cell_value,
+        cell_value_text,
+        db_type,
+        type,
+        media_id
+        )
+        VALUES
+        <foreach collection="list" item="mediaExtend" index="index" separator=",">
+            (
+            #{mediaExtend.id},
+            now(),
+            0,
+            now(),
+            0,
+            #{mediaExtend.cell},
+            #{mediaExtend.cellName},
+            #{mediaExtend.cellValue},
+            #{mediaExtend.cellValueText},
+            #{mediaExtend.dbType},
+            #{mediaExtend.type},
+            #{mediaExtend.mediaId}
+            )
+        </foreach>
+    </insert>
+
+    <!--批量更新媒体扩展表-->
+    <update id="updateBatch" parameterType="java.util.Map">
+        update t_media_extend
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="cell = case " suffix="end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cell != null and mediaExtend.cell != ''">
+                        when cell = #{mediaExtend.cell} then #{mediaExtend.cell}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_name = case " suffix="end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellName != null and mediaExtend.cellName != ''">
+                        when cell = #{mediaExtend.cell} then #{mediaExtend.cellName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value = case " suffix="end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellValue != null and mediaExtend.cellValue != ''">
+                        when cell = #{mediaExtend.cell} then #{mediaExtend.cellValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value_text = case " suffix="end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellValueText != null and mediaExtend.cellValueText != ''">
+                        when cell = #{mediaExtend.cell} then #{mediaExtend.cellValueText}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+          media_id = #{mediaId}
+          and cell in
+          <foreach item="mediaExtend" collection="mediaExtends" index="index" open="(" close=")" separator=",">
+              #{mediaExtend.cell}
+          </foreach>
+
+    </update>
+
+    <!--根据媒体ID和价格类型更新指定媒体价格-->
+    <update id="updateMediaPriceAsZero">
+        UPDATE t_media_extend tmea
+        SET
+        tmea.update_date = NOW(),
+        tmea.versions = tmea.versions + 1,
+        tmea.cell_value = '0.00'
+        WHERE
+        tmea.type = 'price'
+        AND tmea.media_id in
+        <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </update>
+
+    <!--批量更新媒体扩展表-->
+    <update id="updateBatchMoreMedia" parameterType="java.util.List">
+        update t_media_extend
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="cell = case " suffix="else cell end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cell != null and mediaExtend.cell != ''">
+                        when media_id =  #{mediaExtend.mediaId} and cell = #{mediaExtend.cell} then #{mediaExtend.cell}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_name = case " suffix="else cell_name end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellName != null and mediaExtend.cellName != ''">
+                        when media_id =  #{mediaExtend.mediaId} and cell = #{mediaExtend.cell} then #{mediaExtend.cellName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value = case " suffix="else cell_value end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellValue != null and mediaExtend.cellValue != ''">
+                        when media_id =  #{mediaExtend.mediaId} and cell = #{mediaExtend.cell} then #{mediaExtend.cellValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value_text = case " suffix="else cell end,">
+                <foreach collection="mediaExtends" item="mediaExtend" index="index">
+                    <if test="mediaExtend.cellValueText != null and mediaExtend.cellValueText != ''">
+                        when media_id =  #{mediaExtend.mediaId} and cell = #{mediaExtend.cell} then #{mediaExtend.cellValueText}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where media_id in
+        <foreach item="mediaExtend" collection="mediaExtends" index="index" open="(" close=")" separator=",">
+            #{mediaExtend.mediaId}
+        </foreach>
+    </update>
+
+    <!--根据媒体ID删除扩展表-->
+    <update id="deleteByMediaId">
+        delete from t_media_extend where media_id = #{mediaId}
+    </update>
+
+    <!--根据媒体ID批量删除扩展表-->
+    <update id="deleteBatch" parameterType="java.util.List">
+        delete from t_media_extend where
+        media_id in
+        <foreach collection="list" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </update>
+
+    <!--拷贝t_media_extend_audit表数据到该表-->
+    <insert id="copyMediaExtendByMediaIds" parameterType="java.util.List">
+        insert into
+        t_media_extend
+        select
+          NULL AS id,
+          tmea.create_date,
+          tmea.is_delete,
+          tmea.update_date,
+          tmea.versions,
+          tmea.cell,
+          tmea.cell_name,
+          tmea.cell_value,
+          tmea.cell_value_text,
+          tmea.db_type,
+          tmea.type,
+          tmea.media_id
+        from t_media_extend_audit tmea where tmea.media_id in
+        <foreach collection="list" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </insert>
+
+    <!--拷贝t_media_extend_audit表数据到该表-->
+    <insert id="copyMediaExtendByMediaId">
+        insert into
+        t_media_extend
+        select
+          NULL AS id,
+	      tme.create_date,
+	      tme.is_delete,
+	      tme.update_date,
+	      tme.versions,
+	      tme.cell,
+	      tme.cell_name,
+	      tme.cell_value,
+	      tme.cell_value_text,
+	      tme.db_type,
+	      tme.type,
+	      tme.media_id
+	    from t_media_extend_audit tme where tme.media_id = #{mediaId}
+    </insert>
+
+    <!--拷贝t_media_extend_audit表数据到该表-->
+    <insert id="copyMediaNotPriceExtendByMediaId">
+        insert into
+        t_media_extend
+        select * from t_media_extend_audit where type <![CDATA[<>]]> 'price' AND media_id = #{mediaId}
+    </insert>
+
+    <!--根据媒体ID获取媒体存在的最低价格类型-->
+    <select id="listMediaPriceTypeByMediaIds" resultType="java.lang.String">
+        SELECT
+        	CONCAT(tme.media_id, '-', tme.cell)
+        FROM
+        	t_media_extend tme
+        WHERE
+        	tme.type = 'price'
+        AND tme.media_id in
+        <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainSettingMapper">
+    <sql id="selectColumn">
+      ts.id,
+      ts.setting_module as settingModule,
+      ts.parent_id as parentId,
+      ts.setting_value as settingValue,
+      ts.rule_value as ruleValue,
+      ts.setting_level as settingLevel,
+      ts.create_id as createId,
+      ts.create_date as createDate,
+      ts.update_id as updateId,
+      ts.update_date as updateDate,
+      ts.company_code as companyCode,
+      ts.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <resultMap id="trainResultMap" type="com.qinfei.qferp.entity.study.TrainSetting">
+        <id column="id" property="id"/>
+        <result column="settingModule" property="settingModule"/>
+        <result column="parentId" property="parentId"/>
+        <result column="settingValue" property="settingValue"/>
+        <result column="ruleValue" property="ruleValue"/>
+        <result column="settingLevel" property="settingLevel"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="state" property="state"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <result column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+            <result column="image" property="image"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_setting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="settingModule != null">setting_module,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="settingValue != null and settingValue != ''">setting_value,</if>
+            <if test="ruleValue != null">rule_value,</if>
+            <if test="settingLevel != null">setting_level,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="settingModule != null">#{settingModule},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="settingValue != null and settingValue != ''">#{settingValue},</if>
+            <if test="ruleValue != null">#{ruleValue},</if>
+            <if test="settingLevel != null">#{settingLevel},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_train_setting (
+          setting_module,
+          parent_id,
+          setting_value,
+          rule_value,
+          setting_level,
+          create_id,
+          create_date,
+          update_id,
+          update_date,
+          company_code,
+          state
+        )
+        VALUES
+        <foreach collection="list" item="trainSetting" index="index" separator=",">
+            (
+            #{trainSetting.settingModule},
+            #{trainSetting.parentId},
+            #{trainSetting.settingValue},
+            #{trainSetting.ruleValue},
+            #{trainSetting.settingLevel},
+            #{trainSetting.createId},
+            now(),
+            #{trainSetting.updateId},
+            now(),
+            #{trainSetting.companyCode},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!--更新状态-->
+    <update id="updateStateById">
+        UPDATE t_train_setting
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--更新状态-->
+    <update id="updateStateByModule">
+        UPDATE t_train_setting
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE setting_module = #{settingModule}
+    </update>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_setting
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="settingModule != null">setting_module = #{settingModule},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="settingValue != null and settingValue != ''">setting_value = #{settingValue},</if>
+            <if test="ruleValue != null">rule_value = #{ruleValue},</if>
+            <if test="settingLevel != null">setting_level = #{settingLevel},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新信息-->
+    <update id="batchUpdateTrainSetting">
+        UPDATE t_train_setting
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            update_id = #{updateId},
+            <trim prefix="setting_value = case " suffix="else setting_value end,">
+                <foreach collection="trainSettingList" item="trainSetting" index="index">
+                    <if test="trainSetting.settingValue != null">
+                        when id = #{trainSetting.id} then #{trainSetting.settingValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="rule_value = case " suffix="else rule_value end,">
+                <foreach collection="trainSettingList" item="trainSetting" index="index">
+                    <if test="trainSetting.ruleValue != null">
+                        when id = #{trainSetting.id} then #{trainSetting.ruleValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="setting_level = case " suffix="else setting_level end,">
+                <foreach collection="trainSettingList" item="trainSetting" index="index">
+                    <if test="trainSetting.settingLevel != null">
+                        when id = #{trainSetting.id} then #{trainSetting.settingLevel}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        id in
+        <foreach item="trainSetting" collection="trainSettingList" index="index" open="(" close=")" separator=",">
+            #{trainSetting.id}
+        </foreach>
+    </update>
+
+    <!--根据参数查询-->
+    <select id="listTrainSettingByParam" resultMap="trainResultMap">
+        SELECT
+            <include refid="selectColumn"/>,<include refid="userColumn"/>
+        FROM
+          t_train_setting ts
+        INNER JOIN sys_user su ON su.id = ts.create_id
+        WHERE
+        ts.state <![CDATA[<>]]> -9
+        <if test="state != null">
+            AND ts.state = #{state}
+        </if>
+        <if test="settingModule != null and settingModule != ''">
+            AND ts.setting_module = #{settingModule}
+        </if>
+        <if test="settingModuleList != null and settingModuleList.size() > 0">
+            AND ts.setting_module in
+            <foreach item="settingModule" collection="settingModuleList" index="index" open="(" close=")" separator=",">
+                #{settingModule}
+            </foreach>
+        </if>
+        <if test="parentId != null">
+            AND ts.parent_id = #{parentId}
+        </if>
+        <if test="moreThanSettingLevel != null">
+            AND ts.setting_level <![CDATA[>=]]> #{moreThanSettingLevel}
+        </if>
+        <if test="lessThanSettingLevel != null">
+            AND ts.setting_level <![CDATA[<=]]> #{lessThanSettingLevel}
+        </if>
+        <if test="orderFlag">
+            ORDER BY ts.setting_level ASC
+        </if>
+    </select>
+
+    <!--获取最大排序数据-->
+    <select id="getMaxSeqTrainSetting" resultType="com.qinfei.qferp.entity.study.TrainSetting">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+          t_train_setting ts
+        WHERE ts.state <![CDATA[<>]]> -9
+        AND ts.setting_module = #{settingModule}
+        ORDER BY ts.setting_level DESC
+        LIMIT 1
+    </select>
+
+</mapper>

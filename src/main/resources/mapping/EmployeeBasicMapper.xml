@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工基本信息； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeBasicMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        <id column="bas_id" jdbcType="INTEGER" property="basId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="emp_gender" jdbcType="INTEGER" property="empGender"/>
+        <result column="emp_race" jdbcType="VARCHAR" property="empRace"/>
+        <result column="emp_birth" jdbcType="DATE" property="empBirth"/>
+        <result column="emp_birthday" jdbcType="VARCHAR" property="empBirthday"/>
+        <result column="emp_code" jdbcType="VARCHAR" property="empCode"/>
+        <result column="emp_code_address" jdbcType="VARCHAR" property="empCodeAddress"/>
+        <result column="emp_native_province" jdbcType="INTEGER" property="empNativeProvince"/>
+        <result column="emp_native_city" jdbcType="INTEGER" property="empNativeCity"/>
+        <result column="emp_native" jdbcType="VARCHAR" property="empNative"/>
+        <result column="emp_education" jdbcType="INTEGER" property="empEducation"/>
+        <result column="emp_college" jdbcType="VARCHAR" property="empCollege"/>
+        <result column="emp_major" jdbcType="VARCHAR" property="empMajor"/>
+        <result column="emp_education_other" jdbcType="VARCHAR" property="empEducationOther"/>
+        <result column="emp_education_file" jdbcType="VARCHAR" property="empEducationFile"/>
+        <result column="emp_experience" jdbcType="VARCHAR" property="empExperience"/>
+        <result column="emp_experience_file" jdbcType="VARCHAR" property="empExperienceFile"/>
+        <result column="trial_begin" jdbcType="DATE" property="trialBegin"/>
+        <result column="trial_end" jdbcType="DATE" property="trialEnd"/>
+        <result column="emp_relative" jdbcType="INTEGER" property="empRelative"/>
+        <result column="emp_relative_name" jdbcType="VARCHAR" property="empRelativeName"/>
+        <result column="emp_relative_phone" jdbcType="VARCHAR" property="empRelativePhone"/>
+        <result column="emp_relative_relation" jdbcType="VARCHAR" property="empRelativeRelation"/>
+        <result column="emp_date" jdbcType="DATE" property="empDate"/>
+        <result column="emp_leave_date" jdbcType="DATE" property="empLeaveDate"/>
+        <result column="emp_son" jdbcType="INTEGER" property="empSon"/>
+        <result column="emp_girl" jdbcType="INTEGER" property="empGirl"/>
+        <result column="emp_brother" jdbcType="INTEGER" property="empBrother"/>
+        <result column="emp_younger_brother" jdbcType="INTEGER" property="empYoungerBrother"/>
+        <result column="emp_sister" jdbcType="INTEGER" property="empSister"/>
+        <result column="emp_younger_sister" jdbcType="INTEGER" property="empYoungerSister"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        bas_id,
+        entry_id,
+        emp_gender,
+        emp_race,
+        emp_birth,
+        emp_birthday,
+        emp_code,
+        emp_code_address,
+        emp_native_province,
+        emp_native_city,
+        emp_native,
+        emp_education,
+        emp_college,
+        emp_major,
+        emp_education_other,
+        emp_education_file,
+        emp_experience,
+        emp_experience_file,
+        trial_begin,
+        trial_end,
+        emp_relative,
+        emp_relative_name,
+        emp_relative_phone,
+        emp_relative_relation,
+        emp_date,
+        emp_leave_date,
+        emp_son,
+        emp_girl,
+        emp_brother,
+        emp_younger_brother,
+        emp_sister,
+        emp_younger_sister,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_basic
+        where
+        bas_id = #{basId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <select id="selectByEntryId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_basic
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic" useGeneratedKeys="true"
+            keyProperty="basId">
+        insert into e_employee_basic
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="basId != null">bas_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="empGender != null">emp_gender,</if>
+            <if test="empRace != null">emp_race,</if>
+            <if test="empBirth != null">emp_birth,</if>
+            <if test="empBirthday != null">emp_birthday,</if>
+            <if test="empCode != null">emp_code,</if>
+            <if test="empCodeAddress != null">emp_code_address,</if>
+            <if test="empNativeProvince != null">emp_native_province,</if>
+            <if test="empNativeCity != null">emp_native_city,</if>
+            <if test="empNative != null">emp_native,</if>
+            <if test="empEducation != null">emp_education,</if>
+            <if test="empCollege != null">emp_college,</if>
+            <if test="empMajor != null">emp_major,</if>
+            <if test="empEducationOther != null">emp_education_other,</if>
+            <if test="empEducationFile != null">emp_education_file,</if>
+            <if test="empExperience != null">emp_experience,</if>
+            <if test="empExperienceFile != null">emp_experience_file,</if>
+            <if test="trialBegin != null">trial_begin,</if>
+            <if test="trialEnd != null">trial_end,</if>
+            <if test="empRelative != null">emp_relative,</if>
+            <if test="empRelativeName != null">emp_relative_name,</if>
+            <if test="empRelativePhone != null">emp_relative_phone,</if>
+            <if test="empRelativeRelation != null">emp_relative_relation,</if>
+            <if test="empDate != null">emp_date,</if>
+            <if test="empLeaveDate != null">emp_leave_date,</if>
+            <if test="empSon != null">emp_son,</if>
+            <if test="empGirl != null">emp_girl,</if>
+            <if test="empBrother != null">emp_brother,</if>
+            <if test="empYoungerBrother != null">emp_younger_brother,</if>
+            <if test="empSister != null">emp_sister,</if>
+            <if test="empYoungerSister != null">emp_younger_sister,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="basId != null">#{basId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="empGender != null">#{empGender,jdbcType=INTEGER},</if>
+            <if test="empRace != null">#{empRace,jdbcType=INTEGER},</if>
+            <if test="empBirth != null">#{empBirth,jdbcType=DATE},</if>
+            <if test="empBirthday != null">#{empBirthday,jdbcType=VARCHAR},</if>
+            <if test="empCode != null">#{empCode,jdbcType=VARCHAR},</if>
+            <if test="empCodeAddress != null">#{empCodeAddress,jdbcType=VARCHAR},</if>
+            <if test="empNativeProvince != null">#{empNativeProvince,jdbcType=INTEGER},</if>
+            <if test="empNativeCity != null">#{empNativeCity,jdbcType=INTEGER},</if>
+            <if test="empNative != null">#{empNative,jdbcType=VARCHAR},</if>
+            <if test="empEducation != null">#{empEducation,jdbcType=VARCHAR},</if>
+            <if test="empCollege != null">#{empCollege,jdbcType=VARCHAR},</if>
+            <if test="empMajor != null">#{empMajor,jdbcType=VARCHAR},</if>
+            <if test="empEducationOther != null">#{empEducationOther,jdbcType=VARCHAR},</if>
+            <if test="empEducationFile != null">#{empEducationFile,jdbcType=VARCHAR},</if>
+            <if test="empExperience != null">#{empExperience,jdbcType=VARCHAR},</if>
+            <if test="empExperienceFile != null">#{empExperienceFile,jdbcType=VARCHAR},</if>
+            <if test="trialBegin != null">#{trialBegin,jdbcType=DATE},</if>
+            <if test="trialEnd != null">#{trialEnd,jdbcType=DATE},</if>
+            <if test="empRelative != null">#{empRelative,jdbcType=INTEGER},</if>
+            <if test="empRelativeName != null">#{empRelativeName,jdbcType=VARCHAR},</if>
+            <if test="empRelativePhone != null">#{empRelativePhone,jdbcType=VARCHAR},</if>
+            <if test="empRelativeRelation != null">#{empRelativeRelation,jdbcType=VARCHAR},</if>
+            <if test="empDate != null">#{empDate,jdbcType=DATE},</if>
+            <if test="empLeaveDate != null">#{empLeaveDate,jdbcType=DATE},</if>
+            <if test="empSon != null">#{empSon,jdbcType=INTEGER},</if>
+            <if test="empGirl != null">#{empGirl,jdbcType=INTEGER},</if>
+            <if test="empBrother != null">#{empBrother,jdbcType=INTEGER},</if>
+            <if test="empYoungerBrother != null">#{empYoungerBrother,jdbcType=INTEGER},</if>
+            <if test="empYoungerSister != null">#{empYoungerSister,jdbcType=INTEGER},</if>
+            <if test="empSister != null">#{empSister,jdbcType=INTEGER},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <insert id="insertSelectiveExcelBatch" parameterType="java.util.List"
+            useGeneratedKeys="true"
+            keyProperty="basId">
+        insert into e_employee_basic
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            entry_id,
+            emp_gender,
+            emp_race,
+            emp_birth,
+            emp_birthday,
+            emp_code,
+            emp_code_address,
+            emp_native,
+            emp_education,
+            emp_college,
+            emp_major,
+            emp_relative,
+            emp_relative_name,
+            emp_relative_phone,
+            emp_relative_relation,
+            emp_son,
+            emp_girl,
+            emp_brother,
+            emp_younger_brother,
+            emp_sister,
+            emp_younger_sister,
+            create_id,
+            create_name,
+            create_time,
+            update_id,
+            update_name,
+            update_time,
+            state,
+            version,
+            emp_date
+        </trim>
+        values
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.entryId,jdbcType=INTEGER},
+            #{element.empGender,jdbcType=INTEGER},
+            #{element.empRace,jdbcType=INTEGER},
+            #{element.empBirth,jdbcType=DATE},
+            #{element.empBirthday,jdbcType=VARCHAR},
+            #{element.empCode,jdbcType=VARCHAR},
+            #{element.empCodeAddress,jdbcType=VARCHAR},
+            #{element.empNative,jdbcType=VARCHAR},
+            #{element.empEducation,jdbcType=VARCHAR},
+            #{element.empCollege,jdbcType=VARCHAR},
+            #{element.empMajor,jdbcType=VARCHAR},
+            #{element.empRelative,jdbcType=INTEGER},
+            #{element.empRelativeName,jdbcType=VARCHAR},
+            #{element.empRelativePhone,jdbcType=VARCHAR},
+            #{element.empRelativeRelation,jdbcType=VARCHAR},
+            #{element.empSon,jdbcType=INTEGER},
+            #{element.empGirl,jdbcType=INTEGER},
+            #{element.empBrother,jdbcType=INTEGER},
+            #{element.empYoungerBrother,jdbcType=INTEGER},
+            #{element.empYoungerSister,jdbcType=INTEGER},
+            #{element.empSister,jdbcType=INTEGER},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.state,jdbcType=INTEGER},
+            #{element.version,jdbcType=INTEGER},
+            #{element.empDate,jdbcType=TIMESTAMP}
+        </foreach>
+    </insert>
+
+    <update id="updateFromExcel" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empGender != null">emp_gender = #{empGender,jdbcType=INTEGER},</if>
+            <if test="empRace != null">emp_race = #{empRace,jdbcType=INTEGER},</if>
+            <if test="empBirth != null">emp_birth = #{empBirth,jdbcType=DATE},</if>
+            <if test="empBirthday != null">emp_birthday = #{empBirthday,jdbcType=VARCHAR},</if>
+            <if test="empCode != null">emp_code = #{empCode,jdbcType=VARCHAR},</if>
+            <if test="empCodeAddress != null">emp_code_address = #{empCodeAddress,jdbcType=VARCHAR},</if>
+            <if test="empNativeProvince != null">emp_native_province = #{empNativeProvince,jdbcType=INTEGER},</if>
+            <if test="empNativeCity != null">emp_native_city = #{empNativeCity,jdbcType=INTEGER},</if>
+            <if test="empNative != null">emp_native = #{empNative,jdbcType=VARCHAR},</if>
+            <if test="empEducation != null">emp_education = #{empEducation,jdbcType=INTEGER},</if>
+            <if test="empCollege != null">emp_college = #{empCollege,jdbcType=VARCHAR},</if>
+            <if test="empMajor != null">emp_major = #{empMajor,jdbcType=VARCHAR},</if>
+            <if test="empEducationOther != null">emp_education_other = #{empEducationOther,jdbcType=VARCHAR},</if>
+            <if test="empEducationFile != null">emp_education_file = #{empEducationFile,jdbcType=VARCHAR},</if>
+            <if test="empExperience != null">emp_experience = #{empExperience,jdbcType=VARCHAR},</if>
+            <if test="empExperienceFile != null">emp_experience_file = #{empExperienceFile,jdbcType=VARCHAR},</if>
+            <if test="trialBegin != null">trial_begin = #{trialBegin,jdbcType=DATE},</if>
+            <if test="trialEnd != null">trial_end = #{trialEnd,jdbcType=DATE},</if>
+            <if test="empRelative != null">emp_relative = #{empRelative,jdbcType=INTEGER},</if>
+            <if test="empRelativeName != null">
+                emp_relative_name = #{empRelativeName,jdbcType=VARCHAR},
+            </if>
+            <if test="empRelativePhone != null">
+                emp_relative_phone = #{empRelativePhone,jdbcType=VARCHAR},
+            </if>
+            <if test="empRelativeRelation != null">
+                emp_relative_relation = #{empRelativeRelation,jdbcType=VARCHAR},
+            </if>
+            <if test="empDate != null">emp_date = #{empDate,jdbcType=DATE},</if>
+            <if test="empLeaveDate != null">emp_leave_date = #{empLeaveDate,jdbcType=DATE},</if>
+            emp_son = #{empSon,jdbcType=INTEGER},
+            emp_girl = #{empGirl,jdbcType=INTEGER},
+            emp_brother = #{empBrother,jdbcType=INTEGER},
+            emp_younger_brother = #{empYoungerBrother,jdbcType=INTEGER},
+            emp_sister = #{empSister,jdbcType=INTEGER},
+            emp_younger_sister = #{empYoungerSister,jdbcType=INTEGER},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        <where>
+            entry_id = #{entryId,jdbcType=INTEGER}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByEntryId" parameterType="com.qinfei.qferp.excel.EmployeeExcelInfo">
+        update e_employee_basic
+        <set>
+            update_id = #{updateId,jdbcType=INTEGER},
+            update_name = #{updateName,jdbcType=VARCHAR},
+            update_time = #{updateTime,jdbcType=TIMESTAMP},
+            state = -1
+        </set>
+        <where>
+            entry_id = #{entryId,jdbcType=INTEGER}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <include refid="EmployCommon.deleteInfo"/>
+        where bas_id = #{basId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新创建人信息； -->
+    <update id="updateCreateInfoByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            create_id = #{createId},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1 and create_id is null
+    </update>
+
+    <!-- 更新学历信息； -->
+    <update id="updateEducationByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            emp_college = #{empCollege},
+            emp_major = #{empMajor},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新工作履历信息； -->
+    <update id="updateExperienceByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            emp_experience = #{empExperience},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新推荐人信息； -->
+    <update id="updateRelativeByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            emp_relative = #{empRelative},
+            emp_relative_name = #{empRelativeName},
+            emp_relative_phone = #{empRelativePhone},
+            emp_relative_relation = #{empRelativeRelation},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 根据父表ID完善入职申请资料； -->
+    <update id="completeEntryByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_employee_basic
+        <set>
+            <if test="empEducationFile != null">emp_education_file = #{empEducationFile},</if>
+            <if test="empExperienceFile != null">emp_experience_file = #{empExperienceFile},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where state &lt;&gt; -1 and entry_id = #{entryId}
+    </update>
+
+    <!-- 更新入职日期信息； -->
+    <update id="updateEmpDateByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update e_employee_basic
+        <set>
+            emp_date = #{empDate},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update
+        e_employee_basic
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empGender != null">emp_gender = #{empGender,jdbcType=INTEGER},</if>
+            <if test="empRace != null">emp_race = #{empRace,jdbcType=INTEGER},</if>
+            <if test="empBirth != null">emp_birth = #{empBirth,jdbcType=DATE},</if>
+            <if test="empBirthday != null">emp_birthday = #{empBirthday,jdbcType=VARCHAR},</if>
+            <if test="empCode != null">emp_code = #{empCode,jdbcType=VARCHAR},</if>
+            <if test="empCodeAddress != null">emp_code_address = #{empCodeAddress,jdbcType=VARCHAR},</if>
+            <if test="empNativeProvince != null">emp_native_province = #{empNativeProvince,jdbcType=INTEGER},</if>
+            <if test="empNativeCity != null">emp_native_city = #{empNativeCity,jdbcType=INTEGER},</if>
+            <if test="empNative != null">emp_native = #{empNative,jdbcType=VARCHAR},</if>
+            <if test="empEducation != null">emp_education = #{empEducation,jdbcType=INTEGER},</if>
+            <if test="empCollege != null">emp_college = #{empCollege,jdbcType=VARCHAR},</if>
+            <if test="empMajor != null">emp_major = #{empMajor,jdbcType=VARCHAR},</if>
+            <if test="empEducationOther != null">emp_education_other = #{empEducationOther,jdbcType=VARCHAR},</if>
+            <if test="empEducationFile != null">emp_education_file = #{empEducationFile,jdbcType=VARCHAR},</if>
+            <if test="empExperience != null">emp_experience = #{empExperience,jdbcType=VARCHAR},</if>
+            <if test="empExperienceFile != null">emp_experience_file = #{empExperienceFile,jdbcType=VARCHAR},</if>
+            <if test="trialBegin != null">trial_begin = #{trialBegin,jdbcType=DATE},</if>
+            <if test="trialEnd != null">trial_end = #{trialEnd,jdbcType=DATE},</if>
+            <if test="empRelative != null">emp_relative = #{empRelative,jdbcType=INTEGER},</if>
+            <if test="empRelativeName != null">
+                emp_relative_name = #{empRelativeName,jdbcType=VARCHAR},
+            </if>
+            <if test="empRelativePhone != null">
+                emp_relative_phone = #{empRelativePhone,jdbcType=VARCHAR},
+            </if>
+            <if test="empRelativeRelation != null">
+                emp_relative_relation = #{empRelativeRelation,jdbcType=VARCHAR},
+            </if>
+            <if test="empDate != null">emp_date = #{empDate,jdbcType=DATE},</if>
+            <if test="empLeaveDate != null">emp_leave_date = #{empLeaveDate,jdbcType=DATE},</if>
+            emp_son = #{empSon,jdbcType=INTEGER},
+            emp_girl = #{empGirl,jdbcType=INTEGER},
+            emp_brother = #{empBrother,jdbcType=INTEGER},
+            emp_younger_brother = #{empYoungerBrother,jdbcType=INTEGER},
+            emp_sister = #{empSister,jdbcType=INTEGER},
+            emp_younger_sister = #{empYoungerSister,jdbcType=INTEGER},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        bas_id = #{basId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeBasic">
+        update
+        e_employee_basic
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        emp_gender = #{empGender,jdbcType=INTEGER},
+        emp_race = #{empRace,jdbcType=INTEGER},
+        emp_birth = #{empBirth,jdbcType=DATE},
+        emp_birthday = #{empBirthday,jdbcType=VARCHAR},
+        emp_code = #{empCode,jdbcType=VARCHAR},
+        emp_code_address = #{empCodeAddress,jdbcType=VARCHAR},
+        emp_native_province = #{empNativeProvince,jdbcType=INTEGER},
+        emp_native_city = #{empNativeCity,jdbcType=INTEGER},
+        emp_native = #{empNative,jdbcType=VARCHAR},
+        emp_education = #{empEducation,jdbcType=INTEGER},
+        emp_college = #{empCollege,jdbcType=VARCHAR},
+        emp_major = #{empMajor,jdbcType=VARCHAR},
+        emp_education_other = #{empEducationOther,jdbcType=VARCHAR},
+        emp_education_file = #{empEducationFile,jdbcType=VARCHAR},
+        emp_experience = #{empExperience,jdbcType=VARCHAR},
+        emp_experience_file = #{empExperienceFile,jdbcType=VARCHAR},
+        trial_begin = #{trialBegin,jdbcType=DATE},
+        trial_end = #{trialEnd,jdbcType=DATE},
+        emp_relative = #{empRelative,jdbcType=INTEGER},
+        emp_relative_name = #{empRelativeName,jdbcType=VARCHAR},
+        emp_relative_phone = #{empRelativePhone,jdbcType=VARCHAR},
+        emp_relative_relation = #{empRelativeRelation,jdbcType=VARCHAR},
+        emp_date = #{empDate,jdbcType=DATE},
+        emp_leave_date = #{empLeaveDate,jdbcType=DATE},
+        emp_son = #{empSon,jdbcType=INTEGER},
+        emp_girl = #{empGirl,jdbcType=INTEGER},
+        emp_brother = #{empBrother,jdbcType=INTEGER},
+        emp_younger_brother = #{empYoungerBrother,jdbcType=INTEGER},
+        emp_sister = #{empSister,jdbcType=INTEGER},
+        emp_younger_sister = #{empYoungerSister,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        bas_id = #{basId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <!--根据员工身份证号查询员工信息-->
+    <select id="listEmpInfoByEmpCode" resultType="com.qinfei.qferp.excel.EmployeeExcelDTO">
+        SELECT
+          e.entry_id AS entryId,
+          e.emp_num AS empNum,
+          e.state,
+          ee.entry_validate as entryValidate
+        FROM
+        e_employee_basic eeb
+        LEFT JOIN e_employee e ON eeb.entry_id = e.entry_id
+        AND e.state <![CDATA[<>]]> -1
+        LEFT JOIN e_entry ee ON eeb.entry_id = ee.entry_id and ee.state <![CDATA[<>]]> -1
+        WHERE eeb.state > -1
+        AND eeb.emp_code = #{empCode}
+    </select>
+</mapper>

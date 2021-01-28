@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainCourseCommentMapper">
+    <sql id="selectColumn">
+      tcc.id,
+      tcc.course_id as courseId,
+      tcc.parent_id as parentId,
+      tcc.course_comment as courseComment,
+      tcc.create_id as createId,
+      tcc.create_date as createDate,
+      tcc.update_id as updateId,
+      tcc.update_date as updateDate,
+      tcc.company_code as companyCode,
+      tcc.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_course_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="courseComment != null and courseComment != ''">course_comment,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="courseComment != null and courseComment != ''">#{courseComment},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+
+
+</mapper>

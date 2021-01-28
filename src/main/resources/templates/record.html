@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>档案查看</title>
+    <link rel="stylesheet" href="/js/employ/rating/css/star-rating.min.css">
+    <link rel="stylesheet" href="/js/employ/rating/themes/krajee-fa/theme.css">
+
+    <script type="text/javascript" src="/js/employ/rating/js/star-rating.min.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/js/locales/zh.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/themes/krajee-fa/theme.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/image.util.js"></script>
+    <script type="text/javascript" src="/js/employ/record.js"></script>
+    <style type="text/css">
+        #cjtype span, #sqstate span {
+            padding: 0;
+            margin: 0 10px;
+        }
+
+        #cjtype > label, #sqstate > div {
+            float: left;
+        }
+
+        #cjtype label:first-child, #sqstate label:first-child {
+            display: table;
+        }
+        .backColorWhite{
+            background-color: white !important;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">
+                        档案查看
+                        <span style="color: red;" id="message">*（请注意保存查询码，此信息将作为查询入职申请进度的唯一凭证）</span>
+                    </h5>
+                    <div class="col-sm-2" style="float: right; top: -5px;">
+                        <button type="button" class="btn btn-white" onclick="closePage()" style="float: right;">
+                            <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                        </button>
+                        <button type="button" class="btn btn-primary" id="editEntry"
+                                style="float: right;margin-right: 10px;display: none;">
+                            <i class="fa fa-pencil"></i>&nbsp;&nbsp;编辑
+                        </button>
+                        <button type="button" class="btn btn-primary" id="completeEntry"
+                                style="float: right;margin-right: 10px;display: none;">
+                            <i class="fa fa-pencil"></i>&nbsp;&nbsp;完善资料
+                        </button>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <table border="1px" width="75%" align="center"
+                                   style="text-align: center;line-height: 30px;font-weight: bold;" id="recordTable">
+                                <tr>
+                                    <td width="8%" rowspan="8">基本资料</td>
+                                    <td width="12%" colspan="2">查询码</td>
+                                    <td width="10%"><span name="entryValidate" style="color: red;"></span></td>
+                                    <td width="10%">申请部门</td>
+                                    <td width="10%"><span name="dept" style="white-space: nowrap;text-overflow: ellipsis;overflow: hidden;"></span></td>
+                                    <td width="10%">申请职位</td>
+                                    <td width="10%"><span name="post"></span></td>
+                                    <td width="10%">待遇要求</td>
+                                    <td width="10%"><span name="entryExpectSalary"></span></td>
+                                    <td rowspan="7">
+                                        <input type="hidden" id="loadImage"/>
+                                        <img alt='图片丢失' id="uploadImage" src="/img/mrtx_1.png"
+                                             style="width: 130px;"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">姓名</td>
+                                    <td><span name="entryName"></span></td>
+                                    <td>农历生日</td>
+                                    <td><span name="empBirthday"></span></td>
+                                    <td>性别</td>
+                                    <td><span id="empGender"></span></td>
+                                    <td>民族</td>
+                                    <td><span name="nation"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">身份证号码</td>
+                                    <td colspan="3"><span name="empCode"></span>
+                                    </td>
+                                    <td>户口性质</td>
+                                    <td><span id="entryResidence"></span></td>
+                                    <td>婚姻状况</td>
+                                    <td><span id="entryMarriage"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">身份证地址</td>
+                                    <td colspan="5"><span name="empCodeAddress"></span>
+                                    </td>
+                                    <td>籍贯</td>
+                                    <td><span name="empNative"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">现住址</td>
+                                    <td colspan="5"><span name="entryLocalAddress"></span>
+                                    </td>
+                                    <td>学历</td>
+                                    <td><span id="empEducation"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">子女</td>
+                                    <td colspan="3">
+                                        <span name="empSon"></span>&nbsp;子&nbsp;
+                                        <span name="empGirl"></span>&nbsp;女&nbsp;
+                                    </td>
+                                    <td>兄弟姐妹</td>
+                                    <td colspan="3">
+                                        <span name="empBrother"></span>&nbsp;兄&nbsp;
+                                        <span name="empYoungerBrother"></span>&nbsp;弟&nbsp;
+                                        <span name="empSister"></span>&nbsp;姐&nbsp;
+                                        <span name="empYoungerSister"></span>&nbsp;妹&nbsp;
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">个人邮箱</td>
+                                    <td colspan="3"><span name="entryMail"></span>
+                                    </td>
+                                    <td>个人电话</td>
+                                    <td colspan="3"><span name="entryPhone"></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">紧急事件联络人</td>
+                                    <td colspan="2"><span name="entryUrgent"></span></td>
+                                    <td>有效联系电话</td>
+                                    <td colspan="2"><span name="entryUrgentPhone"></span></td>
+                                    <td>与联络人的关系</td>
+                                    <td colspan="2"><span name="entryUrgentRelation"></span></td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="2" id="familyTitle">家庭成员</td>
+                                    <td colspan="2">关系</td>
+                                    <td>姓名</td>
+                                    <td>年龄</td>
+                                    <td>生日</td>
+                                    <td colspan="2">单位</td>
+                                    <td>健康状况</td>
+                                    <td>职业</td>
+                                    <td>备注</td>
+                                </tr>
+                                <tr id="family">
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="2" id="educationTitle">教育培训经历</td>
+                                    <td colspan="2">起止年月</td>
+                                    <td colspan="2">院校名称/培训机构</td>
+                                    <td colspan="2">学习所在地</td>
+                                    <td>学制时长(年)</td>
+                                    <td>专业/内容</td>
+                                    <td colspan="2">所获学历/资格证书</td>
+                                </tr>
+                                <tr id="education">
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                </tr>
+                                <!--<tr>
+                                    <td rowspan="2" id="trainTitle">培训经历</td>
+                                    <td colspan="2">起止年月</td>
+                                    <td colspan="2">培训机构</td>
+                                    <td colspan="2">学习所在地</td>
+                                    <td>培训时长（年）</td>
+                                    <td>内容</td>
+                                    <td colspan="2">资格证书</td>
+                                </tr>
+                                <tr id="train">
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                </tr>-->
+                                <tr>
+                                    <td rowspan="2" id="experienceTitle">工作经历（请自开始工作写起）</td>
+                                    <td colspan="2">起止年月</td>
+                                    <td colspan="2">公司名称</td>
+                                    <td colspan="2">工作地点</td>
+                                    <td>职务</td>
+                                    <td>薪资待遇</td>
+                                    <td>证明人及联系电话</td>
+                                    <td>离职原因</td>
+                                </tr>
+                                <tr id="experience">
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td colspan="2">&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                    <td>&nbsp;<span></span></td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="5" id="otherColumn">其他</td>
+                                    <td colspan="2">是否有驾照</td>
+                                    <td colspan="2"><span id="entryHasLicence"></span></td>
+                                    <td>司龄（年）</td>
+                                    <td colspan="5"><span name="entryDriveAge"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">兴趣爱好特长</td>
+                                    <td colspan="8"><span name="entryInterest"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">曾经病史</td>
+                                    <td colspan="2"><span id="entryHasSick"></span></td>
+                                    <td>病史描述</td>
+                                    <td colspan="5"><span name="entrySick"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">求职途径</td>
+                                    <td colspan="4"><span id="entryChannel"></span></td>
+                                    <td>求职渠道名称</td>
+                                    <td colspan="3"><span name="entryChannelName"></span></td>
+                                </tr>
+                                <tr id="relative">
+                                    <td colspan="2">推荐人姓名</td>
+                                    <td colspan="2"><span name="empRelativeName"></span></td>
+                                    <td>推荐人联系电话</td>
+                                    <td colspan="2"><span name="empRelativePhone"></span></td>
+                                    <td>与推荐人关系</td>
+                                    <td colspan="2"><span name="empRelativeRelation"></span></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="11" style="text-align: left;padding: 5px 15px 5px 15px;">
+                                        本人承诺上述所填报的各项资料均属实，如有虚报或故意隐瞒，本人愿意接受贵公司的规章制度惩罚，接受贵公司与本人即时解除劳动合同，及承担由此带来的相应法律责任，并允许贵公司对以上内容进行调查、核实。
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">当前状态</td>
+                                    <td colspan="4"><span id="state"></span></td>
+                                    <td>申请人签名</td>
+                                    <td><span name="entryName"></span></td>
+                                    <td>入职日期</td>
+                                    <td colspan="2"><span id="empDate"></span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="employSalaryDiv">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">员工薪资</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">
+                                                试用工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" id="trialTotal" name="trialSalary" class="form-control"
+                                                       style="width: 37.5%;" placeholder="试用期工资" maxlength="10"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                职位工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="trialPost" class="form-control trial"
+                                                       style="width: 37.5%;" placeholder="试用期职位工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">
+                                                绩效工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="trialPerformance" class="form-control trial"
+                                                       style="width: 37.5%;" placeholder="试用期绩效工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                其他工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="trialOther" class="form-control trial"
+                                                       style="width: 37.5%;" placeholder="试用期其他工资" maxlength="10"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">
+                                                转正工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" id="formalTotal" name="formalSalary" class="form-control"
+                                                       style="width: 37.5%;" placeholder="转正工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                职位工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="formalPost" class="form-control formal"
+                                                       style="width: 37.5%;" placeholder="转正职位工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">
+                                                绩效工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="formalPerformance" class="form-control formal"
+                                                       style="width: 37.5%;" placeholder="转正绩效工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                其他工资：
+                                            </label>
+                                            <div class="col-sm-5">
+                                                <input type="text" name="formalOther" class="form-control formal"
+                                                       style="width: 37.5%;" placeholder="转正其他工资"
+                                                       required="true" number="true" readonly/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title comment">
+                    <h5 style="font-weight:bold">印象评估</h5>
+                </div>
+                <div class="ibox-content comment">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal" id="impression">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">形象气质：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFigure"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">沟通表达：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comCommunicate"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">应聘诚意：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFaith"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职业素质：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comQuality"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">工作经验：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comExperience"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">累计分值：</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="comTotalScore" value="0" class="form-control"
+                                                   placeholder="上述五项累计分值"
+                                                   maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">评估建议：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comAdvice"
+                                                      placeholder="请输入面试评估建议" maxlength="500"
+                                                      special="true" style="resize:none;width: 93%;"
+                                                      disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="ibox-title comment">
+                    <h5 style="font-weight:bold">能力评估</h5>
+                </div>
+                <div class="ibox-content comment">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal" id="ability">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">专业测试：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFigure"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">仪容态度：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comCommunicate"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">领悟反应：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFaith"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职位能力：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comQuality"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">职位匹配度：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comExperience"
+                                                   data-size="xs" maxlength="3" digits="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">累计分值：</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="comTotalScore" value="0" class="form-control"
+                                                   placeholder="上述五项累计分值"
+                                                   maxlength="3" digits="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comAdvice"
+                                                      placeholder="请输入面试评估建议" maxlength="500"
+                                                      special="true" style="resize:none;width: 93%;"
+                                                      disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="ibox-title comment">
+                    <h5 style="font-weight:bold">部长意见</h5>
+                </div>
+                <div class="ibox-content comment">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="opinion" class="form-control"
+                                                   placeholder="请输入审核意见" maxlength="10" special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">备注：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" id="leaderDesc"
+                                                      placeholder="请输入部长备注信息" maxlength="500" special="true"
+                                                      style="resize:none;width: 93%;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="ibox-title comment">
+                    <h5 style="font-weight:bold">相关文件</h5>
+                </div>
+                <div class="ibox-content comment">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal" id="entryFile">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">身份证：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comCode" special="true" data="entryCodeFile" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">学历证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comEducation" special="true" data="empEducationFile" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">离职证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comExperienceDesc" special="true" data="empExperienceFile"
+                                                   disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">户口证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comResidence" special="true" data="entryResidenceFile"
+                                                   disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">个人照片：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comImage" special="true" data="entryImage" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">体检证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comReport" special="true" data="entryReport" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他说明：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comOther"
+                                                      placeholder="请输入其他说明" maxlength="500" special="true"
+                                                      style="resize:none;width: 93%;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title" style="margin-top: -35px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="footer center">
+    <div class="col-md-4 text-left">
+        <label>version: </label><span class="text-danger">1.0.0</span>
+    </div>
+    <div class="col-md-4 text-center">
+        &copy; 2013-2019
+        <span data-th-text="${AppName}"></span>
+    </div>
+</div>
+</body>
+</html>

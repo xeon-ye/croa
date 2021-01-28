@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.announcementinform.MediaPassMapperXML">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.announcementinform.MediaPass">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="transaction_type" jdbcType="INTEGER" property="transactionType" />
+    <result column="resource_type" jdbcType="INTEGER" property="resourceType" />
+    <result column="operation_dept_id" jdbcType="INTEGER" property="operationDeptId" />
+    <result column="release_time" jdbcType="TIMESTAMP" property="releaseTime" />
+    <result column="publish_dept_id" jdbcType="INTEGER" property="publishDeptId" />
+    <result column="release_user" jdbcType="VARCHAR" property="releaseUser" />
+    <result column="label" jdbcType="INTEGER" property="label" />
+    <result column="resources_state" jdbcType="INTEGER" property="resourcesState" />
+    <result column="operation_dapt_name" jdbcType="VARCHAR" property="operationDaptName" />
+    <result column="publish_dept_name" jdbcType="VARCHAR" property="publishDeptName" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_name" jdbcType="VARCHAR" property="createName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_name" jdbcType="VARCHAR" property="updateName" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <result column="attachment" jdbcType="VARCHAR" property="attachment" />
+    <result column="no" jdbcType="VARCHAR" property="no" />
+    <result column="attachment_link" jdbcType="VARCHAR" property="attachmentLink"/>
+    <result column="release_time_end" jdbcType="TIMESTAMP" property="releaseTimeEnd"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, transaction_type, resource_type, operation_dept_id, release_time, publish_dept_id, 
+    release_user, label, resources_state, operation_dapt_name, publish_dept_name, title, 
+    content, create_id, create_name, create_time, update_id, update_name, update_time, 
+    state, version, attachment, no,attachment_link,release_time_end
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_announcement_inform
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_announcement_inform
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.announcementinform.MediaPass">
+    insert into t_announcement_inform (id, transaction_type, resource_type, 
+      operation_dept_id, release_time, publish_dept_id, 
+      release_user, label, resources_state, 
+      operation_dapt_name, publish_dept_name, title, 
+      content, create_id, create_name, 
+      create_time, update_id, update_name, 
+      update_time, state, version, 
+      attachment, no,attachment_link,releae_time_end)
+    values (#{id,jdbcType=INTEGER}, #{transactionType,jdbcType=INTEGER}, #{resourceType,jdbcType=INTEGER}, 
+      #{operationDeptId,jdbcType=INTEGER}, #{releaseTime,jdbcType=TIMESTAMP}, #{publishDeptId,jdbcType=INTEGER}, 
+      #{releaseUser,jdbcType=VARCHAR}, #{label,jdbcType=INTEGER}, #{resourcesState,jdbcType=INTEGER}, 
+      #{operationDaptName,jdbcType=VARCHAR}, #{publishDeptName,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, 
+      #{content,jdbcType=VARCHAR}, #{createId,jdbcType=INTEGER}, #{createName,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateId,jdbcType=INTEGER}, #{updateName,jdbcType=VARCHAR}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{state,jdbcType=INTEGER}, #{version,jdbcType=INTEGER}, 
+      #{attachment,jdbcType=VARCHAR}, #{no,jdbcType=VARCHAR},#{attachmentLink,jdbcType=VARCHAR},#{releaseTimeEnd,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.announcementinform.MediaPass">
+    insert into t_announcement_inform
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="transactionType != null">
+        transaction_type,
+      </if>
+      <if test="resourceType != null">
+        resource_type,
+      </if>
+      <if test="operationDeptId != null">
+        operation_dept_id,
+      </if>
+      <if test="releaseTime != null">
+        release_time,
+      </if>
+      <if test="publishDeptId != null">
+        publish_dept_id,
+      </if>
+      <if test="releaseUser != null">
+        release_user,
+      </if>
+      <if test="label != null">
+        label,
+      </if>
+      <if test="resourcesState != null">
+        resources_state,
+      </if>
+      <if test="operationDaptName != null">
+        operation_dapt_name,
+      </if>
+      <if test="publishDeptName != null">
+        publish_dept_name,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createName != null">
+        create_name,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateName != null">
+        update_name,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="attachment != null">
+        attachment,
+      </if>
+      <if test="no != null">
+        no,
+      </if>
+      <if test="attachmentLink != null">
+        attachment_link,
+      </if>
+      <if test="releaseTimeEnd != null">
+        release_time_end,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="transactionType != null">
+        #{transactionType,jdbcType=INTEGER},
+      </if>
+      <if test="resourceType != null">
+        #{resourceType,jdbcType=INTEGER},
+      </if>
+      <if test="operationDeptId != null">
+        #{operationDeptId,jdbcType=INTEGER},
+      </if>
+      <if test="releaseTime != null">
+        #{releaseTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishDeptId != null">
+        #{publishDeptId,jdbcType=INTEGER},
+      </if>
+      <if test="releaseUser != null">
+        #{releaseUser,jdbcType=VARCHAR},
+      </if>
+      <if test="label != null">
+        #{label,jdbcType=INTEGER},
+      </if>
+      <if test="resourcesState != null">
+        #{resourcesState,jdbcType=INTEGER},
+      </if>
+      <if test="operationDaptName != null">
+        #{operationDaptName,jdbcType=VARCHAR},
+      </if>
+      <if test="publishDeptName != null">
+        #{publishDeptName,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="attachment != null">
+        #{attachment,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null">
+        #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="attachmentLink != null">
+        #{attachmentLink,jdbcType=VARCHAR},
+      </if>
+      <if test="rekeaseTimeEnd != null">
+        #{releaseTimeEnd,jdbcType=TIMESTAMP}
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.announcementinform.MediaPass">
+    update t_announcement_inform
+    <set>
+      <if test="transactionType != null">
+        transaction_type = #{transactionType,jdbcType=INTEGER},
+      </if>
+      <if test="resourceType != null">
+        resource_type = #{resourceType,jdbcType=INTEGER},
+      </if>
+      <if test="operationDeptId != null">
+        operation_dept_id = #{operationDeptId,jdbcType=INTEGER},
+      </if>
+      <if test="releaseTime != null">
+        release_time = #{releaseTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishDeptId != null">
+        publish_dept_id = #{publishDeptId,jdbcType=INTEGER},
+      </if>
+      <if test="releaseUser != null">
+        release_user = #{releaseUser,jdbcType=VARCHAR},
+      </if>
+      <if test="label != null">
+        label = #{label,jdbcType=INTEGER},
+      </if>
+      <if test="resourcesState != null">
+        resources_state = #{resourcesState,jdbcType=INTEGER},
+      </if>
+      <if test="operationDaptName != null">
+        operation_dapt_name = #{operationDaptName,jdbcType=VARCHAR},
+      </if>
+      <if test="publishDeptName != null">
+        publish_dept_name = #{publishDeptName,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        update_name = #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="attachment != null">
+        attachment = #{attachment,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null">
+        no = #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="attachmentLink != null">
+        #{attachmentLink,jdbcType=VARCHAR},
+      </if>
+      <if test="rekeaseTimeEnd != null">
+        #{releaseTimeEnd,jdbcType=TIMESTAMP}
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.announcementinform.MediaPass">
+    update t_announcement_inform
+    set transaction_type = #{transactionType,jdbcType=INTEGER},
+      resource_type = #{resourceType,jdbcType=INTEGER},
+      operation_dept_id = #{operationDeptId,jdbcType=INTEGER},
+      release_time = #{releaseTime,jdbcType=TIMESTAMP},
+      publish_dept_id = #{publishDeptId,jdbcType=INTEGER},
+      release_user = #{releaseUser,jdbcType=VARCHAR},
+      label = #{label,jdbcType=INTEGER},
+      resources_state = #{resourcesState,jdbcType=INTEGER},
+      operation_dapt_name = #{operationDaptName,jdbcType=VARCHAR},
+      publish_dept_name = #{publishDeptName,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_name = #{createName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_name = #{updateName,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER},
+      version = #{version,jdbcType=INTEGER},
+      attachment = #{attachment,jdbcType=VARCHAR},
+      no = #{no,jdbcType=VARCHAR},
+      attachment_link=#{attachmentLink,jdbcType=VARCHAR},
+      release_time_end=#{releaseTimeEnd,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

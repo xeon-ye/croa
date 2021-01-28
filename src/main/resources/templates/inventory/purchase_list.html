@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>进销存采购</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/js/plugins/laydate/theme/default/laydate.css" rel="stylesheet" >
+    <link href="/css/inventory/purchase_list.css" rel="stylesheet">
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <!--物品采购js-->
+    <script type="text/javascript" th:src="@{//js/inventory/purchase_list.js(v=${version})}"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <style type="text/css">
+        .layui-form-selectup dl{
+            top: unset;
+            bottom: unset;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+            //回车提交事件
+            $('#supplierManageForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#supplierSearch").click();
+                }
+            });
+            $('#queryBuyingForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#buyingSearch").click();
+                }
+            });
+            var purchaseTime = {
+                elem: '#buyingTime',
+                format: 'yyyy-MM-dd HH:mm:ss',
+                istime : true,
+                istoday : true,// 是否显示今天
+                isclear : true, // 是否显示清空
+            };
+            laydate.render(purchaseTime);
+        })
+    </script>
+</head>
+<body>
+<form style="display: none" class="dropzone" id="word2htmlForm" enctype="multipart/form-data"></form>
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0px;">
+    <!--查询条件-->
+    <ul class="layui-tab-title">
+        <input id="tabIndex" name="tabIndex" type="hidden"/>
+        <li class="layui-this" id="buyingManage">采购管理</li>
+        <li id="supplierSetting">供应商管理</li>
+        <li>
+            <input type="text" name="keyWordsQc" id="keyWordsQc">
+            <div class="searchIcon" onclick="refreshTableData()"><i class="fa fa-search"></i></div>
+        </li>
+    </ul>
+    <!--列表内容-->
+    <div class="bottomContentOuter layui-tab-content">
+        <!--供应商管理-->
+        <div id="supplierManageTab" class="tabContent" style="height: 100%;width: 100%;">
+            <!--供应商管理列表-->
+            <div class="contentOuter">
+                <!--顶部搜索条件-->
+                <div class="searchParamOuter">
+                    <form id="supplierManageForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+                        <!--查询条件-->
+                        <div class="param2Div">
+                            <label class="control-label">供应商名称 :</label>
+                            <input name="nameQc" class="form-control" style="display: inline-block;width: 60%;"/>
+                        </div>
+                        <div class="param2Div">
+                            <label class="control-label">供应商资质 :</label>
+                            <select name="levelQc" lay-filter="levelQc" class="form-control" style="width: 60%;">
+                                <option value="">请选择</option>
+                                <option value="0">普通</option>
+                                <option value="1">中等</option>
+                                <option value="2">优质</option>
+                            </select>
+                        </div>
+                        <div class="param2Div">
+                            <label class="control-label">产品分类 :</label>
+                            <select id="typeQc" lay-filter="typeQc" name="typeQc" class="form-control" style="width: 60%;">
+
+                            </select>
+                        </div>
+                        <div class="param2Div">
+                            <label class="control-label">支付方式 :</label>
+                            <select name="payMethodQc" lay-filter="payMethodQc" class="form-control" style="width: 60%;">
+                                <option value="">请选择</option>
+                                <option value="0">微信</option>
+                                <option value="1">支付宝</option>
+                                <option value="2">银行卡</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" id="supplierSearch" onclick="refreshTableData()"
+                                    class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;查询
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!--按钮操作-->
+                <div class="buttonGroupOuter" style="margin-top: 12px">
+                    <button id="addSupplierBtn" onclick="supplierManageObj.showSaveSupplier()"
+                            class="btn btn-primary" type="button">
+                        <i class="fa fa-plus"></i>&nbsp;新增供应商
+                    </button>
+                    <button id="exportSupplierTemplate" onclick="supplierManageObj.downTemplate()"
+                            class="btn btn-primary" type="button">
+                        <i class="fa fa-external-link"></i>&nbsp;导入模板
+                    </button>
+                    <button id="importSupplierBtn" onclick="supplierManageObj.showUploadView()"
+                            class="btn btn-primary" type="button">
+                        <i class="fa fa-sign-in"></i>&nbsp;导入
+                    </button>
+                    <button id="exportSupplierBtn"
+                            onclick="supplierManageObj.exportSupplierDetail()"
+                            class="btn btn-primary" type="button">
+                        <i class="fa fa-external-link"></i>&nbsp;导出
+                    </button>
+                </div>
+                <!--供应商列表-->
+                <div>
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                        <colgroup>
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="12%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    供应商编号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center">
+                                    供应商名称
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    供应商资质
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width:100%;text-align: center;">
+                                    产品分类
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width:100%;text-align: center">
+                                    支付方式
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    支付账号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    联系人
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    联系方式
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="supplierManageList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div id="supplierManagePager" style="text-align:center;"></div>
+            </div>
+        </div>
+        <!--采购管理-->
+        <div id="buyingManageTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+            <div class="contentOuter">
+                <!--顶部搜索条件-->
+                <div class="searchParamOuter">
+                    <form id="queryBuyingForm" autocomplete="off" method="post" class="layui-form form-horizontal">
+                        <div class="paramDiv">
+                            <label class="control-label">采购日期 :</label>
+                            <input id="buyingTime" name="buyingTime" placeholder="请选择采购日期" class="form-control"
+                                   style="display: inline-block;width: 60%;"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">采购员 :</label>
+                            <input id="buyingName" name="buyingName" class="form-control" style="display: inline-block;width: 60%"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">报销编号 :</label>
+                            <input id="bxCode" name="bxCode" class="form-control" style="display: inline-block;width: 60%"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">采购状态 :</label>
+                            <select id="stateQc" lay-filter="stateQc" name="stateQc" class="form-control"style="width: 60%">
+                                 <option value="">请选择</option>
+                                 <option value="-1">已驳回</option>
+                                 <option value="0">已保存</option>
+                                 <option value="3">审批中</option>
+                                 <option value="1">已完成</option>
+                                 <option value="-5">已失效</option>
+                                 <option value="6">入库暂存</option>
+                                 <option value="7">已入库</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" id="buyingSearch" onclick="refreshTableData()"
+                                    class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;查询
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div id="purchaseButtonDiv" class="buttonGroupOuter" style="margin-top: 5px">
+                    <button id="addProductBtn" onclick="buyingManageObj.showSavePurchase()" class="btn btn-primary" type="button">
+                        <i class="fa fa-plus"></i>&nbsp;新增采购单
+                    </button>
+                    <button id="exportProductTemplate" onclick="buyingManageObj.downTemplate()" class="btn btn-primary" type="button">
+                        <i class="fa fa-external-link"></i>&nbsp;导入模板
+                    </button>
+                    <button id="word2html" class="btn btn-primary" type="button">
+                        <i class="fa fa-sign-in"></i>&nbsp;导入
+                    </button>
+                    <button id="exportProductBtn" onclick="buyingManageObj.exportPurchaseDetail()" class="btn btn-primary" type="button">
+                        <i class="fa fa-external-link"></i>&nbsp;导出
+                    </button>
+                    <button id="reimbursement" onclick="buyingManageObj.relatedReimbursement();" class="btn btn-primary" type="button">
+                        <i class="fa fa-external-link"></i>&nbsp;关联报销
+                    </button>
+                </div>
+                <div style="margin-top: 7px;">说明：只有已入库的采购才可以关联报销,已关联的采购不能再关联报销</div>
+                <!--采购列表列表-->
+                <div class="layui-form">
+                    <table id="purchaseTable" class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="14%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th style="text-align: center">
+                                <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose">序号
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    采购编号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    标题
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    报销编号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width:100%;text-align: center">
+                                    采购员
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    采购日期
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    采购金额
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    创建人
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    采购状态
+                                </div>
+                            </th>
+                            <th>
+                                <div style="width: 100%;text-align: center;">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="buyingManageList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div id="buyingManagePager" style="text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--新增采购-->
+<div id="savePurchaseModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addPurchaseForm" autocomplete="off" lay-filter="purchaseFilter" class="layui-form form-horizontal" type="post" enctype="multipart/form-data">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span class="save">新增采购单</span>
+                    <span class="edit">编辑采购单</span>
+                </div>
+                <div id="editFooter" class="editFooter stockModalBtn">
+                    <div onclick="buyingManageObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <!--buyingManageObj.submitProduct(this,'/purchase/editPurchase',4)-->
+                    <div id="editBtn" class="edit" onclick="buyingManageObj.submitProduct(this,'/purchase/editPurchase',4)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editPurchaseBtn" class="edit" onclick="buyingManageObj.submitProduct(this,'/purchase/editPurchase',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="addBtn" class="save" onclick="buyingManageObj.submitProduct(this,'/purchase/savePurchase',4)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <!--buyingManageObj.submitProduct(this,'/purchase/savePurchase',0)-->
+                    <div id="savePurchaseBtn" class="save" onclick="buyingManageObj.submitProduct(this,'/purchase/savePurchase',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div id="viewFooter" class="viewFooter stockModalBtn">
+                    <div onclick="buyingManageObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div onclick="buyingManageObj.confirm()" class="confirm">
+                        <i class="fa fa-check-circle-o"></i>
+                        确认
+                    </div>
+                    <div id="reject1" class="approve" onclick="buyingManageObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass1" class="approve" onclick="buyingManageObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory1" class="approve" onclick="buyingManageObj.showHistory2()">
+                        详情
+                    </div>
+                </div>
+            </div>
+
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        采购编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="purchaseCode" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="userId" name="userId" type="hidden" class="form-control"/>
+                        <input id="userName" name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>采购员:
+                    </label>
+                    <div class="col-sm-3">
+                        <select lay-verify="" lay-search id="buyerId" name="buyerId" class="buyerId form-control">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>采购时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="buyTime" name="buyTime" placeholder="请选择采购时间"
+                               class="buyTime form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-sm-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        附件:
+                    </label>
+                    <input type="hidden" name="affixLink">
+                    <input type="hidden" name="affixName">
+                    <div class="col-sm-3">
+                        <div id="affixDiv"></div>
+                        <input type="file" name="file" class="form-control" multiple/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="send col-sm-2 control-label">
+                        抄送:
+                    </label>
+                    <div class="send col-sm-3">
+                        <select id="notify" class="form-control" lay-verify="" lay-search>
+                        </select>
+                    </div>
+                    <label class="rejectReason col-sm-2 control-label">
+                        失效原因:
+                    </label>
+                    <div class="rejectReason col-sm-3">
+                        <input id="rejectReason" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-1">
+                    </div>
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;">
+                        采购明细(产品名称不能重复选择)
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="6%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="8%">
+                                    <col width="8%">
+                                    <col width="8%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="6%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">产品分类<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">产品名称<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">单价<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">总额</td>
+                                    <td style="text-align: center;">供应商<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">支付方式<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">
+                                        <button type="button" id="btn_addCheck" name="btn_addCheck" lay-filter="addCheck" class="btn btn-white btn-xs">
+                                            <i class="glyphicon glyphicon-plus"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="height: 229px;overflow: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="checkTable"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="6%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="8%">
+                                        <col width="8%">
+                                        <col width="8%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="6%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group">
+                            <label class="col-sm-2 control-label">
+                                申请金额:
+                            </label>
+                            <div class="col-sm-3">
+                                <input id="money" name="money" readonly onkeyup="value=value.replace(/[^\d.]/g,'')" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                            <label class="col-sm-2 control-label">
+                                备注:
+                            </label>
+                            <div class="col-sm-3">
+                                <input id="desc2" name="desc" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="remark" name="remark" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" id="flag"/>
+                            <input type="hidden" id="state" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="deptId"/>
+                            <input type="hidden" name="taskId" id="taskId"/>
+                            <input type="hidden" name="itemId" id="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增供应商-->
+<div id="saveSupplierModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addSupplierForm" autocomplete="off" lay-filter="example" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span class="save">新增供应商</span>
+                    <span class="edit">编辑供应商</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="supplierManageObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <!--onclick="supplierManageObj.submitSupplier(this,'/purchaseSupplier/add')"-->
+                    <div id="saveSupplierBtn" class="save" data-url="/purchaseSupplier/add" lay-submit lay-filter="addSupplier">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <!--onclick="supplierManageObj.submitSupplier(this,'/purchaseSupplier/edit')"-->
+                    <div id="editSupplierBtn" class="edit" data-url="/purchaseSupplier/edit" lay-submit lay-filter="addSupplier">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                </div>
+            </div>
+
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>供应商名称:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" id="purchaseSupplierId" name="id"/>
+                        <input id="name" name="name" lay-verify="name" placeholder="请输入供应商名称" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>供应商资质:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="level" class="form-control" lay-verify="level">
+                            <option value="">--请选择--</option>
+                            <option value="0">普通</option>
+                            <option value="1">中等</option>
+                            <option value="2">优质</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>产品分类:
+                    </label>
+                    <div class="col-sm-3">
+                        <select lay-search id="typeId" name="type" lay-verify="type" class="form-control">
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        备注:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="desc" name="desc" placeholder="请输入备注" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>供应商地址:
+                    </label>
+                    <div class="col-sm-9">
+                        <input id="address" name="address" lay-verify="address" type="text" placeholder="请输入供应商详细地址"
+                               class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+
+            </div>
+
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label">
+                        联系人
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-12 form-group" style="margin: 0px">
+                        <label class="col-sm-1 control-label">
+                        </label>
+                        <div class="col-sm-10">
+                            <table class="table table-condensed table-bordered">
+                                <thead>
+                                <tr class="active">
+                                    <td align="center" class="col-sm-1">序号</td>
+                                    <td align="center" class="col-sm-2">姓名<span class="text-red">*</span></td>
+                                    <td align="center" class="col-sm-2">联系方式<span class="text-red">*</span></td>
+                                    <td align="center" class="col-sm-1">性别<span class="text-red">*</span></td>
+                                    <td align="center" class="col-sm-2">部门</td>
+                                    <td align="center" class="col-sm-2">职位</td>
+                                    <td align="center" class="col-sm-2">邮箱</td>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td style="text-align: center">1</td>
+                                    <td>
+                                        <input type="text" name="contactName" lay-verify="contactName" class="form-control"
+                                               placeholder="请输入姓名"/>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="contactPhone" lay-verify="contactPhone" class="form-control"
+                                               placeholder="请输入联系方式"/>
+                                    </td>
+                                    <td>
+                                        <select name="contactSex" class="form-control">
+                                            <option value="1">男</option>
+                                            <option value="2">女</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="deptName" class="form-control"
+                                               placeholder="请输入部门"/>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="position" class="form-control"
+                                               placeholder="请输入职位"/>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="email" name="email" lay-verify="email"
+                                               class="form-control" placeholder="请输入邮箱"/>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-sm-1"></div>
+                    </div>
+
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group">
+                            <div class="modalTableTitle col-sm-2 control-label">
+                                财务信息
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label class="col-sm-2 control-label">结算方式:
+                            </label>
+                            <div class="col-sm-3">
+                                <div style="padding: 0px">
+                                    <!--0微信1支付宝2银行卡-->
+                                    <input type="radio" name="payMethod" value="0" lay-filter="isChecked" checked title="微信"/>
+                                    <input type="radio" name="payMethod" value="1" lay-filter="isChecked" title="支付宝"/>
+                                    <input type="radio" name="payMethod" value="2" lay-filter="isChecked" title="银行卡"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="weixin">
+                                <label class="col-sm-2 control-label">
+                                    微信名称:
+                                </label>
+                                <div class="col-sm-3">
+                                    <input id="weixin" name="weixin" type="text" placeholder="请输入微信名称"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="zhifubao" style="display: none">
+                                <label class="col-sm-2 control-label">
+                                    支付宝账号:
+                                </label>
+                                <div class="col-sm-3">
+                                    <input id="zhifubao" name="zhifubao" type="text" placeholder="请输入支付宝账号"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="bank" style="display: none">
+                                <label class="col-sm-2 control-label">
+                                    开户行:
+                                </label>
+                                <div class="col-sm-3">
+                                    <input id="bankName" name="bankName" type="text" placeholder="请输入开户行名称"
+                                           class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="bank col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                账户名称:
+                            </label>
+                            <div class="col-sm-3">
+                                <input id="accountName" name="accountName" type="text" placeholder="请输入账户名称"
+                                       class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                            <label class="col-sm-2 control-label">
+                                银行账号:
+                            </label>
+                            <div class="col-sm-3">
+                                <input id="bankNo" name="bankNo" type="text" placeholder="请输入银行账号"
+                                       class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="bank col-md-12 form-group" style="display: none">
+                            <div class="col-sm-1">
+                            </div>
+                            <label class="col-sm-1 control-label">
+                                开户地:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="bankPlace" name="bankPlace" type="text" placeholder="请输入开户地址"
+                                       class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--审核流程详情模态框-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--审核流程详情弹出框-->
+<div id="showHistoryModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="showHistoryForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>审批流程</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="buyingManageObj.closeApproveDiv();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group" style="margin-left: 0px;">
+                    <div id="showHistoryDiv" class="col-sm-12">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--批量导入供应商-->
+<div class="modal inmodal" id="importSupplierModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="importForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">批量导入供应商</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">上传excel:</label>
+                                    <div class="col-sm-10">
+                                        <input type="file" id="file" name="file" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="submitImportBtn"
+                            onclick="supplierManageObj.importSupplierDetails()">批量导入
+                    </button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" style="z-index: 199999999!important;" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

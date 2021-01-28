@@ -1,0 +1,125 @@
+version: '3.7'
+services:
+  mysql:
+    #镜像名称
+    image: mysql:latest
+    restart: always
+    container_name: mysql
+    #端口映射
+    ports:
+      - 3306:3306
+      #将mysql目录映射到本地 应根据自己所需要映射的目录进行修改
+    volumes:
+      - "/home/mysql/conf:/etc/mysql/conf.d"
+      - "/home/mysql/logs:/mysq/logs"
+      - "/home/mysql/data:/var/lib/mysql:rw"
+    networks:
+      - xh-net
+    #设置编码格式
+    command: [
+      '--default-authentication-plugin=mysql_native_password',
+      '--character-set-server=utf8mb4',
+      '--explicit_defaults_for_timestamp=true',
+      '--lower_case_table_names=1',
+      '--collation-server=utf8mb4_unicode_ci'
+    ]
+    #设置初始化密码
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_DATABASE: 'qferp'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: "123456"
+  #redis直接拉去redis镜像启动redis
+  redis:
+    restart: always
+    image: docker.io/redis:latest
+    container_name: redis
+    networks:
+      - xh-net
+    volumes:
+      - /home/redis:/var/lib/redis:Z
+      - /home/redis/data:/data
+      - /home/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+    command: redis-server --port 6379 --requirepass xhhw123 --appendonly yes --loglevel warning
+  qferp:
+    #找到当前目录下的java文件夹构建
+    build: ./
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp
+    restart: always
+    environment:
+       TZ: Asia/Shanghai
+       web.port: 810
+       db.host: mysql
+       db.port: 3306
+       db.name: xh-oa
+       redis.host: redis
+       redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "810:810"
+    networks:
+      - xh-net
+  qferp811:
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp811
+    restart: always
+    environment:
+       TZ: Asia/Shanghai
+       web.port: 811
+       db.host: mysql
+       db.port: 3306
+       db.name: xh-oa
+       redis.host: redis
+       redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "811:811"
+    networks:
+      - xh-net
+  qferp812:
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp812
+    restart: always
+    environment:
+      web.port: 812
+      db.host: mysql
+      db.port: 3306
+      db.name: xh-oa
+      redis.host: redis
+      redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "812:812"
+    networks:
+      - xh-net
+  nginx:
+    image: nginx
+    restart: always
+    container_name: nginx
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      #- /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/nginx/log:/var/log/nginx
+      - /home/nginx/www:/usr/share/nginx/html
+      - /home/nginx/conf.d/://etc/nginx/conf.d/:ro
+    networks:
+      - xh-net
+networks:
+  xh-net:
+    external: false

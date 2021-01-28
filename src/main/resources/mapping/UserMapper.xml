@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.UserMapper">
+    <sql id="userColumn">
+        su.id as id,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as companyCode
+    </sql>
+
+    <resultMap id="UserMap" type="com.qinfei.qferp.entity.sys.User">
+        <id column="id" property="id"/>
+        <result column="user_name" property="userName"/>
+        <result column="password" property="password"/>
+        <result column="name" property="name"/>
+        <result column="image" property="image"/>
+        <result column="sex" property="sex"/>
+        <result column="phone" property="phone"/>
+        <result column="qq" property="qq"/>
+        <result column="wechat" property="wechat"/>
+        <result column="email" property="email"/>
+        <result column="is_mgr" property="isMgr"/>
+        <result column="mgr_id" property="mgrId"/>
+        <result column="remark" property="remark"/>
+        <result column="state" property="state"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="login_time" property="loginTime"/>
+        <result column="login_ip" property="loginIp"/>
+        <result column="fail_num" property="failNum"/>
+        <result column="no" property="no"/>
+        <result column="mac" property="mac"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="session_id" property="sessionId"/>
+    </resultMap>
+
+    <select id="listUserInformation" resultMap="UserMap" parameterType="java.util.Map" useCache="true">
+        select id, `name`, image, sex, phone, qq, wechat, email,company_code
+        from
+        sys_user
+        where
+        state > -2
+        <if test="queryContent != null and queryContent != ''">
+            and (
+            `name` like '%${queryContent}%'
+            or
+            phone like '%${queryContent}%'
+            or
+            wechat like '%${queryContent}%'
+            or
+            email like '%${queryContent}%'
+            )
+        </if>
+        <if test="companyCode != 'JT'">
+            and company_code = #{companyCode}
+        </if>
+
+    </select>
+
+    <select id="listExclude" resultType="com.qinfei.qferp.entity.sys.User">
+        select * from sys_user
+        where state > -2
+        and post_id = #{postId}
+        and id not in
+        <foreach item="item" index="index" collection="excludeIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--根据媒体板块查询媒介信息-->
+    <select id="listMJByPlateId" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT DISTINCT
+        	su.id,
+        	su.`name`
+        FROM
+        	sys_user su
+        INNER JOIN t_user_media_type tumt ON tumt.user_id = su.id
+        AND tumt.state = 0
+        INNER JOIN sys_user_role sur ON su.id = sur.user_id
+        INNER JOIN sys_role sr ON sur.role_id = sr.id
+        AND sr.type = 'MJ'
+        WHERE su.handover_state = 0 and tumt.media_type_id = #{plateId}
+        <if test="companyCode != null and companyCode != ''">
+            AND su.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--根据媒体板块查询媒介信息，未移交的媒介-->
+    <select id="listMJByPlateId2" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT DISTINCT
+        su.id,
+        su.`name`
+        FROM
+        sys_user su
+        INNER JOIN t_user_media_type tumt ON tumt.user_id = su.id
+        AND tumt.state = 0
+        INNER JOIN sys_user_role sur ON su.id = sur.user_id
+        INNER JOIN sys_role sr ON sur.role_id = sr.id
+        AND sr.type = 'MJ'
+        WHERE tumt.media_type_id = #{plateId} and su.handover_state=0
+        <if test="companyCode != null and companyCode != ''">
+            AND su.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--根据部门ID列表获取用户信息-->
+    <select id="listUserByDeptIds" resultType="java.lang.Integer">
+        select id from sys_user
+        where state > -2
+        and dept_id in
+        <foreach item="deptId" collection="deptIds" open="(" close=")" separator=",">
+            #{deptId}
+        </foreach>
+    </select>
+
+    <select id="listUserByTypeAndCompanyCode" resultType="Map">
+        select a.id id,a.user_name userName,a.name name,a.dept_id deptId,a.dept_name deptName
+        from sys_user a
+        left join sys_user_role b on a.id = b.user_id
+        left join sys_role c on b.role_id = c.id
+        where a.state > -2 and a.handover_state=0 and a.company_code = #{companyCode} and c.type = #{type}
+        <if test="name!=null and name!=''">
+            and a.name like concat("%",#{name},"%")
+        </if>
+        <if test="deptName!=null and deptName!=''">
+            and a.dept_name like concat("%",#{deptName},"%")
+        </if>
+    </select>
+    <select id="listUserByCompanyCode" resultType="Map">
+        select id id,user_name userName,name name,dept_id deptId,dept_name deptName from sys_user
+        where state > -2 and handover_state=0 and company_code = #{companyCode}
+        <if test="name!=null and name!=''">
+            and name like concat("%",#{name},"%")
+        </if>
+        <if test="deptName!=null and deptName!=''">
+            and dept_name like concat("%",#{deptName},"%")
+        </if>
+    </select>
+
+    <!--获取用户列表-->
+    <select id="listUserByParam" resultType="java.util.Map">
+        SELECT
+        sr.type as roleType, sr. CODE as roleCode,<include refid="userColumn"/>
+        FROM
+          sys_user su
+        LEFT JOIN sys_user_role sur ON sur.user_id = su.id
+        LEFT JOIN sys_role sr ON sr.id = sur.role_id and sr.state <![CDATA[<>]]> -9
+        WHERE
+        su.state <![CDATA[>]]> -2
+        <if test="handoverState != null">
+            AND su.handover_state = #{handoverState}
+        </if>
+        <if test="companyCode != null">
+            AND su.company_code = #{companyCode}
+        </if>
+        <if test="type != null and type != ''">
+            AND sr.type = #{type}
+        </if>
+        <if test="code != null and code != ''">
+            AND sr.`code` = #{code}
+        </if>
+    </select>
+
+    <!--获取部门负责人-->
+    <select id="listDeptMgrByCompanyCode" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        	mgr_id AS id,
+        	mgr_name AS NAME,
+        	id AS deptId
+        FROM
+        	sys_dept
+        WHERE state > - 2 and company_code = #{companyCode}
+    </select>
+
+    <select id="listJTCWhead" resultType="com.qinfei.qferp.entity.sys.Dept">
+        select * from sys_dept where company_code= #{companyCode} and code=#{code} and state>-9;
+    </select>
+
+    <select id="queryDeptByCompany" parameterType="java.util.Map" resultType="java.util.Map">
+        select user.name userName,user.dept_id deptId,user.dept_name deptName
+        from sys_user user
+        LEFT JOIN sys_dept dept
+        ON user.dept_id = dept.id and dept.state>-2 and user.state>-2
+        where dept.company_code = #{companyCode} and user.propose_sign=0 and user.handover_state=0
+        and user.id not in
+        (SELECT DISTINCT t.user_id FROM t_propose t where t.state>-2
+        <choose>
+            <when test="startMonth == null and endMonth == null">
+                and t.entry_time BETWEEN date_add(curdate()-day(curdate()) + 1,interval #{timeAdjust} month) and last_day(curdate())
+            </when>
+            <otherwise>
+                <if test="startMonth!=null and startMonth!=''">
+                    AND t.entry_time &gt;= #{startMonth}
+                </if>
+                <if test="endMonth!=null and endMonth!=''">
+                    AND t.entry_time &lt;= #{endMonth}
+                </if>
+            </otherwise>
+        </choose>
+        )
+        GROUP BY deptId,deptName,userName order by deptId
+    </select>
+
+    <!--查询建议需提醒的数据-->
+    <select id="querySuggestHintData" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT u.id userId FROM
+        sys_user u WHERE u.company_code=#{companyCode} and u.state>-2
+        AND u.propose_sign = 0 AND u.handover_state = 0
+        AND u.id NOT IN (
+        SELECT DISTINCT
+        t.user_id
+        FROM
+        t_propose t
+        WHERE
+        t.state >- 2
+        and t.entry_time BETWEEN date_add(curdate()-day(curdate())+1,interval #{timeAdjust} month) and last_day(curdate())
+        )
+        GROUP BY userId
+    </select>
+    <!--根据条件查询用户-->
+    <select id="queryUserByCondition" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.sys.User">
+        select id,name,dept_id,dept_name from sys_user
+        where company_code=#{companyCode} and state>-2 and handover_state=0
+        <if test="name!=null and name!=''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="postId!=null and postId!=''">
+            and post_id=#{postId}
+        </if>
+    </select>
+    <!--查询部长的上级审核人员-->
+    <select id="queryUserByRoleType" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.sys.User">
+          select distinct u.* from sys_user u
+          left join sys_user_role ur on u.id=ur.user_id
+          left join sys_role r on r.id=ur.role_id
+          where u.state>-2 and u.handover_state=0 and u.company_code=#{companyCode}
+          <choose>
+              <when test="roleType=='YW' and roleCode=='BZ'">
+                  and ((r.type='ZJB' and r.code='ZJL') or (r.type='YW' and r.code='ZJ'))
+              </when>
+              <otherwise>
+                  and r.type='ZJB' and r.code='ZJL'
+              </otherwise>
+          </choose>
+    </select>
+    <!--手动关联用户修改用户职位-->
+    <update id="updateUserPost" parameterType="java.util.Map">
+         update sys_user set post_id=#{postId},post_name=#{postName},update_time=#{updateTime},update_user_id=#{updateUserId} where id=#{userId}
+    </update>
+
+
+    <select id="intranetUserListPg" resultType="Map">
+    select u.id,u.`name`,u.user_name,u.dept_name deptName,d.company_code_name companyCodeName from sys_user u LEFT JOIN sys_dept d ON u.dept_id = d.id
+    where u.state>-2
+    <if test="keyword!=null and keyword !='' and keyword !='null'">
+        AND u.name like  CONCAT(CONCAT('%',#{keyword}),'%')
+    </if>
+    </select>
+
+
+</mapper>

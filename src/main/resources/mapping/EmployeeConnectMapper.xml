@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 交接清单； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeConnectMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeConnect">
+        <id column="con_id" jdbcType="INTEGER" property="conId"/>
+        <result column="con_type" jdbcType="INTEGER" property="conType"/>
+        <result column="con_data" jdbcType="INTEGER" property="conData"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_dept_name" jdbcType="VARCHAR" property="empDeptName"/>
+        <result column="dept_leader" jdbcType="INTEGER" property="deptLeader"/>
+        <result column="dept_leader_name" jdbcType="VARCHAR" property="deptLeaderName"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_profession_name" jdbcType="VARCHAR" property="empProfessionName"/>
+        <result column="emp_date" jdbcType="DATE" property="empDate"/>
+        <result column="emp_state" jdbcType="INTEGER" property="empState"/>
+        <result column="leave_type" jdbcType="INTEGER" property="leaveType"/>
+        <result column="leave_type_content" jdbcType="INTEGER" property="leaveTypeContent"/>
+        <result column="con_date_type" jdbcType="INTEGER" property="conDateType"/>
+        <result column="con_date" jdbcType="DATE" property="conDate"/>
+        <result column="con_emp_id" jdbcType="INTEGER" property="conEmpId"/>
+        <result column="con_emp_name" jdbcType="VARCHAR" property="conEmpName"/>
+        <result column="con_dept_approve" jdbcType="VARCHAR" property="conDeptApprove"/>
+        <result column="con_list" jdbcType="VARCHAR" property="conList"/>
+        <result column="con_dept_remark" jdbcType="VARCHAR" property="conDeptRemark"/>
+        <result column="con_personal" jdbcType="VARCHAR" property="conPersonal"/>
+        <result column="con_personal_id" jdbcType="INTEGER" property="conPersonalId"/>
+        <result column="con_personal_name" jdbcType="VARCHAR" property="conPersonalName"/>
+        <result column="con_personal_remark" jdbcType="VARCHAR" property="conPersonalRemark"/>
+        <result column="complete_date" jdbcType="DATE" property="completeDate"/>
+        <result column="break_money" jdbcType="REAL" property="breakMoney"/>
+        <result column="con_finance_id" jdbcType="INTEGER" property="conFinanceId"/>
+        <result column="con_finance_name" jdbcType="VARCHAR" property="conFinanceName"/>
+        <result column="con_finance" jdbcType="VARCHAR" property="conFinance"/>
+        <result column="con_finance_remark" jdbcType="VARCHAR" property="conFinanceRemark"/>
+        <result column="con_file" jdbcType="VARCHAR" property="conFile"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        con_id,
+        con_type,
+        con_data,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        dept_leader,
+        dept_leader_name,
+        emp_profession,
+        emp_profession_name,
+        emp_date,
+        emp_state,
+        leave_type,
+        leave_type_content,
+        con_date_type,
+        con_date,
+        con_emp_id,
+        con_emp_name,
+        con_dept_approve,
+        con_list,
+        con_dept_remark,
+        con_personal,
+        con_personal_id,
+        con_personal_name,
+        con_personal_remark,
+        complete_date,
+        break_money,
+        con_finance_id,
+        con_finance_name,
+        con_finance,
+        con_finance_remark,
+        con_file,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_connect
+        where
+        con_id = #{conId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据父表ID和类型查询关联的记录； -->
+    <select id="selectByRelateData" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_connect
+        where
+        state &lt;&gt; -1 and state &lt;&gt; 3
+        <if test="conType != null">
+            and con_type = #{conType}
+        </if>
+        <if test="conData != null">
+            and con_data = #{conData}
+        </if>
+        <if test="empId != null">
+            and emp_id = #{empId}
+        </if>
+    </select>
+
+    <select id="listByEmpId" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_connect
+        where state <![CDATA[<>]]> -1 and state <![CDATA[<>]]> 3
+        and emp_id in
+        <foreach collection="empIdList" item="empId" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </select>
+
+    <select id="listByIds" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_connect
+        where state <![CDATA[<>]]> -1
+        and con_id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据员工的ID和状态查询交接记录的主键； -->
+    <select id="selectIdByParentId" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select
+        con_id
+        from
+        e_employee_connect
+        where
+        state &lt;&gt; -1 and state &lt;&gt; 3
+        <if test="conType != null">
+            and con_type = #{conType}
+        </if>
+        <if test="conData != null">
+            and con_data = #{conData}
+        </if>
+        <if test="empId != null">
+            and emp_id = #{empId}
+        </if>
+    </select>
+
+    <!-- 根据父表ID查询交接记录； -->
+    <select id="selectByParentId" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_connect
+        where
+        state &lt;&gt; -1 and state &lt;&gt; 3
+        <if test="conType != null">
+            and con_type = #{conType}
+        </if>
+        <if test="conData != null">
+            and con_data = #{conData}
+        </if>
+        <if test="empId != null">
+            and emp_id = #{empId}
+        </if>
+    </select>
+
+    <!-- 交接记录列表； -->
+    <select id="selectPageConnect" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_employee_connect
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            con_id desc
+        </if>
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empNum != null">
+            and emp_num like '%${empNum}%'
+        </if>
+        <if test="empName != null">
+            and emp_name like '%${empName}%'
+        </if>
+        <if test="empDept != null">
+            and emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null and companyCode !='' and companyCode !='XH'">
+            and emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="empDeptName != null">
+            and emp_dept_name like '%${empDeptName}%'
+        </if>
+        <if test="empProfession != null">
+            and emp_profession = #{empProfession}
+        </if>
+        <if test="empProfessionName != null">
+            and emp_profession_name like '%${empProfessionName}%'
+        </if>
+        <if test="deptLeader != null">
+            and dept_leader = #{deptLeader}
+        </if>
+        <if test="deptLeaderName != null">
+            and dept_leader_name like '%${deptLeaderName}%'
+        </if>
+        <if test="conType != null">
+            and con_type = #{conType}
+        </if>
+        <if test="empState != null">
+            and emp_state = #{empState}
+        </if>
+        <if test="empDateStart != null">
+            and emp_date &gt;= #{empDateStart}
+        </if>
+        <if test="empDateEnd != null">
+            and emp_date &lt;= STR_TO_DATE(concat(#{empDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="conDateStart != null">
+            and con_date &gt;= #{conDateStart}
+        </if>
+        <if test="conDateEnd != null">
+            and con_date &lt;= STR_TO_DATE(concat(#{conDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="completeDateStart != null">
+            and complete_date &gt;= #{completeDateStart}
+        </if>
+        <if test="completeDateEnd != null">
+            and complete_date &lt;= STR_TO_DATE(concat(#{completeDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="createTimeStart != null">
+            and (create_time &gt;= #{createTimeStart} or update_time &gt;= #{createTimeStart})
+        </if>
+        <if test="createTimeEnd != null">
+            and (create_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T') or update_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T'))
+        </if>
+        <if test="createName != null">
+            and create_name like '%${createName}%'
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="conIds != null">
+            and con_id in
+            <foreach item="conId" collection="conIds" index="index" open="(" close=")" separator=",">
+                #{conId}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeConnect" useGeneratedKeys="true"
+            keyProperty="conId">
+        insert into e_employee_connect (
+        con_id,
+        con_type,
+        con_data,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        dept_leader,
+        dept_leader_name,
+        emp_profession,
+        emp_profession_name,
+        emp_date,
+        emp_state,
+        leave_type,
+        leave_type_content,
+        con_date_type,
+        con_date,
+        con_emp_id,
+        con_emp_name,
+        con_dept_approve,
+        con_list,
+        con_dept_remark,
+        con_personal,
+        con_personal_id,
+        con_personal_name,
+        con_personal_remark,
+        complete_date,
+        break_money,
+        con_finance_id,
+        con_finance_name,
+        con_finance,
+        con_finance_remark,
+        con_file,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{conId,jdbcType=INTEGER},
+        #{conType,jdbcType=INTEGER},
+        #{conData,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empDeptName,jdbcType=VARCHAR},
+        #{deptLeader,jdbcType=INTEGER},
+        #{deptLeaderName,jdbcType=VARCHAR},
+        #{empProfession,jdbcType=INTEGER},
+        #{empProfessionName,jdbcType=VARCHAR},
+        #{empDate,jdbcType=DATE},
+        #{empState,jdbcType=INTEGER},
+        #{leaveType,jdbcType=INTEGER},
+        #{leaveTypeContent,jdbcType=INTEGER},
+        #{conDateType,jdbcType=INTEGER},
+        #{conDate,jdbcType=DATE},
+        #{conEmpId,jdbcType=INTEGER},
+        #{conEmpName,jdbcType=VARCHAR},
+        #{conDeptApprove,jdbcType=VARCHAR},
+        #{conList,jdbcType=VARCHAR},
+        #{conDeptRemark,jdbcType=VARCHAR},
+        #{conPersonal,jdbcType=VARCHAR},
+        #{conPersonalId,jdbcType=INTEGER},
+        #{conPersonalName,jdbcType=VARCHAR},
+        #{conPersonalRemark,jdbcType=VARCHAR},
+        #{completeDate,jdbcType=DATE},
+        #{breakMoney,jdbcType=REAL},
+        #{conFinanceId,jdbcType=INTEGER},
+        #{conFinanceName,jdbcType=VARCHAR},
+        #{conFinance,jdbcType=VARCHAR},
+        #{conFinanceRemark,jdbcType=VARCHAR},
+        #{conFile,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeConnect" useGeneratedKeys="true"
+            keyProperty="conId">
+        insert into e_employee_connect
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="conId != null">con_id,</if>
+            <if test="conType != null">con_type,</if>
+            <if test="conData != null">con_data,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empDeptName != null">emp_dept_name,</if>
+            <if test="deptLeader != null">dept_leader,</if>
+            <if test="deptLeaderName != null">dept_leader_name,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empProfessionName != null">emp_profession_name,</if>
+            <if test="empDate != null">emp_date,</if>
+            <if test="empState != null">emp_state,</if>
+            <if test="leaveType != null">leave_type,</if>
+            <if test="leaveTypeContent != null">leave_type_content,</if>
+            <if test="conDateType != null">con_date_type,</if>
+            <if test="conDate != null">con_date,</if>
+            <if test="conEmpId != null">con_emp_id,</if>
+            <if test="conEmpName != null">con_emp_name,</if>
+            <if test="conDeptApprove != null">con_dept_approve,</if>
+            <if test="conList != null">con_list,</if>
+            <if test="conDeptRemark != null">con_dept_remark,</if>
+            <if test="conPersonal != null">con_personal,</if>
+            <if test="conPersonalId != null">con_personal_id,</if>
+            <if test="conPersonalName != null">con_personal_name,</if>
+            <if test="conPersonalRemark != null">con_personal_remark,</if>
+            <if test="completeDate != null">complete_date,</if>
+            <if test="breakMoney != null">break_money,</if>
+            <if test="conFinanceId != null">con_finance_id,</if>
+            <if test="conFinanceName != null">con_finance_name,</if>
+            <if test="conFinance != null">con_finance,</if>
+            <if test="conFinanceRemark != null">con_finance_remark,</if>
+            <if test="conFile != null">con_file,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="conId != null">#{conId,jdbcType=INTEGER},</if>
+            <if test="conType != null">#{conType,jdbcType=INTEGER},</if>
+            <if test="conData != null">#{conData,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">#{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="deptLeader != null">#{deptLeader,jdbcType=INTEGER},</if>
+            <if test="deptLeaderName != null">#{deptLeaderName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">#{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empDate != null">#{empDate,jdbcType=DATE},</if>
+            <if test="empState != null">#{empState,jdbcType=INTEGER},</if>
+            <if test="leaveType != null">#{leaveType,jdbcType=INTEGER},</if>
+            <if test="leaveTypeContent != null">#{leaveTypeContent,jdbcType=INTEGER},</if>
+            <if test="conDateType != null">#{conDateType,jdbcType=INTEGER},</if>
+            <if test="conDate != null">#{conDate,jdbcType=DATE},</if>
+            <if test="conEmpId != null">#{conEmpId,jdbcType=INTEGER},</if>
+            <if test="conEmpName != null">#{conEmpName,jdbcType=VARCHAR},</if>
+            <if test="conDeptApprove != null">#{conDeptApprove,jdbcType=VARCHAR},</if>
+            <if test="conList != null">#{conList,jdbcType=VARCHAR},</if>
+            <if test="conDeptRemark != null">#{conDeptRemark,jdbcType=VARCHAR},</if>
+            <if test="conPersonal != null">#{conPersonal,jdbcType=VARCHAR},</if>
+            <if test="conPersonalId != null">#{conPersonalId,jdbcType=INTEGER},</if>
+            <if test="conPersonalName != null">#{conPersonalName,jdbcType=VARCHAR},</if>
+            <if test="conPersonalRemark != null">#{conPersonalRemark,jdbcType=VARCHAR},</if>
+            <if test="completeDate != null">#{completeDate,jdbcType=DATE},</if>
+            <if test="breakMoney != null">#{breakMoney,jdbcType=REAL},</if>
+            <if test="conFinanceId != null">#{conFinanceId,jdbcType=INTEGER},</if>
+            <if test="conFinanceName != null">#{conFinanceName,jdbcType=VARCHAR},</if>
+            <if test="conFinance != null">#{conFinance,jdbcType=VARCHAR},</if>
+            <if test="conFinanceRemark != null">#{conFinanceRemark,jdbcType=VARCHAR},</if>
+            <if test="conFile != null">#{conFile,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeConnect">
+        update e_employee_connect
+        <include refid="EmployCommon.deleteInfo"/>
+        where con_id = #{conId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeConnect">
+        update e_employee_connect
+        <set>
+            <if test="conType != null">con_type = #{conType,jdbcType=INTEGER},</if>
+            <if test="conData != null">con_data = #{conData,jdbcType=INTEGER},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">emp_dept_name = #{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="deptLeader != null">dept_leader = #{deptLeader,jdbcType=INTEGER},</if>
+            <if test="deptLeaderName != null">dept_leader_name = #{deptLeaderName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empDate != null">emp_date = #{empDate,jdbcType=DATE},</if>
+            <if test="empState != null">emp_state = #{empState,jdbcType=INTEGER},</if>
+            <if test="leaveType != null">leave_type = #{leaveType,jdbcType=INTEGER},</if>
+            <if test="leaveTypeContent != null">leave_type_content = #{leaveTypeContent,jdbcType=INTEGER},</if>
+            <if test="conDateType != null">con_date_type = #{conDateType,jdbcType=INTEGER},</if>
+            <if test="conDate != null">con_date = #{conDate,jdbcType=DATE},</if>
+            <if test="conEmpId != null">con_emp_id = #{conEmpId,jdbcType=INTEGER},</if>
+            <if test="conEmpName != null">con_emp_name = #{conEmpName,jdbcType=VARCHAR},</if>
+            <if test="conDeptApprove != null">con_dept_approve = #{conDeptApprove,jdbcType=VARCHAR},</if>
+            <if test="conList != null">con_list = #{conList,jdbcType=VARCHAR},</if>
+            <if test="conDeptRemark != null">con_dept_remark = #{conDeptRemark,jdbcType=VARCHAR},</if>
+            <if test="conPersonal != null">con_personal = #{conPersonal,jdbcType=VARCHAR},</if>
+            <if test="conPersonalId != null">con_personal_id = #{conPersonalId,jdbcType=INTEGER},</if>
+            <if test="conPersonalName != null">con_personal_name = #{conPersonalName,jdbcType=VARCHAR},</if>
+            <if test="conPersonalRemark != null">con_personal_remark = #{conPersonalRemark,jdbcType=VARCHAR},</if>
+            <if test="completeDate != null">complete_date = #{completeDate,jdbcType=DATE},</if>
+            <if test="breakMoney != null">break_money = #{breakMoney,jdbcType=REAL},</if>
+            <if test="conFinanceId != null">con_finance_id = #{conFinanceId,jdbcType=INTEGER},</if>
+            <if test="conFinanceName != null">con_finance_name = #{conFinanceName,jdbcType=VARCHAR},</if>
+            <if test="conFinance != null">con_finance = #{conFinance,jdbcType=VARCHAR},</if>
+            <if test="conFinanceRemark != null">con_finance_remark = #{conFinanceRemark,jdbcType=VARCHAR},</if>
+            <if test="conFile != null">con_file = #{conFile,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        con_id = #{conId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeConnect">
+        update
+        e_employee_connect
+        set
+        con_type = #{conType,jdbcType=INTEGER},
+        con_data = #{conData,jdbcType=INTEGER},
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_dept_name = #{empDeptName,jdbcType=VARCHAR},
+        dept_leader = #{deptLeader,jdbcType=INTEGER},
+        dept_leader_name = #{deptLeaderName,jdbcType=VARCHAR},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},
+        emp_date = #{empDate,jdbcType=DATE},
+        emp_state = #{empState,jdbcType=INTEGER},
+        leave_type = #{leaveType,jdbcType=INTEGER},
+        leave_type_content = #{leaveTypeContent,jdbcType=INTEGER},
+        con_date_type = #{conDateType,jdbcType=INTEGER},
+        con_date = #{conDate,jdbcType=DATE},
+        con_emp_id = #{conEmpId,jdbcType=INTEGER},
+        con_emp_name = #{conEmpName,jdbcType=VARCHAR},
+        con_dept_approve = #{conDeptApprove,jdbcType=VARCHAR},
+        con_list = #{conList,jdbcType=VARCHAR},
+        con_dept_remark = #{conDeptRemark,jdbcType=VARCHAR},
+        con_personal = #{conPersonal,jdbcType=VARCHAR},
+        con_personal_id = #{conPersonalId,jdbcType=INTEGER},
+        con_personal_name = #{conPersonalName,jdbcType=VARCHAR},
+        con_personal_remark = #{conPersonalRemark,jdbcType=VARCHAR},
+        complete_date = #{completeDate,jdbcType=DATE},
+        break_money = #{breakMoney,jdbcType=REAL},
+        con_finance_id = #{conFinanceId,jdbcType=INTEGER},
+        con_finance_name = #{conFinanceName,jdbcType=VARCHAR},
+        con_finance = #{conFinance,jdbcType=VARCHAR},
+        con_finance_remark = #{conFinanceRemark,jdbcType=VARCHAR},
+        con_file = #{conFile,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        con_id = #{conId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

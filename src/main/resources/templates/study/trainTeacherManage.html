@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>讲师管理</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/trainTeacherManage.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/js/study/trainTeacherManage.js"></script>
+    <style>
+
+    </style>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //培训计划-讲师等级
+                form.on('select(teacherLevel)', function(data){
+                    var index = data.value;
+                    var teacherLevelStart = "";
+                    var teacherLevelEnd = "";
+                    if(index || parseInt(index) == 0){
+                        if(index == commonObj.teacherLevelList.length - 1){
+                            teacherLevelStart = 0;
+                            teacherLevelEnd = commonObj.teacherLevelList[index].ruleValue || 0;
+                        }else {
+                            if(index == 0){
+                                teacherLevelStart = 0;
+                            }else {
+                                teacherLevelStart = commonObj.teacherLevelList[parseInt(index)-1].ruleValue || 0;
+                            }
+                            teacherLevelEnd = commonObj.teacherLevelList[index].ruleValue || 0;
+                        }
+                    }
+                    $("input[name='teacherLevelStart']").val(teacherLevelStart);
+                    $("input[name='teacherLevelEnd']").val(teacherLevelEnd);
+                    trainTeacherManageObj.init();
+                });
+                //讲师管理-讲师名称
+                form.on('select(userId)', function(data){
+                    trainTeacherManageObj.init();
+                });
+                //讲师管理-讲师部门
+                form.on('select(deptId)', function(data){
+                    trainTeacherManageObj.init();
+                });
+                //讲师管理-擅长领域
+                form.on('select(goodAtField)', function(data){
+                    trainTeacherManageObj.init();
+                });
+                //讲师管理-授课经历
+                form.on('select(educationFlag)', function(data){
+                    trainTeacherManageObj.init();
+                });
+                //讲师统计-讲师名称
+                form.on('select(teacherId)', function(data){
+                    trainTeacherStatisticsObj.init();
+                });
+                //讲师统计-讲师部门
+                form.on('select(teacherDeptId)', function(data){
+                    trainTeacherStatisticsObj.init();
+                });
+            });
+
+            //加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    commonObj.tabChange(data.index);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--顶部搜索-->
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li id="trainTeacherManageTab" class="layui-this">讲师管理</li>
+        <li id="trainTeacherStatisticsTab">讲师统计</li>
+    </ul>
+</div>
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content">
+    <!--讲师管理-->
+    <div id="trainTeacherManage" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="trainTeacherManageForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            讲师姓名:
+                        </label>
+                        <select name="userId" placeholder="讲师名称" class="form-control" lay-search lay-filter="userId">
+
+                        </select>
+                        <!--<input name="name" placeholder="请输入讲师姓名" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>-->
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            部门名称:
+                        </label>
+                        <select name="deptId" placeholder="部门名称" class="form-control" lay-search lay-filter="deptId">
+
+                        </select>
+                        <!--<input name="deptName" placeholder="请输入部门名称" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>-->
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            讲师等级:
+                        </label>
+                        <input type="hidden" name="teacherLevelStart"/>
+                        <input type="hidden" name="teacherLevelEnd"/>
+                        <select name="teacherLevel" placeholder="讲师等级" class="form-control" lay-search lay-filter="teacherLevel">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            擅长领域:
+                        </label>
+                        <select name="goodAtFieldId" placeholder="擅长领域" class="form-control" lay-search lay-filter="goodAtField">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            授课经历:
+                        </label>
+                        <select name="educationFlag" placeholder="授课经历" class="form-control" lay-search lay-filter="educationFlag">
+                            <option value="">请选择授课经历</option>
+                            <option value="0">无</option>
+                            <option value="1">有</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <div id="teacherApplyBtn" class="paramDiv" style="text-align: left;float: left;">
+                    <button class="btn btn-primary" type="button" onclick="trainTeacherManageObj.trainTeacherModalShow();">
+                        <i class="fa fa-plus"></i>&nbsp;讲师申请
+                    </button>
+                </div>
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="讲师姓名">
+                            <div class="ellipsisContent">
+                                讲师姓名
+                            </div>
+                        </th>
+                        <th title="等级">
+                            <div class="ellipsisContent">
+                                等级
+                            </div>
+                        </th>
+                        <th title="擅长领域">
+                            <div class="ellipsisContent">
+                                擅长领域
+                            </div>
+                        </th>
+                        <th title="授课经历">
+                            <div class="ellipsisContent">
+                                授课经历
+                            </div>
+                        </th>
+                        <th title="部门名称">
+                            <div class="ellipsisContent">
+                                部门名称
+                            </div>
+                        </th>
+                        <th title="职位">
+                            <div class="ellipsisContent">
+                                职位
+                            </div>
+                        </th>
+                        <th title="性别">
+                            <div class="ellipsisContent">
+                                性别
+                            </div>
+                        </th>
+                        <th title="联系方式">
+                            <div class="ellipsisContent">
+                                联系方式
+                            </div>
+                        </th>
+                        <th title="创建时间">
+                            <div class="ellipsisContent">
+                                创建时间
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="trainTeacherManageList">
+                            <!--<tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="张三">
+                             <div class="ellipsisContent">
+                                 张三
+                             </div>
+                         </td>
+                         <td title="LV1">
+                             <div class="ellipsisContent">
+                                 LV1
+                             </div>
+                         </td>
+                         <td title="沟通能力">
+                             <div class="ellipsisContent">
+                                 沟通能力
+                             </div>
+                         </td>
+                         <td title="是">
+                             <div class="ellipsisContent">
+                                 是
+                             </div>
+                         </td>
+                         <td title="业务部">
+                             <div class="ellipsisContent">
+                                 业务部
+                             </div>
+                         </td>
+                         <td title="业务员">
+                             <div class="ellipsisContent">
+                                 业务员
+                             </div>
+                         </td>
+                         <td title="男">
+                             <div class="ellipsisContent">
+                                 男
+                             </div>
+                         </td>
+                         <td title="18888888888">
+                             <div class="ellipsisContent">
+                                 18888888888
+                             </div>
+                         </td>
+                         <td title="2020-04-11 16:30:00">
+                             <div class="ellipsisContent">
+                                 2020-04-11 16:30:00
+                             </div>
+                         </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button">
+                                     编辑
+                                 </button>
+                                 <button class="tableButton orangeBtn" type="button">
+                                     删除
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="trainTeacherManageListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--讲师统计-->
+    <div id="trainTeacherStatistics" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="trainTeacherStatisticsForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            讲师姓名:
+                        </label>
+                        <select name="userId" placeholder="讲师名称" class="form-control" lay-search lay-filter="teacherId">
+
+                        </select>
+                        <!--<input name="name" placeholder="请输入讲师姓名" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>-->
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            部门名称:
+                        </label>
+                        <select name="deptId" placeholder="部门名称" class="form-control" lay-search lay-filter="teacherDeptId">
+
+                        </select>
+                        <!--<input name="deptName" placeholder="请输入部门名称" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>-->
+                    </div>
+                </form>
+            </div>
+
+            <!--备注信息-->
+            <div class="teacherListExportBtnWrap">
+                <!--说明-->
+                <span style="flex:1;">
+                    *注意：平均评分 = 单课程平均评分之和 / 完课课程数；平均点赞 = 单课程点赞之和 / 完课课程数；平均吐槽 = 单课程吐槽之和 / 完课课程数；
+                </span>
+                <!--导出按钮-->
+                <span id="teacherListExportBtn" style="cursor: pointer;display: none;"
+                      class="blueBtn teacherListExportBtn"
+                      onclick="trainTeacherStatisticsObj.trainTeacherStatisticsExport();">导出列表</span>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line"
+                       style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="14%">
+                        <col width="10%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="讲师姓名">
+                            <div class="ellipsisContent">
+                                讲师姓名
+                            </div>
+                        </th>
+                        <th title="关联课程">
+                            <div class="ellipsisContent">
+                                关联课程
+                            </div>
+                        </th>
+                        <th title="总积分">
+                            <div class="ellipsisContent">
+                                总积分
+                            </div>
+                        </th>
+                        <th title="平均评分(完课单课程平均评分总和/完课课程数)">
+                            <div class="ellipsisContent">
+                                平均评分
+                            </div>
+                        </th>
+                        <th title="平均点赞(完课课程点赞数总和/完课课程数)">
+                            <div class="ellipsisContent">
+                                平均点赞
+                            </div>
+                        </th>
+                        <th title="平均吐槽(完课课程吐槽数总和/完课课程数)">
+                            <div class="ellipsisContent">
+                                平均吐槽
+                            </div>
+                        </th>
+                        <th title="总评论">
+                            <div class="ellipsisContent">
+                                总评论
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="14%">
+                            <col width="10%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="trainTeacherStatisticsList">
+                        <!--<tr>
+                     <td title="1">
+                         <div class="ellipsisContent">
+                             1
+                         </div>
+                     </td>
+                     <td title="邹丽">
+                         <div class="ellipsisContent">
+                             邹丽
+                         </div>
+                     </td>
+                     <td title="3">
+                         <div class="ellipsisContent">
+                             3
+                         </div>
+                     </td>
+                     <td title="10">
+                         <div class="ellipsisContent">
+                             10
+                         </div>
+                     </td>
+                     <td title="8.5">
+                         <div class="ellipsisContent">
+                             8.5
+                         </div>
+                     </td>
+                     <td title="10">
+                         <div class="ellipsisContent">
+                             10
+                         </div>
+                     </td>
+                     <td title="10">
+                         <div class="ellipsisContent">
+                            10
+                         </div>
+                     </td>
+                     <td title="11">
+                         <div class="ellipsisContent">
+                             11
+                         </div>
+                     </td>
+                     <td>
+                         <div class="ellipsisContent">
+                             <button class="tableButton blueBtn" type="button">
+                                 查看详情
+                             </button>
+                         </div>
+                     </td>
+                 </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="trainTeacherStatisticsListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+</div>
+</body>
+<!--申请/编辑讲师-->
+<div id="trainTeacherModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                讲师申请
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="trainTeacherManageObj.trainTeacherModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="trainTeacherManageObj.trainTeacherSubmit(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="trainModalContentOuter">
+            <form id="trainTeacherForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <input type="hidden" name="id"/>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        <span class="text-red">*</span>讲师:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="userId"/>
+                        <select name="userId" class="form-control" lay-search lay-filter="userId">
+
+                        </select>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        部门名称:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control deptName" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        所属职位:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control postName" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        性别:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control sex" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        联系电话:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control phone" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        擅长领域:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="goodAtFieldId" class="form-control" lay-search>
+                            <option value="0">否</option>
+                            <option value="1">是</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                    </div>
+                    <label class="col-sm-3 control-label">
+                        是否有授课经历:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="educationFlag" class="form-control" lay-search>
+                            <option value="0">无</option>
+                            <option value="1">有</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        个人简介:
+                    </label>
+                    <div class="col-sm-11">
+                        <textarea name="introduce" maxlength="512" placeholder="请输入个人简介" class="layui-textarea" style="height: 200px;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--申请/编辑讲师-->
+<div id="trainTeacherViewModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                讲师详情
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="trainTeacherStatisticsObj.trainTeacherModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="trainModalContentOuter">
+            <form id="trainTeacherViewForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        讲师姓名:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="userId" class="form-control" lay-search disabled>
+                        </select>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        部门名称:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control deptName" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        所属职位:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control postName" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        性别:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control sex" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        联系电话:
+                    </label>
+                    <div class="col-sm-3">
+                        <input value="-" class="form-control phone" readonly style="background-color: white;border: unset;"/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        擅长领域:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="goodAtFieldId" class="form-control" lay-search disabled>
+                            <option value="0">否</option>
+                            <option value="1">是</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                    </div>
+                    <label class="col-sm-3 control-label">
+                        是否有授课经历:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="educationFlag" class="form-control" lay-search disabled>
+                            <option value="0">无</option>
+                            <option value="1">有</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        个人简介:
+                    </label>
+                    <div class="col-sm-11">
+                        <textarea name="introduce" placeholder="请输入个人简介" class="layui-textarea" readonly style="height: 200px;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</html>

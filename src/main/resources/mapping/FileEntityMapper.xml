@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.media.FileEntityMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.media.FileEntitys">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="relevance_id" jdbcType="INTEGER" property="relevanceId" />
+    <result column="files_name" jdbcType="VARCHAR" property="filesName" />
+    <result column="files_link" jdbcType="VARCHAR" property="filesLink" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_name" jdbcType="VARCHAR" property="createName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_name" jdbcType="VARCHAR" property="updateName" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, relevance_id, files_name, files_link, type, create_id, create_name, create_time, 
+    update_id, update_name, update_time, state, version
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_files
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <!--通过articleId获取附件-->
+  <select id="selectByArtId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_files
+    where relevance_id = #{artId,jdbcType=INTEGER}
+    and type = #{typeId,jdbcType=INTEGER}
+    and state >-2
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_files
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.media.FileEntitys">
+    insert into t_files (id, relevance_id, files_name, 
+      files_link, type, create_id, 
+      create_name, create_time, update_id, 
+      update_name, update_time, state, 
+      version)
+    values (#{id,jdbcType=INTEGER}, #{relevanceId,jdbcType=INTEGER}, #{filesName,jdbcType=VARCHAR}, 
+      #{filesLink,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{createId,jdbcType=INTEGER}, 
+      #{createName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateId,jdbcType=INTEGER}, 
+      #{updateName,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{state,jdbcType=INTEGER}, 
+      #{version,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.media.FileEntitys">
+    insert into t_files
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="relevanceId != null">
+        relevance_id,
+      </if>
+      <if test="filesName != null">
+        files_name,
+      </if>
+      <if test="filesLink != null">
+        files_link,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createName != null">
+        create_name,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateName != null">
+        update_name,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="relevanceId != null">
+        #{relevanceId,jdbcType=INTEGER},
+      </if>
+      <if test="filesName != null">
+        #{filesName,jdbcType=VARCHAR},
+      </if>
+      <if test="filesLink != null">
+        #{filesLink,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.media.FileEntitys">
+    update t_files
+    <set>
+      <if test="relevanceId != null">
+        relevance_id = #{relevanceId,jdbcType=INTEGER},
+      </if>
+      <if test="filesName != null">
+        files_name = #{filesName,jdbcType=VARCHAR},
+      </if>
+      <if test="filesLink != null">
+        files_link = #{filesLink,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        update_name = #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateByrelevanceIdSelective" parameterType="com.qinfei.qferp.entity.media.FileEntitys">
+    update t_files
+    <set>
+      <if test="filesName != null">
+        files_name = #{filesName,jdbcType=VARCHAR},
+      </if>
+      <if test="filesLink != null">
+        files_link = #{filesLink,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        update_name = #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.media.FileEntitys">
+    update t_files
+    set relevance_id = #{relevanceId,jdbcType=INTEGER},
+      files_name = #{filesName,jdbcType=VARCHAR},
+      files_link = #{filesLink,jdbcType=VARCHAR},
+      type = #{type,jdbcType=INTEGER},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_name = #{createName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_name = #{updateName,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER},
+      version = #{version,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

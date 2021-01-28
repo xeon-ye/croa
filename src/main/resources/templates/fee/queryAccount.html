@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>账户管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script type="text/javascript" src="/js/fee/queryAccount.js"></script>
+    <!-- Bootstrap-Treeview plugin javascript -->
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+            //回车提交事件
+            $('#queryDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+
+            $( "#editModal" ).draggable();
+            $( "#viewModal" ).draggable();
+        });
+    </script>
+</head>
+<body>
+<div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal" id="queryDiv">
+                        <form id="queryForm">
+                            <div class="form-group">
+                                <!--如果是客户添加账户，则要根据dockingId查询-->
+                                <input type="hidden" name="dockingId">
+                                <div class="col-sm-2 ">
+                                    <select id="typeQc" name="typeQc" class="form-control">
+<!--                                        <option value="" >账户类型</option>-->
+<!--                                        <option value="1">公司账户</option>-->
+<!--                                        <option value="2">供应商账户</option>-->
+<!--                                        <option value="3">客户账户</option>-->
+                                        <option value="4">个人账户</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="text" id="companyNameQc" name="companyNameQc" class="form-control"
+                                           placeholder="公司名称">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="text" id="contactorQc" name="contactorQc" class="form-control"
+                                           placeholder="联系人">
+                                </div>
+                                <div class="col-sm-1 ">
+                                    <input type="text" id="nameQc" name="nameQc" class="form-control"
+                                           placeholder="账户名称">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="bankNoQc" name="bankNoQc" class="form-control"
+                                           placeholder="账号">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="bankNameQc" name="bankNameQc" class="form-control"
+                                           placeholder="开户行">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="search" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </DIV>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="addBtn" class="btn btn-primary" type="button">
+                        <i class="fa fa-plus"></i>新增<span id="tips"></span>账户
+                    </button>
+                </div>
+                <div>
+                    <div class="jqGrid_wrapper">
+                        <table id="query_table_logs"></table>
+                        <div id="query_pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">账户信息</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <form  id="accountForm">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <!--如果是客户添加账户，则要给dockingId赋值-->
+                                        <input type="hidden" name="dockingId">
+                                        <label class="col-sm-2 control-label">公司名称<span class="text-red">*</span></label>
+                                        <div class="col-sm-4">
+                                            <input type="hidden" id="id" name="id" class="form-control">
+                                            <input type="hidden" id="type" name="type" class="form-control">
+                                            <input type="hidden" id="creator" name="creator" class="form-control">
+                                            <input type="hidden" id="companyId" name="companyId" class="form-control">
+                                            <input type="hidden" id="companyCode" name="companyCode" class="form-control">
+                                            <input type="hidden" id="contactor" name="contactor" class="form-control">
+                                            <input type="text" id="companyName" name="companyName" class="form-control"
+                                                   readonly="readonly" required="" placeholder="公司名称">
+                                        </div>
+                                        <label class="col-sm-2 control-label">账户名称<span class="text-red">*</span></label>
+                                        <div class="col-sm-4">
+                                            <input type="text" id="name" name="name" class="form-control" placeholder="账户名称"
+                                                   required="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">户主</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" id="owner" name="owner" class="form-control"
+                                                   placeholder="户主" >
+                                        </div>
+                                        <label class="col-sm-2 control-label">账号<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" id="bankNo" name="bankNo" class="form-control"
+                                                   placeholder="账号" required="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">开户行<span class="text-red">*</span></label>
+                                        <div class="col-sm-10">
+                                            <input type="text" id="bankName" name="bankName" class="form-control"
+                                                   placeholder="开户行" required="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">类型:</label>
+                                        <div class="col-sm-4">
+                                            <div class="radio i-checks">
+                                                <input type="radio"  value=""  name="accountType" />未指定&nbsp;&nbsp;
+                                                <input type="radio"  value="B2B"  name="accountType" />对公账户&nbsp;
+                                                <input type="radio"  value="B2C"  name="accountType" />对私账户
+                                            </div>
+                                        </div>
+                                        <label class="col-sm-2 control-label">预留电话</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" id="phone" name="phone" class="form-control"
+                                                   placeholder="预留电话">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">备注</label>
+                                        <div class="col-sm-10">
+                                            <textarea id="remark" name="remark" class="form-control" style="height: 200px; max-width: 830px; min-width: 830px"></textarea>
+                                        </div>
+                                    </div>
+                                    <div id="inner" class="form-group inner">
+                                        <div class="col-sm-2 control-label">
+                                            <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                                                    id="selDept">选择部门
+                                            </button>
+                                        </div>
+                                        <div id="selectedDept" class="col-sm-10 control-label">
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group inner">
+                                        <div class="col-sm-offset-2 col-sm-10"><span
+                                                class="alert alert-danger alert-dismissable">提示：列出的部门只代表当前部门，不包含子部门</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="save" onclick="submitHander(this,'/account/add')">
+                        <i class="fa fa-save"></i>&nbsp; 新增
+                    </button>
+                    <button type="button" class="btn btn-success" id="update"
+                            onclick="submitHander(this,'/account/edit')">
+                        <i class="fa fa-save"></i> &nbsp;修改
+                    </button>
+                    <button type="button" class="btn btn-danger backButton" id="cancel" data-dismiss="modal"><i
+                            class="fa fa-close"></i> 关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">账户信息</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="viewForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <!--如果是客户添加账户，则要给dockingId赋值-->
+                                    <input type="hidden" name="dockingId">
+                                    <label class="col-sm-2 control-label">公司名称<span class="text-red">*</span></label>
+                                    <div class="col-sm-4">
+                                        <input type="hidden" id="id1" name="id1" class="form-control">
+                                        <input type="hidden" id="type1" name="type1" class="form-control">
+                                        <input type="hidden" id="companyId1" name="companyId1" class="form-control">
+                                        <input type="text" id="companyName1" name="companyName1" class="form-control"
+                                               readonly="readonly" required="" placeholder="公司名称">
+                                    </div>
+                                    <label class="col-sm-2 control-label">账户名称<span class="text-red">*</span></label>
+                                    <div class="col-sm-4">
+                                        <input type="text" id="name1" name="name1" class="form-control"
+                                               placeholder="账户名称" required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">户主</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" id="owner1" name="owner1" class="form-control"
+                                               placeholder="户主" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">账号<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" id="bankNo1" name="bankNo1" class="form-control"
+                                               placeholder="账号" required=""  readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">开户行<span class="text-red">*</span></label>
+                                    <div class="col-sm-10">
+                                        <input type="text" id="bankName1" name="bankName1" class="form-control"
+                                               placeholder="开户行" required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+
+                                    <label class="col-sm-2 control-label">类型:</label>
+                                    <div class="col-sm-4">
+                                        <div class="radio i-checks">
+                                            <input type="radio"  value=""  name="accountType1" />未指定
+                                            <input type="radio"  value="B2B"  name="accountType1" />对公账户
+                                            <input type="radio"  value="B2C"  name="accountType1" />对私账户
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-2 control-label">预留电话</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" id="phone1" name="phone1" class="form-control"
+                                               placeholder="预留电话" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注</label>
+                                    <div class="col-sm-10">
+                                        <textarea id="remark1" name="remark1" class="form-control" style="height: 200px; max-width: 830px; min-width: 830px" readonly="readonly"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group inner">
+                                    <label class="col-sm-2 control-label">关联的部门</label>
+                                    <div id="selectedDept1" class="col-sm-10 control-label">
+                                    </div>
+                                </div>
+                                <div class="form-group inner">
+                                    <div class="col-sm-offset-2 col-sm-10"><span
+                                            class="alert alert-danger alert-dismissable">提示：列出的部门只代表当前部门，不包含子部门</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger backButton" id="viewCancel" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp; 关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--选择部门页面-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                        <a class="close-link">
+                                            <i class="fa fa-times"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

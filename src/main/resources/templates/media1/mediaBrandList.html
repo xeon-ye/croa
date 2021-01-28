@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'媒体品牌-'+${AppName}"></title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script th:src="@{//js/media1/mediaBrandList.js(v=${version})}"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        user = [[${session.user}]]
+        /*]]>*/
+    </script>
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+<div class="row" style="padding: 10px 15px">
+    <div>
+        <div class="ibox-content" style="padding: 5px 10px;border: 0px;">
+            <form id="queryForm" class="form-horizontal">
+                <div class="form-group" style="margin-top: 7px;margin-bottom: 0px;">
+                    <label class="col-sm-3 control-label">
+
+                    </label>
+                    <div class="col-sm-2 layui-form">
+                        <select class="form-control" lay-filter="platform" id="platform" name="platform" lay-search
+                                lay-verify="">
+                            <option value="">投放平台</option>
+                            <option value="1">抖音</option>
+                            <option value="2">小红书</option>
+                            <option value="3">微博</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2 layui-form">
+                        <input class="form-control" width="20%" autocomplete="off" id="brandName" name="brandName"
+                               placeholder="请输入品牌名称搜索"/>
+                    </div>
+                    <!--<div class="col-sm-2 layui-form">-->
+                        <!--<input class="form-control" width="20%" autocomplete="off" id="userName" name="userName"-->
+                               <!--placeholder="请输入投放账号名称搜索"/></div>-->
+                    <button type="button" id="mediaBrandSearch" class="btn btn-warning" onclick="queryMediaBrand()"><i
+                            class="fa fa-search"></i>&nbsp;搜索
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox">
+            <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                <div class="jqGrid_wrapper">
+                    <table id="table_media_brand">
+                    </table>
+                    <div id="pager_media_brand"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal" id="brandViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">媒体品牌账号详情</h4>
+            </div>
+            <div class="">
+                <div class="wrapper wrapper-content  animated fadeInRight" style="padding-bottom: 0px;">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox">
+                                <div class="form-horizontal" id="brandViewDiv">
+                                    <form id="brandViewForm" method="post">
+                                        <div class="form-group" style="margin-top: 7px;">
+                                            <label class="col-sm-2 control-label">
+                                                品牌名称：
+                                            </label>
+                                            <div class="col-sm-2 layui-form">
+                                                <input type="text" name="brandNameQc" class="form-control" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                投放平台：
+                                            </label>
+                                            <div class="col-sm-2 layui-form">
+                                                <input type="text" id="platformName" class="form-control" readonly/>
+                                                <input type="hidden" name="platformQc" class="form-control" readonly/>
+                                            </div>
+                                            <label class="col-sm-1 control-label">
+                                                投放账号：
+                                            </label>
+                                            <div class="col-sm-2">
+                                                <input class="form-control" autocomplete="off" name="userNameQc"
+                                                       placeholder="输入账号名称搜索"/></div>
+                                            <button type="button" id="BrandViewSearch" class="btn btn-primary" onclick="queryBrandView()"><i
+                                                    class="fa fa-search"></i>&nbsp;搜索
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="brand_view_table"></table>
+                                        <div id="brand_view_pager"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-white" id="closeViewDiv" data-dismiss="modal">
+                                        <i class="fa fa-close"></i>&nbsp;关闭</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

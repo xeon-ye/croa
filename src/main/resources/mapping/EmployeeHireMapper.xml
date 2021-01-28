@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工录用； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeHireMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeHire">
+        <id column="hire_id" jdbcType="INTEGER" property="hireId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_gender" jdbcType="INTEGER" property="empGender"/>
+        <result column="emp_birth" jdbcType="DATE" property="empBirth"/>
+        <result column="emp_marriage" jdbcType="INTEGER" property="empMarriage"/>
+        <result column="emp_education" jdbcType="INTEGER" property="empEducation"/>
+        <result column="emp_education_other" jdbcType="VARCHAR" property="empEducationOther"/>
+        <result column="emp_college" jdbcType="VARCHAR" property="empCollege"/>
+        <result column="emp_major" jdbcType="VARCHAR" property="empMajor"/>
+        <result column="emp_local_address" jdbcType="VARCHAR" property="empLocalAddress"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_dept_name" jdbcType="VARCHAR" property="empDeptName"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_profession_name" jdbcType="VARCHAR" property="empProfessionName"/>
+        <result column="emp_expect_date" jdbcType="DATE" property="empExpectDate"/>
+        <result column="trial_begin" jdbcType="DATE" property="trialBegin"/>
+        <result column="trial_end" jdbcType="DATE" property="trialEnd"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        hire_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_gender,
+        emp_birth,
+        emp_marriage,
+        emp_education,
+        emp_education_other,
+        emp_college,
+        emp_major,
+        emp_local_address,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_expect_date,
+        trial_begin,
+        trial_end,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_hire
+        where
+        hire_id = #{hireId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询录用记录的主键； -->
+    <select id="selectIdByParentId" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select hire_id from e_employee_hire where state &lt;&gt; -1 and state &lt;&gt; 1 and entry_id = #{entryId}
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询录用记录； -->
+    <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select * from e_employee_hire where state &lt;&gt; -1 and state &lt;&gt; 1 and entry_id = #{entryId}
+    </select>
+
+    <select id="listHireByEntryId" resultMap="BaseResultMap" useCache="true">
+        select *
+        from e_employee_hire
+        where state <![CDATA[<>]]> -1
+        and entry_id in
+        <foreach collection="entryIdList" item="entryId" open="(" close=")" separator=",">
+            #{entryId}
+        </foreach>
+    </select>
+
+    <!-- 录用记录列表； -->
+    <select id="selectPageHire" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_employee_hire
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            hire_id desc
+        </if>
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empNum != null">
+            and emp_num like '%${empNum}%'
+        </if>
+        <if test="empName != null">
+            and emp_name like '%${empName}%'
+        </if>
+        <if test="empGender != null">
+            and emp_gender = #{empGender}
+        </if>
+        <if test="empBirthStart != null">
+            and emp_birth &gt;= #{empBirthStart}
+        </if>
+        <if test="empBirthEnd != null">
+            and emp_birth &lt;= #{empBirthEnd}
+        </if>
+        <if test="empMarriage != null">
+            and a.emp_marriage = #{empMarriage}
+        </if>
+        <if test="empEducation != null">
+            and emp_education = #{empEducation}
+        </if>
+        <if test="empEducationOther != null">
+            and emp_education_other like '%${empEducationOther}%'
+        </if>
+        <if test="empCollege != null">
+            and emp_college like '%${empCollege}%'
+        </if>
+        <if test="empMajor != null">
+            and emp_major like '%${empMajor}%'
+        </if>
+        <if test="empDept != null">
+            and emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null">
+            and emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="empDeptName != null">
+            and emp_dept_name like '%${empDeptName}%'
+        </if>
+        <if test="empProfession != null">
+            and emp_profession = #{empProfession}
+        </if>
+        <if test="empProfessionName != null">
+            and emp_profession_name like '%${empProfessionName}%'
+        </if>
+        <if test="empExpectDateStart != null">
+            and emp_expect_date &gt;= #{empExpectDateStart}
+        </if>
+        <if test="empExpectDateEnd != null">
+            and emp_expect_date &lt;= STR_TO_DATE(concat(#{empExpectDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="trialBeginStart != null">
+            and trial_begin &gt;= #{trialBeginStart}
+        </if>
+        <if test="trialBeginEnd != null">
+            and trial_begin &lt;= STR_TO_DATE(concat(#{trialBeginEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="trialStart != null">
+            and trial_end &gt;= #{trialStart}
+        </if>
+        <if test="trialEnd != null">
+            and trial_end &lt;= STR_TO_DATE(concat(#{trialEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="createTimeStart != null">
+            and (create_time &gt;= #{createTimeStart} or update_time &gt;= #{createTimeStart})
+        </if>
+        <if test="createTimeEnd != null">
+            and (create_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T') or update_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T'))
+        </if>
+        <if test="createName != null">
+            and create_name like '%${createName}%'
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="hireIds != null">
+            and hire_id in
+            <foreach item="hireId" collection="hireIds" index="index" open="(" close=")" separator=",">
+                #{hireId}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeHire" useGeneratedKeys="true"
+            keyProperty="hireId">
+        insert into e_employee_hire (
+        hire_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_gender,
+        emp_birth,
+        emp_marriage,
+        emp_education,
+        emp_education_other,
+        emp_college,
+        emp_major,
+        emp_local_address,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_expect_date,
+        trial_begin,
+        trial_end,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{hireId,jdbcType=INTEGER},
+        #{entryId,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empGender,jdbcType=INTEGER},
+        #{empBirth,jdbcType=DATE},
+        #{empMarriage,jdbcType=INTEGER},
+        #{empEducation,jdbcType=INTEGER},
+        #{empEducationOther,jdbcType=VARCHAR},
+        #{empCollege,jdbcType=VARCHAR},
+        #{empMajor,jdbcType=VARCHAR},
+        #{empLocalAddress,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empDeptName,jdbcType=VARCHAR},
+        #{empProfession,jdbcType=INTEGER},
+        #{empProfessionName,jdbcType=VARCHAR},
+        #{empExpectDate,jdbcType=DATE},
+        #{trialBegin,jdbcType=DATE},
+        #{trialEnd,jdbcType=DATE},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeHire" useGeneratedKeys="true"
+            keyProperty="hireId">
+        insert into e_employee_hire
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hireId != null">hire_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empGender != null">emp_gender,</if>
+            <if test="empBirth != null">emp_birth,</if>
+            <if test="empMarriage != null">emp_marriage,</if>
+            <if test="empEducation != null">emp_education,</if>
+            <if test="empEducationOther != null">emp_education_other,</if>
+            <if test="empCollege != null">emp_college,</if>
+            <if test="empMajor != null">emp_major,</if>
+            <if test="empLocalAddress != null">emp_local_address,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empDeptName != null">emp_dept_name,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empProfessionName != null">emp_profession_name,</if>
+            <if test="empExpectDate != null">emp_expect_date,</if>
+            <if test="trialBegin != null">trial_begin,</if>
+            <if test="trialEnd != null">trial_end,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hireId != null">#{hireId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empGender != null">#{empGender,jdbcType=INTEGER},</if>
+            <if test="empBirth != null">#{empBirth,jdbcType=DATE},</if>
+            <if test="empMarriage != null">#{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empEducation != null">#{empEducation,jdbcType=INTEGER},</if>
+            <if test="empEducationOther != null">#{empEducationOther,jdbcType=VARCHAR},</if>
+            <if test="empCollege != null">#{empCollege,jdbcType=VARCHAR},</if>
+            <if test="empMajor != null">#{empMajor,jdbcType=VARCHAR},</if>
+            <if test="empLocalAddress != null">#{empLocalAddress,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">#{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">#{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empExpectDate != null">#{empExpectDate,jdbcType=DATE},</if>
+            <if test="trialBegin != null">#{trialBegin,jdbcType=DATE},</if>
+            <if test="trialEnd != null">#{trialEnd,jdbcType=DATE},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeHire">
+        update e_employee_hire
+        <include refid="EmployCommon.deleteInfo"/>
+        where hire_id = #{hireId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeHire">
+        update e_employee_hire
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empGender != null">emp_gender = #{empGender,jdbcType=INTEGER},</if>
+            <if test="empBirth != null">emp_birth = #{empBirth,jdbcType=INTEGER},</if>
+            <if test="empMarriage != null">emp_marriage = #{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empEducation != null">emp_education = #{empEducation,jdbcType=INTEGER},</if>
+            <if test="empEducationOther != null">emp_education_other = #{empEducationOther,jdbcType=VARCHAR},</if>
+            <if test="empCollege != null">emp_college = #{empCollege,jdbcType=VARCHAR},</if>
+            <if test="empMajor != null">emp_major = #{empMajor,jdbcType=VARCHAR},</if>
+            <if test="empLocalAddress != null">emp_local_address = #{empLocalAddress,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">emp_dept_name = #{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empExpectDate != null">emp_expect_date = #{empExpectDate,jdbcType=DATE},</if>
+            <if test="trialBegin != null">trial_begin = #{trialBegin,jdbcType=DATE},</if>
+            <if test="trialEnd != null">trial_end = #{trialEnd,jdbcType=DATE},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        hire_id = #{hireId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeHire">
+        update
+        e_employee_hire
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_gender = #{empGender,jdbcType=INTEGER},
+        emp_birth = #{empBirth,jdbcType=DATE},
+        emp_marriage = #{empMarriage,jdbcType=INTEGER},
+        emp_education = #{empEducation,jdbcType=INTEGER},
+        emp_education_other = #{empEducationOther,jdbcType=VARCHAR},
+        emp_college = #{empCollege,jdbcType=VARCHAR},
+        emp_major = #{empMajor,jdbcType=VARCHAR},
+        emp_local_address = #{empLocalAddress,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_dept_name = #{empDeptName,jdbcType=VARCHAR},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},
+        emp_expect_date = #{empExpectDate,jdbcType=DATE},
+        trial_begin = #{trialBegin,jdbcType=DATE},
+        trial_end = #{trialEnd,jdbcType=DATE},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        hire_id = #{hireId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

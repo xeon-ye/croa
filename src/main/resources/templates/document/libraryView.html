@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <meta charset="UTF-8">
+    <title>制度详情</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link href="/css/plugins/summernote/summernote.css" rel="stylesheet">
+    <link href="/css/plugins/summernote/summernote-bs3.css" rel="stylesheet">
+    <script src="/js/plugins/summernote/summernote.min.js"></script>
+    <script src="/js/plugins/summernote/summernote-zh-CN.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+
+    <script th:inline="javascript">
+    </script>
+
+    <style type="text/css">
+        *{
+            moz-user-select: -moz-none;
+            -moz-user-select: none;
+            -o-user-select:none;
+            -khtml-user-select:none;
+            -webkit-user-select:none;
+            -ms-user-select:none;
+            user-select:none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .article, .row, .ibox, .ibox-content {
+            height: 100%;
+        }
+
+        .indexHref {
+            color: #555;
+            font-size: 14px;
+            margin-right: 3px;
+        }
+
+        .bottom_href > a {
+            color: #999;
+            font-size: 16px;
+            margin-top: 60px;
+        }
+
+        .bottom_href > a:hover {
+            color: #1ab394;
+        }
+
+        .article h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2F4050;
+        }
+
+        .ibox-content {
+            display: table;
+            width: 100%;
+            height: 100%;
+        }
+
+        .article-content {
+            padding: 0 10px;
+            letter-spacing: 2pt;
+            font-size: 15px;
+            color: #686B6D;
+            overflow-y: auto;
+        }
+        .article-content img{
+            max-width: 50%;
+            /*max-height: 300px;*/
+        }
+
+        .article-content p {
+            line-height: 26px;
+        }
+        .middle{
+            background-color: #eee;
+            height: 38px;
+        }
+        .chengkLeft{
+            float: left;
+            height:25px;
+            line-height:39px;
+            overflow:hidden;
+            margin-right: 20px;
+        }
+        .chengkRight{
+            float: right;
+            height:25px;
+            line-height:39px;
+            overflow:hidden;
+            margin-right: 20px;
+        }
+
+    </style>
+    <script>
+        $(function () {
+           var attachmentLink = document.getElementById("attachmentLink").value;
+            var attachment = document.getElementById("attachment").value;
+            if (attachment && attachmentLink){
+                var affixName = attachment.split(',');
+                var affixLink = attachmentLink.split(",");
+                if (affixName.length>0 && affixLink.length>0){
+                    var html ="";
+                    for (var i=0;i<affixName.length ;i++){
+                        var filePath = affixLink[i];
+                        var fileName = affixName[i];
+                        html += "<span>" + fileName + "</span>&nbsp;&nbsp;&nbsp;&nbsp;";
+                        html += "<a href=" + filePath + " target=_blank  download="+fileName+">下载:</a>&nbsp;&nbsp;|&nbsp;&nbsp;";
+                        var fileExt = fileName.substring(fileName.lastIndexOf(".")).toLowerCase() ;
+                        var strFilter=".jpeg|.gif|.jpg|.png|.bmp|.pic|" ;
+                        if (fileName.indexOf(".")>-1){
+                            var str=fileExt + '|';
+                            if (strFilter.indexOf(str)>-1){
+                                html += "<img alt='" + fileName + "' src='"+filePath+"' height='61.8px' width='100px' onclick='openImage(this,\"imgModal\")'><br/>";
+
+                            }else {
+                                html += "<a onclick='filePreview(this)' data-id='" + filePath + "'>预览:</a><br/>";
+
+                            }
+                        }else {
+                            html += "<a onclick='filePreview(this)' data-id='" + filePath + "'>预览:</a><br/>";
+
+                        }
+                    }
+                    $("#fil").append(html);
+                }
+            }
+
+        })
+    </script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight article">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1" style="height: 100%">
+            <div class="ibox">
+                <div class="ibox-content" style="padding: 10px;position: absolute">
+                    <input id="libraryName" type="hidden" th:value="${library}" />
+                    <div class="text-left col-sm-6 indexHref">
+                        <i class="fa fa-home"></i>
+                        <a href="/homePage" class="indexHref">首页</a> >
+                        <a href="/document/documentLibrary" class="indexHref">列表</a> >
+                        <span class="text-danger"><span th:text="${library.libraryName}"></span></span>
+                    </div>
+                    <div class="pull-right">
+                        <span th:text="${library.permissionCode}"></span>
+                    </div>
+                    <div class="article-title">
+                        <h1 th:text="${library.libraryName}"></h1>
+                    </div>
+                    <div class="middle">
+                        <div class="chengkLeft">
+                            <span>制度编号：</span>
+                            <span th:text="${library.libraryCode}"></span>
+                        </div>
+                        <div class="chengkLeft">
+                            <span> 版次：</span>
+                            <span th:text="${library.version}"></span>
+                        </div>
+
+                        <div class="chengkRight">
+                            <span>发布人：</span>
+                            <span th:text="${library.releaseName}"></span>
+                        </div>
+                        <div class="chengkRight">
+                            <span>发布时间：</span>
+                            <span th:text="${#dates.format(library.releaseTime, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+
+                    </div>
+
+                    <div th:utext="${library.content}" class="article-content">
+                    </div>
+
+                    <input type="hidden" id="attachment" th:value="${library.attachment}" >
+                    <input type="hidden" id="attachmentLink" th:value="${library.attachmentLink}" >
+                    <label>
+                        相关附件:
+                    </label>
+                    <div id="fil"></div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

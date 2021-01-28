@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{})">
+    <title>资料完善</title>
+
+    <script type="text/javascript" src="/js/employ/utils/jquery.form.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/complete.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <form id="completeForm">
+                <input type="hidden" id="id"/>
+                <input type="hidden" id="code"/>
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">完善入职申请资料</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">身份证
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="entryCodeFile"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                                <label class="col-sm-1 control-label">学历证明
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="empEducationFile"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                                <label class="col-sm-1 control-label">离职证明：</label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="empExperienceFile"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">户口证明
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="entryResidenceFile"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                                <label class="col-sm-1 control-label">个人照片：</label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="entryImage"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                                <label class="col-sm-1 control-label">体检证明：</label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="entryReport"/>
+                                    <input type="text" class="form-control"
+                                           style="vertical-align:middle;cursor:pointer;width: 60%;display: inline;"
+                                           placeholder="点击开始上传文件" onclick="openFileUpload(this);" readonly/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4" style="left: 20px; top: 10px;">
+                                    <a href="#" onclick="return false;"
+                                       style="color: red;font-weight: bold;font-size: 12px;" id="backHref">
+                                        * 点击此处返回入职档案查看页面。
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title" style="margin-top: -35px;">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12" style="text-align: center;">
+                                <button type="button" class="btn btn-primary" onclick="saveData()">
+                                    <i class="fa fa-check"></i>&nbsp;&nbsp;提交
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 文件上传； -->
+<div class="modal inmodal" id="uploadModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="uploadForm" class="form-horizontal">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">文件上传</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group" style="margin-bottom: 0px;">
+                                    <label class="col-sm-3 control-label">选择文件：</label>
+                                    <div class="col-sm-9">
+                                        <input type="file" id="uploadFile" name="file" class="uploadFile"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="beginFileUpload()">开始上传</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="footer center">
+    <div class="col-md-4 text-left">
+        <label>version: </label><span class="text-danger">1.0.0</span>
+    </div>
+    <div class="col-md-4 text-center">
+        &copy; 2013-2019
+        <span data-th-text="${AppName}"></span>
+    </div>
+</div>
+</body>
+</html>

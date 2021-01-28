@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.fee.CommissionMapper">
+    <!--分页查询提成-->
+    <select id="listFeeCommissionByPage" resultType="java.util.Map">
+        SELECT
+        id,
+        user_id,
+        `name`,
+        `year`,
+        `month`,
+        income,
+        outgo,
+        tax_expense,
+        other_expense,
+        profit,
+        profit_percent,
+        comm,
+        comm_percent,
+        state,
+        remark,
+        release_id,
+        release_time,
+        dept_id,
+        dept_name,
+        task_id,
+        item_id,
+        company_code,
+        refund,
+        update_time,
+        sale
+        FROM
+        fee_commission fc
+        WHERE
+        fc.state > - 2
+        <if test="userId != null and userId != ''">
+            AND fc.`user_id` = #{userId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND FIND_IN_SET(fc.dept_id,getChilds(#{deptId}))
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND fc.`company_code` = #{companyCode}
+        </if>
+        <if test="year != null and year != ''">
+            AND fc.`year` = #{year}
+        </if>
+        <if test="month != null and month != ''">
+            AND fc.`month` = #{month}
+        </if>
+        order by id desc
+    </select>
+
+    <update id="updateBatch" parameterType="map">
+        update t_biz_article set year=#{year},month=#{month},commission_states=#{commissionState},commission_date=now(),
+        <trim prefix="commission =case" suffix="end,">
+            <foreach collection="list" item="i" index="index">
+                <if test="i.commission!=null">
+                    when id=#{i.id} then #{i.commission}
+                </if>
+            </foreach>
+        </trim>
+        <trim prefix="profit =case" suffix="end">
+            <foreach collection="list" item="i" index="index">
+                <if test="i.profit!=null">
+                    when id=#{i.id} then #{i.profit}
+                </if>
+            </foreach>
+        </trim>
+        where
+        <foreach collection="list" separator="or" item="i" index="index">
+            id=#{i.id}
+        </foreach>
+    </update>
+
+    <update id="initArticleCommBatch" parameterType="list">
+        update t_biz_article set year=null,month=null,commission_states=0,commission_date=null,commission=0 where id in
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="changeCommissionState" parameterType="map">
+        update t_biz_article
+        set commission_states = #{state}
+        where id in
+        <foreach item="item" index="index" collection="list"
+                 open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+</mapper>

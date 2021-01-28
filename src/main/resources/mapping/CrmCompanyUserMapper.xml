@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmCompanyUserMapper">
+
+    <resultMap type="com.qinfei.qferp.entity.crm.CrmCompanyUser" id="CrmCompanyUserMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="companyId" column="companyId" jdbcType="INTEGER"/>
+        <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        <result property="wechat" column="wechat" jdbcType="VARCHAR"/>
+        <result property="qq" column="qq" jdbcType="INTEGER"/>
+        <result property="dept" column="dept" jdbcType="VARCHAR"/>
+        <result property="project" column="project" jdbcType="VARCHAR"/>
+        <result property="job" column="job" jdbcType="VARCHAR"/>
+        <result property="custType" column="custType" jdbcType="INTEGER"/>
+        <result property="professionLevel" column="professionLevel" jdbcType="VARCHAR"/>
+        <result property="personality" column="personality" jdbcType="VARCHAR"/>
+        <result property="age" column="age" jdbcType="INTEGER"/>
+        <result property="family" column="family" jdbcType="VARCHAR"/>
+        <result property="prevCompany" column="prevCompany" jdbcType="VARCHAR"/>
+        <result property="education" column="education" jdbcType="VARCHAR"/>
+        <result property="hobby" column="hobby" jdbcType="VARCHAR"/>
+        <result property="looks" column="looks" jdbcType="VARCHAR"/>
+        <result property="successDetail" column="successDetail" jdbcType="VARCHAR"/>
+        <result property="intention" column="intention" jdbcType="VARCHAR"/>
+        <result property="photo" column="photo" jdbcType="VARCHAR"/>
+        <result property="promiseDay" column="promiseDay" jdbcType="INTEGER"/>
+        <result property="taxType" column="taxType" jdbcType="VARCHAR"/>
+        <result property="invoiceType" column="invoiceType" jdbcType="INTEGER"/>
+        <result property="invoiceTitle" column="invoiceTitle" jdbcType="VARCHAR"/>
+        <result property="taxCode" column="taxCode" jdbcType="VARCHAR"/>
+        <result property="bankNo" column="bankNo" jdbcType="VARCHAR"/>
+        <result property="bankName" column="bankName" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="noReason" column="noReason" jdbcType="VARCHAR"/>
+        <result property="isPublic" column="isPublic" jdbcType="INTEGER"/>
+        <result property="isPublicState" column="isPublicState" jdbcType="INTEGER"/>
+        <result property="devState" column="devState" jdbcType="INTEGER"/>
+        <result property="deleteFlag" column="deleteFlag" jdbcType="INTEGER"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="creator" column="creator" jdbcType="INTEGER"/>
+        <result property="createCompanyCode" column="createCompanyCode" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="updateUserId" column="updateUserId" jdbcType="INTEGER"/>
+        <result property="isBlack" column="isBlack" jdbcType="INTEGER"/>
+        <result property="auditFlag" column="auditFlag" jdbcType="INTEGER"/>
+        <result property="evalTime" column="evalTime" jdbcType="TIMESTAMP"/>
+        <result property="dealTime" column="dealTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <!-- 通用查询结果列-->
+    <sql id="Base_Column_List">
+    id as id,
+    `name` as name,
+    company_id as companyId,
+    mobile as mobile,
+    wechat as wechat,
+    qq as qq,
+    dept as dept,
+    project as project,
+    job as job,
+    cust_type as custType,
+    profession_level as professionLevel,
+    personality as personality,
+    age as age,
+    family as family,
+    prev_company as prevCompany,
+    education as education,
+    hobby as hobby,
+    looks as looks,
+    success_detail as successDetail,
+    intention as intention,
+    photo as photo,
+    promise_day as promiseDay,
+    tax_type as taxType,
+    invoice_type as invoiceType,
+    invoice_title as invoiceTitle,
+    tax_code as taxCode,
+    bank_no as bankNo,
+    bank_name as bankName,
+    address as address,
+    phone as phone,
+    state as state,
+    no_reason as noReason,
+    is_public as isPublic,
+    is_public_state as isPublicState,
+    dev_state as devState,
+    delete_flag as deleteFlag,
+    create_time as createTime,
+    creator as creator,
+    create_company_code as createCompanyCode,
+    update_time as updateTime,
+    update_user_id as updateUserId,
+    is_black as isBlack,
+    audit_flag as auditFlag,
+    eval_time as evalTime,
+    deal_time as dealTime,
+    protect_level as protectLevel,
+    protect_strong as protectStrong
+    </sql>
+
+    <!--查询列表-->
+    <select id="listPg" resultType="map">
+        SELECT
+        cc.id as companyId,
+        cc.name as companyName,
+        cc.type as type,
+        cc.standardize as standardize,
+        cc.audit_flag as auditFlag,
+        ccu.id as companyUserId,
+        ccu.name as companyUserName,
+        ccu.normalize as normalize,
+        ccu.protect_level as protectLevel,
+        ccu.protect_strong as protectStrong,
+        ccu.dev_state as devState,
+        ccus.user_id as ywUserId,
+        ccus.user_name as ywUserName,
+        ccus.start_time as startTime,
+        ccus.end_time as endTime,
+        ccu.eval_time as evalTime,
+        ccu.deal_time as dealTime,
+        ccu.create_time as createTime,
+        (${TRACK_EVAL_DAY} - datediff(now(), ccu.eval_time)) AS trackLimit,
+        (${DEAL_EVAL_DAY} - datediff(now(), ccu.deal_time)) AS dealLimit,
+        ${EVAL_REMIND_DAY} as evalRemindDay
+        FROM t_crm_company cc
+        left join t_crm_company_user ccu on cc.id = ccu.company_id
+        left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        left join sys_user su on ccus.user_id = su.id
+        where ccu.delete_flag = 0 and is_public = 0 and ccus.delete_flag = 0
+        <if test="companyName != null">
+            and cc.name like concat('%', #{companyName} ,'%')
+        </if>
+        <if test="standardize != null">
+            and cc.standardize = #{standardize}
+        </if>
+        <if test="type != null">
+            and cc.type = #{type}
+        </if>
+        <if test="userName != null">
+            and ccu.name like concat('%', #{userName} ,'%')
+        </if>
+        <if test="normalize != null">
+            and ccu.normalize = #{normalize}
+        </if>
+        <if test="mobile != null">
+            and ccu.mobile like concat('%', #{mobile} ,'%')
+        </if>
+        <if test="wechat != null">
+            and ccu.wechat like concat('%', #{wechat} ,'%')
+        </if>
+        <if test="qq != null">
+            and ccu.qq like concat('%', #{qq} ,'%')
+        </if>
+        <if test="protectLevel != null">
+            and ccu.protect_level = #{protectLevel}
+        </if>
+        <if test="protectStrong != null">
+            and ccu.protect_strong = #{protectStrong}
+        </if>
+        <if test="userId != null">
+            and ccus.user_id = #{userId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND su.`dept_id` IN (${deptIds})
+        </if>
+        <if test='startTimeQc!=null and startTimeQc!=""'>
+            AND ccu.create_time &gt;= #{startTimeQc}
+        </if>
+        <if test='endTimeQc!=null and endTimeQc!=""'>
+            AND ccu.create_time &lt;= STR_TO_DATE(concat(#{endTimeQc},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sord != null">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                ccu.protect_strong desc, ccu.eval_time asc
+            </otherwise>
+        </choose>
+    </select>
+    <!--查询单个-->
+    <select id="getById" resultMap="CrmCompanyUserMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user
+        where id = #{id}
+    </select>
+
+    <select id="getYwInfo" resultType="integer">
+        select
+        count(*)
+        from t_crm_company_user_salesman
+        where company_user_id = #{companyUserId} and user_id = #{userId} and state = 1 and delete_flag = 0
+    </select>
+
+    <select id="getBasicById" resultType="map">
+        select
+        a.id as userId,
+        a.name as userName,
+        a.mobile as mobile,
+        a.qq as qq,
+        a.wechat as wechat,
+        a.normalize as normalize,
+        b.id as companyId,
+        b.name as companyName,
+        b.standardize as standardize,
+        b.type as custProperty,
+        b.audit_flag as auditFlag,
+        a.protect_level as protectLevel,
+        b.protect_level as companyProtectLevel
+        from t_crm_company_user a
+        left join t_crm_company b on a.company_id = b.id
+        where a.id = #{id}
+    </select>
+
+    <!--根据公司名称查询-->
+    <select id="queryByCompanyIdAndNormalize" resultMap="CrmCompanyUserMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user
+        where company_id = #{companyId} and delete_flag = 0 and normalize = #{normalize}
+        order by id
+    </select>
+    <!--根据公司查询客户的最晚成交日期和跟进日期-->
+    <select id="getMaxDate" resultType="map">
+        select
+        max(eval_time) as evalTime,
+        max(deal_time) as dealTime
+        from t_crm_company_user
+        where company_id = #{companyId} and delete_flag = 0 and normalize = #{normalize}
+    </select>
+    <!--根据公司名称和手机号排重-->
+    <select id="queryByCompanyIdAndMobile" resultMap="CrmCompanyUserMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user
+        where company_id = #{companyId} and mobile = #{mobile} and delete_flag = 0
+        order by id
+    </select>
+    <!--根据公司名称和手机号是否在用-->
+    <select id="queryByCompanyIdAndMobileOn" resultType="map">
+        select
+            c.user_name as userName
+        from t_crm_company_user a, t_crm_company b, t_crm_company_user_salesman c
+        where
+            b.id = a.company_id
+            and a.id = c.company_user_id
+            and c.state = 1
+            and a.company_id = #{companyId}
+            and a.mobile = #{mobile}
+            and b.delete_flag = 0
+            and c.delete_flag = 0
+        order by a.id
+    </select>
+
+    <!--根据公司名称和手机号是否在公海-->
+    <select id="queryByCompanyIdAndMobilePublic" resultType="map">
+        select
+        a.name as companyUserName
+        from t_crm_company_user a, t_crm_company b
+        where b.id = a.company_id
+            and a.company_id = #{companyId}
+            and a.mobile = #{mobile}
+            and a.is_public = 1
+            and a.delete_flag = 0
+        order by a.id
+    </select>
+
+    <!--根据公司名称和手机号是否已删除-->
+    <select id="queryByCompanyIdAndMobileDel" resultMap="CrmCompanyUserMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user
+        where company_id = #{companyId} and mobile = #{mobile} and delete_flag = 1
+        order by id
+    </select>
+
+    <!--根据公司名称和手机号排重, 排除自己-->
+    <select id="queryByCompanyNameAndMobileNotId" resultMap="CrmCompanyUserMap">
+        select
+        a.id as id,
+        a.name as name
+        from t_crm_company_user a, t_crm_company b
+        where  b.id = a.company_id
+            and b.name = #{companyName}
+            and a.mobile = #{mobile}
+            and a.id != #{id}
+            and a.delete_flag = 0
+        order by a.id
+    </select>
+    <!--根据公司名称和手机号是否在用，排除自己-->
+    <select id="queryByCompanyNameAndMobileNotIdOn" resultType="map">
+        select
+        c.user_name as userName
+        from t_crm_company_user a, t_crm_company b ,t_crm_company_user_salesman c
+        where b.id = a.company_id
+            and a.id = c.company_user_id
+            and c.state = 1
+            and b.name = #{companyName}
+            and a.mobile = #{mobile}
+            and a.id != #{id}
+            and a.delete_flag = 0
+            and c.delete_flag = 0
+        order by a.id
+    </select>
+
+    <!--根据公司名称和手机号是否在公海，排除自己-->
+    <select id="queryByCompanyNameAndMobileNotIdPublic" resultType="map">
+        select
+        a.name as companyUserName
+        from t_crm_company_user a,t_crm_company b
+        where b.id = a.company_id
+            and b.name = #{companyName}
+            and a.mobile = #{mobile}
+            and a.id != #{id}
+            and a.is_public = 1
+            and a.delete_flag = 0
+        order by a.id
+    </select>
+
+    <!--查询单个-->
+    <select id="listByCompanyId" resultMap="CrmCompanyUserMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company_user
+        where company_id = #{companyId} and normalize = 1 and delete_flag = 0
+    </select>
+
+    <!--查询单个-->
+    <select id="listByCompanyIdAndState" resultType="map">
+        select
+        a.id as id,
+        a.company_id as companyId,
+        b.id as salesmanId,
+        b.user_id as userId,
+        b.user_name as userName,
+        b.dept_id as ywDeptId
+        from t_crm_company_user a
+        left join t_crm_company_user_salesman b on a.id = b.company_user_id and b.state = 1
+        where a.company_id = #{companyId} and a.normalize = 1 and a.delete_flag = 0 and b.delete_flag = 0
+    </select>
+
+    <!--查询当天领了多少客户-->
+    <select id="countByUserIdToday" resultType="Integer">
+        select
+        count(b.id)
+        from t_crm_company_user_salesman b
+        left join t_crm_company_user a on a.id = b.company_user_id
+        where b.user_id = #{loginUserId} and to_days(b.start_time) = to_days(now()) and b.type_in = 1 and b.state = 1 and b.delete_flag = 0 and a.delete_flag = 0
+    </select>
+
+    <!--查询该业务员有多少个客户了-->
+    <select id="countByUserIdAndStateAndLevel" resultType="Integer">
+        select
+        count(b.id)
+        from t_crm_company_user_salesman b
+        left join t_crm_company_user a on a.id = b.company_user_id
+        where b.user_id = #{loginUserId} and a.protect_level = #{protectLevel} and b.state = 1 and b.delete_flag = 0 and a.delete_flag = 0
+    </select>
+
+    <!--查询单个-->
+    <select id="getByIdAndState" resultType="Map">
+        select
+        c.standardize as standardize,
+        a.id as id,
+        a.company_id as companyId,
+        a.normalize as normalize,
+        b.id as salesmanId,
+        b.user_id as userId,
+        b.user_name as userName,
+        b.dept_id as ywDeptId
+        from t_crm_company_user_salesman b
+        left join t_crm_company_user a on a.id = b.company_user_id
+        left join t_crm_company c on a.company_id = b.id
+        where a.id = #{id} AND b.state = 1 and b.delete_flag = 0 and a.delete_flag = 0
+    </select>
+
+    <update id="updateCompanyUser" parameterType="map">
+        update t_crm_company_user
+        <set>
+            update_time = now(),
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="mobile != null">
+                mobile = #{mobile},
+            </if>
+            <if test="wechat != null">
+                wechat = #{wechat},
+            </if>
+            <if test="qq != null and qq != ''">
+                qq = #{qq},
+            </if>
+            <if test="dept != null">
+                dept = #{dept},
+            </if>
+            <if test="project != null">
+                project = #{project},
+            </if>
+            <if test="job != null">
+                job = #{job},
+            </if>
+            <if test="custType != null">
+                cust_type = #{custType},
+            </if>
+            <if test="professionLevel != null">
+                profession_level = #{professionLevel},
+            </if>
+            <if test="personality != null">
+                personality = #{personality},
+            </if>
+            <if test="age != null and age != ''">
+                age = #{age},
+            </if>
+            <if test="family != null">
+                family = #{family},
+            </if>
+            <if test="prevCompany != null">
+                prev_company = #{prevCompany},
+            </if>
+            <if test="education != null">
+                education = #{education},
+            </if>
+            <if test="hobby != null">
+                hobby = #{hobby},
+            </if>
+            <if test="looks != null">
+                looks = #{looks},
+            </if>
+            <if test="successDetail != null">
+                success_detail = #{successDetail},
+            </if>
+            <if test="intention != null">
+                intention = #{intention},
+            </if>
+            <if test="photo != null">
+                photo = #{photo},
+            </if>
+            <if test="promiseDay != null and promiseDay != ''">
+                promise_day = #{promiseDay},
+            </if>
+            <if test="taxType != null">
+                tax_type = #{taxType},
+            </if>
+            <if test="invoiceType != null">
+                invoice_type = #{invoiceType},
+            </if>
+            <if test="invoiceTitle != null">
+                invoice_title = #{invoiceTitle},
+            </if>
+            <if test="taxCode != null">
+                tax_code = #{taxCode},
+            </if>
+            <if test="bankNo != null">
+                bank_no = #{bankNo},
+            </if>
+            <if test="bankName != null">
+                bank_name = #{bankName},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="noReason != null">
+                no_reason = #{noReason},
+            </if>
+            <if test="isPublic != null">
+                is_public = #{isPublic},
+            </if>
+            <if test="devState != null">
+                dev_state = #{devState},
+            </if>
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+            <if test="isBlack != null">
+                is_black = #{isBlack},
+            </if>
+            <if test="auditFlag != null">
+                audit_flag = #{auditFlag},
+            </if>
+            <if test="evalTime != null">
+                eval_time = #{evalTime},
+            </if>
+            <if test="protectLevel != null">
+                protect_level = #{protectLevel},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--抛入公海-->
+    <update id="savePublic" parameterType="map">
+        update t_crm_company_user set
+            update_time = now(),
+            yw_dept_id = #{ywDeptId},
+            is_public = #{isPublic},
+            is_public_state = #{isPublicState},
+            eval_time = null,
+            protect_level = 0,
+            protect_strong = 0,
+            update_user_id = #{loginUserId}
+            where id = #{id}
+    </update>
+    <!--公海客户列表-->
+    <select id="listPublic" resultType="map">
+        SELECT
+        cc.id as companyId,
+        cc.name as companyName,
+        cc.type as type,
+        cc.standardize as standardize,
+        cc.audit_flag as auditFlag,
+        ccu.id as companyUserId,
+        ccu.name as companyUserName,
+        ccu.normalize as normalize
+        FROM t_crm_company cc
+        left join t_crm_company_user ccu on cc.id = ccu.company_id
+        where ccu.delete_flag = 0 and ccu.is_public = 1 and ccu.is_public_state = 1
+        and ccu.yw_dept_id != #{loginDeptId} and cc.name = #{companyName}
+        order by ccu.update_time desc
+    </select>
+
+    <!--客户查询列表-->
+    <select id="listInquire" resultType="map">
+        SELECT
+        cc.id AS companyId,-- 公司id
+        cc.NAME AS companyName,-- 公司名称
+        cc.type AS type,-- 客户类型
+        cc.standardize AS standardize,-- 是否标准
+        ccu.normalize AS normalize,-- 是否规范
+        ccu.protect_level AS protectLevel,-- 保护等级
+        ccu.protect_strong AS protectStrong,-- 强弱保护
+        if(ccu.is_public = 1,'公海客户',ccus.user_name) AS ywUserName,-- 负责人
+        ccu.create_time AS createTime -- 登记时间
+        FROM
+        t_crm_company cc
+        LEFT JOIN t_crm_company_user ccu ON cc.id = ccu.company_id and ccu.delete_flag = 0
+        LEFT JOIN t_crm_company_user_salesman ccus ON ccu.id = ccus.company_user_id and ccus.state = 1 and ccus.delete_flag = 0
+        where cc.name = #{companyName}
+        order by cc.id desc
+    </select>
+
+    <!--定时任务：公海客户生效-->
+    <update id="doWithPublic">
+        update t_crm_company_user
+        set update_time = now(), is_public_state = 1
+        where is_public = 1 and is_public_state = 0 and delete_flag = 0
+    </update>
+
+    <!--查询客户信息-->
+    <select id="queryUserBasicInfoByCompanyId" resultType="map">
+        select
+            b.id as userId,
+            b.name as userName,
+            b.mobile as mobile,
+            b.qq as qq,
+            b.wechat as wechat,
+            b.normalize as normalize,
+            b.protect_level as protectLevel,
+            b.protect_strong as protectStrong,
+            a.id as companyId,
+            a.name as companyName,
+            a.standardize as standardize,
+            a.audit_flag auditFlag
+        from t_crm_company a
+        left join t_crm_company_user b on a.id = b.company_id
+        left join t_crm_company_user_salesman c on b.id = c.company_user_id and c.state = 1
+        where b.id = #{companyUserId} and c.user_id = #{loginUserId} and b.delete_flag = 0 and c.delete_flag = 0
+    </select>
+
+    <!--查询客户保护已保护数量-->
+    <select id="getProtectNum" resultType="map">
+        SELECT
+            count(distinct a.id) as protectNum,
+            a.protect_level as protectLevel
+        FROM
+            t_crm_company a,
+            t_crm_company_user b,
+            t_crm_company_user_salesman c
+        where
+            a.id = b.company_id
+            and b.id=c.company_user_id
+            and c.user_id = #{loginUserId}
+            and b.delete_flag = 0
+            and c.delete_flag = 0
+        group by a.protect_level
+    </select>
+
+    <!--查询客户保护-->
+    <select id="queryUserByCompanyId" resultType="map">
+        select
+            a.id as companyUserId,
+            a.name as companyUserName,
+            a.mobile as mobile,
+            a.qq as qq,
+            a.wechat as wechat,
+            c.name as userName,
+            d.name deptName,
+            d.company_code_name as companyName
+        from t_crm_company_user a
+        left join t_crm_company_user_salesman b on a.id = b.company_user_id and b.state = 1
+        left join sys_user c on b.user_id = c.id
+        left join sys_dept d on c.dept_id = d.id
+        where a.company_id = #{companyId} and a.delete_flag = 0 and b.delete_flag = 0 and a.normalize = 1
+    </select>
+
+    <update id="updateUserByCompanyId" parameterType="map">
+        update t_crm_company_user
+        <set>
+            update_time = now(),
+            <if test="protectLevel != null">
+                protect_level = #{protectLevel},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            company_id = #{companyId} and normalize = 1
+        </where>
+    </update>
+
+    <select id="countArticleByCompanyUserId" resultType="integer">
+        select  count(a.id) from t_biz_article a,t_biz_order b where a.order_id = b.id and b.cust_id = #{companyUserId} and a.state > -2
+    </select>
+
+    <select id="queryByProtectLevel" resultType="map">
+        select a.id as id,
+            b.id as salesmanId,
+            b.user_id as userId,
+            b.dept_id as deptId,
+            a.company_id as companyId,
+            c.name as companyName,
+            a.eval_time as trackTime,
+            a.deal_time as dealTime,
+            datediff(now(), a.eval_time) as noTrackDays,
+            datediff(now(), a.deal_time) as noDealDays,
+            case when datediff(now(), a.eval_time) - ${TRACK_EVAL_DAY} &gt; 0 then 1 else 0 end as trackFlag,
+            case when datediff(now(), a.deal_time) - ${DEAL_EVAL_DAY} &gt; 0 then 1 else 0 end as dealFlag
+        from  t_crm_company_user a
+        left join t_crm_company_user_salesman b on a.id = b.company_user_id and b.state = 1
+        left join t_crm_company c on a.company_id = c.id
+        where a.protect_level = #{protectLevel} and a.delete_flag = 0 and b.delete_flag = 0 and c.audit_flag = 0
+    </select>
+
+    <select id="getTrackDate" resultType="map">
+        select max(a.track_time) as latestDay, DATEDIFF(NOW(), max(a.track_time)) as days
+        from  t_crm_company_track a
+        where a.creator = #{userId} and a.company_user_id = #{companyUserId}
+    </select>
+
+    <select id="getDealDate" resultType="map">
+        select max(a.issued_date) as latestDay, DATEDIFF(NOW(), max(a.issued_date)) as days
+        from  t_biz_article a
+        left join t_biz_order b on a.order_id = b.id
+        left join t_crm_company_user_salesman c on b.cust_id = c.company_user_id and c.state = 1
+        where c.user_id = #{userId} and c.company_user_id = #{companyUserId} and c.delete_flag = 0
+    </select>
+
+    <insert id="saveEval" parameterType="map">
+        INSERT INTO `t_crm_company_eval` (`company_user_id`, `user_id`, `eval_time`, `flag`,
+        `track_time`, `no_track_days`, `track_limit_days`, `track_flag`,
+        `deal_time`, `no_deal_days`, `deal_limit_days`, `deal_flag`)
+        VALUES (#{company_user_id}, #{user_id}, now(), #{flag},
+        #{track_time}, #{no_track_days}, #{track_limit_days}, #{track_flag},
+        #{deal_time}, #{no_deal_days}, #{deal_limit_days}, #{deal_flag})
+    </insert>
+
+    <select id="getAuditCount" resultType="integer">
+        select count(a.id) as count
+        from t_crm_company_user a, t_crm_company b
+        where a.company_id = b.id and b.audit_flag = 1 and a.delete_flag = 0
+        and a.id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item.companyUserId}
+        </foreach>
+    </select>
+    <!--手机号规范的客户才能用来完善客户-->
+    <select id="listCustForYW" resultType="map">
+        select a.id as custId,
+        a.name as custName,
+        b.id as companyId,
+        b.name as companyName,
+        b.type as type,
+        b.standardize as standardize,
+        a.promise_day as promiseDay,
+        a.tax_type as taxType,
+        a.normalize as normalize,
+        c.user_id as userId,
+        c.user_name as userName,
+        c.start_time as startTime,
+        c.end_time as endTime,
+        c.state as state,
+        a.protect_level as protectLevel,
+        a.protect_strong as protectStrong
+        from
+        t_crm_company_user a
+        left join t_crm_company b on a.company_id = b.id
+        left join t_crm_company_user_salesman c on a.id = c.company_user_id
+        where a.delete_flag = 0 and c.delete_flag = 0 and c.user_id = #{userId}
+        <!-- 客户公司不能是审核中的-->
+        and b.audit_flag = 0
+        <!--        &lt;!&ndash;开票和退款：如果是公司客户必须是强保护，如果是个体工商户必须是规范的&ndash;&gt;
+                <if test="feeFlag != null">
+                    and case when b.type = 1 then b.standardize = 1 else true end
+                </if>-->
+        <!-- 如果是已失效的客户，就必须是规范的，因为编辑不了失效的客户，非规范又不能用，所以直接排除掉-->
+        and case when c.state = 0 then a.normalize = 1 else true end
+        <if test="startTime != null">
+            and c.start_time &lt; #{startTime}
+        </if>
+        <if test="endTime != null">
+            and c.end_time &gt; #{endTime}
+        </if>
+        <if test="companyName != null">
+            and b.name like concat('%', #{companyName}, '%')
+        </if>
+        <if test="custName != null">
+            and a.name like concat('%', #{custName}, '%')
+        </if>
+        order by c.id desc
+    </select>
+
+    <!--查询单个-->
+    <select id="getCustByCompanyUserIdAndUserId" resultType="Map">
+        select a.id as custId,
+        a.name as custName,
+        b.id as companyId,
+        b.name as companyName
+        from t_crm_company_user a
+        left join t_crm_company_user_salesman b on a.id = b.company_user_id AND b.state = 1
+        left join t_crm_company c on a.company_id = b.id
+        where a.id = #{companyUserId} and b.user_id = #{userId}  and b.delete_flag = 0 and a.delete_flag = 0
+    </select>
+
+    <!--更新客户成交时间-->
+    <update id="updateDealTimeByCompanyId" parameterType="map">
+        update t_crm_company_user set eval_time = #{evalTime}, deal_time = #{dealTime}, update_user_id = #{updateUserId}
+        where company_id = #{companyId} and normalize = 1 and delete_flag = 0
+    </update>
+
+    <!--更新客户成交时间-->
+    <update id="initDealTimeByCompanyId" parameterType="map">
+        update t_crm_company_user a, t_crm_company_user_salesman b set a.deal_time = b.start_time, a.update_user_id = #{updateUserId}
+        where a.id = b.company_user_id and b.state = 1 and a.normalize = 1 and a.company_id = #{companyId} and a.delete_flag = 0
+    </update>
+
+    <!--更新客户成交时间-->
+    <update id="initDealTimeByCompanyUserId">
+        update t_crm_company_user a, t_crm_company_user_salesman b set a.deal_time = b.start_time, a.update_user_id = #{updateUserId}
+        where a.id = b.company_user_id and b.state = 1 and a.normalize = 1 and a.id = #{companyUserId} and a.delete_flag = 0
+    </update>
+
+    <!--================================统计开始=============================================-->
+    <!--查询客户对接人列表-->
+    <select id="listCompanyUser" resultType="map">
+        SELECT distinct a.*
+        FROM t_crm_company_user a , t_crm_company_user_salesman b , sys_user c
+        where a.id = b.company_user_id and b.user_id = c.id
+        and a.is_public = 0 and a.delete_flag = 0 and b.delete_flag = 0
+        <if test="deptIds != null">
+            AND c.`dept_id` IN (${deptIds})
+        </if>
+        <if test="companyCode != null">
+            and c.company_code = #{companyCode}
+        </if>
+        <if test="companyId != null">
+            and a.company_id = #{companyId}
+        </if>
+        <if test="companyUserId != null">
+            and a.id = #{companyUserId}
+        </if>
+        <if test="userId != null and userId != ''">
+            and b.user_id = #{userId}
+        </if>
+        <if test="currentUserId != null and currentUserId != ''">
+            and b.user_id = #{currentUserId}
+        </if>
+        order by a.id desc
+    </select>
+
+    <update id="resetEvalTime">
+        update t_crm_company_user set eval_time = now() where delete_flag = 0 and is_public = 0
+    </update>
+    <update id="resetDealTime">
+        update t_crm_company_user set deal_time = now() where delete_flag = 0 and is_public = 0
+    </update>
+</mapper>

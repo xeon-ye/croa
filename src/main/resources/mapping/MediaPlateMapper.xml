@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaPlateMapper">
+
+    <sql id="selectColumn">
+      tmp.id,
+      tmp.create_date as createDate,
+      tmp.is_delete as isDelete,
+      tmp.update_date as updateDate,
+      tmp.versions,
+      tmp.name,
+      tmp.plate_type_id as plateTypeId,
+      tmp.percent,
+      tmp.parent_type as parentType,
+      tmp.is_station as isStation,
+      tmp.standar_platform_flag as standarPlatformFlag
+    </sql>
+
+    <!--校验板块名称唯一-->
+    <select id="checkMediaPlate" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM
+        t_media_plate tmp
+        WHERE
+        tmp.`name` = #{name}
+        <if test="id != null">
+            AND tmp.id <![CDATA[<>]]> #{id}
+        </if>
+    </select>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_media_plate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createDate != null">create_date,</if>
+            <if test="isDelete != null">is_delete,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="versions != null">versions,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="plateTypeId != null">plate_type_id,</if>
+            <if test="percent != null">percent,</if>
+            <if test="parentType != null">parent_type,</if>
+            <if test="isStation != null">is_station,</if>
+            <if test="standarPlatformFlag != null">standar_platform_flag</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createDate != null">#{createDate},</if>
+            <if test="isDelete != null">#{isDelete},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="versions != null">#{versions},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="plateTypeId != null">#{plateTypeId},</if>
+            <if test="percent != null">#{percent},</if>
+            <if test="parentType != null">#{parentType},</if>
+            <if test="isStation != null">#{isStation},</if>
+            <if test="standarPlatformFlag != null">#{standarPlatformFlag}</if>
+        </trim>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_media_plate
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            <if test="name != null and name != ''">name = #{name},</if>
+            plate_type_id = #{plateTypeId},
+            percent = #{percent},
+            parent_type = #{parentType},
+            is_station = #{isStation},
+            standar_platform_flag = #{standarPlatformFlag}
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--修改状态-->
+    <update id="updateState">
+        update t_media_plate
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            is_delete = #{isDelete}
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--列表查询-->
+    <select id="listPlateByParam" resultType="com.qinfei.qferp.entity.media1.MediaPlate">
+      SELECT
+      	<include refid="selectColumn"/>
+      FROM
+      	t_media_plate tmp
+      <trim prefix="WHERE" prefixOverrides="AND">
+          <if test="name != null and name != ''">
+              AND tmp.`name` LIKE CONCAT('%', #{name}, '%')
+          </if>
+          <if test="parentType != null">
+              AND tmp.parent_type = #{parentType}
+          </if>
+          <if test="isStation != null">
+              AND tmp.is_station = #{isStation}
+          </if>
+          <if test="standarPlatformFlag != null">
+              AND tmp.standar_platform_flag = #{standarPlatformFlag}
+          </if>
+      </trim>
+      ORDER BY tmp.create_date DESC
+    </select>
+
+    <select id="listByPlateTypeId" resultType="com.qinfei.qferp.entity.media1.MediaPlate">
+        SELECT
+	     id,
+	     plate_type_id,
+	     `name`,
+	     parent_type,
+	     standar_platform_flag
+        FROM
+        	t_media_plate
+        WHERE
+        	is_delete = 0 AND plate_type_id = #{plateTypeId}
+    </select>
+
+    <!--根据用户ID查询用户有权限的媒体板块-->
+    <select id="listMediaPlateByUserId" resultType="com.qinfei.qferp.entity.media1.MediaPlate">
+        SELECT
+          tmp.id,
+	      tmp.plate_type_id,
+	      tmp.`name`,
+	      parent_type,
+	      standar_platform_flag
+        FROM
+        	t_user_media_type tumt
+        INNER JOIN t_media_plate tmp ON tumt.media_type_id = tmp.id
+        AND tmp.is_delete = 0
+        WHERE
+        	tumt.state = 0
+        AND tumt.user_id = #{userId}
+    </select>
+
+    <!--根据媒体Id获取媒体对应的媒体类型-->
+    <select id="getByMediaId" resultType="com.qinfei.qferp.entity.media1.MediaPlate">
+        SELECT
+        	tmp.id,
+	        tmp.plate_type_id,
+	        tmp.`name`,
+	        parent_type,
+	        standar_platform_flag
+        FROM
+        	t_media_plate tmp
+        INNER JOIN t_media_audit tma ON tma.plate_id = tmp.id
+        WHERE
+        	tma.id = #{mediaId}
+    </select>
+
+    <select id="queryMediaPlate" resultType="com.qinfei.qferp.entity.media1.MediaPlate">
+        SELECT
+	     id,
+	     plate_type_id,
+	     `name`,
+	     `percent`,
+	     parent_type,
+	     standar_platform_flag
+        FROM
+        	t_media_plate
+        WHERE
+        	is_delete = 0
+    </select>
+</mapper>

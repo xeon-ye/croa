@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>计划总结列表</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/plan/planRanking.js"></script>
+    <style type="text/css">
+        .outerDiv{
+            height: 100%;display: flex;flex-direction: column;
+        }
+        .searchOuterDiv{
+            width: 100%;height:130px;float: left;
+        }
+        .contentOuterDiv{
+            width: 100%;flex: 1;float: left;display: flex;flex-direction: column;
+        }
+        .titleOuterDiv{
+            height: 65px;width: 100%;float: left;
+        }
+        .rankingOuterDiv{
+            flex:1;width: 100%;float: left;overflow: hidden;
+        }
+        .mainTitle{
+            height: 65px;
+            line-height: 65px;
+            width: 49%;
+            text-align: center;
+            font-size: 15px;
+            float: left;
+            border:1px solid #eee;
+        }
+        .subTitleWrap{
+            border: 0px solid red;
+            width: 100%;
+            text-align: left;
+            height: 40px;
+            line-height: 40px;
+            font-weight: bold;
+            display: flex;
+        }
+        .subTitle{
+            height: 40px;
+            line-height: 40px;
+            width: 150px;
+        }
+        .rinkNumWrap{
+            height: 40px;
+            line-height: 40px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .rinkNumInput{
+            width: 60px;
+            height: 25px;
+            text-align: center;
+        }
+        .subContent{
+            border: 0px solid red;
+            width: 100%;
+            text-align: left;
+            height: 25px;
+            line-height: 25px;
+        }
+        .subContent > div{
+            border-top: 1px solid #C7C7CD;
+            width: 25%;
+            text-align: center;
+            height: 25px;
+            line-height: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            float: left;
+        }
+        .mainContent{
+            border:1px solid #eee;
+            width: 49%;
+            height: 95%;
+            padding: 0px;
+            float: left;
+        }
+        .deptBeforeThree, .deptAfterThree, .userBeforeTen,.userAfterTen{
+            width: 25%;
+            height: 100%;
+            float: left;
+            padding-top: 10px;
+            overflow: auto;
+
+        }
+        .rankingContent{
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            font-size: 14px;
+            float: left;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .fontColor{
+            color: red;
+        }
+        /*滚动条样式*/
+        .deptBeforeThree::-webkit-scrollbar, .deptAfterThree::-webkit-scrollbar, .userBeforeTen::-webkit-scrollbar,.userAfterTen::-webkit-scrollbar {
+            width: 3px;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+
+            //加载时间控件
+            var startDate = {
+                elem: '#startDate',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startDate").val("")
+                        return;
+                    }
+                    searchForm.search();
+                }
+            };
+            laydate(startDate);
+            var endDate = {
+                elem: '#endDate',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#endDate").val("")
+                        return;
+                    }
+                    searchForm.search();
+                }
+            };
+            laydate(endDate);
+
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //时间改变事件
+                form.on('select(timeQuantum)', function(data){
+                    searchForm.showDate(data.value);
+                });
+
+                //公司改变
+                form.on('select(companyCode)', function(data){
+                    searchForm.search();
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="col-md-12 outerDiv">
+    <!--查询条件-->
+    <div class="searchOuterDiv">
+        <form id="queryForm">
+            <div class="ibox-title">
+                <h4>查询条件</h4>
+            </div>
+            <hr/>
+            <div class="form-horizontal">
+                <div class="form-group" style="margin-top:5px;">
+                    <label class="col-sm-1 control-label right0">时间范围:</label>
+                    <div class="col-sm-1 layui-form">
+                        <!--时间段-->
+                        <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                            <option value="" selected>昨日</option>
+                            <option value="1">本周</option>
+                            <option value="2">本月</option>
+                            <option value="3">时间区间</option>
+                        </select>
+                    </div>
+
+                    <div id="dateFormGroup" style="display: none">
+                        <label class="col-sm-1 control-label right0">选择时间范围:</label>
+                        <div class="col-sm-2" style="min-width:240px;">
+                            <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                                   class="form-control layer-date" id="startDate" name="startDate">
+                            <span style="display:inline-block;padding:0 10px;">至</span>
+                            <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                   class="form-control layer-date" id="endDate" name="endDate">
+                        </div>
+                    </div>
+
+                    <label class="col-sm-1 control-label right0">公司:</label>
+                    <div class="col-sm-1 layui-form">
+                        <!--时间段-->
+                        <select id="companyCode" name="companyCode" class="form-control height18" lay-search lay-filter="companyCode">
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="button" id="searchButton" class="btn btn-primary"
+                                style="float:left;margin-left:15px;"
+                                onclick="searchForm.search();">
+                            <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                        </button>
+                        <button type="button" id="exportButton" class="btn btn-primary"
+                                style="float:left;margin-left:15px;"
+                                onclick="searchForm.export();">
+                            <i class="fa fa-download"></i>&nbsp;&nbsp;导出
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <hr/>
+        </form>
+    </div>
+    <div class="contentOuterDiv">
+        <div class="titleOuterDiv">
+            <div class="mainTitle" style="background-color: #E9F0F7;">
+                <div class="subTitleWrap layui-form">
+                    <div class="subTitle">人效比</div>
+                    <div class="rinkNumWrap">
+                        部门前：<input oninput="searchForm.inputChange(this);" data-value="3" data-list="deptRxbList" data-isBefore="true" data-targetWrap="rxb" data-target="deptBeforeThree" data-exportList="rxbDeptBefore" value="3" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        部门后：<input oninput="searchForm.inputChange(this);" data-value="3" data-list="deptRxbList" data-isBefore="false" data-targetWrap="rxb" data-target="deptAfterThree" data-exportList="rxbDeptAfter" value="3" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        个人前：<input oninput="searchForm.inputChange(this);" data-value="30" data-list="userRxbList" data-isBefore="true" data-targetWrap="rxb" data-target="userBeforeTen" data-exportList="rxbUserBefore" value="30" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        个人后：<input oninput="searchForm.inputChange(this);" data-value="30" data-list="userRxbList" data-isBefore="false" data-targetWrap="rxb" data-target="userAfterTen" data-exportList="rxbUserAfter" value="30" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                    </div>
+                </div>
+                <div class="subContent">
+                    <div>
+                        部门/前<span id="rxb-deptBeforeThree">三</span>
+                    </div>
+                    <div>
+                        部门/后<span id="rxb-deptAfterThree">三</span>
+                        <i style="color: #0a6aa1;font-size: 10px;" title="说明：倒序排序，倒数第一排在第一位，依次类推。" class="glyphicon glyphicon-question-sign"></i>
+                    </div>
+                    <div>
+                        个人/前<span id="rxb-userBeforeTen">三十</span>
+                    </div>
+                    <div>
+                        个人/后<span id="rxb-userAfterTen">三十</span>
+                        <i style="color: #0a6aa1;font-size: 10px;" title="说明：倒序排序，倒数第一排在第一位，依次类推。" class="glyphicon glyphicon-question-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="mainTitle" style="background-color: #F5E9E9;margin-left: 2%;">
+                <div class="subTitleWrap">
+                    <div class="subTitle">人均开发有效客户数</div>
+                    <div class="rinkNumWrap">
+                        部门前：<input oninput="searchForm.inputChange(this);" data-value="3"  data-list="deptYxkhList" data-isBefore="true" data-targetWrap="rjyxkh" data-target="deptBeforeThree" data-exportList="yxkhDeptBefore" value="3" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        部门后：<input oninput="searchForm.inputChange(this);" data-value="3"  data-list="deptYxkhList" data-isBefore="false" data-targetWrap="rjyxkh" data-target="deptAfterThree" data-exportList="yxkhDeptAfter" value="3" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        个人前：<input oninput="searchForm.inputChange(this);" data-value="30" data-list="userYxKhList" data-isBefore="true" data-targetWrap="rjyxkh" data-target="userBeforeTen" data-exportList="yxkhUserBefore" value="30" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                        个人后：<input oninput="searchForm.inputChange(this);" data-value="30" data-list="userYxKhList" data-isBefore="false" data-targetWrap="rjyxkh" data-target="userAfterTen" data-exportList="yxkhUserAfter" value="30" maxlength="4" onkeyup="value=value.replace(/[^\d]/g,'')" class="form-control rinkNumInput"/>&nbsp;
+                    </div>
+                </div>
+                <div class="subContent">
+                    <div>
+                        部门/前<span id="rjyxkh-deptBeforeThree">三</span>
+                    </div>
+                    <div>
+                        部门/后<span id="rjyxkh-deptAfterThree">三</span>
+                        <i style="color: #0a6aa1;font-size: 10px;" title="说明：倒序排序，倒数第一排在第一位，依次类推。" class="glyphicon glyphicon-question-sign"></i>
+                    </div>
+                    <div>
+                        个人/前<span id="rjyxkh-userBeforeTen">三十</span>
+                    </div>
+                    <div>
+                        个人/后<span id="rjyxkh-userAfterTen">三十</span>
+                        <i style="color: #0a6aa1;font-size: 10px;" title="说明：倒序排序，倒数第一排在第一位，依次类推。" class="glyphicon glyphicon-question-sign"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rankingOuterDiv">
+            <!--人效比-->
+            <div class="mainContent" id="rxb">
+                <div class="deptBeforeThree" style="border-left:1px solid #eee;">
+                    <!--<div class="rankingContent">业务一部</div>-->
+                </div>
+                <div class="deptAfterThree">
+
+                </div>
+                <div class="userBeforeTen">
+
+                </div>
+                <div class="userAfterTen">
+
+                </div>
+            </div>
+            <!--人均开发有效客户数-->
+            <div class="mainContent" id="rjyxkh" style="margin-left: 2%;">
+                <div class="deptBeforeThree" style="border-left:1px solid #eee;">
+
+                </div>
+                <div class="deptAfterThree">
+
+                </div>
+                <div class="userBeforeTen">
+
+                </div>
+                <div class="userAfterTen" style="border-right:1px solid #eee;">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

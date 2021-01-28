@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.PurchaseSupplierMapper">
+    <resultMap id="purchaseSupplierMapper" type="com.qinfei.qferp.entity.inventory.PurchaseSupplier">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="level" property="level"/>
+        <result column="address" property="address"/>
+        <result column="contact_name" property="contactName"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="contact_sex" property="contactSex"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="email" property="email"/>
+        <result column="position" property="position"/>
+        <result column="pay_method" property="payMethod"/>
+        <result column="account_name" property="accountName"/>
+        <result column="bank_no" property="bankNo"/>
+        <result column="bank_name" property="bankName"/>
+        <result column="bank_place" property="bankPlace"/>
+        <result column="weixin" property="weixin"/>
+        <result column="zhifubao" property="zhifubao"/>
+        <result column="desc" property="desc"/>
+        <result column="create_time" property="createTime"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
+
+    <sql id="selectColum">
+        s.id,
+        s.code,
+        s.name,
+        s.type,
+        s.level,
+        s.address,
+        s.contact_name as contactName,
+        s.contact_phone as contactPhone,
+        s.contact_sex as contactSex,
+        s.dept_name as deptName,
+        s.email,
+        s.position,
+        s.pay_method as payMethod,
+        s.account_name as accountName,
+        s.bank_no as bankNo,
+        s.bank_name as bankName,
+        s.bank_place as bankPlace,
+        s.weixin,
+        s.zhifubao,
+        s.`desc`,
+        s.create_time as createTime,
+        s.company_code as companyCode
+    </sql>
+
+    <!--根据id查询供应商信息-->
+    <select id="getById" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.inventory.PurchaseSupplier">
+        select
+         <include refid="selectColum"/>
+         from t_saves_product_supplier s
+         where s.state>-2 and s.id = #{id}
+    </select>
+
+    <!--获取分页数量-->
+    <select id="getPurchaseSupplierCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select COUNT(*) from t_saves_product_supplier s
+        left join t_saves_goods_type t on s.type=t.id
+         where s.state >-2
+         <if test="levelQc!=null">
+            and s.level=#{levelQc}
+         </if>
+        <if test="typeQc!=null">
+            and s.type=#{typeQc}
+        </if>
+        <if test="nameQc!=null">
+            and s.name like concat('%',#{nameQc},'%')
+        </if>
+        <if test="payMethodQc!=null">
+            and s.pay_method=#{payMethodQc}
+        </if>
+        <if test="keyWords!=null and keyWords!=''">
+            and s.contact_name like concat('%',#{keyWords},'%') or s.contact_phone like concat('%',#{keyWords},'%')
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            and s.company_code=#{companyCode}
+        </if>
+    </select>
+
+    <!--获取供应商分页数据-->
+    <select id="getPurchaseSupplierInfo" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        t.name typeName,
+        <include refid="selectColum"/>
+        from t_saves_product_supplier s
+        left join t_saves_goods_type t on s.type=t.id
+        where s.state >-2
+        <if test="levelQc!=null">
+            and s.level=#{levelQc}
+        </if>
+        <if test="typeQc!=null">
+            and s.type=#{typeQc}
+        </if>
+        <if test="nameQc!=null">
+            and s.name like concat('%',#{nameQc},'%')
+        </if>
+        <if test="payMethodQc!=null">
+            and s.pay_method=#{payMethodQc}
+        </if>
+        <if test="keyWords!=null and keyWords!=''">
+            and (s.contact_name like concat('%',#{keyWords},'%') or s.contact_phone like concat('%',#{keyWords},'%'))
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            and s.company_code=#{companyCode}
+        </if>
+    </select>
+
+    <!--删除物品供应商信息-->
+    <update id="delPurchaseSupplier" parameterType="java.lang.Integer">
+        update t_saves_product_supplier set state = -9 where id = #{id}
+    </update>
+
+    <!--获取加载供应商所需数据-->
+    <select id="getPurchaseSupplierList" parameterType="java.lang.String" resultType="java.util.Map">
+        select id,name from t_saves_product_supplier where state>-2 and company_code=#{companyCode}
+    </select>
+
+    <!--根据供应商名称查询-->
+    <select id="getPurchaseSupplierByName" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.inventory.PurchaseSupplier">
+        select
+        <include refid="selectColum"/>
+         from t_saves_product_supplier s where s.state>-2
+         and s.name=#{name} and s.company_code=#{companyCode}
+         <if test="id!=null and id!=''">
+             and s.id !=#{id}
+         </if>
+    </select>
+
+    <!--供应商导入-->
+    <insert id="insertPurchaseSupplierFormExcel" parameterType="java.util.List">
+        insert into t_saves_product_supplier
+        (code,name,level,type,address,`desc`,contact_name,contact_phone,
+        contact_sex,dept_name,position,email,pay_method,weixin,zhifubao,bank_no,company_code)
+        values
+        <foreach collection="list" item="item" index="index" open="(" separator="),(" close=")">
+            #{item.code},
+            #{item.name},
+            #{item.level},
+            #{item.type},
+            #{item.address},
+            #{item.desc},
+            #{item.contactName},
+            #{item.contactPhone},
+            #{item.contactSex},
+            #{item.deptName},
+            #{item.position},
+            #{item.email},
+            #{item.payMethod},
+            #{item.weixin},
+            #{item.zhifubao},
+            #{item.bankNo},
+            #{item.companyCode}
+        </foreach>
+    </insert>
+</mapper>

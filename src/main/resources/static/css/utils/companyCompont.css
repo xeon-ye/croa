@@ -1,0 +1,75 @@
+.ellipsisContent{
+    width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;
+}
+
+.companyModalContentWrap{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.companyContentWrap{
+    border: 0px solid red;
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tbodyWrap{
+    flex: 1;
+    overflow: auto;
+}
+
+.companyItem{
+    width: 100%;
+    margin-bottom: 15px;
+    cursor: pointer;
+
+}
+
+.companyItem > div{
+    border-bottom: 1px solid #e6e6e6;
+    height:40px;
+    line-height:40px;
+    display: inline-block;
+    color:#666;
+    padding-left:15px;
+    float: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.companyItem > div:nth-child(1){
+    width: 4%;
+}
+.companyItem > div:nth-child(2){
+    width: 6%;
+}
+.companyItem > div:nth-child(3){
+    width: 24%;
+}
+.companyItem > div:nth-child(4){
+    width: 10%;
+}
+.companyItem > div:nth-child(5){
+    width: 15%;
+}
+.companyItem > div:nth-child(6){
+    width: 10%;
+}
+.companyItem > div:nth-child(7){
+    width: 15%;
+}
+.companyItem > div:nth-child(8){
+    width: 16%;
+}
+
+/*滚动条宽度*/
+.tbodyWrap::-webkit-scrollbar {
+    width: 0px;
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.media1.SupplierChangeMapper">
+  <sql id="selectColumn">
+    tsc.id as id,
+    tsc.supplier_id as supplierId,
+    tsc.supplier_name as supplierName,
+    tsc.supplier_contactor as supplierContactor,
+    tsc.user_id as userId,
+    tsc.user_name as userName,
+    tsc.change_content as changeContent,
+    tsc.create_date as createDate,
+    tsc.state as state
+  </sql>
+
+  <!--新增所有列-->
+  <insert id="save" keyProperty="id" useGeneratedKeys="true">
+    insert into t_supplier_change
+    (
+      supplier_id,
+      supplier_name,
+      supplier_contactor,
+      user_id,
+      user_name,
+      change_content,
+      create_date,
+      state
+    )
+    values
+    (
+      <if test="supplierId != null">#{supplierId},</if>
+      <if test="supplierName != null and supplierName != ''">#{supplierName},</if>
+      <if test="supplierContactor != null and supplierContactor != ''">#{supplierContactor},</if>
+      <if test="userId != null">#{userId},</if>
+      <if test="userName != null and userName != ''">#{userName},</if>
+      <if test="changeContent != null and changeContent != ''">#{changeContent},</if>
+      now(),
+      <if test="state != null">#{state}</if>
+     )
+  </insert>
+
+  <!--批量插入供应商异动表-->
+  <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+      insert into t_supplier_change
+      (
+        supplier_id,
+        supplier_name,
+        supplier_contactor,
+        user_id,
+        user_name,
+        change_content,
+        create_date,
+        state
+      )
+      VALUES
+      <foreach collection="list" item="supplierChange" index="index" separator=",">
+      (
+        #{supplierChange.supplierId},
+        #{supplierChange.supplierName},
+        #{supplierChange.supplierContactor},
+        #{supplierChange.userId},
+        #{supplierChange.userName},
+        #{supplierChange.changeContent},
+        now(),
+        0
+      )
+      </foreach>
+  </insert>
+
+  <!--根据供应商ID获取异动列表-->
+  <select id="listSupplierChangeByParam" resultType="com.qinfei.qferp.entity.media1.SupplierChange">
+    SELECT
+      <include refid="selectColumn"/>
+    FROM
+      t_supplier_change tsc
+    WHERE tsc.supplier_id in
+    <foreach collection="supplierIds" item="supplierId" open="(" close=")" separator=",">
+        #{supplierId}
+    </foreach>
+    ORDER BY tsc.create_date DESC
+  </select>
+
+  <!--获取指定异动信息-->
+  <select id="getSupplierChangeById" resultType="com.qinfei.qferp.entity.media1.SupplierChange">
+    SELECT
+      <include refid="selectColumn"/>
+    FROM
+      t_supplier_change tsc
+    WHERE tsc.id = #{id}
+  </select>
+</mapper>

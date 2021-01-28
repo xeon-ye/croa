@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>首页</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/css/animate.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/workbench/workbench1.css" rel="stylesheet">
+    <link href="/css/homePage/homePage1.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/homePage1.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .ibox-title {
+            min-height: 0;
+            height: 35px;
+            padding: 2px 0 0 2px;
+        }
+
+        .ibox {
+            margin-left: 12px;
+            margin-bottom: 0;
+        }
+
+        .panel.panel2 {
+            border-color: rgb(29, 132, 198);
+            font-size: 14px;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .panel.panel3 {
+            border-color: rgb(36, 198, 200);
+            font-size: 14px;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .ibox-title.ibox-title1 {
+            color: rgb(255, 255, 255);
+            background-color: rgb(237, 86, 102);
+            border-color: rgb(237, 86, 102);
+            font-size: 14px;
+            border-width: 0px;
+            border-style: solid;
+            font-weight: bold;
+            font-style: normal;
+            opacity: 1;
+        }
+
+        .ibox-title.ibox-title2 {
+            color: rgb(255, 255, 255);
+            background-color: rgb(29, 132, 198);
+            border-color: rgb(29, 132, 198);
+            font-size: 14px;
+            border-width: 0px;
+            border-style: solid;
+            font-weight: bold;
+            font-style: normal;
+            opacity: 1;
+        }
+
+        .ibox-title.ibox-title3 {
+            color: rgb(255, 255, 255);
+            background-color: rgb(36, 198, 200);
+            border-color: rgb(36, 198, 200);
+            font-size: 14px;
+            border-width: 0px;
+            border-style: solid;
+            font-weight: bold;
+            font-style: normal;
+            opacity: 1;
+            text-align: center;
+        }
+
+        .ibox-content ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .panel.panel4 {
+            border-color: rgb(221, 221, 221);
+            font-size: 14px;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .ibox-title.ibox-title4 {
+            color: rgb(52, 52, 52);
+            background-color: rgb(221, 221, 221);
+            border-color: rgb(29, 132, 198);
+            font-size: 14px;
+            border-width: 0px;
+            border-style: solid;
+            font-weight: bold;
+            font-style: normal;
+            opacity: 1;
+        }
+
+    </style>
+    <!--重写样式-->
+    <style>
+        .dropdown-menu {
+            border: medium none;
+            display: none;
+            float: left;
+            font-size: 12px;
+            left: -144px !important;
+            list-style: none outside none;
+            padding: 0;
+            position: absolute;
+            text-shadow: none;
+            top: 100%;
+            z-index: 1000;
+            border-radius: 0;
+            box-shadow: 0 0 3px rgba(86, 96, 117, 0.3);
+        }
+
+        .dropdown-menu li a {
+            text-align: center;
+        }
+
+        div .pm0 {
+            padding: 0;
+            margin: 0 0 5px 0;
+        }
+
+        .panel {
+            height: 100%;
+            margin: 5px;
+        }
+
+        div .panel-body {
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            height: 98%;
+        }
+
+        div .panel-body ul {
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #message_panel {
+            height: 99%;
+            min-height: 99%;
+            /*min-width:240px;*/
+            /*max-width:240px;*/
+        }
+
+        #message_panel .panel-body {
+            height: 99%;
+            min-height: 99%;
+        }
+
+        div .left-top-panel {
+            height: 100%;
+        }
+
+        div .left-top-panel-body {
+            height: 89%;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        div .left-bottom-panel {
+            height: 100%;
+        }
+
+        div .left-bottom-panel-body {
+            height: 89%;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        div .height100 {
+            height: 100%;
+        }
+
+        div .height49 {
+            height: 49%;
+        }
+
+        div .ibox-title {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .panel-default .panel-heading {
+            border: none;
+        }
+
+        .ibox-tools a i {
+            color: white;
+            font-weight: 900;
+        }
+
+        .panel-primary .panel-heading {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        .panel-danger .panel-heading {
+            background-color: #ed5565;
+            border-color: #ed5565;
+            color: #ffffff;
+        }
+
+        .panel-success .panel-heading {
+            background-color: #1c84c6;
+            border-color: #1c84c6;
+            color: #ffffff;
+        }
+
+        .panel-warning .panel-heading {
+            background-color: #f8ac59;
+            border-color: #f8ac59;
+            color: #ffffff;
+        }
+
+        .text_space {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrapper wrapper-content animated fadeIn" style="height:99%;padding:2px 0 0 2px;">
+    <div class="col-sm-12 topDiv">
+        <div class="resourceRecomm" id="block1">
+        </div>
+        <div class="topRight">
+            <!--轮播图-->
+            <div class="wheel">
+                <div class="layui-carousel" id="wheel">
+                    <div carousel-item style="height: 300px !important;" id="images">
+                    </div>
+                </div>
+            </div>
+            <div class="wheelBottom">
+                <!--企业文化宣讲-->
+                <div class="corpCultrue">
+                    <!--标题-->
+                    <div class="corpCultrueDiv">
+                        <div class="corpCultrueTitleDiv">
+                            <div class="corpCultrueTitle"></div>
+                            <div class="corpCultrueTitleText">
+                                企业文化宣讲
+                            </div>
+                        </div>
+                    </div>
+                    <!--内容-->
+                    <div class="corpCultrueContentDiv">
+                        <ul>
+                            <li>一、使命：以卓越的服务成就客户，为祥和所有奋斗者圆梦！</li>
+                            <li>二、愿景：打造国内领先的创新型传播集团！</li>
+                            <li>三、价值观：正直、善良、积极、感恩、利他！</li>
+                            <li>四、核心思想：感恩为人、专业尽责、携手并进、共创祥和！</li>
+                        </ul>
+                    </div>
+                </div>
+                <!--公告通知-->
+                <div id="block2" class="annNotice">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12 bottomDiv">
+        <div id="block3" class="fineThing">
+        </div>
+        <div id="block4" class="groupNews">
+        </div>
+        <div id="block5" class="companyNews">
+        </div>
+    </div>
+</div>
+
+<script id="dbsxHtml" type="text/html">
+    <div id="dbsx">
+        <div>
+            <div class="corpCultrueTitle"></div>
+            <div class="corpCultrueTitleText">
+                待办事项
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="" style="float: right;margin-right: 10px;margin-top: 2px;">
+                <a onclick="itemTableObj.more(1)">更多</a>
+            </div>
+            <form id="db">
+                <input type="hidden" name="transactionState" value="1"/>
+            </form>
+        </div>
+        <div class="panel-body ibox-content left-top-panel-body">
+            <div class="jqGrid_wrapper">
+                <table id="itemsTable1"></table>
+            </div>
+        </div>
+    </div>
+</script>
+<script id="lhbHtml" type="text/html">
+    <div id="lhb">
+        <div class="panel-heading ibox-title">
+            <div id="businessRankingTab" class="businessRankingTab">
+                <div class="businessRankingTabText" onclick="rinkingObj.lhbTabClick()">龙虎榜</div>
+                <div id="businessRankingTabActive" class="businessRankingTabActive">
+                    <span><i class="fa fa-caret-up"></i></span>
+                </div>
+            </div>
+            <div id="mediaUserTab" class="mediaUserTab">
+                <div class="mediaUserTabText" onclick="rinkingObj.fwbTabClick()">服务榜单</div>
+                <div id="mediaUserTabActive" class="mediaUserTabActive" style="display: none;">
+                    <span><i class="fa fa-caret-up"></i></span>
+                </div>
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body ibox-content left-top-panel-body">
+            <!--龙虎榜-->
+            <div id="businessRankingContent" class="businessRankingContent">
+                <div class="businessRankingDiv">
+                    <div class="rankingTitle">
+                        <div style="width: 20%;height: 30px;line-height: 30px;float: left;">
+                            <div class="deptRankingDivTitle">
+                                <div class="deptRankingDivTitleIcon"> </div>
+                                <div class="deptRankingDivTitleText">
+                                    <span class="rinkingMonthText">7</span>月团队利润前三名
+                                </div>
+                                <div class="deptRankingDivTitleBack"> </div>
+                            </div>
+                        </div>
+                        <div style="width: 24%;height: 30px;line-height: 30px;float: left;">
+                            <div class="selfRankingTitle">
+                                <div class="deptRankingDivTitleIcon"> </div>
+                                <div class="deptRankingDivTitleText">
+                                    <span class="rinkingMonthText">*</span>月个人排名前十名
+                                </div>
+                                <div class="selfRankingTitleBack"></div>
+                            </div>
+                        </div>
+                        <div style="width: 28%;height: 30px;line-height: 30px;float: left;padding-left: 15px;">
+                            <div class="weekRinkingTitle">
+                                <div class="deptRankingDivTitleIcon"></div>
+                                <div class="deptRankingDivTitleText">
+                                    本周排行
+                                </div>
+                                <div class="weekRinkingTitleBack"> </div>
+                            </div>
+                        </div>
+                        <div style="width: 28%;height: 30px;line-height: 30px;float: left;">
+                            <div id="weekRinkingTime" class="weekRinkingTime">
+                                更新时间：8月19日
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width: 100%;height: 91%;float: left;">
+                        <div class="deptRankingDiv">
+                            <!--第一名-->
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/jinpai.png" width="21" height="25">
+                                </div>
+                                <div id="oneDept" class="dept">
+
+                                </div>
+                            </div>
+                            <!--第二名-->
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/yinpai.png" width="21" height="25">
+                                </div>
+                                <div id="twoDept" class="dept">
+
+                                </div>
+                            </div>
+                            <!--第三名-->
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/tongpai.png" width="21" height="25">
+                                </div>
+                                <div id="threeDept" class="dept">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="selfRankingContent">
+                            <div>
+                                <div class="selfRankingOne">1</div>
+                                <div id="one" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingTwo">2</div>
+                                <div id="two" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingThree">3</div>
+                                <div id="three" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">4</div>
+                                <div id="four" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">5</div>
+                                <div id="five" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">6</div>
+                                <div id="six" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">7</div>
+                                <div id="senven" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">8</div>
+                                <div id="eight" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">9</div>
+                                <div id="nine" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">10</div>
+                                <div id="ten" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="myRanking">
+                                    <span>我的本月排名：</span>
+                                    <span style="font-weight: bold;color: #ed5565;" id="mySelfRinking">--</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="weekDeptRinking" class="weekRinking">
+                            <!--<div>
+                                <div class="selfRankingOne">1</div>
+                                <div class="selfRankingText">
+                                    邹丽
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingTwo">2</div>
+                                <div class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingThree">3</div>
+                                <div class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">4</div>
+                                <div class="selfRankingText">
+                                    邹丽
+                                </div>
+                            </div>-->
+                        </div>
+                        <div id="weekGroupRinking" class="weekRinking">
+                            <!--<div>
+                                <div class="selfRankingOne">1</div>
+                                <div class="selfRankingText">
+                                    邹丽
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingTwo">2</div>
+                                <div class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingThree">3</div>
+                                <div class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">4</div>
+                                <div class="selfRankingText">
+                                    邹丽
+                                </div>
+                            </div>-->
+                        </div>
+                    </div>
+                    <!--<div class="myRanking">-->
+                    <!--<span>我的本月排名：</span>-->
+                    <!--<span style="font-weight: bold;color: #222222;" id="mySelfRinking">&#45;&#45;</span>-->
+                    <!--</div>-->
+                    <!--部门排名-->
+                    <!--<div class="deptRankingDiv">
+                        &lt;!&ndash;标题&ndash;&gt;
+                        <div class="deptRankingDivTitle">
+                            <div class="deptRankingDivTitleIcon"></div>
+                            <div class="deptRankingDivTitleText">
+                                <span class="rinkingMonthText">7</span>月团队利润前三名
+                            </div>
+                            <div class="deptRankingDivTitleBack"></div>
+                        </div>
+                        &lt;!&ndash;内容&ndash;&gt;
+                        <div class="deptRankingContent">
+                            &lt;!&ndash;第一名&ndash;&gt;
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/jinpai.png" width="21" height="25">
+                                </div>
+                                <div id="oneDept" class="dept">
+
+                                </div>
+                            </div>
+                            &lt;!&ndash;第二名&ndash;&gt;
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/yinpai.png" width="21" height="25">
+                                </div>
+                                <div id="twoDept" class="dept">
+
+                                </div>
+                            </div>
+                            &lt;!&ndash;第三名&ndash;&gt;
+                            <div class="deptRanking">
+                                <div>
+                                    <img src="/img/workbench/tongpai.png" width="21" height="25">
+                                </div>
+                                <div id="threeDept" class="dept">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    &lt;!&ndash;个人排名&ndash;&gt;
+                    <div class="selfRankingDiv">
+                        &lt;!&ndash;标题&ndash;&gt;
+                        <div class="selfRankingTitle">
+                            <div class="deptRankingDivTitleIcon"></div>
+                            <div class="deptRankingDivTitleText">
+                                <span class="rinkingMonthText">*</span>月个人排名前十名
+                            </div>
+                            <div class="selfRankingTitleBack"></div>
+
+                            <div class="myRanking">
+                                <span>我的本月排名：</span>
+                                <span style="font-weight: bold;color: #ed5565;"
+                                      id="mySelfRinking">&#45;&#45;</span>
+                            </div>
+                        </div>
+                        &lt;!&ndash;内容&ndash;&gt;
+                        <div class="selfRankingContent">
+                            <div>
+                                <div class="selfRankingOne">1</div>
+                                <div id="one" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingTwo">2</div>
+                                <div id="two" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingThree">3</div>
+                                <div id="three" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">4</div>
+                                <div id="four" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">5</div>
+                                <div id="five" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">6</div>
+                                <div id="six" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">7</div>
+                                <div id="senven" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">8</div>
+                                <div id="eight" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">9</div>
+                                <div id="nine" class="selfRankingText">
+
+                                </div>
+                            </div>
+                            <div>
+                                <div class="selfRankingSeq">10</div>
+                                <div id="ten" class="selfRankingText">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                &lt;!&ndash;周排名&ndash;&gt;
+                <div class="weekRinkingDiv">
+                    &lt;!&ndash;标题&ndash;&gt;
+                    <div class="weekRinkingTitle">
+                        <div class="deptRankingDivTitleIcon"></div>
+                        <div class="deptRankingDivTitleText">
+                            本周排行
+                        </div>
+                        <div class="weekRinkingTitleBack"></div>
+
+                        <div id="weekRinkingTime" class="weekRinkingTime">
+                            更新时间：8月19日
+                        </div>
+                    </div>
+                    &lt;!&ndash;内容&ndash;&gt;
+                    <div class="weekRinkingContent">
+                        <div class="weekRinkingContentDiv">
+                            &lt;!&ndash;部门排名&ndash;&gt;
+                            <div id="weekDeptRinking" class="weekRinking">
+                                &lt;!&ndash;  <div class="weekDeptRinking" title="一部一部一部一部一部一部一部一部一部一部一部">
+                                      <div class="weekRinkingOne">1</div>
+                                      <div class="weekRinkingText">
+                                          一部一部一部一部一部一部一部一部一部一部一部
+                                      </div>
+                                  </div>
+                                  <div class="weekDeptRinking">
+                                      <div class="weekRankingSeq" style="">4</div>
+                                      <div class="weekRinkingText">
+                                          四部四部四部四部四部四部四部四部四部四部
+                                      </div>
+                                  </div>&ndash;&gt;
+
+                            </div>
+                            &lt;!&ndash;组排名&ndash;&gt;
+                            <div id="weekGroupRinking" class="weekRinking" style="padding-left: 10px;">
+                                &lt;!&ndash;<div class="weekGroupRinking">
+                                    1、业务一部一组
+                                </div>&ndash;&gt;
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>-->
+            </div>
+            <!--服务榜-->
+            <div id="mediaUserRankingContent"
+                 style="width: 100%;height: 100%;float: left;overflow-y: auto;display: none;">
+            </div>
+        </div>
+    </div>
+</script>
+<script id="rcHtml" type="text/html">
+    <div id="rc">
+        <div class="panel-heading ibox-title">
+            <div class="corpCultrueTitle"></div>
+            <div class="corpCultrueTitleText">
+                日程
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body ibox-content" style=" height: 89%;">
+            <div class="planCalender">
+                <!--月份-->
+                <div class="planCalenderMonth">
+                    <div class="planCalenderMonthLeft">
+                        <div class="planCalenderMonthText" id="calenderMonth">八月</div>
+                        <div class="planCalenderYearText" id="calenderYear">2019年</div>
+                    </div>
+                    <div class="planCalenderMonthChange">
+                                        <span style="cursor: pointer;" onclick="scheduleObj.lastMonth();"><i
+                                                class="fa fa-chevron-left"></i></span>&nbsp;&nbsp;
+                        <span style="cursor: pointer;" onclick="scheduleObj.nextMonth();"><i
+                                class="fa fa-chevron-right"></i></span>
+                    </div>
+                </div>
+                <!--星期-->
+                <div class="planCalenderWeek">
+                    <ul>
+                        <li class="zmDay">日</li>
+                        <li>一</li>
+                        <li>二</li>
+                        <li>三</li>
+                        <li>四</li>
+                        <li>五</li>
+                        <li class="zmDay">六</li>
+                    </ul>
+                </div>
+                <!--日期-->
+                <div class="planCalenderDay">
+                    <ul id="scheduleCalender">
+                        <!--<li>
+                            <div class="planCalenderDayText">
+                                <div class="otherMonthDay">28</div>
+                            </div>
+                            <div class="planCalenderDayPoint greyPoint">.</div>
+                        </li>
+                        <li>
+                            <div class="planCalenderDayText">
+                                <div class="planCalenderDayActive">29</div>
+                            </div>
+                            <div class="planCalenderDayPoint whitePoint">.</div>
+                        </li>
+                        <li>
+                            <div class="planCalenderDayText">
+                                <div class="otherMonthDay">30</div>
+                            </div>
+                            <div class="planCalenderDayPoint bluePoint">.</div>
+                        </li>
+                        <li>
+                            <div class="planCalenderDayText">
+                                <div class="currentMonthDay">31</div>
+                            </div>
+                            <div class="planCalenderDayPoint bluePoint">.</div>
+                        </li>-->
+
+                    </ul>
+                </div>
+            </div>
+            <!--日程列表标题-->
+            <div class="planList">
+                <div class="planListTitle">
+                    <div class="planListTitleDiv">
+                        <div class="planListTitleDiv1">
+                            <div class="planListTitleText">日程详情</div>
+                            <div class="planAddDiv" onclick="scheduleObj.addSchedule();">
+                                <div class="planAddDivText">新建日程</div>
+                                <div class="planAddDivIcon"></div>
+                            </div>
+                        </div>
+                        <!--选择的时间-->
+                        <div id="planListDay" class="planListDay">
+                            <!--8月27日 周二-->
+                        </div>
+                    </div>
+                </div>
+                <!--列表-->
+                <div class="planListContent">
+                    <!--默认系统日程，当前先固定死-->
+                    <ul id="defaultList" style="display: none;">
+                        <li data-auth="all"
+                            onclick="scheduleObj.gotoPage('/propose/propose_list?op=add','建议查询', this)"
+                            style="display: none;">
+                            <div class="jyAddTitle">全天</div>
+                            <div class="jyAddContent">建议填写</div>
+                        </li>
+                        <li data-type="userPlan" data-auth="YW-YG,YW-ZZ,YW-BZ,YW-ZJ,YW-ZL"
+                            onclick="scheduleObj.gotoPage('/plan/planAdd','新增计划总结', this)"
+                            style="display: none;">
+                            <div class="jyAddTitle">
+                                <div class="planAddTime1">
+                                    00:00
+                                </div>
+                                <div class="planAddTime2">
+                                    08:50
+                                </div>
+                            </div>
+                            <div class="jyAddContent">
+                                每日计划总结填写
+                            </div>
+                        </li>
+
+                    </ul>
+                    <!--日程列表-->
+                    <ul id="scheduleList">
+                        <!--<li>
+                            <div class="jyAddTitle">全天</div>
+                            <div class="jyAddContent">建议填写</div>
+                        </li>
+                        <li>
+                            <div class="jyAddTitle">
+                                <div class="planAddTime1">
+                                    00:00
+                                </div>
+                                <div class="planAddTime2">
+                                    08:40
+                                </div>
+                            </div>
+                            <div class="jyAddContent">
+                                每日计划总结填写
+                            </div>
+                        </li>-->
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script id="jyHtml" type="text/html">
+    <div id="jy">
+        <div class="panel-heading ibox-title">
+            <div class="luntanTab" id="luntanTab">
+                <div class="luntanTabText">论坛</div>
+                <div class="luntanTabActive" id="luntanTabActive">
+                    <span><i class="fa fa-caret-up"></i></span>
+                </div>
+            </div>
+            <div class="jianyiTab" id="jianyiTab">
+                <div class="jianyiTabText">建议</div>
+                <div class="jianyiTabActive" id="jianyiTabActive" style="display:none;">
+                    <span><i class="fa fa-caret-up"></i></span>
+                </div>
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel-body ibox-content left-bottom-panel-body">
+            <!--论坛-->
+            <div class="luntanList" id="topicContent">
+                <ul id="showTopicContent" style="overflow-y:auto;">
+
+                </ul>
+            </div>
+            <!--建议-->
+            <div id="adviceContent" style="display: none;">
+                <div class="jqGrid_wrapper">
+                    <table id="query_advice_table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script id="zytjHtml" type="text/html">
+    <!--标题-->
+    <div class="resourceTitleDiv">
+        <div>
+            <div class="resourceTitleIcon"></div>
+            <div class="resourceTitle">
+                资源推荐
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="" style="float: right;margin-right: 10px;margin-top: 2px;">
+                <a href="/news/recommedResList">更多</a>
+            </div>
+        </div>
+    </div>
+    <!--内容-->
+    <div class="resourceContentDiv" id="resourceContentDiv">
+    </div>
+</script>
+<script id="ggtzHtml" type="text/html">
+    <div class="annNoticeTitleDiv">
+        <div>
+            <div class="annNoticeTitleIcon"></div>
+            <div class="annNoticeTitle">
+                公告通知
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--内容-->
+    <div class="annNoticeContentDiv">
+        <ul class="layui-timeline" id="announcements">
+        </ul>
+    </div>
+</script>
+<script id="yxsjHtml" type="text/html">
+    <!--标题-->
+    <div class="fineThingDiv">
+        <div class="fineThingTitleDiv">
+            <div class="fineThingTitleIcon"></div>
+            <div class="fineThingTitle">
+                优秀事迹
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--内容-->
+    <div class="fineThingContentDiv" id="fineThingContentDiv">
+
+    </div>
+</script>
+<script id="jtxwHtml" type="text/html">
+    <!--集团新闻-->
+    <!--标题-->
+    <div class="groupNewsDiv">
+        <div class="groupNewsTitleDiv">
+            <div class="groupNewsTitleIcon"></div>
+            <div class="groupNewsTitle">
+                集团新闻
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--内容-->
+    <div class="groupNewsContentDiv" id="groupNewsContentDiv">
+
+    </div>
+</script>
+<script id="gsxwHtml" type="text/html">
+    <!--公司新闻-->
+    <!--标题-->
+    <div class="companyNewsDiv">
+        <div class="companyNewsTitleDiv">
+            <div class="companyNewsTitleIcon"></div>
+            <div class="companyNewsTitle">
+                公司新闻
+            </div>
+            <div class="dropdown" style="float: right;margin-right: 10px;margin-top: 3px;">
+                <img class="dropdown-toggle" data-toggle="dropdown" src="/img/jia.png"
+                     style="width: 15px;"/>
+                <ul class="dropdown-menu">
+                    <li onclick="pageObj.showBlock(this)" data-id="dbsxHtml">
+                        <a>待办事项</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="lhbHtml">
+                        <a>龙虎榜/服务榜</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="rcHtml">
+                        <a>日程</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jyHtml">
+                        <a>建议/论坛</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="zytjHtml">
+                        <a>资源推荐</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="ggtzHtml">
+                        <a>公告通知</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="yxsjHtml">
+                        <a>优秀事迹</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="jtxwHtml">
+                        <a>集团新闻</a>
+                    </li>
+                    <li onclick="pageObj.showBlock(this)" data-id="gsxwHtml">
+                        <a>公司新闻</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--内容-->
+    <div class="companyNewsContentDiv" id="companyNewsContentDiv">
+    </div>
+</script>
+
+<!--新建日程-->
+<div class="modal inmodal fade" id="addSchedule" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: 700px;height: 520px;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>新建日程</h2>
+            </div>
+            <div class="modal-body" style="display: table;background-color: white;">
+                <form id="addScheduleFrom" autocomplete="off" class="form-horizontal" method="post">
+                    <div class="col-md-12">
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red"> * </span>标题:
+                            </label>
+                            <div class="col-sm-9">
+                                <input name="name" placeholder="请输入日程标题" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red"> * </span>是否设置为全天:
+                            </label>
+                            <div class="col-sm-9">
+                                <label class="radio-inline i-checks">
+                                    <input name="isAllDay" type="radio" value="0" checked>是</label>
+                                <label class="radio-inline i-checks">
+                                    <input name="isAllDay" type="radio" value="1">否</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red"> * </span>选择时间:
+                            </label>
+                            <div class="col-sm-9">
+                                <input placeholder="选择日期"
+                                       style="display:inline-block;width:40%;margin-left:0;vertical-align: middle"
+                                       class="form-control layer-date" id="startDate" name="startDate">
+                                <span style="display:inline-block;padding:0 10px;">至</span>
+                                <input placeholder="选择日期" style="display:inline-block;width:40%;vertical-align: middle"
+                                       class="form-control layer-date" id="endDate" name="endDate" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red"> * </span>重复:
+                            </label>
+                            <div class="col-sm-4">
+                                <select name="repeatFlag" class="form-control height18" required>
+                                    <option value="0" selected="selected">无</option>
+                                    <option value="1">每天</option>
+                                    <option value="2">每周</option>
+                                    <option value="3">每两周</option>
+                                    <option value="4">每月</option>
+                                    <option value="5">每年</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red"> * </span>提醒:
+                            </label>
+                            <div class="col-sm-4">
+                                <select id="remindFlag" name="remindFlag" class="form-control height18" required>
+                                    <option value="0" selected="selected">无</option>
+                                    <option value="1">日程当天</option>
+                                    <option value="2">1天前</option>
+                                    <option value="3">2天前</option>
+                                    <option value="4">1周前</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn" type="button" class="btn btn-primary" onclick="scheduleObj.saveSchedule();"><i
+                        class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(function () {
+        // initFineThing();
+        // initGroupNews();
+        // initCompanyNews();
+        // initRes();
+        initImgaes();
+    })
+    //
+    // //初始化优秀事迹
+    // function initFineThing() {
+    //     $.ajax({
+    //         type: 'get',
+    //         url: baseUrl + "/news/search/4",
+    //         dataType: 'json',
+    //         success: function (data) {
+    //             $("#fineThingContentDiv").empty();
+    //             var html = "<ul>";
+    //             $(data.list).each(function (i, item) {
+    //
+    //                 html += "<li class='text_space'><a href=/news/view/" + item.id + ">" + item.title + "</a></li>";
+    //
+    //             });
+    //             html += "</ul>";
+    //             $("#fineThingContentDiv").prepend(html);
+    //         }
+    //     });
+    // }
+    //
+    // //集团新闻
+    // function initGroupNews() {
+    //     $.ajax({
+    //         type: 'get',
+    //         url: baseUrl + "/news/search/1",
+    //         dataType: 'json',
+    //         success: function (data) {
+    //             $("#groupNewsContentDiv").empty();
+    //             var html = "<ul>";
+    //             $(data.list).each(function (i, item) {
+    //
+    //                 html += "<li class='text_space'><a href=/news/view/" + item.id + ">" + item.title + "</a></li>";
+    //
+    //             });
+    //             html += "</ul>";
+    //             $("#groupNewsContentDiv").prepend(html);
+    //         }
+    //     });
+    // }
+    //
+    // //公司新闻
+    // function initCompanyNews() {
+    //     $.ajax({
+    //         type: 'get',
+    //         url: baseUrl + "/news/search/2",
+    //         dataType: 'json',
+    //         success: function (data) {
+    //             $("#companyNewsContentDiv").empty();
+    //             var html = "<ul>";
+    //             $(data.list).each(function (i, item) {
+    //
+    //                 html += "<li class='text_space'><a href=/news/view/" + item.id + ">" + item.title + "</a></li>";
+    //
+    //             });
+    //             html += "</ul>";
+    //             $("#companyNewsContentDiv").prepend(html);
+    //         }
+    //     });
+    // }
+    //
+    // //资源推荐
+    // function initRes() {
+    //     $.ajax({
+    //         type: 'post',
+    //         url: baseUrl + "/recommendRes/index",
+    //         dataType: 'json',
+    //         success: function (data) {
+    //             $("#resourceContentDiv").empty();
+    //             var html = "<ul>";
+    //             $(data).each(function (i, item) {
+    //                 html += "<li>\n" +
+    //                     "        <span title='" + item.plateName + "' class=\"plate text_space\" style='display: block;float: left;max-width: 22%;'>" + item.plateName + "</span>\n" +
+    //                     "        <span title='" + item.resourceTitle + "' class='text_space' style='display: block;float: left;max-width: 50%;padding-left: 5px;padding-right: 5px;'>" +
+    //                     "           <a href='/recommendRes/view/" + item.id + "/false'>" + item.resourceTitle + "</a></span>\n" +
+    //                     "        <span title='" + item.title + "' class=\"resourceTitle1 text_space\" style='display: block;float: left;max-width: 25%;'>\n" +
+    //                     "            <img src='/img/home/lianjie.png' height='12' width='12' /><a href=\"" + item.href + "\" target='_blank'>" + item.title + "</a>\n" +
+    //                     "        </span>\n" +
+    //                     "    </li>";
+    //             });
+    //             html += "</ul>";
+    //             $("#resourceContentDiv").html(html);
+    //         }
+    //     });
+    // }
+
+    function imageHref(id) {
+        window.location.href = baseUrl + "/news/view/" + id;
+    }
+
+    function initImgaes() {
+        $.ajax({
+            type: 'get',
+            url: baseUrl + "/news/search/3?size=4",
+            dataType: 'json',
+            success: function (data) {
+                $("#images").empty();
+                var html = "";
+                if (data.list.length === 0) {
+                    html += "<div><img src='/img/home/wheel.png'></div>";
+                }
+                $(data.list).each(function (i, item) {
+                    html += "<div onclick=imageHref(" + item.id + ")><img src='" + item.imageUrl + "'></div>";
+                });
+                $("#images").prepend(html);
+                layui.use('carousel', function () {
+                    var carousel = layui.carousel;
+                    //建造实例
+                    var ins = carousel.render({
+                        elem: '#wheel',
+                        width: '100%', //设置容器宽度
+                        arrow: 'always', //始终显示切换箭头
+                        anim: 'default', //切换动画方式,
+                        autoplay: true, //自动切换
+                        indicator: 'inside'
+                    });
+                });
+            }
+        });
+        /*轮播图效果*/
+        // ins.reload({
+        //     elem: '#wheel',
+        //     width: '100%', //设置容器宽度
+        //     arrow: 'always', //始终显示切换箭头
+        //     anim: 'default', //切换动画方式,
+        //     autoplay: true, //自动切换
+        //     indicator:'inside'
+        // });
+    }
+</script>
+</html>

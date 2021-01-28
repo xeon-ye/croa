@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>转岗交接申请审核</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.form.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/process/approveTask.js"></script>
+    <script type="text/javascript" src="/js/employ/approve/connectApprove.js"></script>
+</head>
+<body>
+<!-- 审核页面； -->
+<div class="modal inmodal" id="employModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width: 880px;">
+        <form id="approveForm">
+            <input type="hidden" name="agree"/>
+            <input type="hidden" name="deptId"/>
+            <input type="hidden" name="taskId"/>
+            <input type="hidden" id="conId"/>
+            <input type="hidden" id="conType" value="1"/>
+            <input type="hidden" id="processState"/>
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h4 class="modal-title">调岗交接</h4>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">基本资料</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">员工姓名：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empId">
+                                            <input type="text" name="empName" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入员工姓名" maxlength="10" special="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">员工状态：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" data="empState" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入员工状态" maxlength="10" special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">当前部门：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empDept" class="form-control">
+                                            <input type="text" name="empDeptName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入当前部门名称" maxlength="10"
+                                                   special="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">目前职位：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empProfessionName"
+                                                   class="form-control" style="width: 78%;" placeholder="请输入目前职位名称"
+                                                   maxlength="10" special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">入职日期：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empDate" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入入职日期" maxlength="10" special="true"
+                                                   readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">执行日期：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text"
+                                                   style="vertical-align:middle;cursor:pointer;max-width: 260px;"
+                                                   class="form-control layer-date laydate-icon"
+                                                   name="completeDate" placeholder="调岗生效开始执行的日期"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   special="true" readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">离职信息</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">时间类型：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" data="conDateType" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入时间类型" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">通知时间：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="conDate" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入通知时间" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label fileUpload">交接清单：</label>
+                                        <div class="col-sm-5 fileUpload">
+                                            <input type="hidden" name="conList">
+                                            <input type="text" class="form-control"
+                                                   style="vertical-align:middle;cursor:pointer;width: 78%;display: inline;"
+                                                   placeholder="点击开始上传文件" onclick="openFileUpload();" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label conList">查看清单：</label>
+                                        <div class="col-sm-5 conList" id="conList"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title deptApprove">
+                    <h5 style="font-weight:bold">本部审批</h5>
+                </div>
+                <div class="ibox-content deptApprove">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal deptData">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">工作交接：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conDeptApprove" value="0" disabled/>工作交接已完成
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conDeptApprove" value="1" disabled/>文档、资料、磁盘已归还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conDeptApprove" value="2" disabled/>部门文件柜钥匙已归还
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label selectEmp">工作接收：</label>
+                                        <div class="col-sm-4 layui-form selectEmp">
+                                            <input name="conEmpId" type="hidden"/>
+                                            <input name="conEmpName" type="hidden"/>
+                                            <select name="conEmpId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="conEmpId">
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-1 control-label showEmp">工作接收：</label>
+                                        <div class="col-sm-5 showEmp">
+                                            <input type="text" name="conEmpName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入工作接收人" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他说明：</label>
+                                        <div class="col-sm-10">
+                                                <textarea class="form-control" name="conDeptRemark"
+                                                          placeholder="请输入其他补充说明" maxlength="500"
+                                                          special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title personalApprove">
+                    <h5 style="font-weight:bold">人事行政审批</h5>
+                </div>
+                <div class="ibox-content personalApprove">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal personData">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">工作交接：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="0" disabled/>计算机已归还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="1" disabled/>办公桌、衣柜钥匙已归还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="2" disabled/>通讯设备已归还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="3" disabled/>宿舍已退
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="4" disabled/>QQ收回
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="5" disabled/>所借图书（工作资料）已还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="6" disabled/>办公用品已还
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="7" disabled/>福利保险情况
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="8" disabled/>违约金、罚金已交齐
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="9" disabled/>工资结清
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conPersonal" value="10" disabled/>离职手续已办完
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label selectPerson">人事专员：</label>
+                                        <div class="col-sm-4 layui-form selectPerson">
+                                            <input name="conPersonalId" type="hidden"/>
+                                            <input name="conPersonalName" type="hidden"/>
+                                            <select name="conPersonalId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="conPersonalId">
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-1 control-label showPerson">人事专员：</label>
+                                        <div class="col-sm-5 showPerson">
+                                            <input type="text" name="conPersonalName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入人事专员" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他说明：</label>
+                                        <div class="col-sm-10">
+                                                <textarea class="form-control" name="conPersonalRemark"
+                                                          placeholder="请输入其他说明（工资、福利等）" maxlength="500"
+                                                          special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title financeApprove">
+                    <h5 style="font-weight:bold">财务审批</h5>
+                </div>
+                <div class="ibox-content financeApprove">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal financeData">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">工作交接：</label>
+                                        <div class="col-sm-10">
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conFinance" value="0" disabled/>费用已报销完毕
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conFinance" value="1" disabled/>借支款项已还清
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conFinance" value="2" disabled/>手机话费已结清
+                                            </span>
+                                            <span class="radio-inline i-checks">
+                                                <input type="checkbox" name="conFinance" value="3" disabled/>业务回款
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label selectFinance">财务经理：</label>
+                                        <div class="col-sm-4 layui-form selectFinance">
+                                            <input name="conFinanceId" type="hidden"/>
+                                            <input name="conFinanceName" type="hidden"/>
+                                            <select name="conFinanceId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="conFinanceId">
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-1 control-label showFinance">财务经理：</label>
+                                        <div class="col-sm-5 showFinance">
+                                            <input type="text" name="conFinanceName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入财务经理" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他说明：</label>
+                                        <div class="col-sm-10">
+                                                <textarea class="form-control" name="conFinanceRemark"
+                                                          placeholder="请输入其他补充说明" maxlength="500"
+                                                          special="true" style="resize:none;" disabled></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">审批意见</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="desc" placeholder="请输入审核意见"
+                                                      maxlength="500" special="true" style="resize:none;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title approveUser">
+                    <h5 style="font-weight:bold">下一步审核</h5>
+                </div>
+                <div class="ibox-content approveUser">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label approveUser">审核人：</label>
+                                        <div class="col-sm-4 layui-form">
+                                            <input name="userName" type="hidden"/>
+                                            <select name="userId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="userId">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="text-align: center;">
+                    <button type="button" class="btn btn-primary" id="agreeEmploy" onclick="agreeApprove()">
+                        <i class="fa fa-check"></i>&nbsp;&nbsp;同意
+                    </button>
+                    <button type="button" class="btn btn-danger" id="rejectEmploy" onclick="completeApprove(1)">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;拒绝
+                    </button>
+                    <button type="button" class="btn btn-white" onclick="returnApprove()">
+                        <i class="fa fa-backward"></i>&nbsp;&nbsp;返回
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- 文件上传； -->
+<div class="modal inmodal" id="uploadModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="uploadForm" class="form-horizontal">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h4 class="modal-title">文件上传</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group" style="margin-bottom: 0px;">
+                                    <label class="col-sm-3 control-label">选择文件：</label>
+                                    <div class="col-sm-9">
+                                        <input type="file" id="uploadFile" name="file" class="uploadFile"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="beginFileUpload()">开始上传</button>
+                    <button type="button" class="btn btn-white" onclick="closeFileUpload()">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

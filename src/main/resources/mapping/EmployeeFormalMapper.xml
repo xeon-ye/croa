@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工转正； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeFormalMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeFormal">
+        <id column="form_id" jdbcType="INTEGER" property="formId"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_dept_name" jdbcType="VARCHAR" property="empDeptName"/>
+        <result column="dept_leader" jdbcType="INTEGER" property="deptLeader"/>
+        <result column="dept_leader_name" jdbcType="VARCHAR" property="deptLeaderName"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_profession_name" jdbcType="VARCHAR" property="empProfessionName"/>
+        <result column="emp_date" jdbcType="DATE" property="empDate"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        form_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        dept_leader,
+        dept_leader_name,
+        emp_profession,
+        emp_profession_name,
+        emp_date,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_formal
+        where
+        form_id = #{formId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据员工的ID和状态查询转正记录的主键； -->
+    <select id="selectIdByParentId" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select form_id from e_employee_formal where state &lt;&gt; -1 and state &lt;&gt; 1 and emp_id = #{empId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据员工的ID和状态查询转正记录的状态； -->
+    <select id="selectStateByParentId" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select state from e_employee_formal where state &lt;&gt; -1 and state &lt;&gt; 1 and emp_id = #{empId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据父表ID查询转正记录； -->
+    <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_formal
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <select id="listByEmpId" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_formal
+        where state <![CDATA[<>]]> -1
+        and emp_id in
+        <foreach collection="empIdList" item="empId" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </select>
+
+    <!-- 转正记录列表； -->
+    <select id="selectPageFormal" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_employee_formal
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            form_id desc
+        </if>
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empNum != null">
+            and emp_num like '%${empNum}%'
+        </if>
+        <if test="empName != null">
+            and emp_name like '%${empName}%'
+        </if>
+        <if test="empDept != null">
+            and emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null">
+            and emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="empDeptName != null">
+            and emp_dept_name like '%${empDeptName}%'
+        </if>
+        <if test="empProfession != null">
+            and emp_profession = #{empProfession}
+        </if>
+        <if test="empProfessionName != null">
+            and emp_profession_name like '%${empProfessionName}%'
+        </if>
+        <if test="deptLeader != null">
+            and dept_leader = #{deptLeader}
+        </if>
+        <if test="deptLeaderName != null">
+            and dept_leader_name like '%${deptLeaderName}%'
+        </if>
+        <if test="empDateStart != null">
+            and emp_date &gt;= #{empDateStart}
+        </if>
+        <if test="empDateEnd != null">
+            and emp_date &lt;= STR_TO_DATE(concat(#{empDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="createTimeStart != null">
+            and (create_time &gt;= #{createTimeStart} or update_time &gt;= #{createTimeStart})
+        </if>
+        <if test="createTimeEnd != null">
+            and (create_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T') or update_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T'))
+        </if>
+        <if test="createName != null">
+            and create_name like '%${createName}%'
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="formIds != null">
+            and form_id in
+            <foreach item="formId" collection="formIds" index="index" open="(" close=")" separator=",">
+                #{formId}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeFormal" useGeneratedKeys="true"
+            keyProperty="formId">
+        insert into e_employee_formal (
+        form_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        dept_leader,
+        dept_leader_name,
+        emp_profession,
+        emp_profession_name,
+        emp_date,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{formId,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empDeptName,jdbcType=VARCHAR},
+        #{deptLeader,jdbcType=INTEGER},
+        #{deptLeaderName,jdbcType=VARCHAR},
+        #{empProfession,jdbcType=INTEGER},
+        #{empProfessionName,jdbcType=VARCHAR},
+        #{empDate,jdbcType=DATE},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeFormal" useGeneratedKeys="true"
+            keyProperty="formId">
+        insert into e_employee_formal
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="formId != null">form_id,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empDeptName != null">emp_dept_name,</if>
+            <if test="deptLeader != null">dept_leader,</if>
+            <if test="deptLeaderName != null">dept_leader_name,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empProfessionName != null">emp_profession_name,</if>
+            <if test="empDate != null">emp_date,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="formId != null">#{formId,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">#{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="deptLeader != null">#{deptLeader,jdbcType=INTEGER},</if>
+            <if test="deptLeaderName != null">#{deptLeaderName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">#{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empDate != null">#{empDate,jdbcType=DATE},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeFormal">
+        update e_employee_formal
+        <include refid="EmployCommon.deleteInfo"/>
+        where form_id = #{formId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeFormal">
+        update e_employee_formal
+        <set>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">emp_dept_name = #{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="deptLeader != null">dept_leader = #{deptLeader,jdbcType=INTEGER},</if>
+            <if test="deptLeaderName != null">dept_leader_name = #{deptLeaderName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empDate != null">emp_date = #{empDate,jdbcType=DATE},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        form_id = #{formId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeFormal">
+        update
+        e_employee_formal
+        set
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_dept_name = #{empDeptName,jdbcType=VARCHAR},
+        dept_leader = #{deptLeader,jdbcType=INTEGER},
+        dept_leader_name = #{deptLeaderName,jdbcType=VARCHAR},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},
+        emp_date = #{empDate,jdbcType=DATE},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        form_id = #{formId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

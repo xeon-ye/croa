@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.qinfei.qferp.mapper.document.TDocumentLibraryMapper">
+    <!--制度表字段-->
+    <sql id="coursePermission">
+        tdl.id,
+        tdl.permission_id as permissionId,
+        tdl.library_code as libraryCode,
+        tdl.library_name as libraryName,
+        tdl.type_id as typeId,
+        tdl.effective_start_time as effectiveStartTime,
+        tdl.effective_end_time as effectiveEndTime,
+        tdl.library_enroll_flag as libraryEnrollFlag,
+        tdl.content,
+        tdl.release_time as releaseTime,
+        tdl.release_dept as releaseDept,
+        tdl.release_user as releaseUser,
+        tdl.thumbnail_picture_link as thumbnailPictureLink,
+        tdl.attachment,
+        tdl.attachment_link as attachmentLink,
+        tdl.create_id as createId,
+        tdl.create_time as createTime,
+        tdl.update_id as updateId,
+        tdl.update_time as updateTime,
+        tdl.work_age_flag as workAgeFlag,
+        tdl.work_age_min as workAgeMin,
+        tdl.work_age_max as workAgeMax,
+        tdl.state,
+        tdl.version,
+        tdl.level
+    </sql>
+
+    <!--查询制度类型列表-->
+    <select id="libraryType" resultType="com.qinfei.qferp.entity.document.TDocumentType">
+        SELECT
+            *
+        FROM
+            t_document_type
+        WHERE
+            company_code = #{companyCode}
+          and state <![CDATA[<>]]> -9
+        ORDER BY
+	        LEVEL ASC
+	    </select>
+
+
+    <!--查询制度列表-->
+    <select id="selectLibraryList" resultType="com.qinfei.qferp.entity.document.TDocumentLibrary">
+        select
+        tdp.code as permissionCode,
+        su.name as releaseName,
+        GROUP_CONCAT(tdpd.library_enroll_flag )AS enrollFlag,
+        GROUP_CONCAT(tdpd.range_id) as randId,
+        <include refid="coursePermission"/>
+        FROM t_document_library tdl
+        LEFT JOIN t_document_permission tdp on tdl.permission_id = tdp.id
+        LEFT JOIN t_document_permission_details tdpd on tdpd.library_id =tdl.id
+        LEFT JOIN sys_dept sd on tdl.release_dept = sd.id
+        LEFT JOIN sys_user su on su.id = tdl.release_user
+        where  tdl.company_code=#{companyCode}
+        <if test="search !=null and search !=''">
+            and (tdl.content like CONCAT('%',#{search},'%')
+            or tdl.library_name like CONCAT('%',#{search},'%')
+            or tdl.library_code like CONCAT('%',#{search},'%') )
+        </if>
+        <if test="admin == null || admin =='' || homeFlag ==1">
+          and  tdl.state = 0
+        </if>
+        <if test="releaseUser !=null and releaseUser !=''">
+            and tdl.release_user=#{releaseUser}
+        </if>
+        <if test="typeId !=null and typeId !=''">
+            and tdl.type_id=#{typeId}
+        </if>
+        <if test="releaseDept !=null and releaseDept !=''">
+            and sd.name like CONCAT('%', #{releaseDept}, '%')
+        </if>
+        <if test="releaseStateTime1 !=null and releaseStateTime1 !=''">
+            and tdl.release_time &gt;= #{releaseStateTime1}
+        </if>
+        <if test="releaseEndTime1 !=null and releaseEndTime1 !=''">
+            and tdl.release_time &lt;=  STR_TO_DATE(concat(#{releaseEndTime1},' 23:59:59'),'%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test="state !=null and state!=''">
+            and tdl.state=#{state}
+        </if>
+        GROUP BY tdl.id
+        ORDER BY
+        <if test="order != null and field != null">
+            ${field} ${order}
+        </if>
+        <if test="order == null or field == null">
+            tdl.release_time desc
+        </if>
+    </select>
+
+    <select id="selectWorkAge"  resultType="java.lang.Integer">
+        SELECT
+        TIMESTAMPDIFF(MONTH,eeb.emp_date, NOW()) as workAge
+        FROM
+        e_employee_basic eeb
+        LEFT JOIN e_entry ee  on eeb.entry_id = ee.entry_id
+        LEFT JOIN e_employee em on em.emp_id = ee.emp_id
+        WHERE
+         eeb.state >- 1
+        and em.user_id =#{userId}
+    </select>
+
+    <select id="relaseUser" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT * from sys_user where state>-2 and handover_state=0 and company_code =#{companyCode}
+    </select>
+
+    <insert id="addLibrary" parameterType="com.qinfei.qferp.entity.document.TDocumentLibrary"  useGeneratedKeys="true" keyProperty="id">
+        INSERT  INTO  t_document_library
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="permissionId !=null">permission_id,</if>
+            <if test="libraryCode !=null">library_code,</if>
+            <if test="libraryName !=null">library_name,</if>
+            <if test="typeId !=null">type_id,</if>
+            <if test="effectiveStartTime !=null">effective_start_time,</if>
+            <if test="effectiveEndTime !=null">effective_end_time,</if>
+            <if test="libraryEnrollFlag !=null">library_enroll_flag,</if>
+            <if test="workAgeFlag !=null">work_age_flag,</if>
+            <if test="workAgeMax !=null">work_age_max,</if>
+            <if test="workAgeMin !=null">work_age_min,</if>
+            <if test="content !=null">content,</if>
+            <if test="releaseTime !=null">release_time,</if>
+            <if test="releaseDept !=null">release_dept,</if>
+            <if test="releaseUser !=null">release_user,</if>
+            <if test="thumbnailPictureLink !=null">thumbnail_picture_link,</if>
+            <if test="attachment !=null">attachment,</if>
+            <if test="attachmentLink !=null">attachment_link,</if>
+            <if test="createId !=null">create_id,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="updateId !=null">update_id,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="state !=null">state,</if>
+            <if test="version !=null">version,</if>
+            <if test="companyCode !=null">company_code,</if>
+            <if test="level !=null">level,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="permissionId !=null">#{permissionId},</if>
+            <if test="libraryCode !=null">#{libraryCode},</if>
+            <if test="libraryName !=null">#{libraryName},</if>
+            <if test="typeId !=null">#{typeId},</if>
+            <if test="effectiveStartTime !=null">#{effectiveStartTime},</if>
+            <if test="effectiveEndTime !=null">#{effectiveEndTime},</if>
+            <if test="libraryEnrollFlag !=null">#{libraryEnrollFlag},</if>
+            <if test="workAgeFlag !=null">#{workAgeFlag},</if>
+            <if test="workAgeMax !=null">#{workAgeMax},</if>
+            <if test="workAgeMin !=null">#{workAgeMin},</if>
+            <if test="content !=null">#{content},</if>
+            <if test="releaseTime !=null">now(),</if>
+            <if test="releaseDept !=null">#{releaseDept},</if>
+            <if test="releaseUser !=null">#{releaseUser},</if>
+            <if test="thumbnailPictureLink !=null"> #{thumbnailPictureLink},</if>
+            <if test="attachment !=null">#{attachment},</if>
+            <if test="attachmentLink !=null">#{attachmentLink},</if>
+            <if test="createId !=null ">#{createId},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="updateId !=null">#{updateId},</if>
+            <if test="updateTime !=null">now(),</if>
+            <if test="state !=null">#{state},</if>
+            <if test="version !=null">#{version},</if>
+            <if test="companyCode !=null">#{companyCode},</if>
+            <if test="level !=null">#{level},</if>
+        </trim>
+    </insert>
+
+    <insert id="addPermission" parameterType="com.qinfei.qferp.entity.document.TDocumentPermission"  useGeneratedKeys="true" keyProperty="id">
+        INSERT into  t_document_permission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code">code,</if>
+            <if test="companyCode">company_code,</if>
+            <if test="createId">create_id,</if>
+            <if test="createTime">create_time,</if>
+            <if test="updateId">update_id,</if>
+            <if test="updateTime">update_time,</if>
+            <if test="state">state,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code">#{code},</if>
+            <if test="companyCode">#{companyCode},</if>
+            <if test="createId">#{createId},</if>
+            <if test="createTime">#{createTime},</if>
+            <if test="updateId">#{updateId},</if>
+            <if test="updateTime">#{updateTime},</if>
+            <if test="state">#{state},</if>
+        </trim>
+    </insert>
+
+    <insert id="addLibraryDetailsList"  useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_document_permission_details(
+        permission_id,
+        library_id,
+        library_enroll_flag,
+        range_id,
+        create_id,
+        create_time,
+        update_id,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="TDocumentPermissionDetails" index="index" separator=",">
+            (
+            #{TDocumentPermissionDetails.permissionId},
+            #{TDocumentPermissionDetails.libraryId},
+            #{TDocumentPermissionDetails.libraryEnrollFlag},
+            #{TDocumentPermissionDetails.rangeId},
+            #{TDocumentPermissionDetails.createId},
+            #{TDocumentPermissionDetails.createTime},
+            #{TDocumentPermissionDetails.updateId},
+            #{TDocumentPermissionDetails.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getById" resultType="com.qinfei.qferp.entity.document.TDocumentLibrary" >
+        SELECT
+        tdp.code as permissionCode,
+        su.name as releaseName,
+        <include refid="coursePermission"/>
+        FROM t_document_library tdl
+        LEFT JOIN t_document_permission tdp on tdl.permission_id = tdp.id
+        LEFT JOIN sys_user su on tdl.release_user = su.id
+        where tdl.id=#{id}
+    </select>
+
+    <select id="selectRangeId" resultType="com.qinfei.qferp.entity.document.TDocumentPermissionDetails">
+        select  *
+        from t_document_permission_details
+        where library_id = #{id}
+    </select>
+
+    <insert id="addType" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_document_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId">parent_id,</if>
+            <if test="level">level,</if>
+            <if test="text">type_name,</if>
+            <if test="companyCode">company_code,</if>
+            <if test="createId">create_id,</if>
+            <if test="updateId">update_id,</if>
+            <if test="createTime">create_time,</if>
+            <if test="updateTime">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId">#{parentId},</if>
+            <if test="level">#{level},</if>
+            <if test="text">#{text},</if>
+            <if test="companyCode">#{companyCode},</if>
+            <if test="createId">#{createId},</if>
+            <if test="updateId">#{updateId},</if>
+            <if test="createTime">#{createTime},</if>
+            <if test="updateTime">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="editType">
+        UPDATE t_document_type
+        <set>
+            type_name= #{typeName},
+            update_id =#{updateId},
+            update_time =#{updateTime}
+        </set>
+        where
+         id = #{typeId}
+    </update>
+
+    <update id="delType">
+        UPDATE t_document_type
+        SET state = -9
+        where id=#{id}
+    </update>
+
+    <select id="queryLibrary" resultType="map">
+        SELECT
+        COUNT(*) sum
+        FROM
+        t_document_library
+        WHERE
+        state &lt;&gt;  -9
+        AND type_id IN
+         <foreach collection="typeArr" index="typeArr" item="typeArr" open="(" close=")" separator=",">
+             #{typeArr}
+         </foreach>
+    </select>
+
+    <update id="updateLibrary">
+        UPDATE t_document_library
+        SET  state = #{state} ,work_age_flag = null, work_age_max=null, work_age_min=null
+        where id=#{id}
+    </update>
+
+    <update id="updateLibraryList" parameterType="com.qinfei.qferp.entity.document.TDocumentLibrary">
+        UPDATE t_document_library
+        <set>
+            <if test="permissionId!=null">
+                permission_id= #{permissionId,jdbcType=VARCHAR},
+            </if>
+            <if test="libraryCode !=null">
+                library_code= #{libraryCode,jdbcType=VARCHAR},
+            </if>
+            <if test="libraryName !=null">
+                library_name= #{libraryName,jdbcType=VARCHAR},
+            </if>
+            <if test=" typeId!=null">
+                type_id= #{typeId,jdbcType=VARCHAR},
+            </if>
+            <if test=" effectiveStartTime!=null">
+                effective_start_time= #{effectiveStartTime,jdbcType=VARCHAR},
+            </if>
+            <if test="effectiveEndTime !=null">
+                effective_end_time= #{effectiveEndTime,jdbcType=VARCHAR},
+            </if>
+            <if test=" libraryEnrollFlag!=null">
+                library_enroll_flag= #{libraryEnrollFlag,jdbcType=VARCHAR},
+            </if>
+
+            work_age_flag= #{workAgeFlag},
+
+
+            work_age_max= #{workAgeMax},
+
+
+            work_age_min= #{workAgeMin,jdbcType=VARCHAR},
+
+            <if test=" content!=null">
+                content= #{content,jdbcType=VARCHAR},
+            </if>
+            <if test=" releaseTime!=null">
+                release_time= #{releaseTime,jdbcType=VARCHAR},
+            </if>
+            <if test="releaseDept !=null">
+                release_dept= #{releaseDept,jdbcType=VARCHAR},
+            </if>
+            <if test=" releaseUser!=null">
+                release_user= #{releaseUser,jdbcType=VARCHAR},
+            </if>
+            <if test="thumbnailPictureLink !=null">
+                thumbnail_picture_link= #{thumbnailPictureLink,jdbcType=VARCHAR},
+            </if>
+            <if test=" attachment!=null">
+                attachment= #{attachment,jdbcType=VARCHAR},
+            </if>
+            <if test="attachmentLink !=null">
+                attachment_link= #{attachmentLink,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime !=null">
+                update_time= #{updateTime,jdbcType=VARCHAR},
+            </if>
+            <if test=" updateId!=null">
+                update_id= #{updateId,jdbcType=VARCHAR},
+            </if>
+            <if test=" state!=null">
+                state= #{state,jdbcType=VARCHAR},
+            </if>
+            <if test=" version!=null">
+                version= #{version,jdbcType=VARCHAR},
+            </if>
+            <if test="level !=null">
+                level= #{level,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <select id="selectCode" parameterType="map" resultType="com.qinfei.qferp.entity.document.TDocumentLibrary">
+        SELECT
+        <include refid="coursePermission"/>
+        FROM t_document_library tdl
+        where state = 0
+        <if test="libraryCode != null">
+            and tdl.library_code =#{libraryCode}
+        </if>
+        <if test="version != null">
+            and tdl.version =#{version}
+        </if>
+    </select>
+
+    <select id="selectRole" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        SELECT
+        GROUP_CONCAT(CONCAT(sr.type,sr.`code`) )roleType
+        FROM
+        sys_user su
+        LEFT JOIN sys_user_role sur ON su.id = sur.user_id
+        LEFT JOIN sys_role sr on sur.role_id = sr.id
+        WHERE
+        user_id = #{id}
+    </select>
+    <insert id="updateLibraryReady" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_document_readying (library_id,user_id,create_time,create_user) VALUES
+        (
+        <if test="libraryId != null and libraryId != ''">#{libraryId},</if>
+        <if test="userId != null and userId != ''">#{userId},</if>
+        #{createTime},
+        <if test="createUser != null and createUser != ''">#{createUser}</if>
+        )
+    </insert>
+
+    <select id="selectReady" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        t_document_readying
+        WHERE
+        library_id = #{libraryId}
+        AND user_id = #{userId}
+        and state = 0
+    </select>
+
+    <update id="updataDetails">
+        DELETE  FROM t_document_permission_details
+        where library_id =#{id}
+    </update>
+    <delete id="delLibrary">
+     delete from t_document_library
+     where type_id = #{typeId,jdbcType=INTEGER}
+    </delete>
+
+    <update id="updateFile" >
+        UPDATE  t_document_library
+        SET  attachment = #{file},attachment_link = #{fileLink}
+        where id =#{id}
+    </update>
+
+    <select id="CheckList"  parameterType="map"  resultType="com.qinfei.qferp.entity.sys.User" >
+        SELECT
+        DISTINCT
+        su.*
+        FROM
+        sys_user su
+        LEFT JOIN sys_user_role sur ON su.id = sur.user_id
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        <if test="ageFlag ==1">
+            LEFT  JOIN e_employee em ON em.user_id = su.id
+            LEFT  JOIN e_employee_basic eeb on em.entry_id = eeb.entry_id
+        </if>
+        WHERE su.state > -9 and su.handover_state =0 and su.company_code = #{companyCode}
+        <if test="permissionsFlag == 1">
+          and (
+            <trim prefixOverrides="AND | OR ">
+                <if test="deptFlag ==1">
+                    AND  su.dept_id IN (
+                    SELECT
+                    tdpd.range_id AS randId
+                    FROM
+                    t_document_permission_details tdpd
+                    WHERE
+                    tdpd.library_id = #{libraryId}
+                    )
+                </if>
+                <if test="roleFlag == 1">
+                    OR (
+                    CONCAT(sr.type, sr.`code`) IN (
+                    SELECT
+                    tdpd.range_id AS randId
+                    FROM
+                    t_document_permission_details tdpd
+                    WHERE
+                    tdpd.library_id = #{libraryId}
+                    )
+                    )
+                </if>
+                <if test="ageFlag == 1 and maxAge !=null and minAge !=null">
+                    OR  #{minAge} &lt;=  TIMESTAMPDIFF(MONTH, eeb.emp_date, NOW())  &lt;= #{maxAge}
+                </if>
+                <if test="ageFlag == 1 and maxAge !=null and minAge ==null">
+                    OR  TIMESTAMPDIFF(MONTH, eeb.emp_date, NOW())  &lt;= #{maxAge}
+                </if>
+                <if test="ageFlag == 1 and maxAge ==null and minAge !=null">
+                    OR  #{minAge} &lt;=  TIMESTAMPDIFF(MONTH, eeb.emp_date, NOW())
+                </if>
+            </trim>
+            )
+        </if>
+        and su.id not in (
+        select tdr.user_id from t_document_readying tdr where tdr.library_id = #{libraryId} and tdr.state = 0
+        )
+    </select>
+
+
+    <select id="selectpermissions" resultType="com.qinfei.qferp.entity.document.TDocumentLibrary">
+        SELECT
+        tdl.*,
+        GROUP_CONCAT(tdpd.library_enroll_flag) AS enrollFlag,
+        GROUP_CONCAT(tdpd.range_id) AS randId
+        FROM
+        t_document_library tdl
+        LEFT JOIN t_document_permission_details tdpd ON tdpd.library_id = tdl.id
+        WHERE
+        tdl.id = #{id}
+        GROUP BY
+        tdl.id
+    </select>
+
+
+    <select id="selectBlackNotReady"  resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.*
+        FROM
+        sys_user su
+        WHERE
+        su.state >- 2
+        AND su.handover_state = 0
+        AND su.company_code = #{companyCode}
+        AND su.id NOT IN (
+        SELECT
+        tdr.user_id
+        FROM
+        t_document_readying tdr
+        WHERE
+        tdr.library_id = #{libraryId} and tdr.state = 0
+        )
+        AND su.id NOT IN (
+        SELECT
+        range_id
+        FROM
+        t_document_permission_details
+        WHERE
+        library_id = #{libraryId}
+        )
+    </select>
+
+    <select id="selectReadyList" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.*
+        FROM
+        sys_user su
+        LEFT JOIN t_document_readying tdr ON tdr.user_id = su.id
+        WHERE  tdr.library_id = #{libraryId} and tdr.state = 0
+    </select>
+
+    <select id="selectNotReady" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.*
+        FROM
+        sys_user su
+        LEFT JOIN t_document_permission_details tdpd ON tdpd.range_id = su.id
+        WHERE
+        tdpd.library_id = #{libraryId}
+        AND tdpd.state > -9
+        AND su.id NOT IN (
+        SELECT
+        tdr.user_id
+        FROM
+        t_document_readying tdr
+        WHERE
+        tdr.library_id = #{libraryId}
+        and tdr.state = 0
+        )
+    </select>
+    <select id="selectNotList" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.*
+        FROM
+        sys_user su
+        WHERE
+        su.state >- 9
+        AND su.handover_state = 0
+        and su.company_code =#{companyCode}
+        AND su.id NOT IN (
+        SELECT
+        tdr.user_id
+        FROM
+        t_document_readying tdr
+        WHERE
+        tdr.library_id = #{libraryId}
+        and tdr.state = 0
+        )
+    </select>
+
+    <update id="updateReading">
+        UPDATE t_document_readying set state = -9 where library_id= #{id}
+    </update>
+</mapper>

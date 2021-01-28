@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>论坛板块管理</title>
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/dropzone/dropzone.js"></script>
+    <script type="text/javascript" src="/js/fileUpload.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/system/queryForum.js"></script>
+    <script>
+        $(function () {
+            $('body').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#forumSearch").click();
+                }
+            });
+            var startTimeQc = {
+                elem: '#startTimeQc',
+                format: 'YYYY/MM/DD ',
+                max: laydate.now(),//最大日期
+                istime: true,
+                stoday: false
+            };
+            var endTimeQc = {
+                elem: '#endTimeQc',
+                format: 'YYYY/MM/DD ',
+                max: laydate.now(),
+                istime: true,
+                istoday: false
+            };
+            laydate(startTimeQc);
+            laydate(endTimeQc);
+        })
+    </script>
+    <style type="text/css">
+        *{
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .layui-layer-page .layui-layer-content{
+            height: 360px!important;
+        }
+    </style>
+</head>
+<body>
+<!--查询条件-->
+<form style="display: none" class="dropzone" id="word2htmlForm" enctype="multipart/form-data"></form>
+<form id="queryForum">
+    <div class="ibox-title">
+    <h4>查询条件</h4>
+    </div>
+    <div class="ibox-title col-md-12" style="display: table">
+        <div class="form-group form-inline col-md-12" style="margin-bottom: 10px">
+            <div class="col-md-3 form-group form-inline">
+                <label class=" control-label right0">板块名称:</label>
+                <input type="text" id="nameQc" name="nameQc" class="form-control ">
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">创建时间:</label>
+                <input placeholder="开始日期"style="width:120px;vertical-align: middle"
+                       class="form-control layer-date laydate-icon " id="startTimeQc" name="startTimeQc">
+                <input placeholder="结束日期" style="width:120px;vertical-align: middle"
+                       class="form-control layer-date laydate-icon" id="endTimeQc" name="endTimeQc">
+            </div>
+            <div class="col-md-2 form-group form-inline">
+                <button type="button" id="forumSearch" class="btn btn-primary">
+                    <i class="fa fa-search"></i>&nbsp;查询
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <button id="addForum" class="btn btn-danger" type="button">
+                    <i class="fa fa-plus"></i>&nbsp;新增板块
+                </button>
+            </div>
+            <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                <div class="jqGrid_wrapper">
+                    <table id="query_forum_table"></table>
+                    <div id="query_forum_pager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增编辑页面-->
+<div class="modal inmodal" id="addModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <form id="addForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight" style="height:600px">
+                <div class="modal-header">
+                    <h4 class="modal-title save">新增论坛版块</h4>
+                    <h4 class="modal-title update">修改论坛板块</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id" name="id">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">公司:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" readonly="readonly" class="form-control" id="forumCompanyCode"/>
+                                        <input type="hidden" class="form-control"  name="companyCode" id="companyCodeId"/>
+                                        <!--<select name="companyCode" id="forumCompanyCode" onchange="loadUser(null);" class="form-control" required="required">-->
+                                            <!--<option value="">请选择</option>-->
+                                        <!--</select>-->
+                                    </div>
+                                    <label class="col-sm-2 control-label">板块名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="name" id="name" required="required" th:placeholder="请填写板块名称"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">创建人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="userId" name="userId"/>
+                                        <input type="text" class="form-control" name="userName" id="userName" readonly="readonly"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">创建时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="createTime" id="createTime" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">板块负责人<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3 layui-form">
+                                        <select lay-verify="" lay-search name="moderator" id="moderator" class="form-control">
+                                        </select>
+                                    </div>
+                                    <label class="col-sm-2 control-label">图标:</label>
+                                    <div class="col-sm-3" id="affixs">
+                                        <button type="button" id="word2html" class="btn btn-success">
+                                            上传板块图片
+                                        </button>
+                                        <a id="showFile" name="showFiles" target="_blank"><span id="showName" name="showNames"></span></a>
+                                        <input type="hidden" id="affixLink" name="affixLink">
+                                        <input type="hidden" id="affixName" name="affixName">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注:</label>
+                                    <div class="col-sm-8">
+                                        <textarea cols="30" rows="6" id="remark" name="remark" onkeyup="checkContent(this)" maxlength="400" class="form-control"></textarea>
+                                        <label id="showError"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success save" id="save"
+                            onclick="submitForm(this,'/forum/add')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="update"
+                            onclick="submitForm(this,'/forum/edit')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--查看页面-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <form id="viewForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight" style="height:500px">
+                <div class="modal-header">
+                    <h4 class="modal-title update">论坛板块详情</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id1" name="id">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">公司<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" readonly="readonly" class="form-control" id="forumCompanyCode1"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">板块名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="name" id="name1" disabled="disabled"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">创建人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="userId1" name="userId"/>
+                                        <input type="text" class="form-control" name="userName" id="userName1" disabled="disabled"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">创建时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="createTime" id="createTime1" disabled="disabled"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">板块负责人<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3 layui-form">
+                                        <select name="moderator" id="moderator2" class="form-control" disabled="disabled">
+                                            <option value="">请选择</option>
+                                        </select>
+                                    </div>
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <a id="showFile1" name="showFiles" target="_blank"><span id="showName1" name="showNames"></span></a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注:</label>
+                                    <div class="col-sm-8">
+                                        <textarea cols="30" rows="6" id="remark1" name="remark" class="form-control" maxlength="120" disabled="disabled"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

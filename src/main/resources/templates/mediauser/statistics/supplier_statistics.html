@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>供应商统计</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <!--统计概况模态框Css-->
+    <link href="/css/statisticsModal/statisticsModal.css" rel="stylesheet">
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <script th:inline="javascript">
+        user = [[${session.user}]];
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script src="/js/mediauser/statistics/supplier_statistics.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+
+
+
+    <style>
+        .narrow {
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+       /* .right0 {
+            margin-right: -23px;
+        }
+
+        .option_button {
+            width: 60px;
+            float: left;
+            margin-left: 10px;
+            display: block;
+            background: rgb(24, 144, 255);
+            color: white;
+            border-width: 1px;
+            border-radius: 4px;
+        }
+
+        .option_button_head {
+            height: 25px;
+            margin-left: 5px;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .layui-form-select dl {
+            max-height: 100px;
+        }
+
+        .ui-jqgrid-bdiv {
+            overflow-x: scroll !important;
+        }
+
+        .ui-jqgrid .ui-jqgrid-htable thead th div {
+            text-align: center !important;
+        }
+
+        th.ui-th-column div, .ui-jqgrid tr.jqgrow td {
+            white-space: normal !important;
+            height: auto;
+        }*/
+       .ui-jqgrid{
+           width: 99% !important;
+       }
+       .ui-jqgrid-bdiv{/*表格展示滚动条*/
+           overflow: auto !important;
+       }
+       .top_block {
+           height: 100px;
+           width: 16%;
+           float: left;
+           margin: 0 0.5%;
+           text-align: center;
+           background-color: white;
+           border-radius: 5px;
+           box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+           padding: 25px 0;
+       }
+
+       .text-content {
+           font-size: 12px;
+           font-weight: bold;
+           line-height: 20px;
+
+       }
+
+       .val-content {
+           font-weight: bold;
+           font-size: 10px;
+           color: red;
+           line-height: 29px;
+       }
+       .top_block > div {
+           display: table;
+           margin: auto;
+       }
+
+       .top_block > div > i {
+           font-size: 40px;
+           float: left;
+           margin-right: 10px;
+
+       }
+
+       .rightContent{
+           height: 100%;
+           width: 100%;
+           display: block;
+           float: left;
+       }
+
+       .rightContent > .top{
+           border: 0px solid purple;
+           width: 100%;
+           height: 15%;
+           min-height: 100px;
+           display: flex;
+           justify-content:center;
+           align-items:center;
+           float: left;padding: 0px !important;
+       }
+
+       .rightContent > .top > .top_block > div{
+           display: flex;
+           justify-content:center;
+           align-items:center;
+       }
+
+       .rightContent > .middle{
+           border: 0px solid #C7C7CD;
+           width: 99%;
+           height: 40%;
+           display: block;
+           float:left;
+           margin-top: 15px;
+           margin-left: 0.5%;
+       }
+
+       #statisticsTrend{
+           border:0px solid red;
+           width: 65%;
+           height: 100%;
+           display:block;
+           float: left;
+           border-radius: 5px;
+           box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+       }
+
+       #chart {
+           width:34%;
+           height: 100%;
+           display:block;
+           float: left;
+           margin: 0 0.5%;
+           border-radius: 5px;
+           box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+       }
+
+       #chart > div {
+           background-color: white;
+           height: 100%;
+           margin-left: 4px;
+           width: 100%;
+       }
+
+       #chart > div > div {
+           width: 50%;
+           height: 95%;
+           margin-top: 10px;
+           float: left;
+       }
+
+       .rightContent > .bottom{
+           border: 0px solid #C7C7CD;
+           width: 99%;
+           height: 41%;
+           display: block;
+           float:left;
+           margin-top: 15px;
+           margin-left: 0.5%;
+           border-radius: 5px;
+           box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+       }
+
+       .rightContent .top_block:nth-child(1) > div > i {
+           color: #EE7383;
+       }
+
+       .rightContent .top_block:nth-child(1) > div > div > div:first-child {
+           color: #EE7383;
+       }
+
+       .rightContent .top_block:nth-child(2) > div > i {
+           color: #72C7D9
+       }
+
+       .rightContent .top_block:nth-child(2) > div > div > div:first-child {
+           color: #72C7D9
+       }
+
+       .rightContent .top_block:nth-child(3) > div > i {
+           color: #FFB148;
+       }
+
+       .rightContent .top_block:nth-child(3) > div > div > div:first-child {
+           color: #FFB148;
+       }
+
+       .rightContent .top_block:nth-child(4) > div > i {
+           color: #A5D16F;
+       }
+
+       .rightContent .top_block:nth-child(4) > div > div > div:first-child {
+           color: #A5D16F;
+       }
+
+       .rightContent .top_block:nth-child(5) > div > i {
+           color: #2FA82E;
+       }
+
+       .rightContent .top_block:nth-child(5) > div > div > div:first-child {
+           color: #2FA82E;
+       }
+
+       .rightContent .top_block:nth-child(6) > div > i {
+           color: #FF69B4;
+       }
+
+       .rightContent .top_block:nth-child(6) > div > div > div:first-child {
+           color: #FF69B4;
+       }
+
+       .top_block > div > div, .top_block > div > img {
+           float: left;
+           text-align: left;
+       }
+
+       .title-content {
+           font-size: 13px;
+           font-weight: bold;
+       }
+
+       #topChart {
+           margin-top: 10px;
+           display: block;
+           border: 0px solid red;
+           float: left;
+           height: 100%;
+           width: 100%;
+       }
+
+       #statisticsRankingTable {
+           background-color: white;
+           padding:0;
+           overflow-x: auto;
+           height: 100%;
+           display: block;
+           float: left;
+           width: 100%;
+           border-radius: 5px;
+           box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+       }
+
+       .tabContent{
+           height: 75%;
+           overflow-y: auto;
+       }
+       .bottom .layui-tab .ui-jqgrid-pager tbody tr{
+           display: flex;
+           justify-content:center;
+           align-items:center;
+       }
+    </style>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script src="/js/statisticsModal/statisticsModal.js"></script>
+    <script th:inline="javascript">
+        $(function () {
+            $('body').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#searchButton").click();
+                }
+            });
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //时间改变事件
+                form.on('select(timeQuantum)', function(data){
+                    searchForm.showIssuedDate(data.value);
+                });
+                //板块改变事件
+                form.on('select(mediaType)', function(data){
+                    searchForm.search();
+                });
+                //媒介改变事件
+                form.on('select(user)', function(data){
+                    searchForm.loadSupplier({currentUserId:data.value});
+                    searchForm.search();
+                    form.render('select');
+                });
+                //供应商改变事件
+                form.on('select(supplier)', function(data){
+                    searchForm.search();
+                });
+            });
+            //加载时间控件
+            var issuedDateStart = {
+                elem: '#issuedDateStart',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#issuedDateStart").val();
+                    var endTime = $("#issuedDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#issuedDateStart").val("")
+                        return;
+                    }
+                    searchForm.search();//刷新数据
+                }
+            };
+            laydate(issuedDateStart);
+            var issuedDateEnd = {
+                elem: '#issuedDateEnd',
+                format: 'YYYY/MM/DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#issuedDateStart").val();
+                    var endTime = $("#issuedDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#issuedDateEnd").val("")
+                        return;
+                    }
+                    searchForm.search();//刷新数据
+                }
+            };
+            laydate(issuedDateEnd);
+
+            // Views.loadParentMediaType("artType");
+            //创建表格对象
+            // grid = new dataGrid("table", gridObject, "pager", "searchForm");
+            //加载表格
+            // grid.loadGrid();
+            //设置统计数据
+            // Supplier.setArticleResult();
+            //设置下面的按钮
+            // grid.setNavGrid();
+
+            statisticsModal.init();//初始化模态框;
+
+            //以下为导出功能
+            $("#supplierTableExportBtn").click(function () {
+                var params = $("#searchForm").serializeJson();
+                location.href = "/mediaUsereManagerStatistics/exportAll" + "?" + $.param(params);
+            })
+
+
+            //查询条件初始化
+            searchForm.init();
+
+            //页面自动加载
+            searchForm.search();
+
+            /*grid.addOptionButton([
+                {"text": "<i class=\"fa fa-external-link\"></i>&nbsp;导出","href": "javascript:Supplier.exportArt()"},
+            ], "buttons");*/
+        });
+
+    </script>
+
+</head>
+
+<body>
+<!--导出不能用ajax，所以用表单-->
+<!--<form action="/article/exportAll" method="post" id="exportForm">
+    <input name="datas" type="hidden">
+</form>-->
+
+<!--查询条件-->
+<form id="searchForm" class="layui-form">
+    <div class="row">
+        <!--<div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-16px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content" style="padding:20px;">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label right0">统计时段:</label>
+                            <div class="col-sm-1">
+                                &lt;!&ndash;时间段&ndash;&gt;
+                                <select name="timeQuantum" class="form-control height18"
+                                        onchange="searchForm.showIssuedDate(this.value);searchForm.search()">
+                                    <option value="1">本年度</option>
+                                    <option value="2">本季度</option>
+                                    <option value="3" selected="selected">本月份</option>
+                                    <option value="4">当天</option>
+                                    <option value="5">时间区间</option>
+                                </select>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">媒体板块:</label>
+                            <div class="col-sm-1">
+                                <select name="artType" class="form-control height18" onchange="searchForm.search()">
+                                    <option value="">全部</option>
+                                </select>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">供应商:</label>
+                            <div class="col-sm-2">
+                                <input type="text" name="supplierName" id="supplierName" class="form-control height18"/>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">联系人:</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="contactor" id="contactor" class="form-control height18"
+                                       style="float:left;width:150px;"/>
+
+                                <button type="button" id="searchButton" class="btn btn-primary"
+                                        style="float:left;margin-left:20px;"
+                                        onclick="searchForm.search()">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div id="issuedDateFormGroup" style="display: none">
+                                <label class="col-sm-1 control-label right0">发布时间：</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateStart" name="issuedDateStart">
+                                    <span style="display:inline-block;padding:0 10px;">至</span>
+                                    <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateEnd" name="issuedDateEnd">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </DIV>
+            </div>
+        </div>-->
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-16px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content" style="padding:0 0 0 0">
+                    <div class="form-horizontal">
+                        <div class="form-group" style="margin-top:15px;" id="rowOne">
+                                <label class="col-sm-1 control-label narrow">时间范围:</label>
+                                <div class="col-sm-1 narrow">
+                                    <!--时间段-->
+                                    <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                                        <option value="1" selected="selected">本月</option>
+                                        <option value="2">本年</option>
+                                        <option value="3">时间区间</option>
+                                    </select>
+                                </div>
+
+                                <label class="col-sm-1 control-label narrow">媒体板块:</label>
+                                <div class="col-sm-1 narrow">
+                                    <select name="mediaType" class="form-control height18" lay-filter="mediaType" lay-search>
+                                        <option value="">全部</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label narrow">媒介:</label>
+                                <div class="col-sm-2 narrow" id="deptDiv" style="display:none">
+                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                        <input type="hidden" id="currentDeptId" name="currentDeptId" class="height18">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" style="padding-left:5px; padding-right:5px" readonly="readonly" placeholder="申请部门">
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF"
+                                              id="selDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true"
+                                              title="选择部门"></span>
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF"
+                                              id="cleanDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true"
+                                              title="清除选择的部门"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1 narrow">
+                                    <select name="currentUserId" id="currentUserId" class="form-control height18" lay-filter="user" lay-search>
+                                    </select>
+                                </div>
+
+                                <label class="col-sm-1 control-label narrow">供应商:</label>
+                                <div class="col-sm-2 narrow">
+                                    <!--<input type="text" name="supplierName" id="supplierName" class="form-control height18"/>-->
+                                    <select name="supplierId" id="supplierId" class="form-control height18" lay-filter="supplier" lay-search>
+                                    </select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="searchButton" class="btn btn-primary"
+                                            style="float:left;margin-left:20px;"
+                                            onclick="searchForm.search()">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                                    </button>
+                                </div>
+
+                        </div>
+
+                        <div class="form-group" id="rowTwo">
+                            <div id="issuedDateFormGroup" style="display: none">
+                                <label class="col-sm-1 control-label right0">选择时间范围：</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateStart" name="issuedDateStart" autocomplete="off">
+                                    <span style="display:inline-block;padding:0 10px;">至</span>
+                                    <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateEnd" name="issuedDateEnd" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </DIV>
+            </div>
+        </div>
+    </div>
+    <!--<div class="col-sm-12" style="margin-top: -10px;">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h4 style="font-weight: bold">统计数据</h4>
+            </div>
+            <div class="ibox-content" style="margin-top:7px;">
+                <div class="form-horizontal" id="tj">
+                    <div class="col-sm-2">
+                        <label>稿件个数:</label><span id="artCountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label>应付金额:￥</label><span id="payAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label>已付金额:￥</label><span id="incomeAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label>未付金额:￥</label><span id="noPayAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label>请款金额:￥</label><span id="applyAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label>利润:￥</label><span id="profitAmount" class="text-danger">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>-->
+</form>
+
+<!--查询条件结束-->
+<!--<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title" id="buttons" style="margin-top: -10px;line-height: 10px;">
+
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div class="jqGrid_wrapper">
+                        <table id="table" style="width:100%"></table>
+                        <div id="pager"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+<div id="topChart">
+    <div class="rightContent">
+        <!--顶部统计-->
+        <div class="top">
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <div class="title-content">总稿件数量</div>
+                        <div class="text-content">实际：<span class="val-content" id="articleNum"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div>
+                        <div class="title-content">应付总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="outgoAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div>
+                        <div class="title-content">已付总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="paid"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div>
+                        <div class="title-content">未付总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="unpaid"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div>
+                        <div class="title-content">请款总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="applyAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div style="margin-top: -9px;">
+                        <div class="title-content">利润总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="profit"></span></div>
+                        <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="profitRate"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--图表-->
+        <div class="middle">
+            <!--趋势图-->
+            <div id="statisticsTrend"></div>
+            <!--饼图-->
+            <div id="chart">
+                <div>
+                    <div id="statisticsPie1" style="border-right: 1px solid rgb(170, 170, 170);">
+                    </div>
+                    <div id="statisticsPie2" style="border-left: 1px solid rgb(170, 170, 170);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--列表-->
+        <div class="bottom">
+            <div id="statisticsRankingTable">
+                <button id="supplierTableExportBtn" class="btn btn-info" type="button">
+                    <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                </button>
+                <div class="jqGrid_wrapper" style="height: 90%;overflow-y: auto;">
+                    <table id="supplierTable"></table>
+                    <div id="supplierPager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--统计模态框导入-->
+<div th:include="statisticsmodal/statisticsModal" ></div>
+</html>

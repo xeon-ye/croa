@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'业务管理-下单-'+${AppName}"></title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/biz/order.js"></script>
+    <link href="/css/plugins/summernote/summernote.css" rel="stylesheet">
+    <link href="/css/plugins/summernote/summernote-bs3.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/need/laydate.css"/>
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css"
+          id="LayDateSkin"/>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <style type="text/css">
+        .ui-jqgrid .ui-jqgrid-htable thead th div {
+            text-align: center !important;
+        }
+    </style>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+                onloadCompany($("#companyId"));
+
+                //客户公司名称
+                form.on('select(companyId)', function(data){
+                    onloadCompany(data.elem);
+                });
+
+                //客户公司对接人
+                form.on('select(custId)', function(data){
+                    setCustId(data.elem);
+                });
+
+                //稿件行业类型
+                form.on('select(typeCode)', function(data){
+                    setTypeCode(data.elem);
+                });
+
+                //媒介
+                form.on('select(mediaUserId)', function(data){
+                    setMediaUserId(data.elem);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>已选媒体 &nbsp;<i class="fa fa-angle-double-right"></i>&nbsp;</h5>
+            </div>
+            <div class="ibox-title">
+                <form id="orderForm" class="layui-form">
+                    <span class="text-danger " id="mediaTypeText"></span>
+                    <input type="hidden" id="orderId" name="id" data-th-value="${order.id}"/>
+                    <input type="hidden" id="userId" name="userId"/>
+                    <input type="hidden" id="userName" name="userName"/>
+                    <input type="hidden" id="deptId" name="depatId"/>
+                    <input type="hidden" id="custName" name="custName" data-th-value="${order.custName}"/>
+                    <input type="hidden" id="companyName" name="companyName"/>
+                    <div class="ibox-content">
+                        <div class="row form-group">
+                            <h1 class="text-danger text-center"><label>订单编号:</label><span
+                                    data-th-text="${order.no}"></span>
+                            </h1>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;"><span class="text-red">*</span>客户公司名称：</label>
+                            <div class="col-md-2">
+                                <select id="companyId" name="companyId" class="form-control" lay-search lay-filter="companyId">
+                                    <option data-th-each="cust,i:${custs}" data-th-text="${cust.companyName}"
+                                            data-th-value="${cust.id}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;">
+                                <span class="text-red">*</span>客户公司对接人：
+                            </label>
+                            <div class="col-md-2">
+                                <select id="custId" name="custId" class="form-control" lay-search lay-filter="custId">
+                                    <!--<option data-th-each="dockpeople,i:${dockpeoples}" data-th-text="${dockpeople.custName}"-->
+                                    <!--data-th-value="${dockpeople.id}"></option>-->
+                                </select>
+                                <div id="taxesDiv" style="display: none;">
+                                    <select id="taxes" onchange="setTaxes(this)">
+                                        <option value="0">不开票</option>
+                                        <option data-th-each="tax,i:${taxes}" data-th-text="${tax.name}"
+                                                data-th-value="${tax.code}" data-th-id="${tax.id}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;">品牌：</label>
+                            <div class="col-md-6">
+                                <input name="brand" id="brand" class="form-control" th:placeholder="请输入品牌" maxlength="50"/>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;"><span class="text-red">*</span>答应到款时间：</label>
+                            <div class="col-md-6">
+                                <input id="amountDate" name="amountDate" class="form-control layer-date laydate-icon"
+                                       th:placeholder="请输入答应到款时间" required="required"
+                                       onclick="laydate({istime: true,
+                               istime:false,
+                               istoday: false,
+                                format: 'YYYY-MM-DD',
+                                min: laydate.now(),
+                                choose:function (){setDate(value)}})"
+                                />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;"><span class="text-red">*</span>稿件行业类型：</label>
+                            <div class="col-md-2">
+                                <select name="typeCode" class="form-control" lay-search lay-filter="typeCode">
+                                    <option data-th-each="industry,i:${industryList}" data-th-text="${industry.name}"
+                                            data-th-value="${industry.code}"></option>
+                                </select>
+                                <input type="hidden" name="typeName" data-th-if="${industryList.size() > 0}" data-th-value="${industryList[0].name}"/>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;"><span class="text-red">*</span>订单标题：</label>
+                            <div class="col-md-6">
+                                <input name="title" id="title" class="form-control" data-th-value="${order.title}"
+                                       th:placeholder="请输入订单标题"/>
+                            </div>
+                        </div>
+
+                        <div class="row form-group">
+                            <label class="col-md-1 control-label" style="padding-right: 0px;">订单说明：</label>
+                            <div class="col-md-6">
+                                <textarea class="form-control" id="desc" name="desc"
+                                          data-th-text="${order.desc}" style="resize:none;"
+                                          th:placeholder="请输入备注信息"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="ibox-content" style="padding: 6px">
+                <div class="jqGrid_wrapper">
+                    <table id="table_orders"></table>
+                    <div id="pager_orders"></div>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <h3>稿件详情</h3>
+                <div class="row form-group layui-form">
+                    <label class="col-md-1 control-label"><span class="text-red">*</span>媒介：</label>
+                    <div class="col-md-4">
+                        <select class="form-control" id="mediaUserId" lay-search lay-filter="mediaUserId"
+                                disabled="disabled" required="required"></select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-1 control-label">稿件标题：</label>
+                    <div class="col-md-4">
+                        <input id="articleTitle" name="articleTitle" class="form-control"
+                               onkeyup="setArticleTitle(this)"
+                               disabled="disabled"/>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-1 control-label">文章链接：</label>
+                    <div class="col-md-4">
+                        <input id="link" name="link" class="form-control" onkeyup="setLink(this)" disabled="disabled"/>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <form id="uploadForm" action="/article/upload" enctype="multipart/form-data">
+                        <input name="id" id="articleId" type="hidden"/>
+                        <label class="col-md-1 control-label">稿件：</label>
+                        <div class="col-md-4 form-inline">
+                            <input id="file" name="file" class="form-control" type="file" disabled="disabled"/>
+                            <button type="button" class="btn btn-danger" onclick="upFile()">
+                                <i class="fa fa-cloud-upload"></i>&nbsp;上传
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="row form-group">
+                    <label class="col-md-1 control-label">稿件内容：</label>
+                    <div class="col-md-8 ">
+                        <div id="articleContent" class="summernote" style="height: 100px"></div>
+                        <!--<textarea class="form-control" ></textarea>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="position: fixed;bottom:0px;width: 100%;padding: 5px" class="text-center col-md-12 bg-info row">
+    <button class="btn btn-success" onclick="saveOrder()"><i class="fa fa-check"></i> 提交订单</button>&nbsp;&nbsp;&nbsp;&nbsp;
+    <button class="btn btn-warning" onclick="cancelOrder()"><i class="fa fa-close"></i> 取消订单</button>
+</div>
+
+</body>
+<!-- SUMMERNOTE -->
+<script src="/js/plugins/summernote/summernote.min.js"></script>
+<script src="/js/plugins/summernote/summernote-zh-CN.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.summernote').summernote({
+            lang: 'zh-CN',
+            height: 300,
+        });
+    });
+    var edit = function () {
+        $("#eg").addClass("no-padding");
+        $('.click2edit').summernote({
+            lang: 'zh-CN',
+            focus: true
+        });
+    };
+    var save = function () {
+        $("#eg").removeClass("no-padding");
+        var aHTML = $('.click2edit').code(); //save HTML If you need(aHTML: array).
+        $('.click2edit').destroy();
+    };
+</script>
+
+</html>

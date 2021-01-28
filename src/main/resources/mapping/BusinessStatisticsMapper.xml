@@ -1,0 +1,1411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.biz.statistics.BusinessStatisticsMapper">
+    <!--权限相关-->
+    <!--<sql id="userQxSql">-->
+    <!--<if test="currentDeptQx == 'true'">-->
+    <!--<if test="currentDeptId != null and currentDeptId != ''">-->
+    <!--inner join(-->
+    <!--select u.id uid,d.id did from sys_dept d-->
+    <!--inner join sys_user u-->
+    <!--on u.dept_id = d.id-->
+    <!--where find_in_set(d.id,getChilds(#{currentDeptId}))-->
+    <!--)usersdepts-->
+    <!--${userTj}-->
+    <!--</if>-->
+    <!--</if>-->
+    <!--</sql>   -->
+    <!--<sql id="userQxSql">-->
+    <!--<if test="currentDeptQx == 'true'">-->
+    <!--<if test="currentDeptId != null and currentDeptId != ''">-->
+    <!--inner join(SELECT u.id FROM sys_user u WHERE  u.`dept_id` IN (${deptIds})-->
+    <!--</if>-->
+    <!--</if>-->
+    <!--</sql>-->
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <where>
+                <choose>
+                    <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                        and u.id=#{currentUserId}
+                    </when>
+                    <otherwise>
+                        <if test="companyCode!= null and companyCode != '' and companyCode != 'JT'">
+                            AND u.company_code=#{companyCode}
+                        </if>
+                        <if test="deptIds != ''">
+                            AND u.`dept_id` IN (${deptIds})
+                        </if>
+                    </otherwise>
+                </choose>
+                <if test="userTj != ''">
+                    ${userTj}
+                </if>
+            </where>
+        </if>
+    </sql>
+    <!--权限功能：currentUserId为指定人员，不选默认全部-->
+    <sql id="currentUserQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--时间条件：最近时间-->
+    <sql id="recentTime">
+        <!--本月-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+        <!--本年-->
+        <if test="timeQuantum == 2">
+            and DATE_FORMAT(${timeField}, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 3">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND ${timeField} <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{issuedDateStart},' 00:00:00'),'%Y/%m/%d %T')
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND ${timeField} <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+        </if>
+    </sql>
+    <!--统计基础表-->
+    <sql id="statisticsBasicTable">
+        SELECT
+        tba.id,
+        tba.order_id,
+        tba.media_id,
+        tm.`name` AS mediaName,
+        tmt.id AS mediaTypeId,
+        tmt.`name` AS mediaTypeName,
+        tba.supplier_id,
+        tba.supplier_name,
+        tba.supplier_contactor,
+        tba.media_user_id,
+        tba.media_user_name,
+        CONCAT(tba.media_user_id,'-',tba.media_user_name) as mediaUser,
+        tba.title,
+        tba.sale_amount,
+        tba.income_amount,
+        IF(tba.income_states != 1,IFNULL(tba.sale_amount,0)-IFNULL(tba.income_amount,0),0) as noIncomeAmount,
+        (case when TIMESTAMPDIFF(MONTH,tba.issued_date,now()) &gt;= 3 and tba.income_states != 1
+        then (IFNULL(tba.sale_amount,0) - IFNULL(tba.income_amount,0)) else 0 end
+        ) yqIncomeAmount,
+        (case when TIMESTAMPDIFF(DAY,promise_date,now()) &gt; 0 and tba.income_states != 1
+        then (IFNULL(tba.sale_amount,0) - IFNULL(tba.income_amount,0)) else 0 end
+        ) dqysIncomeAmount,
+        tba.pay_amount,
+        tba.outgo_amount,
+        tba.income_total_amount,
+        tba.other_pay,
+        tba.refund_amount,
+        tba.issued_date,
+        tbo.company_id as custCompanyId,
+        tbo.company_name as custCompanyName,
+        tbo.cust_id AS custId,
+        tbo.cust_name as custName,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        tba.profit as profit
+        FROM t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id AND tbo.order_type = 1
+        INNER JOIN t_media1 tm ON tm.id = tba.media_id
+        INNER  JOIN t_media_plate tmt ON tm.plate_id = tmt.id AND tmt.is_delete = 0
+        <include refid="currentUserQX">
+            <property name="userTj" value=" su.id = tbo.user_id"/>
+        </include>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <!--板块-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体-->
+        <if test="mediaId != null and mediaId != ''">
+            AND tba.media_id = #{mediaId}
+        </if>
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+    </sql>
+    <!--客户类型和稿件类型基础表，排除老的稿件-->
+    <sql id="statisticsCustTypeBasicTable">
+        SELECT
+          tba.id,
+          <if test="custType != null and custType != ''">
+              tcc.type_code as custCompanyCode,
+              tcc.type_name as custCompanyType,
+          </if>
+          <if test="custIndustryType != null and custIndustryType != ''">
+              sd.code as custIndustryCode,
+              sd.name as custIndustryType,
+          </if>
+          tba.profit as profit,
+          tba.type_code as typeCode,
+          tba.type_name as typeName
+        FROM t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id AND tbo.order_type = 1
+        <if test="custType != null and custType != ''">
+            INNER JOIN t_crm_company tcc ON tcc.id = tbo.company_id
+        </if>
+        <if test="custIndustryType != null and custIndustryType != ''">
+            INNER JOIN t_crm_company tcc ON tcc.id = tbo.company_id
+            INNER JOIN sys_dict sd on sd.code = tcc.industry and sd.type_code = 'industry'
+        </if>
+        INNER JOIN t_media1 tm ON tm.id = tba.media_id
+        INNER  JOIN t_media_plate tmt ON tm.plate_id = tmt.id AND tmt.is_delete = 0
+        <include refid="currentUserQX">
+            <property name="userTj" value=" su.id = tbo.user_id"/>
+        </include>
+        WHERE tba.state = 1 and tba.issue_states = 4 AND tba.type_code IS NOT NULL
+        <!--板块-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体-->
+        <if test="mediaId != null and mediaId != ''">
+            AND tba.media_id = #{mediaId}
+        </if>
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+    </sql>
+    <!--业务统计-->
+    <select id="getBusinessStatisticsByParam"  resultType="java.util.Map">
+        SELECT
+        count(t.id) AS articleNum,
+        count(DISTINCT t.custId) AS custNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.yqIncomeAmount),0) AS yqIncomeAmount,
+        ifnull(sum(t.dqysIncomeAmount),0) AS dqysIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+    </select>
+    <!--业务趋势图-->
+    <select id="listBusinessTrendStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d') as time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m') as time,
+            </otherwise>
+        </choose>
+        count(t.id) AS articleNum,
+        count(DISTINCT t.custId) AS custNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.yqIncomeAmount),0) AS yqIncomeAmount,
+        ifnull(sum(t.dqysIncomeAmount),0) AS dqysIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                time asc
+            </otherwise>
+        </choose>
+    </select>
+    <!--业务板块占比-->
+    <select id="listBusinessMediaTypeStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        t.mediaTypeId as mediaTypeId,
+        t.mediaTypeName as mediaTypeName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.mediaTypeId,t.mediaTypeName
+    </select>
+    <!--客户公司类型占比-->
+    <select id="listBusinessCustTypeStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        t.custCompanyCode,
+        t.custCompanyType,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (
+          <include refid="statisticsCustTypeBasicTable"/>
+        ) t
+        group by t.custCompanyCode,t.custCompanyType
+    </select>
+    <!--客户行业类型占比-->
+    <select id="listBusinessCustIndustryTypeStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        t.custIndustryCode,
+        t.custIndustryType,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (
+        <include refid="statisticsCustTypeBasicTable"/>
+        ) t
+        group by  t.custIndustryCode,t.custIndustryType
+    </select>
+    <!--稿件类型占比-->
+    <select id="listBusinessArtTypeStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        t.typeName,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (
+        <include refid="statisticsCustTypeBasicTable">
+            <property name="custType" value="1"/>
+        </include>
+        ) t
+        group by  t.typeName
+    </select>
+    <!--最近三个月未成交客户-->
+    <select id="listCustForNotTrans" parameterType="map" resultType="map">
+        <!--查询客户列表-->
+        SELECT
+        cc.id as companyId,
+        cc.name as companyName,
+        cc.type as type,
+        cc.standardize as standardize,
+        cc.audit_flag as auditFlag,
+        ccu.id as companyUserId,
+        ccu.name as companyUserName,
+        ccu.normalize as normalize,
+        ccu.protect_level as protectLevel,
+        ccu.protect_strong as protectStrong,
+        ccu.dev_state as devState,
+        ccus.user_id as ywUserId,
+        ccus.user_name as ywUserName,
+        ccus.start_time as startTime,
+        ccus.end_time as endTime,
+        ccu.create_time as createTime
+        FROM t_crm_company cc
+        left join t_crm_company_user ccu on cc.id = ccu.company_id
+        left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        left join sys_user su on ccus.user_id = su.id
+        where ccu.delete_flag = 0 and is_public = 0 and ccus.delete_flag = 0
+        <include refid="recentTime">
+            <property name="timeField" value="ccu.create_time"/>
+        </include>
+        <if test="custId != null">
+            and ccu.id = #{custId}
+        </if>
+        <if test="currentUserId != null and currentUserId != ''">
+            and su.id = #{currentUserId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND su.`dept_id` IN (${deptIds})
+        </if>
+        <!--查询最近几个月未成交的客户-->
+        <include refid="notTransCustSql">
+            <property name="custTj" value=" ordn.cust_id = ccu.id"/>
+        </include>
+<!--        <if test="latelyNot != null and latelyNot != ''">
+            AND
+            case
+            when exists(select 1 from t_biz_order ordn where ordn.cust_id = ccu.id)
+            then
+            TIMESTAMPDIFF(MONTH,(select max(ordn.create_date) from t_biz_order ordn where ordn.cust_id = ccu.id),now())
+            > #{latelyNot}
+            else
+            TIMESTAMPDIFF(MONTH,ccus.start_time,now()) &gt; #{latelyNot}
+            end
+        </if>-->
+        order by ccu.id desc
+    </select>
+    <!--最近几个月未成交客户条件-->
+    <sql id="notTransCustSql">
+        AND NOT EXISTS (
+        SELECT
+        1
+        FROM
+        t_biz_order ordn
+        INNER JOIN t_biz_article art ON art.order_id = ordn.id
+        AND art.state > 0
+        WHERE
+        ordn.state > 0
+        AND ${custTj}
+        and ordn.create_date <![CDATA[>=]]> DATE_SUB(NOW(),INTERVAL #{latelyNot} MONTH)
+        and ordn.create_date <![CDATA[<]]> NOW()
+        )
+    </sql>
+
+    <select id="statisticsRanking" resultType="map">
+        select 1 from dual
+    </select>
+
+    <!---统计每个部门的业务量-->
+    <select id="getDeptStatisticsByDeptId" resultType="java.util.Map">
+        SELECT
+          ifnull(sum(t.sale_amount),0) AS saleAmount,
+          ifnull(sum(t.profit),0) AS profit
+        FROM
+        (
+          SELECT
+          tba.id,
+          tba.sale_amount,
+          tba.pay_amount,
+          tba.refund_amount,
+          tba.other_pay,
+          tba.taxes,
+          tba.profit
+          FROM
+          t_biz_article tba
+          INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+          AND tbo.order_type = 1
+          <if test="mediaId != null and mediaId != ''">
+              INNER JOIN t_media1 tm ON tm.id = tba.media_id
+          </if>
+          <if test="mediaType != null and mediaType != ''">
+              INNER JOIN t_media_plate tmt ON tmt.id = tba.media_type_id AND tmt.is_delete = 0
+          </if>
+          INNER JOIN sys_user su ON tbo.user_id = su.id
+          INNER JOIN sys_dept sd ON sd.id = su.dept_id
+          AND sd.state > -2
+          WHERE tba.state = 1 and tba.issue_states = 4
+          <if test="deptIds != null and deptIds != ''">
+              and sd.id in (${deptIds})
+          </if>
+          <if test="currentUserId != null and currentUserId != ''">
+              and su.id = #{currentUserId}
+          </if>
+          <!--板块-->
+          <if test="mediaType != null and mediaType != ''">
+              AND tmt.id = #{mediaType}
+          </if>
+          <!--媒体-->
+          <if test="mediaId != null and mediaId != ''">
+              AND tba.media_id = #{mediaId}
+          </if>
+          <!--客户ID-->
+          <if test="custId != null  and custId != ''">
+              AND tbo.cust_id = #{custId}
+          </if>
+          <include refid="recentTime">
+              <property name="timeField" value="tba.issued_date"/>
+          </include>
+          ) t
+    </select>
+
+    <!--排名前五的业务-->
+    <select id="businessTop" resultType="java.util.Map">
+        select
+        ord.user_id userId,
+        ord.user_name userName,
+        <if test="tjType == 'deptSaleAmountSortBox'">
+            sum(art.sale_amount) saleAmount
+        </if>
+        <if test="tjType == 'deptIncomeSortBox'">
+            sum(art.income_amount) incomeAmount
+        </if>
+        from t_biz_article art
+        inner join t_biz_order ord ON art.order_id = ord.id
+        AND ord.order_type = 1
+        <if test="mediaId != null and mediaId != ''">
+            INNER JOIN t_media1 tm ON tm.id = art.media_id
+        </if>
+        <if test="mediaType != null and mediaType != ''">
+            INNER JOIN t_media_plate tmt ON tmt.id = art.media_type_id AND tmt.is_delete = 0
+        </if>
+        INNER JOIN sys_user su ON ord.user_id = su.id
+        INNER JOIN sys_dept sd ON sd.id = su.dept_id and sd.state > -2
+        WHERE art.state = 1 and art.issue_states = 4
+        <if test="deptIds != null and deptIds != ''">
+            and sd.id in (${deptIds})
+        </if>
+        <if test="currentUserId != null and currentUserId != ''">
+            and su.id = #{currentUserId}
+        </if>
+        <!--板块-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体-->
+        <if test="mediaId != null and mediaId != ''">
+            AND art.media_id = #{mediaId}
+        </if>
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND ord.cust_id = #{custId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="art.issued_date"/>
+        </include>
+        group by ord.user_id, ord.user_name
+        <if test="tjType == 'deptSaleAmountSortBox'">
+            order by saleAmount DESC
+        </if>
+        <if test="tjType == 'deptIncomeSortBox'">
+            order by incomeAmount DESC
+        </if>
+        limit 5
+    </select>
+
+    <!--未到款统计-->
+    <select id="queryNotIncome" resultType="java.util.Map">
+        SELECT
+        <if test="type == 1 or type == 2">
+            c.id deptId,
+            c.parent_id parentDeptId,
+            c.name deptName,
+            c.level,
+            c.company_code companyCode,
+        </if>
+        <if test="type == 3">
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            b.user_id userId,
+            b.user_name userName,
+        </if>
+        <if test="type == 4">
+            min(b.user_id) userId,
+            min(b.user_name) userName,
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            b.company_id companyId,
+            b.company_name companyName,
+            b.cust_id custId,
+            b.cust_name custName,
+        </if>
+        MONTH (a.issued_date) MONTH,
+        sum(a.sale_amount) sale,
+        sum(a.income_amount) income,
+        sum(CASE WHEN a.income_states=1 then 0 else a.sale_amount - income_amount end) notIncome,
+        sum(CASE WHEN a.income_states=1 then 0 WHEN TIMESTAMPDIFF(DAY, a.promise_date, now()) &gt; 0 THEN (a.sale_amount-a.income_amount) ELSE 0 END) yqIncome,
+        sum(a.profit) profit
+        FROM
+        t_biz_article a
+        LEFT JOIN t_biz_order b ON a.order_id = b.id and b.state>-2
+        LEFT JOIN sys_dept c ON b.depat_id = c.id and c.state>-2 AND c.code='YW'
+        WHERE
+        a.state = 1 and a.issue_states = 4
+        AND b.cust_id IS NOT NULL
+        AND YEAR (a.issued_date) = #{year} and month(a.issued_date) &gt;= #{monthStart} and month(a.issued_date) &lt;=#{monthEnd}
+        <if test="type==2 and level!=null and level!=''">
+           AND c.level = #{level}
+        </if>
+        <include refid="notIncomeCondition"/>
+        GROUP BY
+        <if test="type == 1 or type == 2">
+            c.id,
+            c.parent_id,
+            c.name,
+            c.level,
+        </if>
+        <if test="type == 3">
+            b.user_id,
+            b.user_name,
+        </if>
+        <if test="type == 4">
+            b.company_id,
+            b.company_name,
+            b.cust_id,
+            b.cust_name,
+        </if>
+        MONTH (a.issued_date)
+    </select>
+    <select id="queryAllParentByType"  resultType="java.util.Map">
+        SELECT
+        temp.deptId deptId,
+        max(temp.deptName) deptName,
+        temp.companyCode companyCode,
+        sum(temp.sale_amount) sale_sum,
+        sum(temp.income_amount) income_sum,
+        sum(CASE WHEN temp.incomeStates=1 then 0 else temp.sale_amount - temp.income_amount end) notIncome_sum,
+        sum(CASE WHEN temp.incomeStates=1 then 0 WHEN TIMESTAMPDIFF(DAY, temp.promiseDate, now()) > 0 THEN (temp.sale_amount-temp.income_amount) ELSE 0 END) yqIncome_sum,
+        sum(temp.profit) profit_sum
+        FROM(select
+        c.id deptId,
+        c.name deptName,
+        c.company_code companyCode,
+        a.sale_amount,
+        a.income_amount,
+        a.profit profit,
+        a.promise_date promiseDate,
+        a.income_states incomeStates
+        from t_biz_order b inner join sys_dept c on b.depat_id=c.id and b.cust_id is not null and b.state>-2
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year}
+        and month(a.issued_date) &gt;= #{monthStart} and month(a.issued_date) &lt;=#{monthEnd}
+        where c.state>-2 AND c.code='YW' and c.level=3
+        <include refid="notIncomeCondition"/>
+        union all
+        select
+        c.parent_id deptId,
+        '' as deptName,
+        c.company_code companyCode,
+        a.sale_amount,
+        a.income_amount,
+        a.profit profit,
+        a.promise_date promiseDate,
+        a.income_states incomeStates
+        from sys_dept c inner join t_biz_order b on b.depat_id=c.id and b.cust_id is not null and b.state>-2
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year}
+        and month(a.issued_date) &gt;= #{monthStart} and month(a.issued_date) &lt;=#{monthEnd}
+        where c.state>-2 AND c.code='YW' and c.level=4
+        <include refid="notIncomeCondition"/>
+        ) temp
+        group by
+        temp.deptId,
+        temp.companyCode
+        order by temp.deptId
+    </select>
+    <select id="queryAllByType"  resultType="java.util.Map">
+        select
+        <if test="type == 1 or type == 2">
+            c.id deptId,
+            c.parent_id parentDeptId,
+            c.name deptName,
+            c.level,
+            c.company_code companyCode,
+        </if>
+        <if test="type == 3">
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            b.user_id userId,
+            b.user_name userName,
+        </if>
+        <if test="type == 4">
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            min(b.user_id) userId,
+            min(b.user_name) userName,
+            b.company_id companyId,
+            b.company_name companyName,
+            b.cust_id custId,
+            b.cust_name custName,
+        </if>
+        sum(a.sale_amount) sale_sum,
+        sum(a.income_amount) income_sum,
+        sum(CASE WHEN a.income_states=1 then 0 else a.sale_amount - income_amount end) notIncome_sum,
+        sum(CASE WHEN a.income_states=1 then 0 WHEN TIMESTAMPDIFF(DAY, a.promise_date, now()) &gt; 0 THEN (a.sale_amount-a.income_amount) ELSE 0 END) yqIncome_sum,
+        sum(a.profit) profit_sum
+        from t_biz_order b inner join sys_dept c on b.depat_id=c.id and c.state>-2 AND c.code='YW'
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year}
+        and month(a.issued_date) &gt;= #{monthStart} and month(a.issued_date) &lt;=#{monthEnd}
+        where b.cust_id is not null and b.state>-2
+        <include refid="notIncomeCondition"/>
+        group by
+        <if test="type==3">
+            b.user_id,
+            b.user_name
+        </if>
+        <if test="type==4">
+            b.cust_id,
+            b.cust_name,
+            b.company_id,
+            b.company_name
+        </if>
+        <if test="type==1 or type==2">
+            c.id,
+            c.parent_id,
+            c.name,
+            c.level
+        </if>
+        order by min(c.id)
+    </select>
+
+    <select id="queryAllChildByType"  resultType="java.util.Map">
+        select
+        c.id deptId,
+        c.parent_id parentDeptId,
+        c.name deptName,
+        c.level level,
+        c.company_code companyCode,
+        sum(a.sale_amount) sum_sale,
+        sum(a.income_amount) sum_income,
+        sum(case when a.income_states=1 then 0 else a.sale_amount - income_amount end) sum_notIncome,
+        sum(CASE WHEN a.income_states=1 then 0 when TIMESTAMPDIFF(DAY, a.promise_date, now()) &gt; 0 THEN (a.sale_amount-a.income_amount) ELSE 0 END) sum_yqIncome,
+        sum(a.profit) sum_profit
+        from t_biz_order b left join sys_dept c on b.depat_id=c.id and c.state>-2 AND c.code='YW'
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year}
+        where b.cust_id is not null and b.state>-2
+        and c.level=4
+        <include refid="notIncomeCondition"/>
+        group by
+        c.id,
+        c.parent_id,
+        c.name,
+        c.level
+        order by c.name
+    </select>
+
+    <select id="querySumNotIncome"  resultType="java.util.Map">
+        SELECT
+        YEAR(a.issued_date) year,
+        sum(ifnull(a.sale_amount, 0)) sale,
+        sum(ifnull(a.income_amount, 0)) income,
+        sum(CASE WHEN a.income_states=1 then 0 ELSE ifnull(a.sale_amount, 0) - ifnull(a.income_amount, 0) end) notIncome,
+        sum(CASE WHEN a.income_states=1 then 0 WHEN TIMESTAMPDIFF(DAY, a.promise_date, now()) &gt; 0 THEN (ifnull(a.sale_amount, 0) - ifnull(a.income_amount, 0)) ELSE 0 END) yqIncome,
+        sum(ifnull(a.profit,0)) profit
+        FROM
+        t_biz_article a
+        LEFT JOIN t_biz_order b ON a.order_id = b.id
+        LEFT JOIN sys_dept c ON b.depat_id = c.id and c.state>-2 AND c.code='YW'
+        WHERE
+        a.state = 1 and a.issue_states = 4
+        AND b.cust_id IS NOT NULL
+        AND YEAR (a.issued_date) = #{year}
+        and month(a.issued_date) &gt;= #{monthStart} and month(a.issued_date) &lt;=#{monthEnd}
+        <include refid="notIncomeCondition"/>
+        GROUP BY
+        YEAR(a.issued_date)
+    </select>
+    <sql id="notIncomeCondition">
+        <choose>
+            <!--当前用户是业务员或业务助理，如果没有选择查看类型就是默认看自己的未到款-->
+            <when test="typeQx == 1">
+                AND b.user_id = #{userId}
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务组长，默认看自己部门的未到款-->
+            <when test="typeQx == 2">
+                AND b.depat_id in (${deptIds}) AND c.level = #{level}
+                <if test="currentUserId!=null and currentUserId!=''">
+                    AND b.user_id = #{currentUserId}
+                </if>
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务总监或财务或公司领导或集团领导或业务部长及总监-->
+            <when test="typeQx == 3">
+                <if test="level!=null and level!=''">
+                    AND c.level = #{level}
+                </if>
+                <if test="deptIds!=null and deptIds!='' and type!=2">
+                    AND b.depat_id in (${deptIds})
+                </if>
+                <!--type==3表示查看自己的未到款页面-->
+                <if test="currentUserId!=null and currentUserId!=''">
+                    AND b.user_id = #{currentUserId}
+                </if>
+                <!--type==4表示查看客户的未到款页面-->
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <otherwise>
+                and b.id = 0
+            </otherwise>
+        </choose>
+        <if test="custName!=null and custName!=''">
+            AND b.cust_name like concat('%',#{custName},'%')
+        </if>
+        <if test="companyName!=null and companyName!=''">
+            AND b.company_name like concat('%',#{companyName},'%')
+        </if>
+        <if test="qxCompanyCode!=null and qxCompanyCode!=''">
+            AND c.company_code = #{qxCompanyCode}
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            AND c.company_code = #{companyCode}
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND b.user_name like concat('%',#{userName},'%')
+        </if>
+        <!--type==2时，按业务组查询，使用deptName1参数，其他用deptName参数-->
+        <if test="type!=2">
+            <if test="deptName!=null and deptName!=''">
+                AND c.name like concat('%',#{deptName},'%')
+            </if>
+        </if>
+        <if test="type==2">
+            <if test="deptName1!=null and deptName1!=''">
+                AND c.name like concat('%',#{deptName1},'%')
+            </if>
+        </if>
+        <if test="deptNameYear!=null and deptNameYear!=''">
+            AND c.name like concat('%',#{deptNameYear},'%')
+        </if>
+    </sql>
+
+    <!--未到款统计-->
+    <select id="queryNotIncomeYear" resultType="java.util.Map">
+        SELECT
+        <if test="type == 1 or type == 2">
+            c.id deptId,
+            c.parent_id parentDeptId,
+            c.name deptName,
+            c.level,
+            c.company_code companyCode,
+        </if>
+        <if test="type == 3">
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            b.user_id userId,
+            b.user_name userName,
+        </if>
+        <if test="type == 4">
+            min(c.id) deptId,
+            min(c.parent_id) parentDeptId,
+            min(c. NAME) deptName,
+            min(c. LEVEL) level,
+            min(c.company_code) companyCode,
+            min(b.user_id) userId,
+            min(b.user_name) userName,
+            b.company_id companyId,
+            b.company_name companyName,
+            b.cust_id custId,
+            b.cust_name custName,
+        </if>
+        YEAR (a.issued_date) `year`,
+        sum(a.sale_amount) sale,
+        sum(a.income_amount) income,
+        sum(CASE WHEN a.income_states=1 then 0 ELSE a.sale_amount - income_amount end) notIncome,
+        sum(CASE WHEN a.income_states=1 then 0 WHEN TIMESTAMPDIFF(DAY, a.promise_date, now()) &gt; 0 THEN (a.sale_amount-a.income_amount) ELSE 0 END) yqIncome,
+        sum(ifnull(a.profit,0)) profit
+        FROM
+        t_biz_article a
+        LEFT JOIN t_biz_order b ON a.order_id = b.id
+        LEFT JOIN sys_dept c ON b.depat_id = c.id and c.state>-2 AND c.code='YW'
+        WHERE
+        a.state = 1 and a.issue_states = 4
+        AND b.cust_id IS NOT NULL
+        AND a.issued_date IS NOT NULL
+        <if test="type==2 and level!=null and level!=''">
+            AND c.level = #{level}
+        </if>
+        <include refid="notIncomeCondition"/>
+        GROUP BY
+        <if test="type == 1 or type == 2">
+            c.id,
+            c.parent_id,
+            c.name,
+            c.level,
+        </if>
+        <if test="type == 3">
+            b.user_id,
+            b.user_name,
+        </if>
+        <if test="type == 4">
+            b.company_id,
+            b.company_name,
+            b.cust_id,
+            b.cust_name,
+        </if>
+        YEAR (a.issued_date)
+    </select>
+
+    <!--未到款统计：查询所有部门的汇总数据-->
+    <sql id="notIncomeCondition1">
+        <choose>
+            <!--当前用户是业务员或业务助理，如果没有选择查看类型就是默认看自己的未到款-->
+            <when test="typeQx == 1">
+                AND tbo.user_id = #{userId}
+                <if test="custId != null and custId != ''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务组长，默认看自己部门的未到款-->
+            <when test="typeQx == 2">
+                AND tbo.depat_id in (${deptIds})
+                <if test="currentUserId != null and currentUserId != ''">
+                    AND tbo.user_id = #{currentUserId}
+                </if>
+                <if test="custId != null and custId != ''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务总监或财务或公司领导或集团领导或业务部长及总监-->
+            <when test="typeQx == 3">
+                <if test="deptIds !=null and deptIds != ''">
+                    AND tbo.depat_id in (${deptIds})
+                </if>
+                <!--type==3表示查看自己的未到款页面-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    AND tbo.user_id = #{currentUserId}
+                </if>
+                <!--type==4表示查看客户的未到款页面-->
+                <if test="custId != null and custId != ''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <otherwise>
+                and tbo.id = 0
+            </otherwise>
+        </choose>
+        <if test="custName != null and custName != ''">
+            AND tbo.cust_name like concat('%',#{custName},'%')
+        </if>
+        <if test="companyName != null and companyName != ''">
+            AND tbo.company_name like concat('%',#{companyName},'%')
+        </if>
+        <if test="userName != null and userName != ''">
+            AND tbo.user_name like concat('%',#{userName},'%')
+        </if>
+    </sql>
+    <select id="listAllNotIncome" resultType="java.util.Map">
+        SELECT
+          sd.id,
+          sd. NAME AS deptName,
+          sd. LEVEL as `level`,
+          sd.parent_id AS parent,
+          sd.company_code AS companyCode,
+          tt.`month`,
+          IFNULL(tt.sale, 0) AS sale,
+          IFNULL(tt.income, 0) AS income,
+          IFNULL(tt.notIncome, 0) AS notIncome,
+          IFNULL(tt.yqIncome, 0) AS yqIncome,
+          IFNULL(tt.profit, 0) AS profit
+        FROM
+          sys_dept sd
+        LEFT JOIN (
+        SELECT
+          tbo.depat_id AS deptId,
+          MONTH (tba.issued_date) AS `month`,
+          sum(tba.sale_amount) AS sale,
+          sum(tba.income_amount) AS income,
+          sum(
+          CASE
+          WHEN tba.income_states = 1 THEN
+          0
+          ELSE
+          tba.sale_amount - tba.income_amount
+          END
+          ) AS notIncome,
+          sum(
+          CASE
+          WHEN tba.income_states = 1 THEN
+          0
+          WHEN TIMESTAMPDIFF(DAY, tba.promise_date, now()) > 0 THEN
+          (
+          tba.sale_amount - tba.income_amount
+          )
+          ELSE
+          0
+          END
+          ) AS yqIncome,
+          sum(tba.profit) AS profit
+        FROM
+          t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        WHERE
+          tbo.state > -2
+        AND tbo.cust_id IS NOT NULL
+        AND tba.state = 1
+        AND tba.issue_states = 4
+        AND YEAR (tba.issued_date) = #{year}
+        AND MONTH (tba.issued_date) <![CDATA[>=]]> #{monthStart}
+        AND MONTH (tba.issued_date) <![CDATA[<=]]> #{monthEnd}
+        <include refid="notIncomeCondition1"/>
+        GROUP BY
+        tbo.depat_id,
+        MONTH (tba.issued_date)
+        ) tt ON tt.deptId = sd.id
+        WHERE
+        sd.state > -2
+        AND sd. CODE = 'YW'
+        <if test="qxCompanyCode != null and qxCompanyCode != ''">
+            AND sd.company_code = #{qxCompanyCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND sd.company_code = #{companyCode}
+        </if>
+        <if test="(typeQx == 2 or typeQx == 3) and deptIds != null and deptIds != ''">
+            AND sd.id in (${deptIds})
+        </if>
+        <if test="deptNameYear != null and deptNameYear != ''">
+            AND sd.name like concat('%',#{deptNameYear},'%')
+        </if>
+        <if test="type != 2">
+            <if test="deptName != null and deptName != ''">
+                AND sd.name like concat('%',#{deptName},'%')
+            </if>
+        </if>
+        ORDER BY
+        sd.`level` DESC,
+        sd.id DESC
+    </select>
+    <select id="listAllNotIncomeYear" resultType="java.util.Map">
+        SELECT
+        sd.id,
+        sd. NAME AS deptName,
+        sd. LEVEL as `level`,
+        sd.parent_id AS parent,
+        sd.company_code AS companyCode,
+        tt.`year` as `month`,
+        IFNULL(tt.sale, 0) AS sale,
+        IFNULL(tt.income, 0) AS income,
+        IFNULL(tt.notIncome, 0) AS notIncome,
+        IFNULL(tt.yqIncome, 0) AS yqIncome,
+        IFNULL(tt.profit, 0) AS profit
+        FROM
+        sys_dept sd
+        LEFT JOIN (
+        SELECT
+        tbo.depat_id AS deptId,
+        YEAR (tba.issued_date) AS `year`,
+        sum(tba.sale_amount) AS sale,
+        sum(tba.income_amount) AS income,
+        sum(
+        CASE
+        WHEN tba.income_states = 1 THEN
+        0
+        ELSE
+        tba.sale_amount - tba.income_amount
+        END
+        ) AS notIncome,
+        sum(
+        CASE
+        WHEN tba.income_states = 1 THEN
+        0
+        WHEN TIMESTAMPDIFF(DAY, tba.promise_date, now()) > 0 THEN
+        (
+        tba.sale_amount - tba.income_amount
+        )
+        ELSE
+        0
+        END
+        ) AS yqIncome,
+        sum(tba.profit) AS profit
+        FROM
+        t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        WHERE
+        tbo.state > -2
+        AND tbo.cust_id IS NOT NULL
+        AND tba.state = 1
+        AND tba.issue_states = 4
+        AND YEAR (tba.issued_date) <![CDATA[>=]]> #{yearStart}
+        AND YEAR (tba.issued_date) <![CDATA[<=]]> #{yearEnd}
+        <include refid="notIncomeCondition1"/>
+        GROUP BY
+        tbo.depat_id,
+        YEAR (tba.issued_date)
+        ) tt ON tt.deptId = sd.id
+        WHERE
+        sd.state > -2
+        AND sd. CODE = 'YW'
+        <if test="qxCompanyCode != null and qxCompanyCode != ''">
+            AND sd.company_code = #{qxCompanyCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND sd.company_code = #{companyCode}
+        </if>
+        <if test="(typeQx == 2 or typeQx == 3) and deptIds != null and deptIds != ''">
+            AND sd.id in (${deptIds})
+        </if>
+        <if test="deptNameYear != null and deptNameYear != ''">
+            AND sd.name like concat('%',#{deptNameYear},'%')
+        </if>
+        <if test="type != 2">
+            <if test="deptName != null and deptName != ''">
+                AND sd.name like concat('%',#{deptName},'%')
+            </if>
+        </if>
+        ORDER BY
+        sd.`level` DESC,
+        sd.id DESC
+    </select>
+
+<!--    <select id="queryAllSaleByType"  resultType="java.util.Map">
+        select
+        <if test="type > 0">
+            b.depat_id deptId,
+            c.parent_id parentDeptId,
+            c.name deptName,
+            c.level level,
+        </if>
+        <if test="type > 2">
+            b.user_id userId,
+            b.user_name userName,
+        </if>
+        <if test="type==4">
+            b.cust_id custId,
+            b.cust_name custName,
+            b.company_id companyId,
+            b.company_name companyName,
+        </if>
+        c.company_code companyCode,
+        sum(a.sale_amount) sale,
+        sum(a.income_amount) income,
+        sum(a.taxes) tax,
+        sum(a.outgo_amount) outgo,
+        sum(a.refund_amount) refund,
+        sum(a.other_pay) otherPay,
+        sum(a.profit) profit,
+        sum(a.commission) comm
+        from t_biz_article a
+        left join t_biz_order b on a.order_id=b.id and b.state>-2
+        left join sys_dept c on b.depat_id=c.id
+        where a.state>-2 and YEAR (a.issued_date) = #{year} and MONTH (a.issued_date) = #{month}
+        <include refid="notIncomeCondition"/>
+        group by
+        <if test="type > 2">
+            b.user_id,
+            b.user_name,
+        </if>
+        <if test="type==4">
+            b.cust_id,
+            b.cust_name,
+            b.company_id,
+            b.company_name,
+        </if>
+        <if test="type > 0">
+            b.depat_id,
+            c.parent_id,
+            c.name,
+            c.level
+        </if>
+        order by c.id
+    </select>-->
+    <select id="queryAllParentSaleByTypeAndLevel"  resultType="java.util.Map">
+        select  * from  (
+        SELECT
+        t.deptId deptId,
+        max(t.deptName) deptName,
+        t.companyCode companyCode,
+        sum(t.sale) sale,
+        sum(t.income) income,
+        sum(t.tax) tax,
+        sum(t.outgo) outgo,
+        sum(t.refund) refund,
+        sum(t.otherPay) otherPay,
+        sum(t.profit) profit,
+        sum(t.comm) comm
+        FROM
+        (
+        SELECT
+        c.id deptId,
+        c. NAME deptName,
+        c.company_code companyCode,
+        a.sale_amount sale,
+        a.income_amount income,
+        a.taxes tax,
+        a.outgo_amount outgo,
+        a.refund_amount refund,
+        a.other_pay otherPay,
+        a.profit profit,
+        a.commission comm
+        FROM
+        sys_dept c
+        LEFT JOIN t_biz_order b ON b.depat_id = c.id AND b.state >- 2
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year} and MONTH (a.issued_date) = #{month}
+        where c.state>-2 AND c.code='YW' AND c. LEVEL = 3
+        <include refid="saleStatCondition"/>
+        union All
+        SELECT
+        c.parent_id deptId,
+        '' as deptName,
+        c.company_code companyCode,
+        a.sale_amount sale,
+        a.income_amount income,
+        a.taxes tax,
+        a.outgo_amount outgo,
+        a.refund_amount refund,
+        a.other_pay otherPay,
+        a.profit profit,
+        a.commission comm
+        FROM
+        sys_dept c
+        LEFT JOIN t_biz_order b ON b.depat_id = c.id AND b.state >- 2
+        left join t_biz_article a on a.order_id=b.id and a.state = 1 and a.issue_states = 4  and YEAR (a.issued_date) = #{year} and MONTH (a.issued_date) = #{month}
+        where c.state>-2 AND c.code='YW' AND c. LEVEL = 4
+        <include refid="saleStatCondition"/>
+        ) t
+        GROUP BY
+        t.deptId,
+        t.companyCode) tt
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                sale desc
+            </otherwise>
+        </choose>
+    </select>
+    <select id="queryAllSaleByTypeAndLevel"  resultType="java.util.Map">
+        select  * from  (
+        select
+        <if test="type==3">
+            b.user_id userId,
+            b.user_name userName,
+        </if>
+        c.id deptId,
+        c.parent_id parentDeptId,
+        c.name deptName,
+        c.level level,
+        c.company_code companyCode,
+        sum(a.sale_amount) sale,
+        sum(a.income_amount) income,
+        sum(a.taxes) tax,
+        sum(a.outgo_amount) outgo,
+        sum(a.refund_amount) refund,
+        sum(a.other_pay) otherPay,
+        sum(a.profit) profit,
+        sum(a.commission) comm
+        from t_biz_article a
+        left join t_biz_order b on a.order_id = b.id and b.state > -2
+        left join sys_dept c on b.depat_id = c.id and c.state > -2 AND c.code = 'YW'
+        where a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year} and MONTH (a.issued_date) = #{month}
+        <if test="type==1 or type==2">
+            and c.level=#{level}
+        </if>
+        <include refid="saleStatCondition"/>
+        group by
+        <if test="type==3">
+            b.user_id,
+            b.user_name,
+        </if>
+            c.id,
+            c.parent_id,
+            c.name,
+            c.level)t
+        order by
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                sale desc
+            </otherwise>
+        </choose>
+    </select>
+    <select id="queryAllSaleByTypeAndLevelSum"  resultType="java.util.Map">
+        select
+        sum(a.sale_amount) sale,
+        sum(a.income_amount) income,
+        sum(a.taxes) tax,
+        sum(a.outgo_amount) outgo,
+        sum(a.refund_amount) refund,
+        sum(a.other_pay) otherPay,
+        sum(a.profit) profit,
+        sum(a.commission) comm
+        from t_biz_article a
+        left join t_biz_order b on a.order_id=b.id and b.state> -2
+        left join sys_dept c on b.depat_id = c.id and c.state > -2 AND c.code = 'YW'
+        where a.state = 1 and a.issue_states = 4 and YEAR (a.issued_date) = #{year} and MONTH (a.issued_date) = #{month}
+        <if test="type==2">
+            and c.level=#{level}
+        </if>
+        <include refid="saleStatCondition"/>
+        group by
+        YEAR (a.issued_date),
+        MONTH (a.issued_date)
+    </select>
+    <sql id="saleStatCondition">
+        <choose>
+            <!--当前用户是业务员或业务助理，如果没有选择查看类型就是默认看自己的未到款-->
+            <when test="typeQx == 1">
+                AND b.user_id = #{userId}
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务组长，默认看自己部门的未到款-->
+            <when test="typeQx == 2">
+                AND b.depat_id in (${deptIds}) AND c.level = #{level}
+                <if test="currentUserId!=null and currentUserId!=''">
+                    AND b.user_id = #{currentUserId}
+                </if>
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务总监或财务或公司领导或集团领导或业务部长及总监-->
+            <when test="typeQx == 3">
+                <if test="deptIds!=null and deptIds!='' and type!=2">
+                    AND b.depat_id in (${deptIds})
+                </if>
+                <!--type==3表示查看自己的未到款页面-->
+                <if test="currentUserId!=null and currentUserId!=''">
+                    AND b.user_id = #{currentUserId}
+                </if>
+                <!--type==4表示查看客户的未到款页面-->
+                <if test="custId!=null and custId!=''">
+                    AND b.cust_id = #{custId}
+                </if>
+            </when>
+            <otherwise>
+                and b.id = 0
+            </otherwise>
+        </choose>
+        <if test="custName!=null and custName!=''">
+            AND b.cust_name like concat('%',#{custName},'%')
+        </if>
+        <if test="companyName!=null and companyName!=''">
+            AND b.company_name like concat('%',#{companyName},'%')
+        </if>
+        <if test="qxCompanyCode!=null and qxCompanyCode!=''">
+            AND c.company_code = #{qxCompanyCode}
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            AND c.company_code = #{companyCode}
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND b.user_name like concat('%',#{userName},'%')
+        </if>
+        <!--type==2时，按业务组查询，使用deptName1参数，其他用deptName参数-->
+        <if test="type!=2">
+            <if test="deptName!=null and deptName!=''">
+                AND c.name like concat('%',#{deptName},'%')
+            </if>
+        </if>
+        <if test="type==2">
+            <if test="deptName1!=null and deptName1!=''">
+                AND c.name like concat('%',#{deptName1},'%')
+            </if>
+        </if>
+    </sql>
+
+    <!--业绩统计：查询所有部门的汇总数据-->
+    <sql id="saleStatCondition1">
+        <choose>
+            <!--当前用户是业务员或业务助理，如果没有选择查看类型就是默认看自己的未到款-->
+            <when test="typeQx == 1">
+                AND tbo.user_id = #{userId}
+                <if test="custId != null and custId != ''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务组长，默认看自己部门的未到款-->
+            <when test="typeQx == 2">
+                AND tbo.depat_id in (${deptIds})
+                <if test="currentUserId != null and currentUserId != ''">
+                    AND tbo.user_id = #{currentUserId}
+                </if>
+                <if test="custId != null and custId != ''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <!--当前用户是业务总监或财务或公司领导或集团领导或业务部长及总监-->
+            <when test="typeQx == 3">
+                <if test="deptIds != null and deptIds != ''">
+                    AND tbo.depat_id in (${deptIds})
+                </if>
+                <!--type==3表示查看自己的未到款页面-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    AND tbo.user_id = #{currentUserId}
+                </if>
+                <!--type==4表示查看客户的未到款页面-->
+                <if test="custId!=null and custId!=''">
+                    AND tbo.cust_id = #{custId}
+                </if>
+            </when>
+            <otherwise>
+                and tbo.id = 0
+            </otherwise>
+        </choose>
+        <if test="custName != null and custName != ''">
+            AND tbo.cust_name like concat('%',#{custName},'%')
+        </if>
+        <if test="companyName != null and companyName != ''">
+            AND tbo.company_name like concat('%',#{companyName},'%')
+        </if>
+        <if test="userName != null and userName != ''">
+            AND tbo.user_name like concat('%',#{userName},'%')
+        </if>
+    </sql>
+    <select id="listAllSaleByParam" resultType="java.util.Map">
+        SELECT
+	      sd.id,
+	      sd. NAME AS deptName,
+	      sd. LEVEL AS level,
+	      sd.parent_id as parent,
+	      IFNULL(tt.sale, 0) AS sale,
+	      IFNULL(tt.income, 0) AS income,
+	      IFNULL(tt.tax, 0) AS tax,
+	      IFNULL(tt.outgo, 0) AS outgo,
+	      IFNULL(tt.refund, 0) AS refund,
+	      IFNULL(tt.otherPay, 0) AS otherPay,
+	      IFNULL(tt.profit, 0) AS profit,
+	      IFNULL(tt.comm, 0) AS comm
+        FROM
+	      sys_dept sd
+        LEFT JOIN (
+        	SELECT
+        		tbo.depat_id AS deptId,
+        		SUM(tba.sale_amount) AS sale,
+        		SUM(tba.income_amount) AS income,
+        		SUM(tba.taxes) AS tax,
+        		SUM(tba.outgo_amount) AS outgo,
+        		SUM(tba.refund_amount) AS refund,
+        		SUM(tba.other_pay) AS otherPay,
+        		SUM(tba.profit) AS profit,
+        		SUM(tba.commission) AS comm
+        	FROM
+        		t_biz_article tba
+        	INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        	WHERE
+        		tbo.state > -2
+        	AND tba.state = 1
+        	AND tba.issue_states = 4
+        	AND YEAR (tba.issued_date) = #{year}
+        	AND MONTH (tba.issued_date) = #{month}
+        	<include refid="saleStatCondition1"/>
+        	GROUP BY
+        		tbo.depat_id
+        ) tt ON tt.deptId = sd.id
+        WHERE
+        	sd.state > -2
+        AND sd. CODE = 'YW'
+        <if test="(typeQx == 2 or typeQx == 3) and deptIds != null and deptIds != ''">
+            AND sd.id in (${deptIds})
+        </if>
+        <if test="qxCompanyCode != null and qxCompanyCode != ''">
+            AND sd.company_code = #{qxCompanyCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND sd.company_code = #{companyCode}
+        </if>
+        <if test="type != 2">
+            <if test="deptName != null and deptName != ''">
+                AND sd.name like concat('%',#{deptName},'%')
+            </if>
+        </if>
+        ORDER BY
+        	sd.`level` DESC,
+        	sd.id DESC
+    </select>
+
+</mapper>

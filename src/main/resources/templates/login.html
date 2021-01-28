@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="${AppName}">系统登录</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <!--插件样式-->
+    <link href="/css/plugins/imgSmooth/img_smooth_check.css" type="text/css" rel="stylesheet" />
+
+    <script type="text/javascript" src="/js/imgSmooth/img_smooth_check.js"></script>
+
+    <script type="text/javascript" src="js/plugins/jparticle.jquery.js"></script>
+    <!--<script src="/js/jquery.cookie.js"></script>-->
+
+    <style type="text/css">
+        #users > img {
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1px solid #16A085;
+            width: 50px;
+            height: 50px;
+            margin: 5px 23px;
+            background-color: #16A085;
+            outline: 0px;
+        }
+
+        #users > img:hover {
+            border: 1px solid deeppink;
+        }
+
+        .login_box {
+            background-color: white;
+            width: 420px;
+            position: absolute;
+            right: 360px;
+            margin-top: 260px;
+            border-radius: 5px;
+            border: 1px solid #f1eee9;
+        }
+
+        .login_box_content {
+            width: 320px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .login_box_tab {
+            width: 100%;
+            height: 42px;
+            line-height: 42px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .login_box_tab a {
+            display: block;
+            width: 50%;
+            float: left;
+        }
+
+        #login-box {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: absolute;
+            top: 40px;
+            left: 0;
+            z-index: 2;
+            opacity: 0.1;
+            /*兼容IE8及以下版本浏览器*/
+            filter: alpha(opacity=30);
+            display: none;
+        }
+
+        #log_window {
+            margin: auto;
+            position: absolute;
+            top: 150px;
+            left: 160px;
+            display: none;
+            border-radius: 50%;
+            height: 90px;
+            width: 90px;
+            background-color: white;
+            cursor: pointer;
+            padding: 20px;
+            z-index: 100;
+            box-shadow: 4px 4px 15px #666;
+        }
+
+        #msg {
+            padding: 10px;
+        }
+
+        .qc_expired {
+            opacity: 0.1;
+        }
+
+        .form-control-feedback-my{
+            position: absolute;
+            top: 4px;
+            right: 0;
+            z-index: 200;
+            display: block;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            pointer-events: auto;
+           cursor: pointer;
+        }
+
+        .form-control-feedback-update{
+            position: absolute;
+            top: 0;
+            right: 8px;
+            z-index: 200;
+            display: block;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .btn_begin{
+            border: 1px solid #e4e7eb;
+            background-color: #f7f9fa;
+            color: black;
+        }
+        .btn_begin:hover{
+            color:#1991fa;
+        }
+        .btn_success{
+            color: #52ccba;
+            border-color: #52ccba;
+            background-color: #d2f4ef;
+        }
+
+
+        #fmLogin .btn-control {
+            position: absolute;
+            top: 50%;
+            right: 0px;
+            transform: translateY(-50%);
+            color: #3399ea
+        }
+    </style>
+    <!-- iCheck -->
+    <script src="js/plugins/iCheck/icheck.min.js"></script>
+    <script>if (window.top !== window.self) {
+        window.top.location = window.location;
+    }
+    var date = new Date();
+    var month = date.getMonth();
+    var time = 60000;
+    var InterValObj;
+
+    function shield() {
+        $("#login-box").show();
+        $("#log_window").show();
+        $("#code").addClass("qc_expired");
+        // $("#code").css("opacity", "0.1");
+        $("#msg").text("二维码失效，点击刷新");
+        clearInterval(InterValObj);
+    }
+
+    function cancel_shield() {
+        $("#code").attr("src", $("#code").attr("src"));
+        $("#code").removeClass("qc_expired");
+        $("#login-box").hide();
+        $("#log_window").hide();
+        $("#msg").text("请使用手机客户端扫码登录");
+        setTimeout(function () {
+            shield();
+        }, time);
+        InterValObj = setInterval(function () {
+            sacnLogin();
+        }, 2000);
+    }
+
+    function refreshCode() {
+        $("#verifyCodeImgae").attr("src", "/code/image?" + Math.random());
+    }
+
+    /**
+     * 扫码登录
+     */
+    function sacnLogin() {
+        $.get("/code/authValidate", function (data) {
+            if (data.code === 200) {
+                clearInterval(InterValObj);
+                var params = new Object();
+                params.userName = data.data.userName;
+                params.password = data.data.password;
+                $.post("user/login", params, function (data) {
+                    if (data.code === 200) {
+                        location.href = '/';
+                    } else {
+                        swal(data.msg);
+                    }
+                }, "json");
+            } else {
+                console.info("fail   ====");
+            }
+        });
+    }
+
+    
+    $(function () {
+        refreshCode();
+        if (month >= 2 && month < 5) {
+            $("body").css({"background-image": 'url("/img/background_spring.png")'});
+        } else if (month >= 5 && month < 8) {
+            $("body").css({"background-image": 'url("/img/background_summer.png")'});
+        } else if (month >= 8 && month < 11) {
+            $("body").css({"background-image": 'url("/img/background_autumn.png")'});
+        } else {
+            $("body").css({"background-image": 'url("/img/background_winter.png")'});
+        }
+        setTimeout(function () {
+            shield();
+        }, time);
+
+
+/*        $("#password").mouseleave(function(){
+        	$.ajax({
+                type: "post",
+                url: baseUrl + "/user/login/checkNeedSms",
+                data: {
+                    userName: $("#userName").val(),
+                    password: $("#password").val()
+                },
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 200) {
+                    	swal("无需输入手机验证码可直接登录");
+                    } 
+                },
+                error: function () {
+                    swal("系统异常，请联系管理员！");
+                }
+            });
+        	
+        	
+        });
+         */
+        
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+        var flag = localStorage.getItem("remember");//是否记住密码
+        $("#remember").iCheck(flag == 'true' ? "check" : 'uncheck');
+        var users = localStorage.getItem("users");
+        if (users != null && users != "null" && users != "") {
+            var json = JSON.parse(users);
+            $("#users>img").each(function (i, d) {
+                if (json.length > i) {
+                    // 记住我取值
+                    if (localStorage.getItem('remember') && i == 0) {
+                        $("#remember").attr("checked", true);
+                        $("#userName").val(json[json.length - 1 - i].name);
+                        // $("#password").val(json[json.length - 1 - i].pwd);
+                    }
+                    var imgUrl = json[json.length - 1 - i].image;
+                    //当文件路径是图片格式路径时，才进行设置图片src属性，否则使用默认src
+                    if (imgUrl && "gif|jpg|jpeg|png".indexOf(imgUrl.substr(imgUrl.lastIndexOf(".") + 1).toLowerCase()) > -1) {
+                        $(this).attr("src", json[json.length - 1 - i].image);
+                    }
+                    $(this).attr("title", json[json.length - 1 - i].name);
+                }
+            });
+        }
+
+        $("#users>img").each(function (i, d) {
+            if ($(this).attr("title")) {
+                $(this).click(function (d) {
+                    $("#users>img").each(function (j, d) {
+                        if (i == j)
+                            $(this).css('border', "1px solid red");
+                        else
+                            $(this).css('border', "none");
+                    });
+                    var title = $(this).attr("title");
+                    var users = localStorage.getItem("users");
+                    var json = JSON.parse(users);
+                    for (var k in json) {
+                        if (json[k].name == title) {
+                            $("#userName").val(json[k].name);
+                            // $("#password").val(json[k].pwd);
+                        }
+                    }
+                    $("#btnLogin").click();
+                });
+            } else {
+                $(this).css({"border": "0px", "cursor": "default"});
+            }
+        });
+
+        // $.cookie("users",null);
+        
+        // 后面写录入短信验证码
+        $("#btnLogin").click(function () {
+            if ($("#fmLogin").valid()) {
+            	//TODO 验证验证码发送
+              /*   var validateStatus = $("#slideValidate").attr("value");
+                if(validateStatus!== 'true'){
+                    swal("请完善相关验证");
+                    return ;
+                } */
+                var checkFlag = $("#remember").is(':checked');
+                var params = $("#fmLogin").serializeJson();
+                // var pwd = $("#password").val();
+                // var reg = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,.\/]).{6,16}$/;
+                // var flag = reg.test(pwd);
+                // if (flag == false) {
+                //     $('#myModal').modal('show');
+                //     return;
+                // }
+                $.post("user/login", params, function (data) {
+                    if (data.code != 200) {
+                        if (data.code === 1002) {
+                            //$("#oldpassword").val($("#password").val());
+                            $('#myModal').modal('show');
+                        } else {
+                            errorDel();
+                            swal(data.msg);
+                        }
+                        refreshCode();
+                    } else {
+                        var data1 = data.data;
+                        var users = localStorage.getItem("users");
+                        var json = [];
+                        if (users != null && users != 'null') {
+                            json = JSON.parse(users);
+                            var flag = true;
+                            for (var k in json) {//遍历json数组时，这么写p为索引，0,1
+                                if (json[k].name == params.userName) {
+                                    json[k] = {"name": params.userName, "pwd": params.password, "image": data1.image};
+                                    flag = false;
+                                }
+                            }
+                        }
+                        var data = {"name": params.userName, "pwd": params.password, "image": data1.image};
+
+                        if (checkFlag && flag) {
+                            if (JSON.parse(users).length < 3)
+                                json.push(data);
+                            else {
+                                json[0] = json[1];
+                                json[1] = json[2];
+                                json[2] = data;
+                            }
+                        }
+                        localStorage.setItem("users", JSON.stringify(json));
+                        localStorage.setItem("remember", checkFlag);
+                        location.href = '/';
+                    }
+                }, "json");
+            }
+        }); 
+        //回车提交事件
+        $(".login_box").keydown(function (evt) {
+            evt = (evt) ? evt : ((window.event) ? window.event : "");
+            var curKey = evt.keyCode ? evt.keyCode : evt.which;
+            if (curKey == 13) {//keyCode=13是回车键
+                $("#btnLogin").click();
+            }
+        });
+
+        $("#modal-content").keydown(function (evt) {
+            evt = (evt) ? evt : ((window.event) ? window.event : "");
+            var curKey = evt.keyCode ? evt.keyCode : evt.which;
+            if (curKey == 13) {//keyCode=13是回车键
+                $("#submit").click();
+            }
+        });
+
+        $("#aUserLogin").click(function () {
+            $("#scanLogin").css({"color": "#b9d2cd", "border-bottom": "1px solid #b9d2cd"});
+            $("#aUserLogin").css({"color": "#16a085", "border-bottom": "1px solid #16a085"});
+            $("#scanCode").hide();
+            $("#userLogin").show();
+            clearInterval(InterValObj);
+        });
+
+        $(".eyeClick").click(function(){
+           if($(this).hasClass("glyphicon-eye-open")){
+               $(this).parent().find("input:eq(0)").attr("type",'password');
+               $(this).removeClass("glyphicon-eye-open");
+               $(this).addClass("glyphicon-eye-close");
+           } else{
+               $(this).parent().find("input:eq(0)").attr("type",'text');
+               $(this).removeClass("glyphicon-eye-close");
+               $(this).addClass("glyphicon-eye-open");
+           }
+        });
+
+        $("#scanLogin").click(function () {
+            $("#scanCode").show();
+            $("#userLogin").hide();
+            $("#scanLogin").css({"color": "#16a085", "border-bottom": "1px solid #16a085"});
+            $("#aUserLogin").css({"color": "#b9d2cd", "border-bottom": "1px solid #b9d2cd"});
+
+            InterValObj = setInterval(function () {
+                sacnLogin();
+            }, 2000);
+        })
+
+        // 记住用户名
+        $("#remember").click(function () {
+            if (this.checked) {
+                $("#userName").val("");
+                $("#password").val("");
+            }
+        });
+
+        $("#submit").click(function () {
+            var newpwd = $("#password1").val();
+            var reg = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,.\/]).{6,16}$/;
+            var flag = reg.test(newpwd);
+            if (flag == false) {
+                alert("新密码必须由 6-16位字母、数字、特殊符号线组成.");
+                return;
+            }
+            var userName = $("#userName").val();
+            var oldpassword = $("#oldpassword").val();
+            var password1 = $("#password1").val();
+            var password2 = $("#password2").val();
+            if ($("#form").valid()) {
+                if (password1 == password2) {
+                    $.ajax({
+                        type: "post",
+                        url: baseUrl + "/user/forceUpdatePwd",
+                        data: {
+                            userName: userName,
+                            oldpassword: oldpassword,
+                            password1: password1,
+                            password2: password2
+                        },
+                        dataType: "json",
+                        success: function (data) {
+                            if (data.code == 200) {
+                                // layer.msg(data.data.message, {time: 1000, icon:6});
+                                // setTimeout(function(){
+                                //     window.parent.location.href = "/";
+                                // },1000);
+                                layer.alert(data.data.message);
+                                layer.confirm('密码修改成功，请重新登录！', {
+                                    btn: ['确定'], //按钮
+                                    shade: false //不显示遮罩
+                                }, function () {
+                                    // window.location.href = "/login";
+                                    $("#userName").val(userName);
+                                    $("#password").val("");
+                                    $("#verifyCode").val("");
+                                    refreshCode();
+                                    $('#myModal').modal('hide');
+                                    layer.close(layer.index);
+                                });
+                            } else {
+                                if ($("#form").valid()) {
+                                    layer.alert(data.msg);
+                                    initInfo();
+                                    // $("#myModal").modal('hide');
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    parent.layer.alert("新密码、确认新密码，两次密码输入不一致");
+                }
+            }
+        });
+
+
+        // 浏览器最大化、最小化事件监听
+        // window.onresize = function () {
+        //     setLoginPosition();
+        // }
+        setLoginPosition();
+
+        // 设置登录元素居中；
+        function setLoginPosition() {
+            var height = document.documentElement.clientHeight || document.body.clientHeight;
+            var width = document.documentElement.clientWidth || document.body.clientWidth;
+            var logo_wrap = $("#login > div");
+            var margin_top = (height - 456) / 2;
+            var margin_left = (width - 330) / 2;
+            logo_wrap.css("margin-top", margin_top + "px");
+            logo_wrap.css("margin-left", margin_left + "px");
+
+        }
+    });
+    //验证
+    $.validator.setDefaults({
+        highlight: function (e) {
+            $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+        }, success: function (e) {
+            e.closest(".form-group").removeClass("has-error").addClass("has-success")
+        }, errorElement: "span", errorPlacement: function (e, r) {
+            e.appendTo(r.is(":radio") || r.is(":checkbox") ? r.parent().parent().parent() : r.parent())
+        }, errorClass: "help-block m-b-none", validClass: "help-block m-b-none"
+    }),
+    $().ready(function () {
+        var e = "<i class='fa fa-times-circle'></i> ";
+        $("#fmLogin").validate({
+            rules: {
+                userName: {required: !0, minlength: 2, maxlength: 50},
+                password: {required: !0, minlength: 3, maxlength: 50},
+            },
+            messages: { 
+                userName: {required: e + "请输入用户名", minlength: e + "用户名长度必须大于{0}个字符", maxlength: e + "用户名长度必须小于{0}个字符"},
+                password: {required: e + "请输入密码", minlength: e + "密码长度必须大于{0}个字符", maxlength: e + "密码长度必须小于{0}个字符"},
+
+            }
+        });
+    });
+    
+  
+
+    </script>
+</head>
+
+<body>
+
+<div id="login">
+    <div class="login_box">
+        <div class="login_box_tab">
+            <a style="color: #16a085; border-bottom: 1px solid #16a085;" id="aUserLogin">
+                账号登录
+            </a>
+            <a style="color: #b9d2cd; border-bottom: 1px solid #b9d2cd;" id="scanLogin">
+                扫码登录<img src="/img/erweimadenglu.png" style="float: right;"/>
+            </a>
+        </div>
+
+
+        <div class="login_box_content" style="display:block" id="userLogin">
+            <h2>欢迎使用<span data-th-text="${AppName}"></span></h2>
+            <div id="users">
+                <img border="0" src="/img/mrtx_2.png"/>
+                <img border="0" src="/img/mrtx_2.png"/>
+                <img border="0" src="/img/mrtx_2.png"/>
+            </div>
+            <div class="widgets__img_check_box" id="select" style="display: none">
+                <div class="widgets__img_display">
+                    <div class="widgets__img_cnt">
+                        <img src1="a.jpg" class="widgets__img_src" />
+                        <canvas class="widgets__img_fragment_hollow"></canvas>
+                        <div class="widgets__img_fragment_cnt">
+                            <canvas class="widgets__img_fragment widgets__img_fragment_shadow"></canvas>
+                            <canvas class="widgets__img_fragment widgets__img_fragment_content"></canvas>
+                        </div>
+                        <div class="widgets__icon_refresh"><span class="glyphicon glyphicon-refresh"></span></div>
+                    </div>
+                </div>
+
+                <div class="widgets__smooth_cnt">
+                    <div class="widgets__smooth_bar">
+                        <div  class="bar_left">
+
+                        </div>
+                        <div class="bar_right">
+                            向右拖动滑块填充拼图
+                        </div>
+                    </div>
+                    <div class="widgets__smooth_circle" id="circleId"><span class="glyphicon glyphicon-arrow-right"></span></div>
+                </div>
+            </div>
+            <form class="m-t" role="form" action="index.html" id="fmLogin" autocomplete="off">
+                <div class="form-group">
+                    <input type="text" id="userName" name="userName" class="form-control btn-danger" placeholder="用户名"
+                           required="" autocomplete="off" >
+                </div>
+                <div class="input-group form-group" style="display: block !important;height: 35px;">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="密码"
+                           required="" autoComplete="new-password">
+                    <span class="eyeClick glyphicon glyphicon-eye-close form-control-feedback-my" id="eye_open"></span>
+<!--                    <span class="eyeClick glyphicon glyphicon-eye-close form-control-feedback-my" id="eye_close"></span>-->
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-12" style="padding-left: 0; padding-right: 0">
+                        <div class="col-sm-6" style="padding-left: 0; padding-right: 0">
+                            <input type="text" id="verifyCode" name="verifyCode" class="form-control" 
+                                   oninput="repositionVerifyCode()"
+                                   placeholder="输入验证码" maxlength="6" tabindex="1">
+                        </div>
+                        <div class="col-sm-6" style="padding-left: 0; padding-right: 0">
+                            <button type=button class="btn btn-white btn-outline" style="display: block; width: 100%" id="sendVerifyCode" >获取验证码</button>
+                        </div>
+                    </div>
+                </div>
+<!--                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div class="col-sm-7">
+                            <input type="text" id="verifyCode1" name="verifyCode1" class="form-control" placeholder="验证码"
+                                   required="">
+                        </div>
+                        <div class="col-sm-5">
+                            &lt;!&ndash;<IMG id="verifyCodeImgae" src="/code/image" style="font-weight: inherit;cursor: pointer" onclick="refreshCode()">&ndash;&gt;
+                            <IMG id="verifyCodeImgae" style="font-weight: inherit;cursor: pointer"
+                                 onclick="refreshCode()" data-th-alt-title="点击刷新验证码">
+                        </div>
+                    </div>
+                </div>-->
+                <div class="form-group col-md-6">
+<!--                    <label class="checkbox-inline i-checks">-->
+<!--                        <input type="checkbox" id="remember" name="remember">记住密码</label>-->
+                </div>
+<!--                <div class="col-md-6">
+                    <a href="/regist" target="_blank" style="color:#999">入职申请</a>
+                </div>-->
+                <button type="button" id="btnLogin" class="btn btn-primary block full-width m-b">登 录</button>
+                <p class=" text-center" style="padding-bottom: 20px;">
+                    <a href="https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B83D1BF84-6BAB-10B9-55C7-95521579E093%7D%26lang%3Dzh-CN%26browser%3D4%26usagestats%3D1%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Ddefaultbrowser/update2/installers/ChromeSetup.exe"
+                       target="_blank" style="color:#999">推荐使用谷歌浏览器以获得最佳展示效果，点击此处跳转到下载页面。</a>
+                </p>
+            </form>
+        </div>
+
+
+        <div class="login_box_content" style="display:none" id="scanCode">
+            <IMG id="code" src="/code/login" style="font-weight: inherit">
+            <div id="log_window" onclick="cancel_shield()">
+                <i class="fa fa-refresh" style="font-size: 50px;" title="点击刷新二维码"></i>
+            </div>
+            <h3 id="msg">请使用手机客户端扫码登录</h3>
+            <h3 id="" style="padding:  0"><a href="/code/fileExport?fileName=android.apk">安卓版下载</a></h3>
+            <div id="login-box"></div>
+
+        </div>
+
+
+    </div>
+</div>
+
+
+<div class="modal inmodal" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight" id="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">安全级别较低,请修改密码</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="form" class="form-horizontal">
+                        <div class="row">
+
+                            <div class="form-group" style="display: block">
+                                <label class="col-sm-4 control-label">输入旧密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="oldpassword" name="oldpassword" required=""
+                                           class="form-control" placeholder="输入旧密码">
+                                    <span class="eyeClick glyphicon glyphicon-eye-close form-control-feedback-update" ></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">输入新密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="password1" name="password1" required=""
+                                           class="form-control" placeholder="输入新密码">
+                                    <span class="eyeClick glyphicon glyphicon-eye-close form-control-feedback-update" ></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">确认新密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="password2" name="password2" required=""
+                                           class="form-control" placeholder="确认新密码">
+                                    <span class="eyeClick glyphicon glyphicon-eye-close form-control-feedback-update" ></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submit">保存</button>
+                <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+<script>
+
+    var imageArray = ["img/test/t1.png", "img/test/t2.png", "img/test/t3.png","img/test/t4.png", "img/test/t5.png", "img/test/t6.png","img/test/t7.png", "img/test/t8.png",
+        "img/test/t9.png","img/test/t10.png", "img/test/t11.png", "img/test/t12.png","img/test/t13.png", "img/test/t14.png", "img/test/t15.png",
+        "img/test/t16.png", "img/test/t17.png", "img/test/t18.png","img/test/t19.png", "img/test/t20.png"];
+    $(".refresh").on("click", function () {
+        s.refresh();
+    });
+    
+    function daojishi(seconds){
+        if (seconds > 1){
+            seconds--;
+            document.getElementById("sendVerifyCode").innerHTML = seconds+"秒后可重新获取 ";
+            $("#sendVerifyCode").attr("disabled", true);
+            // $("#verifyCode").removeAttr("disabled", false);
+            // 定时1秒调用一次
+            setTimeout(function(){
+                daojishi(seconds);
+            },1000);
+        }else{
+            document.getElementById("sendVerifyCode").innerHTML = "免费获取验证码";
+            $("#sendVerifyCode").attr("disabled", false);
+            // $("#verifyCode").attr("disabled", true);
+        }
+    }
+    
+    
+    $("#sendVerifyCode").click(function () {
+        if($("#fmLogin").validate().element($("#userName")) & $("#fmLogin").validate().element($("#password"))){
+            $.ajax({
+                type: "post",
+                url: baseUrl + "/user/sendVerifyCode",
+                data: {
+                    userName: $("#userName").val(),
+                    password: $("#password").val()
+                },
+                dataType: "json",
+                success: function (data) {
+                    if (data.code == 200) {
+                        swal("验证码已发送到该账号绑定的手机号："+data.data.phone+"，请注意查收!");
+                        daojishi(60);
+                        document.getElementById("verifyCode").setAttribute("placeholder", data.data.count);
+                    } else if(data.code == 201){
+                        // 同ip直接登录
+                        $("#btnLogin").click();
+                    }else if(data.code == 1003){
+                        swal(data.msg);
+                    }else {
+                        swal("用户名或密码不正确，请确认用户名和密码后重试！");
+                    }
+                },
+                error: function () {
+                    swal("系统异常，请联系管理员！");
+                }
+            });
+        }
+    });
+    
+    function errorDel(){
+        $("#slideValidate").attr("value",false);
+        styleRollBack();
+        $("#slideValidate").removeClass("btn_success")
+        $("#slideValidate").addClass("btn_begin")
+        $("#slideValidate").text("请点击完成验证");
+    }
+    function validateSuccess(){
+        $("#slideValidate").attr("value",true);
+        $(".widgets__smooth_circle").css({"left":"0px"});
+        $(".widgets__img_fragment_cnt").css({"left":"0px"});
+        $("#select").css({"display":"none"});
+        $("#slideValidate").removeClass("btn_begin")
+        $("#slideValidate").addClass("btn_success")
+        $("#slideValidate").html("<span class='glyphicon glyphicon-ok' style='margin-right: 10px'></span>验证成功");
+    }
+    //样式回滚
+    function styleRollBack() {
+        $(".bar_right").text("向右拖动滑块填充拼图");
+        $(".bar_left").css({"width":0});
+        $(".widgets__smooth_circle").css({"left":"0px"});
+    }
+
+    function repositionVerifyCode(){
+        if($("#fmLogin").validate().element($("#verifyCode"))){
+            $("#sendVerifyCode").addClass("help-block");
+        }
+    }
+</script>
+</html>

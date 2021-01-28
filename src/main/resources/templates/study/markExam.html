@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>考试详情</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/courseExam.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/js/study/markExam.js"></script>
+    <style type="text/css">
+
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+                form.render();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="markWrap">
+        <div class="submitPaperBtn">
+            <button class="btn btn-primary" type="button" onclick="studentExamObj.submit();">
+                <i class="fa fa-arrow-circle-o-up"></i>&nbsp;提交
+            </button>
+        </div>
+
+        <!--整卷展示效果-->
+        <div class="paperWayWrap2" style="height: unset;flex: 1;">
+            <form id="answerCardForm2" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <input type="hidden" name="paperId">
+                <input type="hidden" name="answerCardId">
+                <!--试卷标题-->
+                <div class="paperTitleWrap">
+                    <div class="paperTitle" title="">
+
+                    </div>
+                    <div class="paperDesc">
+                        <span>考试分数：</span>
+                        <span class="studnetGrade"></span>
+                    </div>
+                    <div class="paperDesc">
+                        <span>试卷总分：</span>
+                        <span class="paperGrade"></span>
+                    </div>
+                    <div class="paperDesc">
+                        <span>学员用时：</span>
+                        <span class="studentTime"></span>
+                    </div>
+                    <div class="paperDesc">
+                        <span>考试时长：</span>
+                        <span class="paperTime"></span>
+                    </div>
+                </div>
+                <!--试卷内容-->
+                <div class="paperContentWrap">
+                    <!--<div class="questionTitleWrap">
+                        一、单项选择题(共4题20分)
+                    </div>
+                    <div class="questionContentWrap">
+                        &lt;!&ndash;题目基本信息&ndash;&gt;
+                        <div class="questionItem" >
+                            <input type="hidden" name="answerCardDetailId">
+                            <div class="questionTitleShow">
+                                <span>1、(<span class="quetionType">&nbsp;单选题&nbsp;</span>)</span>
+                                <span>这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题</span>
+                                <span>(<span class="questionGrade">&nbsp;25.0分&nbsp;</span>)</span>
+                                <span class="markBtn">
+                                    <i class="fa fa-edit"></i>&nbsp批阅
+                                </span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="A"  class="questionInput" title="A、"  disabled checked>
+                                        <span class="questionDesc questionInput">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="B"  class="questionInput" title="B、" >
+                                        <span class="questionDesc questionInput">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="A"  class="questionInput" title="C、" >
+                                        <span class="questionDesc questionInput">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="B"  class="questionInput" title="D、" >
+                                        <span class="questionDesc questionInput">dadadadada</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <span>得分：</span>
+                                <input type="text" class="form-control teacherGrade" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                <span>分</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="teacherRemark" placeholder="请输入批阅内容" class="layui-textarea questionInput"></textarea>
+                            </div>
+                        </div>
+                        <div class="questionItem" >
+                            <div class="questionTitleShow">
+                                <span>1、(<span class="quetionType">&nbsp;多选题&nbsp;</span>)</span>
+                                <span>这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题</span>
+                                <span>(<span class="questionGrade">&nbsp;25.0分&nbsp;</span>)</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="checkbox" value="A" class="questionInput" title="A、" lay-skin="primary" >
+                                        <span class="questionDesc questionInput" style="padding-top: 0px;">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="checkbox" value="B" class="questionInput" title="B、" lay-skin="primary" >
+                                        <span class="questionDesc questionInput" style="padding-top: 0px;">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="checkbox" value="A" class="questionInput" title="C、" lay-skin="primary" >
+                                        <span class="questionDesc questionInput" style="padding-top: 0px;">dadadadada</span>
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="checkbox" value="B" class="questionInput" title="D、" lay-skin="primary" >
+                                        <span class="questionDesc questionInput" style="padding-top: 0px;">dadadadada</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <span class="falseDesc">
+                                    <i class="fa fa-close"></i>
+                                    错误
+                                </span>
+                                <span class="trueDesc">
+                                    <i class="fa fa-check"></i>
+                                    正确
+                                </span>
+                                <span class="trueAnswerDesc">
+                                    正确答案：
+                                </span>
+                                <span class="trueAnswer">
+                                    AD
+                                </span>
+                                <span>得分：</span>
+                                <input type="text" class="form-control teacherGrade" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                <span>分</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="teacherRemark" placeholder="请输入批阅内容" class="layui-textarea questionInput"></textarea>
+                            </div>
+                        </div>
+                        <div class="questionItem" >
+                            <div class="questionTitleShow">
+                                <span>1、(<span class="quetionType">&nbsp;判断题&nbsp;</span>)</span>
+                                <span>这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题</span>
+                                <span>(<span class="questionGrade">&nbsp;25.0分&nbsp;</span>)</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="1" title="正确" class="questionInput" >
+                                    </div>
+                                    <div class="col-sm-12 answerItem">
+                                        <input name="xx" type="radio" value="0" title="错误" class="questionInput"  >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <span>得分：</span>
+                                <input type="text" class="form-control teacherGrade" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                <span>分</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="teacherRemark" placeholder="请输入批阅内容" class="layui-textarea questionInput"></textarea>
+                            </div>
+                        </div>
+                        <div class="questionItem" >
+                            <div class="questionTitleShow">
+                                <span>1、(<span class="quetionType">&nbsp;填空题&nbsp;</span>)</span>
+                                <span>这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题</span>
+                                <span>(<span class="questionGrade">&nbsp;25.0分&nbsp;</span>)</span>
+                            </div>
+                            <div class="questionAnswerDesc input-group m-b">
+                                <span class="input-group-addon">1</span>
+                                <textarea name="xx" placeholder="请输入答案" class="layui-textarea questionInput"></textarea>
+                            </div>
+                            <div class="questionAnswerDesc input-group m-b">
+                                <span class="input-group-addon">2</span>
+                                <textarea name="xx" placeholder="请输入答案" class="layui-textarea questionInput"></textarea>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <span>得分：</span>
+                                <input type="text" class="form-control teacherGrade" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                <span>分</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="teacherRemark" placeholder="请输入批阅内容" class="layui-textarea questionInput"></textarea>
+                            </div>
+                        </div>
+                        <div class="questionItem" >
+                            <div class="questionTitleShow">
+                                <span>1、(<span class="quetionType">&nbsp;问答题&nbsp;</span>)</span>
+                                <span>这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题这是一个单选题标题</span>
+                                <span>(<span class="questionGrade">&nbsp;25.0分&nbsp;</span>)</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="xx" placeholder="请输入答案" class="layui-textarea questionInput"></textarea>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <span>得分：</span>
+                                <input type="text" class="form-control teacherGrade" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                <span>分</span>
+                            </div>
+                            <div class="questionAnswerDesc">
+                                <textarea name="teacherRemark" placeholder="请输入批阅内容" class="layui-textarea questionInput"></textarea>
+                            </div>
+                        </div>
+                    </div>-->
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

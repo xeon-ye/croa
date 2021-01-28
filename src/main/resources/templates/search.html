@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{})">
+    <title>入职申请进度查询</title>
+
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/search.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <form id="searchForm">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">进度查询</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">查询码
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-10">
+                                    <input id="hiddenText" type="text" style="display:none"/>
+                                    <input type="text" id="validateCode" name="code" class="form-control"
+                                           placeholder="请输入系统提供的查询码" minlength="16" maxlength="16" required="true"
+                                           digits="true"/>
+                                </div>
+                                <div class="col-sm-1" style="float:right;">
+                                    <button type="button" id="dataSearch" onclick="searchData()"
+                                            class="btn btn-warning">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <form id="recoverForm">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">查询码找回</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">姓名
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="name" class="form-control"
+                                           placeholder="请输入姓名" required="true" maxlength="10" normalname="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">个人电话
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="phone" class="form-control"
+                                           placeholder="请输入个人联系电话" required="true" maxlength="11" phone="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">身份证
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="identity" class="form-control"
+                                           placeholder="请输入身份证号码" required="true" maxlength="18" indentity="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">验证码
+                                    <span style="color: red;">&nbsp;*</span>：
+                                </label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="code" name="code" class="form-control"
+                                           placeholder="请输入下方图片内容" required="true" maxlength="4" code="true"/>
+                                    <a href="#" onclick="refreshCode();return false;">
+                                        <img id="imageCode" src="/code/image"
+                                             style="border: 1px solid #B6BCBF;border-radius: 4px 4px 4px 4px;box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);width: 282px;height: 40px;margin-top: 5px;"/>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2" style="text-align: center;">
+                                    <button type="button" class="btn btn-primary" onclick="recoverData()">
+                                        <i class="fa fa-check"></i>&nbsp;&nbsp;提交
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4" style="left: 20px; top: 10px;">
+                                    <a href="/regist" style="color: red;font-weight: bold;font-size: 12px;">
+                                        * 点击此处返回入职申请登记页面。
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title" style="margin-top: -35px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="footer center">
+    <div class="col-md-4 text-left">
+        <label>version: </label><span class="text-danger">1.0.0</span>
+    </div>
+    <div class="col-md-4 text-center">
+        &copy; 2013-2019
+        <span data-th-text="${AppName}"></span>
+    </div>
+</div>
+</body>
+</html>

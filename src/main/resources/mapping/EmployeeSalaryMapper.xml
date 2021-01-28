@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工薪资； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeSalaryMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeSalary">
+        <id column="sal_id" jdbcType="INTEGER" property="salId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="trial_salary" jdbcType="REAL" property="trialSalary"/>
+        <result column="trial_post" jdbcType="REAL" property="trialPost"/>
+        <result column="trial_performance" jdbcType="REAL" property="trialPerformance"/>
+        <result column="trial_other" jdbcType="REAL" property="trialOther"/>
+        <result column="formal_salary" jdbcType="REAL" property="formalSalary"/>
+        <result column="formal_post" jdbcType="REAL" property="formalPost"/>
+        <result column="formal_performance" jdbcType="REAL" property="formalPerformance"/>
+        <result column="formal_other" jdbcType="REAL" property="formalOther"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        sal_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        trial_salary,
+        trial_post,
+        trial_performance,
+        trial_other,
+        formal_salary,
+        formal_post,
+        formal_performance,
+        formal_other,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from e_employee_salary where sal_id = #{salId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询薪资的主键； -->
+    <select id="selectIdByParentId" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select sal_id from e_employee_salary where state &lt;&gt; -1 and state &lt;&gt; 5
+        <if test="entryId != null">
+            and entry_id = #{entryId}
+        </if>
+        <if test="empId != null">
+            and emp_id = #{empId}
+        </if>
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询薪资； -->
+    <select id="selectByParentId" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select * from e_employee_salary where state &lt;&gt; -1 and state &lt;&gt; 5
+        <if test="entryId != null">
+            and entry_id = #{entryId}
+        </if>
+        <if test="empId != null">
+            and emp_id = #{empId}
+        </if>
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询薪资； -->
+    <select id="listByEntryId" resultMap="BaseResultMap" useCache="true">
+        select * from e_employee_salary where state <![CDATA[<>]]> -1 and state <![CDATA[<>]]> 5
+        and entry_id in
+        <foreach collection="entryIdList" item="entryId" open="(" close=")" separator=",">
+            #{entryId}
+        </foreach>
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary" useGeneratedKeys="true"
+            keyProperty="salId">
+        insert into e_employee_salary (
+        sal_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        trial_salary,
+        trial_post,
+        trial_performance,
+        trial_other,
+        formal_salary,
+        formal_post,
+        formal_performance,
+        formal_other,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{salId,jdbcType=INTEGER},
+        #{entryId,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{trialSalary,jdbcType=REAL},
+        #{trialPost,jdbcType=REAL},
+        #{trialPerformance,jdbcType=REAL},
+        #{trialOther,jdbcType=REAL},
+        #{formalSalary,jdbcType=REAL},
+        #{formalPost,jdbcType=REAL},
+        #{formalPerformance,jdbcType=REAL},
+        #{formalOther,jdbcType=REAL},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary" useGeneratedKeys="true"
+            keyProperty="salId">
+        insert into e_employee_salary
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="salId != null">sal_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="trialSalary != null">trial_salary,</if>
+            <if test="trialPost != null">trial_post,</if>
+            <if test="trialPerformance != null">trial_performance,</if>
+            <if test="trialOther != null">trial_other,</if>
+            <if test="formalSalary != null">formal_salary,</if>
+            <if test="formalPost != null">formal_post,</if>
+            <if test="formalPerformance != null">formal_performance,</if>
+            <if test="formalOther != null">formal_other,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="salId != null">#{salId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="trialSalary != null">#{trialSalary,jdbcType=REAL},</if>
+            <if test="trialPost != null">#{trialPost,jdbcType=REAL},</if>
+            <if test="trialPerformance != null">#{trialPerformance,jdbcType=REAL},</if>
+            <if test="trialOther != null">#{trialOther,jdbcType=REAL},</if>
+            <if test="formalSalary != null">#{formalSalary,jdbcType=REAL},</if>
+            <if test="formalPost != null">#{formalPost,jdbcType=REAL},</if>
+            <if test="formalPerformance != null">#{formalPerformance,jdbcType=REAL},</if>
+            <if test="formalOther != null">#{formalOther,jdbcType=REAL},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <insert id="insertSelectiveFormExcel" parameterType="java.util.List"
+            useGeneratedKeys="true"
+            keyProperty="salId">
+        insert into e_employee_salary
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            entry_id,
+            emp_id,
+            emp_num,
+            trial_salary,
+            trial_post,
+            trial_performance,
+            trial_other,
+            formal_salary,
+            formal_post,
+            formal_performance,
+            formal_other,
+            create_id,
+            create_name,
+            create_time,
+            update_id,
+            update_name,
+            update_time,
+            state,
+            version
+        </trim>
+        values
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.entryId,jdbcType=INTEGER},
+            #{element.empId,jdbcType=INTEGER},
+            #{element.empNum,jdbcType=VARCHAR},
+            #{element.trialSalary,jdbcType=REAL},
+            #{element.trialPost,jdbcType=REAL},
+            #{element.trialPerformance,jdbcType=REAL},
+            #{element.trialOther,jdbcType=REAL},
+            #{element.formalSalary,jdbcType=REAL},
+            #{element.formalPost,jdbcType=REAL},
+            #{element.formalPerformance,jdbcType=REAL},
+            #{element.formalOther,jdbcType=REAL},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.state,jdbcType=INTEGER},
+            #{element.version,jdbcType=INTEGER}
+        </foreach>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary">
+        update e_employee_salary
+        <include refid="EmployCommon.deleteInfo"/>
+        where sal_id = #{salId} and state &lt;&gt; -1
+    </update>
+
+    <!--更新empId-->
+    <update id="updateEmpIdByEntryId">
+        UPDATE e_employee_salary ees,
+         e_employee ee
+        SET ees.emp_id = ee.emp_id
+        WHERE
+        	ees.entry_id = ee.entry_id
+        <if test="list != null and list.size() > 0">
+            AND ees.entry_id IN
+            <foreach collection="list" item="element" index="index" open="(" close=")" separator=",">
+                #{element.entryId}
+            </foreach>
+        </if>
+    </update>
+
+    <!-- 根据员工ID更新状态信息； -->
+    <update id="updateStateByEmpId" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_employee_salary
+        <set>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where emp_id = #{empId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary">
+        update e_employee_salary
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="trialSalary != null">trial_salary = #{trialSalary,jdbcType=REAL},</if>
+            <if test="trialPost != null">trial_post = #{trialPost,jdbcType=REAL},</if>
+            <if test="trialPerformance != null">trial_performance = #{trialPerformance,jdbcType=REAL},</if>
+            <if test="trialOther != null">trial_other = #{trialOther,jdbcType=REAL},</if>
+            <if test="formalSalary != null">formal_salary = #{formalSalary,jdbcType=REAL},</if>
+            <if test="formalPost != null">formal_post = #{formalPost,jdbcType=REAL},</if>
+            <if test="formalPerformance != null">formal_performance = #{formalPerformance,jdbcType=REAL},</if>
+            <if test="formalOther != null">formal_other = #{formalOther,jdbcType=REAL},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        sal_id = #{salId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByEntryId" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary">
+        update e_employee_salary
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="trialSalary != null">trial_salary = #{trialSalary,jdbcType=REAL},</if>
+            <if test="trialPost != null">trial_post = #{trialPost,jdbcType=REAL},</if>
+            <if test="trialPerformance != null">trial_performance = #{trialPerformance,jdbcType=REAL},</if>
+            <if test="trialOther != null">trial_other = #{trialOther,jdbcType=REAL},</if>
+            <if test="formalSalary != null">formal_salary = #{formalSalary,jdbcType=REAL},</if>
+            <if test="formalPost != null">formal_post = #{formalPost,jdbcType=REAL},</if>
+            <if test="formalPerformance != null">formal_performance = #{formalPerformance,jdbcType=REAL},</if>
+            <if test="formalOther != null">formal_other = #{formalOther,jdbcType=REAL},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeSalary">
+        update
+        e_employee_salary
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        trial_salary = #{trialSalary,jdbcType=REAL},
+        trial_post = #{trialPost,jdbcType=REAL},
+        trial_performance = #{trialPerformance,jdbcType=REAL},
+        trial_other = #{trialOther,jdbcType=REAL},
+        formal_salary = #{formalSalary,jdbcType=REAL},
+        formal_post = #{formalPost,jdbcType=REAL},
+        formal_performance = #{formalPerformance,jdbcType=REAL},
+        formal_other = #{formalOther,jdbcType=REAL},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        sal_id = #{salId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

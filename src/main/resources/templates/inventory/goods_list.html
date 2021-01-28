@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>产品管理</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <!--产品管理js-->
+    <script src="/js/inventory/goods_list.js"></script>
+    <style type="text/css">
+
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            // 回车提交事件
+            $('#queryGoodsForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#goodsSearch").click();
+                }
+            });
+            $('#queryGoodsTypeForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#goodsTypeSearch").click();
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <!--查询条件-->
+    <ul class="layui-tab-title">
+        <li class="layui-this" id="goodsManage">产品管理</li>
+        <li id="goodsTypeManage">产品分类管理</li>
+    </ul>
+    <div class="layui-tab-content" style="padding: 0px;">
+        <input id="tabIndex" name="tabIndex" type="hidden"/>
+        <!--产品管理-->
+        <div id="goodsTab" class="tabContent" style="height: 100%;width: 100%;">
+            <!--产品管理列表-->
+            <div class="row">
+                <div class="ibox">
+                    <form id="queryGoodsForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+                        <!--查询条件-->
+                        <div class="ibox-title col-sm-12" style="display: table;border-top:0px;">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">产品分类:</label>
+                                <div class="col-sm-1" style="text-align:center">
+                                    <select id="typeIdQc" name="typeIdQc" lay-filter="typeIdQc" class="form-control">
+
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">产品名称:</label>
+                                <div class="col-sm-1" style="text-align:center">
+                                    <input name="nameQc" class="form-control"/>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="goodsSearch" onclick="goodsManageObj.initPagerPlugin()" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;查询
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!--按钮操作-->
+                        <div class="row" id="goodsOperateBtn">
+                            <div class="col-sm-12" style="margin-top: -10px;">
+                                <div class="ibox" style="margin-bottom: 0px;">
+                                    <div class="ibox-title">
+                                        <button id="addGoodsBtn" onclick="goodsManageObj.showAddGoods()" class="btn btn-primary" type="button" style="margin-left: 10px;">
+                                            <i class="fa fa-plus"></i>&nbsp;新增产品
+                                        </button>
+                                        <button id="downTemplate" onclick="goodsManageObj.exportTemplate()" class="btn btn-primary" type="button">
+                                            <i class="fa fa-external-link"></i>&nbsp;导入模板
+                                        </button>
+                                        <button id="importGoodsBtn" onclick="goodsManageObj.showUploadView()" class="btn btn-primary" type="button">
+                                            <i class="fa fa-sign-in"></i>&nbsp;导入
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--产品列表-->
+                        <div>
+                            <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            序号
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            产品分类
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center">
+                                            产品名称
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            产品编码
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width:100%;text-align: center;">
+                                            单位
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width:100%;text-align: center">
+                                            规格
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            单价
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            创建人
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            创建时间
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="width: 100%;text-align: center;">
+                                            操作
+                                        </div>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="goodsList">
+                                </tbody>
+                            </table>
+                        </div>
+                        <!--分页插件-->
+                        <div id="goodsManagePager" style="text-align:center;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!--产品分类管理-->
+        <div id="goodsTypeTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+            <div class="row" >
+                <div class="ibox">
+                    <!--产品分类管理-->
+                    <form id="queryGoodsTypeForm" autocomplete="off" method="post" class="layui-form form-horizontal">
+                        <div class="ibox-content" style="padding: 0px;">
+                            <!--查询条件-->
+                            <div class="ibox-title col-sm-12" style="display: table;border-top:0px;">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">产品分类名称:</label>
+                                    <div class="col-sm-1">
+                                        <input id="nameQc" name="nameQc" class="form-control"/>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button type="button" id="goodsTypeSearch" onclick="goodsTypeManageObj.initPagerPlugin()" class="btn btn-primary">
+                                            <i class="fa fa-search"></i>&nbsp;查询
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--按钮操作-->
+                            <div class="row">
+                                <div class="col-sm-12" style="margin-top: -10px;">
+                                    <div class="ibox" style="margin-bottom: 0px;">
+                                        <div class="ibox-title">
+                                            <button id="addGoodsTypeBtn" onclick="goodsTypeManageObj.showAddGoodsType()" class="btn btn-primary" type="button" style="margin-left: 10px;">
+                                                <i class="fa fa-plus"></i>&nbsp;新增产品分类
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--产品分类列表-->
+                            <div>
+                                <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="10%">
+                                        <col width="16%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <thead>
+                                    <tr>
+                                        <th>
+                                            <div style="width: 100%;text-align: center;">
+                                                序号
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div style="width: 100%;text-align: center">
+                                                产品分类名称
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div style="width: 100%;text-align: center;">
+                                                产品编码
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div style="width: 100%;text-align: center;">
+                                                创建人
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div style="width: 100%;text-align: center;">
+                                                创建时间
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div style="width: 100%;text-align: center;">
+                                                操作
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="goodsTypeList">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--分页插件-->
+                            <div id="goodsTypeManagePager" style="text-align:center;"></div>                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增产品-->
+<div class="modal inmodal fade" id="addGoodsModal" tabindex="-1" role="dialog" aria-hidden="true"
+     data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <form id="addGoodsForm" action="" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 15px">
+                    <h2 class="save">新增产品</h2>
+                    <h2 class="edit">编辑产品</h2>
+                </div>
+                <div class="modal-body" style="margin-top: 0px;height: 430px">
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品分类:
+                        </label>
+                        <div class="col-sm-4 layui-form">
+                            <select id="parentId2" name="parentId" lay-verify="" lay-search class="form-control"></select>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品名称:
+                        </label>
+                        <div class="col-sm-4">
+                            <input id="name" name="name" placeholder="请输入产品名称" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品编码:
+                        </label>
+                        <div class="col-sm-4">
+                            <input id="code" name="code" placeholder="请输入产品编码" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品单位:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="unit" placeholder="请输入产品单位" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>单价:
+                        </label>
+                        <div class="col-sm-4">
+                            <input id="price" type="number" name="price" placeholder="请输入单价" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            产品规格:
+                        </label>
+                        <div class="col-sm-4 layui-form">
+                            <input name="specs" placeholder="请输入产品规格" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            备注:
+                        </label>
+                        <div class="col-sm-10">
+                            <textarea name="description" placeholder="请输入备注" rows="6" style="resize: vertical" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <!--编辑时所需数据-->
+                    <div style="display: none">
+                        <input type="hidden" name="id" id="id">
+                        <input type="hidden" name="state">
+                        <input type="hidden" name="createId" id="createId2">
+                        <input type="hidden" name="createName" id="createName2">
+                        <input type="hidden" name="createTime" id="createTime2">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                    <button id="saveGoodsBtn" type="button" class="save btn btn-primary"
+                            onclick="goodsManageObj.submitHander(this,'/goodsType/save')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button id="editGoodsBtn" type="button" class="edit btn btn-primary"
+                            onclick="goodsManageObj.submitHander(this,'/goodsType/edit')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div style="display:none">
+    <a onfocus="this.blur();" download="产品导入失败详情.txt" id="createInvote" class="ipt-todo hide"></a>
+</div>
+<!--新增产品分类-->
+<div class="modal inmodal fade" id="addGoodsTypeModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <form id="addGoodsTypeForm" action="" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 15px">
+                    <h2 class="save">新增产品分类</h2>
+                    <h2 class="edit">编辑产品分类</h2>
+                </div>
+                <div class="modal-body" style="margin-top: 0px;height: 500px;">
+                    <!--<div class="col-sm-12 form-group">-->
+                        <!--<label class="col-sm-2 control-label">-->
+                            <!--<span class="text-red">*</span>是否一级分类:-->
+                        <!--</label>-->
+                        <!--<div class="col-sm-4">-->
+                            <!--<div class="radio-inline i-checks">-->
+                                <!--<input type="radio" name="isParent" id="isParentYes" value="1"/>是&nbsp;&nbsp;-->
+                                <!--<input type="radio" name="isParent" id="isParentNo" value="0"/>否-->
+                            <!--</div>-->
+                        <!--</div>-->
+                        <!--<label class="showType col-sm-2 control-label">-->
+                            <!--<span class="text-red">*</span>产品分类:-->
+                        <!--</label>-->
+                        <!--<div class="showType col-sm-4">-->
+                            <!--<select name="parentId" id="parentId" class="form-control" required></select>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品分类名称:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="name" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>产品分类编码:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="code" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            创建人:
+                        </label>
+                        <div class="col-sm-4 layui-form">
+                            <input id="createId" name="createId" type="hidden"/>
+                            <input id="createName" name="createName" class="form-control" readonly="readonly"/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            创建时间:
+                        </label>
+                        <div class="col-sm-4">
+                            <input id="createTime" name="createTime" class="form-control" readonly="readonly"/>
+                        </div>
+                    </div>
+                    <!--<div class="showType col-sm-12 form-group">-->
+                        <!--<label class="col-sm-2 control-label">-->
+                            <!--<span class="text-red">*</span>产品单位:-->
+                        <!--</label>-->
+                        <!--<div class="col-sm-4">-->
+                            <!--<input name="unit" class="form-control" required/>-->
+                        <!--</div>-->
+                        <!--<label class="col-sm-2 control-label">-->
+                            <!--<span class="text-red">*</span>产品单价:-->
+                        <!--</label>-->
+                        <!--<div class="col-sm-4">-->
+                            <!--<input name="price" type="number" class="form-control" required/>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="showType col-sm-12 form-group">-->
+                        <!--<label class="col-sm-2 control-label">-->
+                            <!--产品规格:-->
+                        <!--</label>-->
+                        <!--<div class="col-sm-4">-->
+                            <!--<input name="specs" class="form-control"/>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <div class="col-sm-12 form-group">
+                        <label class="col-sm-2 control-label">
+                            备注:
+                        </label>
+                        <div class="col-sm-10">
+                            <textarea id="description" name="description" rows="6" cols="30" class="form-control" style="resize: vertical"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: none">
+                    <!--编辑时需要的数据-->
+                    <input type="hidden" name="id" id="goodsTypeId"/>
+                    <input type="hidden" name="parentId" value="0"/>
+                </div>
+                <div class="modal-footer" id="editFooter">
+                    <button id="saveGoodsTypeBtn" type="button" class="save btn btn-success"
+                            onclick="goodsTypeManageObj.submitHander(this,'/goodsType/save')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button id="editTypeManageBtn" type="button" class="edit btn btn-success"
+                            onclick="goodsTypeManageObj.submitHander(this,'/goodsType/edit')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--批量导入产品-->
+<div class="modal inmodal" id="importGoodsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="importForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">批量导入产品</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">上传excel:</label>
+                                    <div class="col-sm-10">
+                                        <input type="file" id="file" name="file" class="form-control">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="submitImportBtn"
+                            onclick="goodsManageObj.importGoodsInfo()">批量导入
+                    </button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

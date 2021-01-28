@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <meta charset="UTF-8">
+    <title>企业信息搜索/需要配置路径</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/utils/companyCompont.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/companySearch.js"></script>
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+    <div class="ibox-content">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="col-sm-1 control-label right0">公司名称:</label>
+                <div class="col-sm-4">
+                    <input id="companyName" type="text" placeholder="请输入关键字(支持企业名称、社会统一信用代码、注册号)进行校验" class="form-control height18"/>
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" class="btn btn-primary" onclick="companyObj.checkCompany();">
+                        <i class="fa fa-check-circle-o"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="companyObj.companySearch();">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<!--企业信息列表-->
+<div id="companyListModal" style="display: none;">
+    <div class="layui-form companyModalContentWrap">
+        <!--搜索条件-->
+        <div class="input-group">
+            <input type="text" name="keyword" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control"/>
+            <span class="input-group-addon" style="cursor: pointer;">
+                <i class="fa fa-search"></i>
+            </span>
+        </div>
+        <!--企业信息列表-->
+        <div class="companyContentWrap">
+            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                <colgroup>
+                    <col width="4%">
+                    <col width="6%">
+                    <col width="24%">
+                    <col width="10%">
+                    <col width="15%">
+                    <col width="10%">
+                    <col width="15%">
+                    <col width="16%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>
+                        <div class="ellipsisContent">
+                        </div>
+                    </th>
+                    <th title="序号">
+                        <div class="ellipsisContent">
+                            序号
+                        </div>
+                    </th>
+                    <th title="公司名称">
+                        <div class="ellipsisContent">
+                            公司名称
+                        </div>
+                    </th>
+                    <th title="法人名称">
+                        <div class="ellipsisContent">
+                            法人名称
+                        </div>
+                    </th>
+                    <th title="成立日期">
+                        <div class="ellipsisContent">
+                            成立日期
+                        </div>
+                    </th>
+                    <th title="企业状态">
+                        <div class="ellipsisContent">
+                            企业状态
+                        </div>
+                    </th>
+                    <th title="注册号">
+                        <div class="ellipsisContent">
+                            注册号
+                        </div>
+                    </th>
+                    <th title="社会统一信用代码">
+                        <div class="ellipsisContent">
+                            社会统一信用代码
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <div class="tbodyWrap layui-form">
+                <!--<div class="companyItem">
+                    <div title="1">
+                        <div class="ellipsisContent">
+                            <input type="checkbox" lay-skin="primary" lay-filter="radioInput" value="北京小桔科技有限公司"/>
+                        </div>
+                    </div>
+                    <div title="1">
+                        <div class="ellipsisContent">
+                            1
+                        </div>
+                    </div>
+                    <div title="北京小桔科技有限公司">
+                        <div class="ellipsisContent">
+                            北京小桔科技有限公司
+                        </div>
+                    </div>
+                    <div title="程维">
+                        <div class="ellipsisContent">
+                            程维
+                        </div>
+                    </div>
+                    <div title=" 2012-07-10 00:00:00">
+                        <div class="ellipsisContent">
+                            2012-07-10 00:00:00
+                        </div>
+                    </div>
+                    <div title="在业">
+                        <div class="ellipsisContent">
+                            在业
+                        </div>
+                    </div>
+                    <div title="110108015068911">
+                        <div class="ellipsisContent">
+                            110108015068911
+                        </div>
+                    </div>
+                    <div title="9111010859963405XW">
+                        <div class="ellipsisContent">
+                            9111010859963405XW
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

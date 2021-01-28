@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{},~{},~{})">
+    <title data-th-text="${AppName}">500 内部服务器发生错误！</title>
+
+</head>
+
+<body>
+
+
+<!--<div class="middle-box text-center animated fadeInDown">-->
+    <!--<h1>500</h1>-->
+    <!--<h3 class="font-bold">服务器内部错误</h3>-->
+
+    <!--<div class="error-desc">-->
+        <!--服务器好像出错了...-->
+        <!--<br/>您可以返回主页看看-->
+        <!--<br/><a href="../index.html" class="btn btn-primary m-t">主页</a>-->
+    <!--</div>-->
+<!--</div>-->
+<div class="error-desc" style="width:404px;height:285px;position: absolute;left:0px;top: 0px;bottom: 0px;right: 0px;margin: auto">
+    <img src="/img/500.png" alt="500页面" title="非常抱歉，系统出现错误,请稍后重试"/>
+</div>
+
+
+<!-- 全局js -->
+<script src="js/jquery.min.js?v=2.1.4"></script>
+<script src="js/bootstrap.min.js?v=3.3.6"></script>
+</body>
+
+</html>

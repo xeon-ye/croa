@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title data-th-text="'业绩管理-'+${AppName}"></title>
+    <!--    <link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/biz/statistics/querySaleStat.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true"> 业绩统计（部门/组）</a>
+                    </li>
+                    <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">业绩统计（业务员）</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="tab-1" class="tab-pane active">
+                        <div class="panel-body">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="">
+                                    <div class="form-horizontal" id="queryDiv">
+                                        <form id="queryForm">
+                                            <div class="form-group">
+                                                <!--<div class="col-sm-2">
+                                                    <button type="button" id="ywb" class="btn btn-primary btn-outline">
+                                                        业务部
+                                                    </button>
+                                                    <button type="button" id="ywz" class="btn btn-white">业务组</button>
+                                                </div>-->
+                                                <div id ="deptDiv" class="col-sm-2">
+                                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                                        <input type="hidden" id="currentDeptId" name="currentDeptId" class="height18">
+                                                        <input type="text" id="deptName" class="form-control height18" readonly="readonly">
+                                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF" id="selDept"
+                                                              data-toggle="tooltip" data-placement="top" data-html="true" title="选择部门"></span>
+                                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF" id="cleanDept"
+                                                              data-toggle="tooltip" data-placement="top" data-html="true" title="清除选择的部门"></span>
+                                                    </div>
+                                                </div>
+                                                <!--<input type="text" name="type" value="1" style="display:none"/>-->
+                                                <div id="deptDiv1" style="display:none" class="col-sm-2">
+                                                    <input type="text" name="deptName1" class="form-control"
+                                                           placeholder="部门名称">
+                                                </div>
+                                                <label class="col-sm-1 control-label">发布年月:</label>
+                                                <div class="col-sm-1">
+                                                    <select id="year" name="year" class="form-control">
+                                                       <!-- <option value="2019">2019</option>
+                                                        <option value="2020">2020</option>
+                                                        <option value="2021">2021</option>
+                                                        <option value="2022">2022</option>
+                                                        <option value="2023">2023</option>
+                                                        <option value="2024">2024</option>
+                                                        <option value="2025">2025</option>-->
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <select id="month" name="month" class="form-control">
+                                                        <option value="1">一月</option>
+                                                        <option value="2">二月</option>
+                                                        <option value="3">三月</option>
+                                                        <option value="4">四月</option>
+                                                        <option value="5">五月</option>
+                                                        <option value="6">六月</option>
+                                                        <option value="7">七月</option>
+                                                        <option value="8">八月</option>
+                                                        <option value="9">九月</option>
+                                                        <option value="10">十月</option>
+                                                        <option value="11">十一月</option>
+                                                        <option value="12">十二月</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="margin-top:-8px;margin-bottom:-36px;">
+                                <div class="form-horizontal" id="tj">
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>业绩合计: ￥ </label><span id="saleSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>回款合计: ￥ </label><span id="incomeSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>税金合计: ￥ </label><span id="taxSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>退款合计: ￥ </label><span id="refundSum" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>其它支出合计: ￥ </label><span id="otherPaySum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>成本合计: ￥ </label><span id="outgoSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>利润合计: ￥ </label><span id="profitSum" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>提成合计: ￥ </label><span id="commSum" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-title">
+                                <button class="btn btn-info alterBtn" type="button">
+                                    <i class="glyphicon glyphicon-link"></i>&nbsp;异动统计
+                                </button>
+                                <button id="exportBtn" class="btn btn-default" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导&nbsp;出&nbsp;
+                                </button>
+                            </div>
+                            <div id="notIncome" class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="query_table_logs"></table>
+                                    <div id="query_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-2" class="tab-pane">
+                        <div class="panel-body">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="">
+                                    <div class="form-horizontal"  id="queryUserDiv">
+                                        <form id="queryUserForm">
+                                            <div class="form-group">
+                                                <input type="text" name="type" value="3" style="display:none"/>
+                                                <div class="col-sm-2">
+                                                    <input type="text" name="deptName" class="form-control"
+                                                           placeholder="部门名称">
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <input type="text" name="userName" class="form-control"
+                                                           placeholder="业务员">
+                                                </div>
+                                                <label class="col-sm-1 control-label">发布年月:</label>
+                                                <div class="col-sm-1">
+                                                    <select id="year1" name="year" class="form-control">
+                                                        <!--<option value="2019">2019</option>
+                                                        <option value="2020">2020</option>
+                                                        <option value="2021">2021</option>
+                                                        <option value="2022">2022</option>
+                                                        <option value="2023">2023</option>
+                                                        <option value="2024">2024</option>
+                                                        <option value="2025">2025</option>-->
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <select id="month1" name="month" class="form-control">
+                                                        <option value="1">一月</option>
+                                                        <option value="2">二月</option>
+                                                        <option value="3">三月</option>
+                                                        <option value="4">四月</option>
+                                                        <option value="5">五月</option>
+                                                        <option value="6">六月</option>
+                                                        <option value="7">七月</option>
+                                                        <option value="8">八月</option>
+                                                        <option value="9">九月</option>
+                                                        <option value="10">十月</option>
+                                                        <option value="11">十一月</option>
+                                                        <option value="12">十二月</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <button type="button" id="queryUserSearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="margin-top:-8px;margin-bottom:-36px;">
+                                <div class="form-horizontal" id="tj1">
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>业绩合计: ￥ </label><span id="saleSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>回款合计: ￥ </label><span id="incomeSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>税金合计: ￥ </label><span id="taxSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>退款合计: ￥ </label><span id="refundSum1" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-3">
+                                            <label>其它支出合计: ￥ </label><span id="otherPaySum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>成本合计: ￥ </label><span id="outgoSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>利润合计: ￥ </label><span id="profitSum1" class="text-danger">0</span>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>提成合计: ￥ </label><span id="commSum1" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-title">
+                                <button class="btn btn-info alterBtn" type="button">
+                                    <i class="glyphicon glyphicon-link"></i>&nbsp;异动统计
+                                </button>
+                                <button id="exportUserBtn" class="btn btn-default" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导&nbsp;出&nbsp;
+                                </button>
+                            </div>
+                            <div id="notIncome1" class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="query_user_table_logs"></table>
+                                    <div id="query_user_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:800px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择业务部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

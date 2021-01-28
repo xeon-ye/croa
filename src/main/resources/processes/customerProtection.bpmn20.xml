@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="customerProtection" name="客户保护" isExecutable="true">
+        <startEvent id="startEvent" name="开始"></startEvent>
+        <sequenceFlow id="sid-F3DE1B8A-7D05-4955-BCAE-193E1B22B079" sourceRef="startEvent"
+                      targetRef="operateUserAudit"></sequenceFlow>
+        <userTask id="operateUserAudit" name="运营人员审核">
+            <extensionElements>
+                <flowable:taskListener event="create"
+                                       class="com.qinfei.qferp.flow.listener1.protect.OperatorTaskHandler"></flowable:taskListener>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-8038D087-9AF7-4D8D-925F-D36F7F61AD57" sourceRef="operateUserAudit"
+                      targetRef="presidentUserAudit"></sequenceFlow>
+        <userTask id="presidentUserAudit" name="总经理审核">
+            <extensionElements>
+                <flowable:taskListener event="create"
+                                       class="com.qinfei.qferp.flow.listener1.protect.PresidentTaskHandler"></flowable:taskListener>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-21ADE29F-C47D-419A-833F-1598778BA56A" sourceRef="presidentUserAudit"
+                      targetRef="presidentJTUserAudit"></sequenceFlow>
+        <userTask id="presidentJTUserAudit" name="集团总经理审核">
+            <extensionElements>
+                <flowable:taskListener event="create"
+                                       class="com.qinfei.qferp.flow.listener1.protect.PresidentJTTaskHandler"></flowable:taskListener>
+                <flowable:taskListener event="complete"
+                                       class="com.qinfei.qferp.flow.listener1.protect.ProcessFinishHandler"></flowable:taskListener>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-C7FA5B71-24D6-4667-8E9F-A861935D5EBB" sourceRef="presidentJTUserAudit"
+                      targetRef="endEvent"></sequenceFlow>
+        <endEvent id="endEvent" name="结束"></endEvent>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_customerProtection">
+        <bpmndi:BPMNPlane bpmnElement="customerProtection" id="BPMNPlane_customerProtection">
+            <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+                <omgdc:Bounds height="30.0" width="30.0" x="100.0" y="163.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="operateUserAudit" id="BPMNShape_operateUserAudit">
+                <omgdc:Bounds height="80.0" width="100.0" x="240.0" y="138.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="presidentUserAudit" id="BPMNShape_presidentUserAudit">
+                <omgdc:Bounds height="80.0" width="100.0" x="435.0" y="138.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="presidentJTUserAudit" id="BPMNShape_presidentJTUserAudit">
+                <omgdc:Bounds height="80.0" width="100.0" x="645.0" y="138.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+                <omgdc:Bounds height="28.0" width="28.0" x="825.0" y="164.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="sid-8038D087-9AF7-4D8D-925F-D36F7F61AD57"
+                             id="BPMNEdge_sid-8038D087-9AF7-4D8D-925F-D36F7F61AD57">
+                <omgdi:waypoint x="339.94999999986936" y="178.0"></omgdi:waypoint>
+                <omgdi:waypoint x="434.9999999999363" y="178.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-21ADE29F-C47D-419A-833F-1598778BA56A"
+                             id="BPMNEdge_sid-21ADE29F-C47D-419A-833F-1598778BA56A">
+                <omgdi:waypoint x="534.9499999999504" y="178.0"></omgdi:waypoint>
+                <omgdi:waypoint x="644.999999999997" y="178.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-C7FA5B71-24D6-4667-8E9F-A861935D5EBB"
+                             id="BPMNEdge_sid-C7FA5B71-24D6-4667-8E9F-A861935D5EBB">
+                <omgdi:waypoint x="744.9499999999827" y="178.0"></omgdi:waypoint>
+                <omgdi:waypoint x="825.0" y="178.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-F3DE1B8A-7D05-4955-BCAE-193E1B22B079"
+                             id="BPMNEdge_sid-F3DE1B8A-7D05-4955-BCAE-193E1B22B079">
+                <omgdi:waypoint x="129.94999940317362" y="178.0"></omgdi:waypoint>
+                <omgdi:waypoint x="239.99999999993753" y="178.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

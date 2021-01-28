@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.ReceiveRepairMapper">
+    <sql id="selectColumn">
+        r.id,
+        r.inventory_id inventoryId,
+        r.code,
+        r.title,
+        r.user_Id userId,
+        r.user_name userName,
+        r.update_user_id updateUserId,
+        DATE_FORMAT(r.create_time,"%Y-%m-%d") createTime,
+        r.update_time updateTime,
+        r.state,
+        r.item_id itemId,
+        r.task_id taskId,
+        r.remark,
+        r.company_code companyCode
+    </sql>
+
+    <!--根据id查询报修信息-->
+    <select id="queryById" resultType="com.qinfei.qferp.entity.inventory.ReceiveRepair">
+        select
+        u.dept_name deptName,
+         <include refid="selectColumn"/>
+         from t_saves_receive_repair r
+         left join sys_user u on r.user_id=u.id
+         where r.state>-2 and r.id=#{id}
+    </select>
+
+    <!--获取分页数量-->
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select COUNT(*)
+        from t_saves_receive_repair r
+        where r.state >-2
+        <if test="createTimeQc!=null">
+            and r.create_time>=#{createTimeQc}
+        </if>
+        <if test="stateQc==-1">
+            and r.state=-1
+        </if>
+        <if test="stateQc==0">
+            and r.state=0
+        </if>
+        <if test="stateQc==1">
+            and r.state=1
+        </if>
+        <if test="stateQc==3">
+            and r.state in(4,14)
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            and r.company_code=#{companyCode}
+        </if>
+    </select>
+
+    <!--获取领用分页数据-->
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_receive_repair r
+        where r.state >-2
+        <if test="createTimeQc!=null">
+            and r.create_time>=#{createTimeQc}
+        </if>
+        <if test="stateQc==-1">
+            and r.state=-1
+        </if>
+        <if test="stateQc==0">
+            and r.state=0
+        </if>
+        <if test="stateQc==1">
+            and r.state=1
+        </if>
+        <if test="stateQc==3">
+            and r.state in(4,14)
+        </if>
+        <if test="companyCode!=null and companyCode!=''">
+            and r.company_code=#{companyCode}
+        </if>
+    </select>
+
+    <!--新增报修信息-->
+    <insert id="saveRepair" parameterType="com.qinfei.qferp.entity.inventory.ReceiveRepair" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_receive_repair
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="inventoryId!=null">inventory_id,</if>
+            <if test="code!=null and code!=''">code,</if>
+            <if test="title !=null and title !=''">title,</if>
+            <if test="userId !=null">user_id,</if>
+            <if test="userName !=null and userName !=''">user_name,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="state !=null">state,</if>
+            <if test="itemId !=null">item_id,</if>
+            <if test="taskId !=null">task_id,</if>
+            <if test="remark !=null">remark,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="inventoryId!=null">#{inventoryId},</if>
+            <if test="code!=null and code!=''">#{code},</if>
+            <if test="title !=null and title !=''">#{title},</if>
+            <if test="userId !=null">#{userId},</if>
+            <if test="userName !=null and userName !=''">#{userName},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="updateTime !=null">#{updateTime},</if>
+            <if test="state !=null">#{state},</if>
+            <if test="itemId !=null">#{itemId},</if>
+            <if test="taskId !=null">#{taskId},</if>
+            <if test="remark !=null">#{remark},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--修改报修信息-->
+    <update id="editRepair" parameterType="com.qinfei.qferp.entity.inventory.ReceiveRepair">
+        update t_saves_receive_repair
+        <set>
+            <if test="inventoryId!=null">inventory_id=#{inventoryId},</if>
+            <if test="code!=null and code!=''">code=#{code},</if>
+            <if test="title !=null and title !=''">title=#{title},</if>
+            <if test="userId !=null">user_id=#{userId},</if>
+            <if test="userName !=null and userName !=''">user_name=#{userName},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="createTime !=null">create_time=#{createTime},</if>
+            <if test="updateTime !=null">update_time=#{updateTime},</if>
+            <if test="state !=null">state=#{state},</if>
+            <if test="itemId !=null">item_id=#{itemId},</if>
+            <if test="taskId !=null and taskId !=''">task_id=#{taskId},</if>
+            <if test="remark !=null">remark=#{remark},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+
+    <!--删除报修信息-->
+    <update id="deleteRepair" parameterType="java.lang.Integer">
+        update t_saves_receive_repair set state = -9 where id=#{id}
+    </update>
+</mapper>

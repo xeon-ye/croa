@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="leave" name="员工离职" isExecutable="true">
+        <documentation>员工离职流程。</documentation>
+
+        <startEvent id="startEvent" name="启动流程"/>
+        <sequenceFlow id="sid-53754F35-3A36-4D02-AEC0-69843B66D9D2" name="开始" sourceRef="startEvent"
+                      targetRef="leaderApprove">
+        </sequenceFlow>
+
+        <userTask id="leaderApprove" name="部门审核">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.leave.LeaderTaskHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18" name="通过" sourceRef="leaderApprove"
+                      targetRef="personnelApprove">
+        </sequenceFlow>
+
+        <userTask id="personnelApprove" name="人事部审核">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.leave.PersonnelTaskHandler"/>
+                <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.leave.ProcessFinishHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6" name="结束" sourceRef="personnelApprove"
+                      targetRef="endEvent">
+        </sequenceFlow>
+
+        <endEvent id="endEvent"/>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_leave">
+        <bpmndi:BPMNPlane bpmnElement="leave" id="BPMNPlane_leave">
+            <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+                <omgdc:Bounds height="30" width="30" x="150" y="162"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+                <omgdc:Bounds height="80" width="100" x="280" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="personnelApprove" id="BPMNShape_personnelApprove">
+                <omgdc:Bounds height="80" width="100" x="465" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+                <omgdc:Bounds height="28" width="28" x="630" y="162"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18"
+                             id="BPMNEdge_sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18">
+                <omgdi:waypoint x="380" y="177"/>
+                <omgdi:waypoint x="465" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6"
+                             id="BPMNEdge_sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6">
+                <omgdi:waypoint x="565" y="177"/>
+                <omgdi:waypoint x="630" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-53754F35-3A36-4D02-AEC0-69843B66D9D2"
+                             id="BPMNEdge_sid-53754F35-3A36-4D02-AEC0-69843B66D9D2">
+                <omgdi:waypoint x="180" y="177"/>
+                <omgdi:waypoint x="280" y="177"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

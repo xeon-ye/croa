@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.word.KeywordsMapper">
+     <insert id="saveKeywordsList" parameterType="java.util.List">
+        insert INTO
+         t_permission_word
+        (group_id,name,company_code,state,create_id,create_date)
+        VALUES
+        <foreach collection="list"  item='item' separator=",">
+            (#{item.groupId},
+            #{item.name},
+            #{item.companyCode},
+            #{item.state},
+            #{item.createId},
+            #{item.createDate})
+        </foreach>
+    </insert>
+
+    <insert id="saveKeywords" parameterType="java.util.List">
+        insert INTO
+        t_permission_word
+        (group_id,name,company_code,state,create_id,create_date)
+        VALUES
+        (#{groupId},#{name},#{companyCode},#{state},#{createId},#{createDate})
+    </insert>
+    <update id="editKeywords" parameterType="com.qinfei.qferp.entity.word.Keywords">
+        update  t_permission_word
+        set
+        <if test="groupId!=null">
+            group_id=#{groupId},
+        </if>
+        <if test="keywords!=null">
+            name=#{keywords},
+        </if>
+        <if test="companyCode!=null">
+            company_code=#{companyCode},
+        </if>
+        <if test="state!=null">
+            state=#{state},
+        </if>
+        <if test="updateId!=null">
+            update_id=#{updateId},
+        </if>
+        <if test="updateDate!=null">
+            update_date=#{updateDate},
+        </if>
+        where id = #{id}
+    </update>
+
+    <update id="deleteKeyWords" parameterType="java.lang.Integer">
+        update t_permission_word set state = -9 where group_id = #{id}
+    </update>
+
+    <select id="getByGroupId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.word.Keywords">
+        select * from t_permission_word
+        where state> -2 and group_id = #{id}
+    </select>
+
+    <select id="getByName" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.word.Keywords">
+        select * from t_permission_word
+        where state> -2 and name = #{keyName} and company_code=#{companyCode} and group_id = #{groupId}
+        <if test="id!=null">
+            and id != #{id}
+        </if>
+    </select>
+
+    <select id="queryKeywords" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.word.Keywords">
+        select * from t_permission_word t left join t_permission_word_group g on t.group_id=g.id
+        where g.state > -2 and t.state> -2 and g.company_code = #{companyCode} and t.group_id = #{id}
+    </select>
+   </mapper>

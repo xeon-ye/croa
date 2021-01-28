@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 入职申请的工作经历； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployEntryExperienceMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        <id column="exp_id" jdbcType="INTEGER" property="expId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="exp_start" jdbcType="DATE" property="expStart"/>
+        <result column="exp_end" jdbcType="DATE" property="expEnd"/>
+        <result column="exp_company" jdbcType="VARCHAR" property="expCompany"/>
+        <result column="exp_location" jdbcType="VARCHAR" property="expLocation"/>
+        <result column="exp_profession" jdbcType="VARCHAR" property="expProfession"/>
+        <result column="exp_salary" jdbcType="VARCHAR" property="expSalary"/>
+        <result column="exp_contactor" jdbcType="VARCHAR" property="expContactor"/>
+        <result column="exp_resign_reason" jdbcType="VARCHAR" property="expResignReason"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        exp_id,
+        entry_id,
+        exp_start,
+        exp_end,
+        exp_company,
+        exp_location,
+        exp_profession,
+        exp_salary,
+        exp_contactor,
+        exp_resign_reason,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_entry_experience
+        where
+        exp_id = #{expId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <select id="selectByEntryId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+            exp_id,
+            entry_id,
+            exp_start,
+            exp_end,
+            exp_company,
+            exp_location,
+            exp_profession,
+            exp_salary,
+            exp_contactor,
+            exp_resign_reason
+        from
+          e_entry_experience
+        where
+          entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience" useGeneratedKeys="true"
+            keyProperty="expId">
+        insert into e_entry_experience (
+        exp_id,
+        entry_id,
+        exp_start,
+        exp_end,
+        exp_company,
+        exp_location,
+        exp_profession,
+        exp_salary,
+        exp_contactor,
+        exp_resign_reason,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{expId,jdbcType=INTEGER},
+        #{entryId,jdbcType=INTEGER},
+        #{expStart,jdbcType=DATE},
+        #{expEnd,jdbcType=DATE},
+        #{expCompany,jdbcType=VARCHAR},
+        #{expLocation,jdbcType=VARCHAR},
+        #{expProfession,jdbcType=VARCHAR},
+        #{expSalary,jdbcType=VARCHAR},
+        #{expContactor,jdbcType=VARCHAR},
+        #{expResignReason,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience"
+            useGeneratedKeys="true" keyProperty="expId">
+        insert into e_entry_experience
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="expId != null">exp_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="expStart != null">exp_start,</if>
+            <if test="expEnd != null">exp_end,</if>
+            <if test="expCompany != null">exp_company,</if>
+            <if test="expLocation != null">exp_location,</if>
+            <if test="expProfession != null">exp_profession,</if>
+            <if test="expSalary != null">exp_salary,</if>
+            <if test="expContactor != null">exp_contactor,</if>
+            <if test="expResignReason != null">exp_resign_reason,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="expId != null">#{expId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="expStart != null">#{expStart,jdbcType=DATE},</if>
+            <if test="expEnd != null">#{expEnd,jdbcType=DATE},</if>
+            <if test="expCompany != null">#{expCompany,jdbcType=VARCHAR},</if>
+            <if test="expLocation != null">#{expLocation,jdbcType=VARCHAR},</if>
+            <if test="expProfession != null">#{expProfession,jdbcType=VARCHAR},</if>
+            <if test="expSalary != null">#{expSalary,jdbcType=VARCHAR},</if>
+            <if test="expContactor != null">#{expContactor,jdbcType=VARCHAR},</if>
+            <if test="expResignReason != null">#{expResignReason,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <!--批量插入工作经历-->
+    <insert id="insertSelectiveExcelBatch" parameterType="java.util.List"
+            useGeneratedKeys="true"
+            keyProperty="expId">
+        insert into e_entry_experience
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            entry_id,
+            exp_start,
+            exp_end,
+            exp_company,
+            exp_location,
+            exp_profession,
+            exp_salary,
+            exp_contactor,
+            exp_resign_reason,
+            create_id,
+            create_name,
+            create_time,
+            update_id,
+            update_name,
+            update_time,
+            state,
+            version
+        </trim>
+        values
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.entryId,jdbcType=INTEGER},
+            #{element.expStart,jdbcType=DATE},
+            #{element.expEnd,jdbcType=DATE},
+            #{element.expCompany,jdbcType=VARCHAR},
+            #{element.expLocation,jdbcType=VARCHAR},
+            #{element.expProfession,jdbcType=VARCHAR},
+            #{element.expSalary,jdbcType=VARCHAR},
+            #{element.expContactor,jdbcType=VARCHAR},
+            #{element.expResignReason,jdbcType=VARCHAR},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.state,jdbcType=INTEGER},
+            #{element.version,jdbcType=INTEGER}
+        </foreach>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update e_entry_experience
+        <include refid="EmployCommon.deleteInfo"/>
+        where exp_id = #{expId} and state &lt;&gt; -1
+    </update>
+
+    <!--删除所有工作经历-->
+    <update id="deleteByEntryId" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update e_entry_experience
+        <include refid="EmployCommon.deleteInfo"/>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <update id="deleteByPrimaryKeyAndParentId" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update e_entry_experience
+        <include refid="EmployCommon.deleteInfo"/>
+        where entry_id = #{entryId} and exp_id = #{expId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新创建人信息； -->
+    <update id="updateCreateInfoByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update e_entry_experience
+        <set>
+            create_id = #{createId},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1 and create_id is null
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update e_entry_experience
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="expStart != null">exp_start = #{expStart,jdbcType=DATE},</if>
+            <if test="expEnd != null">exp_end = #{expEnd,jdbcType=DATE},</if>
+            <if test="expCompany != null">exp_company = #{expCompany,jdbcType=VARCHAR},</if>
+            <if test="expLocation != null">exp_location = #{expLocation,jdbcType=VARCHAR},</if>
+            <if test="expProfession != null">exp_profession = #{expProfession,jdbcType=VARCHAR},</if>
+            <if test="expSalary != null">exp_salary = #{expSalary,jdbcType=VARCHAR},</if>
+            <if test="expContactor != null">exp_contactor = #{expContactor,jdbcType=VARCHAR},</if>
+            <if test="expResignReason != null">exp_resign_reason = #{expResignReason,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        exp_id = #{expId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntryExperience">
+        update
+        e_entry_experience
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        exp_start = #{expStart,jdbcType=DATE},
+        exp_end = #{expEnd,jdbcType=DATE},
+        exp_company = #{expCompany,jdbcType=VARCHAR},
+        exp_location = #{expLocation,jdbcType=VARCHAR},
+        exp_profession = #{expProfession,jdbcType=VARCHAR},
+        exp_salary = #{expSalary,jdbcType=VARCHAR},
+        exp_contactor = #{expContactor,jdbcType=VARCHAR},
+        exp_resign_reason = #{expResignReason,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        exp_id = #{expId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

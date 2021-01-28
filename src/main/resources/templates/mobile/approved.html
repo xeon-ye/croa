@@ -1,0 +1,3569 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>已审批管理</title>
+    <!--插件样式-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="../css/mobile/common.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <style>
+        body.none {
+            overflow: hidden;
+        }
+        body.p-bottom {
+            padding-bottom: 60px;
+        }
+        #top-box {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+            background: #fff;
+            z-index: 1;
+        }
+        #top-box .top-content {
+            position: relative;
+            padding: 10px 0;
+            text-align: center;
+        }
+        #top-box .top-content span {
+            display: inline-block;
+            width: 30px;
+        }
+        #top-box .top-content p {
+            font-size: 16px;
+            color: #000;
+            font-weight: 600;
+        }
+        #top-box .top-content span {
+            position: absolute;
+        }
+        #top-box .top-content span#back-icon {
+            left: 15px;
+            top: 12px;
+            text-align: left;
+        }
+        #top-box .top-content span#filter {
+            right: 15px;
+            top: 13px;
+            text-align: right;
+        }
+        #top-box .top-content span#back-icon i {
+            color: #000;
+            font-weight: 600;
+            font-size: 20px;
+        }
+        #top-box .top-content span#filter i {
+            color: #666;
+            font-size: 16px;
+        }
+        .type-box {
+            padding: 15px 10px;
+            margin-top: 42px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 10px solid #f0f0f0;
+        }
+        .type-box .item{
+            padding: 0 5px 0;
+            flex-basis: 25%;
+            position: relative;
+        }
+        .type-box .item div {
+            color: #629ce9;
+            background: #e5ebf3;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+        .type-box .item i {
+            display: none;
+            color: #629ce9;
+        }
+        .type-box .item.active i {
+            display: block;
+            position: absolute;
+            top: -5px;
+            right: 0;
+        }
+        .filter-bg {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            z-index: 2;
+            top: 0;
+            right: -100%;
+            background: rgba(0, 0, 0, .5);
+            transition: right 0s .3s;
+        }
+        .filter-bg.active {
+            right: 0;
+            transition: right 0s;
+        }
+        .filter-bg .filter-box {
+            width: 85%;
+            height: 100%;
+            background: #fff;
+            position: fixed;
+            top: 0;
+            right: -85%;
+            border-radius: 5px 0 0 5px;
+            transition: all .3s;
+            padding: 20px 15px 0;
+        }
+        .filter-bg.active .filter-box {
+            right: 0;
+            transition: all .3s;
+        }
+        .filter-bg .filter-box .item {
+            margin-bottom: 15px;
+        }
+        .filter-bg .filter-box .item p {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+        .filter-bg .filter-box .item input {
+            width: 100%;
+            background: #eee;
+            margin-top: 10px;
+            padding: 5px;
+        }
+        .laydate-icon {
+            background-image: none !important;
+        }
+        .filter-bg .filter-box .btn-box span {
+            width: 80px;
+            height: 35px;
+            display: inline-block;
+            border-radius: 40px;
+            line-height: 35px;
+            text-align: center;
+        }
+        .filter-bg .filter-box .btn-box span.chongzhi {
+            border: 1px solid #c9c9c9;
+            background: #c9c9c9;
+            margin-right: 20px;
+        }
+        .filter-bg .filter-box .btn-box span.queren {
+            color: #fff;
+            border: 1px solid #1E9FFF;
+            background: #1E9FFF;
+        }
+        .filter-pl {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            bottom: -60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, .7);
+            transition: all .4s;
+        }
+        .filter-pl.active {
+            bottom: 0;
+            transition: all .4s;
+        }
+        .filter-pl #all-btn {
+            display: flex;
+            align-items: center;
+        }
+        .filter-pl #all-btn .quan {
+            display: inline-block;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 1px solid #fff;
+        }
+        .filter-pl #all-btn .all-text {
+            color: #fff;
+            margin-left: 10px;
+        }
+        .filter-pl #all-btn.active .quan{
+            border-color: #ff2c49;
+        }
+        .filter-pl #all-btn.active .all-text{
+            color: #ff2c49;
+        }
+        .filter-pl #all-tongyi {
+            width: 120px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            color: #fff;
+            background: #ff2c49;
+            border-radius: 40px;
+        }
+    </style>
+    <script>
+        layui.use('layer', function(){
+            var layer = layui.layer;
+        });
+        // 定义流程常量
+        const PROCESS = {
+            // 行政审批-请假
+            administrative_leave: {
+                typeId: '1',
+                url: '/administrativeProcessAlready',
+                list: []
+            },
+            // 行政审批-加班
+            administrative_overtime: {
+                typeId: '2',
+                url: '/administrativeProcessAlready',
+                list: []
+            },
+            // 行政审批-外出
+            administrative_goOut: {
+                typeId: '3',
+                url: '/administrativeProcessAlready',
+                list: []
+            },
+            // 行政审批-出差
+            administrative_travel: {
+                typeId: '4',
+                url: '/administrativeProcessAlready',
+                list: []
+            },
+            // 行政审批-绩效
+            administrative_performance: {
+                url: '/administrativePerformanceAlready',
+                list: []
+            },
+            // 行政审批-会议
+            administrative_meetingroom: {
+                url: '/administrativeMeetingAlready',
+                list: []
+            },
+
+            // 人事审批-入职    listHireHasAudit   listHireNotAudit
+            personnel_onboarding: {
+                url: '/listHireHasAudit',
+                list: []
+            },
+            // 人事审批-离职  listEmployeeHasAuditByParam
+            personnel_resignation: {
+                process: '13',
+                url: '/listEmployeeHasAuditByParam',
+                list: []
+            },
+            // 人事审批-转岗
+            personnel_transfer: {
+                process: '14',
+                url: '/listEmployeeHasAuditByParam',
+                list: []
+            },
+            // 人事审批-交接
+            personnel_handover: {
+                process: '15,16',
+                url: '/listEmployeeHasAuditByParam',
+                list: []
+            },
+            // 人事审批-转正
+            personnel_correct: {
+                process: '10',
+                url: '/listEmployeeHasAuditByParam',
+                list: []
+            },
+
+            // 财务审批-请款
+            finance_request: {
+                url: '/listOutgoHasAuditByParam',
+                list: []
+            },
+            // 财务审批-退稿
+            finance_rejection: {
+                url: '/listDropHasAuditByParam',
+                list: []
+            },
+            // 财务审批-借款
+            finance_loan: {
+                url: '/listBorrowHasAuditByParam',
+                list: []
+            },
+            // 财务审批-报销
+            finance_reimbursement: {
+                url: '/listReimursementHasAuditByParam',
+                list: []
+            },
+            // 财务审批-唤醒
+            finance_wake: {
+                url: '/listOutgoWorkUpHasAuditByParam',
+                list: []
+            },
+
+            // 业务审批-开票
+            business_invoicing: {
+                url: '/listInvoiceHasAuditByParam',
+                list: []
+            },
+            // 业务审批-退款
+            business_refund: {
+                url: '/listRefundHasAuditByParam',
+                list: []
+            },
+            // 业务审批-项目管理
+            business_commission: {
+                url: '/businessCommissionListAlready',
+                list: []
+            },
+        }
+        // 记录当前显示的流程
+        var current_process = {
+            administrative: 'administrative_leave',
+            personnel: 'personnel_onboarding',
+            finance: 'finance_request',
+            business: 'business_invoicing',
+        }
+
+        // 批量操作时，记录用户选中列表的 ‘task_id’
+        var TASK_ID = [];
+
+        // 审批列表请求公共参数
+        var post_data = {
+            sidx: 'taskId',
+            sord: 'desc',
+            size: 10,
+        }
+        // 用于滚动分页时，判断当前分页请求是否完成，未完成时即使滚动条滚到底部也不再发送请求
+        var isAjax = false;
+
+        $(function () {
+            // 初始化显示默认审批列表
+            init();
+
+            // 收缩和展开审批列表
+            $('.shouqi').click(function () {
+                var key = $(this).attr('data-key');
+                var flg = $(this).attr('data-flg');
+                if (flg == 'true') {
+                    if (!$('#'+ key).find('.slide-box').is(":animated")) {
+                        $(this).attr('data-flg', 'false');
+                        $('#'+key).find('.slide-box').slideUp();
+                        $(this).find('span').text('展开')
+                        $(this).find('i').removeClass('fa-angle-up').addClass('fa-angle-down')
+                    }
+                }
+                else {
+                    if (!$('#'+ key).find('.slide-box').is(":animated")) {
+                        $(this).attr('data-flg', 'true');
+                        $('#'+key).find('.slide-box').slideDown();
+                        $(this).find('span').text('收起')
+                        $(this).find('i').removeClass('fa-angle-down').addClass('fa-angle-up')
+                    }
+                }
+            })
+
+            // 流程类型切换
+            $('.tab-box').each(function () {
+                $(this).find('span.item').click(function () {
+                    if ($(this).hasClass('active')) return;
+                    $(this).addClass('active').siblings().removeClass('active');
+                    var key = $(this).attr('id');
+                    current_process[key.match(/(\S*)_/)[1]] = key;
+                    $('#'+ key +'_box').addClass('active').siblings('.item-box').removeClass('active');
+                })
+            })
+
+            // 滚动分页加载更多
+            $('.item-box').scroll(function () {
+                var w = $(this).height();
+                var n = $(this).find('.content-box').height();
+                if ((n - w) == $(this).scrollTop()) {
+                    if ($(this).attr('data-isBottom') == 'true' || isAjax) return;
+                    isAjax = true
+                    var page = $(this).attr('data-pagenumber')
+                    $(this).attr('data-pagenumber', Number(page) + 1);
+                    var key = $(this).attr('id').match(/(\S*)_/)[1];
+                    var p = '<p class="jiazai"><i class="fa fa-spinner fa-pulse" style="margin-right: 8px"></i>正在加载</p>'
+                    $(this).find('.content-box').append(p);
+                    fn_ajax_data(key, PROCESS[key], Number(page) + 1, true);
+                }
+            });
+
+            // 审批板块筛选
+            $('.type-box .item').click(function () {
+                if ($(this).hasClass('active')) {
+                    $(this).removeClass('active');
+                }
+                else {
+                    $(this).addClass('active');
+                }
+                $('.type-box .item').each(function (i) {
+                    if ($(this).hasClass('active')) {
+                        $('.process-content-box:eq('+ i +')').show();
+                    }
+                    else {
+                        $('.process-content-box:eq('+ i +')').hide();
+                    }
+                })
+                if ($('.type-box .active').length == 0) {
+                    $('.process-content-box').show();
+                }
+            })
+
+            // 返回首页
+            $('#back-icon').click(function () {
+                location.href = '/mobile/index';
+            })
+        })
+
+        // 初始化显示默认审批列表
+        function init() {
+            for (key in  PROCESS) {
+                fn_ajax_data(key, PROCESS[key], 1, false);
+            }
+        }
+
+        // 阻止冒泡行为
+        function stopPropagation(e) {
+            e = e || window.event;
+            if(e.stopPropagation) { //W3C阻止冒泡方法
+                e.stopPropagation();
+            } else {
+                e.cancelBubble = true; //IE阻止冒泡方法
+            }
+        }
+
+        // 公共请求数据
+        function fn_ajax_data(key, process, pageNumber, ispush) {
+            if (process == null || process == undefined) return
+            post_data.page = pageNumber
+            if ('typeId' in process) {
+                post_data.typeId = process.typeId;
+            }
+            else {
+                delete post_data.typeId;
+            }
+            if ('process' in process) {
+                post_data.process = process.process;
+            }
+            else {
+                delete post_data.process;
+            }
+            $.ajax({
+                type: "post",
+                url: baseUrl + '/mobile' + process.url,
+                datatype: "json",
+                data: post_data,
+                success: function (data) {
+                    if (!data.list) {
+                        $('#' + key + '_box').find('.content-box').append('<p class="none-data">暂无需要审批的流程</p>');
+                        $('#' + key).find('span').text('0');
+                        $('#' + key + '_box').find('.cntloading').hide();
+                        $('#' + key + '_box').find('.content-box').show();
+                        return
+                    }
+                    $('#' + key).find('span').text(data.total);
+                    $('#' + key + '_box').find('.cntloading').hide();
+                    if (data.total == 0) {
+                        $('#' + key + '_box').find('.content-box').append('<p class="none-data">暂无需要审批的流程</p>');
+                    }
+                    else {
+                        for (var i = 0; i < data.list.length; i++) {
+                            var html = '';
+                            var item_num = (pageNumber - 1) * 10 + i;
+                            var info = data.list[i];
+                            PROCESS[key].list.push(info);
+                            // 行政审批-请假
+                            if (key == 'administrative_leave') {
+                                var days = toDays(((info.end_time - info.begin_time) / 86400000).toFixed(1));
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">请假标题：</span><span class="neirong">' + info.title + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.emp_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">请假类型：</span><span class="neirong">'+ info.typeName +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">时　　间：</span><span class="neirong">'+ toTime(info.begin_time, true) +' ~ ' + toTime(info.end_time, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">请假时长：</span><span class="neirong">'+ (info.leave_days ? info.leave_days : days) +'天</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left">' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'administrative_leave\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 行政审批-加班
+                            if (key == 'administrative_overtime') {
+                                var hous = ((info.end_time - info.begin_time) / 86400000 * 24).toFixed(1)
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">加班标题：</span><span class="neirong">' + info.title + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.emp_name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">时　　间：</span><span class="neirong">'+ toTime(info.begin_time, true) +' ~ ' + toTime(info.end_time, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">加班时长：</span><span class="neirong">'+ (info.work_time ? info.work_time : hous) +'小时</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'administrative_overtime\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 行政审批-外出
+                            if (key == 'administrative_goOut') {
+                                var hous = ((info.end_time - info.begin_time) / 86400000 * 24).toFixed(1)
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">外出标题：</span><span class="neirong">' + info.title + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.emp_name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">时　　间：</span><span class="neirong">'+ toTime(info.begin_time, true) +' ~ ' + toTime(info.end_time, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">外出时长：</span><span class="neirong">'+ (info.time ? info.time : hous) +'小时</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'administrative_goOut\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 行政审批-出差
+                            if (key == 'administrative_travel') {
+                                var days = toDays(((info.travel_end_time - info.travel_state_time) / 86400000).toFixed(1));
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">出差标题：</span><span class="neirong">' + info.title + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">时　　间：</span><span class="neirong">'+ toTime(info.travel_state_time, true) +' ~ ' + toTime(info.travel_end_time, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">出差时长：</span><span class="neirong">'+ (info.number_day ? info.number_day : info.number_day) +'天</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'administrative_travel\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 行政审批-绩效
+                            if (key == 'administrative_performance') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">绩效标题：</span><span class="neirong">' + info.pro_desc + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.create_name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">提交时间：</span><span class="neirong">'+ toTime(info.create_time, false) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'administrative_performance\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 行政审批-会议室
+                            if (key == 'administrative_meetingroom') {
+                                var hours = ((info.end_time - info.start_time) / 86400000 * 24).toFixed(1);
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">会议地址：</span><span class="neirong">' + info.address + '</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.createName +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">预定时间：</span><span class="neirong">'+ toTime(info.start_time, true) +' ~ ' + toTime(info.end_time, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">提交时间：</span><span class="neirong">'+ toTime(info.create_date, true) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">会议时长：</span><span class="neirong">'+ hours +'小时</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'administrative_meetingroom\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+
+                            // 人事审批-入职
+                            if (key == 'personnel_onboarding') {
+                                if (!info.hire) {
+                                    html += '<div class="no-data">该条数据找不到转岗记录与员工信息</div>'
+                                }
+                                else {
+                                    if (info.hire.empGender == null) var gender = '未知';
+                                    if (info.hire.empGender == 0) var gender = '女';
+                                    if (info.hire.empGender == 1) var gender = '男';
+
+                                    if (info.hire.empMarriage == 0) var empMarriage = '未婚';
+                                    if (info.hire.empMarriage == 1) var empMarriage = '已婚';
+                                    if (info.hire.empMarriage == 2) var empMarriage = '离婚';
+                                    if (info.hire.empMarriage == 3) var empMarriage = '丧偶';
+                                    html += '<div class="item" data-click="false" data-taskid="'+ info.taskId +'">' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">姓　　名：</span><span class="neirong">'+ info.hire.empName +'</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">性　　别：</span><span class="neirong">'+ gender +'</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">家庭住址：</span><span class="neirong">'+ (info.hire.empLocalAddress ? info.hire.empLocalAddress : '') +'</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">婚　　否：</span><span class="neirong">'+ empMarriage +'</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">申请职位：</span><span class="neirong">'+ info.hire.empDeptName +'</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">申请部门：</span><span class="neirong">'+ info.hire.empProfessionName +'</span>' +
+                                        '</div>' +
+                                        '</div>'+
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.hire.createTime) +'</span>' +
+                                        '</div>' +
+                                        '</div>'+
+                                        '<div class="box-btn">' +
+                                        '<div class="left"></div>' +
+                                        '<div class="right">' +
+                                        '<a onclick="fn_details(\''+ info.taskId +'\', this, '+ item_num +', \'personnel_onboarding\')">详情</a>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>'
+                                }
+                            }
+                            // 人事审批-离职
+                            if (key == 'personnel_resignation') {
+                                if (!info.employee && !info.emp) {
+                                    html += '<div class="no-data">该条数据找不到转岗记录与员工信息</div>'
+                                }
+                                else {
+                                    if (info.employee.leaveTypeContent == 0) var leaveTypeContent = '终止试用';
+                                    if (info.employee.leaveTypeContent == 1) var leaveTypeContent = '公司辞退';
+                                    if (info.employee.leaveTypeContent == 2) var leaveTypeContent = '终止续签';
+                                    if (info.employee.leaveTypeContent == 3) var leaveTypeContent = '试用辞退';
+                                    if (info.employee.leaveTypeContent == 4) var leaveTypeContent = '个人辞职';
+                                    if (info.employee.leaveTypeContent == 5) var leaveTypeContent = '合同期满';
+                                    html += '<div class="item" data-click="false" data-taskid="' + info.taskId + '">' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">姓　　名：</span><span class="neirong">' + (info.employee ? info.employee.empName : info.emp.empName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">上级领导：</span><span class="neirong">' + (info.employee ? info.employee.deptLeaderName : info.emp.deptLeaderName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">所属部门：</span><span class="neirong">' + (info.employee ? info.employee.empDeptName : info.emp.deptName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">当前职位：</span><span class="neirong">' + (info.employee ? info.employee.empProfessionName : info.emp.postName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">入职时间：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.empDate) : '不详') + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">离职日期：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.leaveDate) : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">离职类型：</span><span class="neirong">' + (leaveTypeContent ? leaveTypeContent : '不详') + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">申请人员：</span><span class="neirong">' + (info.employee.createName ? info.employee.createName : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>';
+                                    if (info.employee) {
+                                        html += '<div class="box-btn">' +
+                                            '<div class="left"></div>' +
+                                            '<div class="right">' +
+                                            '<a onclick="fn_details(\'' + info.taskId + '\', this, ' + item_num + ', \'personnel_resignation\')">详情</a>' +
+                                            '</div>' +
+                                            '</div>';
+                                    }
+                                    html += '</div>'
+                                }
+                            }
+                            // 人事审批-转岗
+                            if (key == 'personnel_transfer') {
+                                if (!info.employee && !info.emp) {
+                                    html += '<div class="no-data">该条数据找不到转岗记录与员工信息</div>'
+                                }
+                                else {
+                                    html += '<div class="item" data-click="false" data-taskid="' + info.taskId + '">' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">姓　　名：</span><span class="neirong">' + (info.employee ? info.employee.empName : info.emp.empName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">入职时间：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.empDate) : '不详') + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">所属部门：</span><span class="neirong">' + (info.employee ? info.employee.empDeptName : info.emp.deptName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">当前职位：</span><span class="neirong">' + (info.employee ? info.employee.empProfessionName : info.emp.postName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">调岗部门：</span><span class="neirong">' + (info.employee ? info.employee.afterDeptName : '') + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">调岗职位：</span><span class="neirong">' + (info.employee ? info.employee.afterProfessionName : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">申请日期：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.createTime) : '未知') + '</span>' +
+                                        '</div>' +
+                                        '</div>';
+                                    if (info.employee) {
+                                        html += '<div class="box-btn">' +
+                                            '<div class="left"></div>' +
+                                            '<div class="right">' +
+                                            '<a onclick="fn_details(\'' + info.taskId + '\', this, ' + item_num + ', \'personnel_transfer\')">详情</a>' +
+                                            '</div>' +
+                                            '</div>';
+                                    }
+                                    html += '</div>'
+                                }
+                            }
+                            // 人事审批-交接
+                            if (key == 'personnel_handover') {
+                                if (!info.employee && !info.emp) {
+                                    html += '<div class="no-data">该条数据找不到转岗记录与员工信息</div>'
+                                }
+                                else {
+                                    html += '<div class="item" data-click="false" data-taskid="' + info.taskId + '">' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">姓名：</span><span class="neirong">' + (info.employee ? info.employee.empName : info.emp.empName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">入职时间：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.empDate) : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">所属部门：</span><span class="neirong">' + (info.employee ? info.employee.empDeptName : info.emp.deptName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">当前职位：</span><span class="neirong">' + (info.employee ? info.employee.empProfessionName : info.emp.postName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">申请日期：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.createTime) : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>';
+                                    if (info.employee) {
+                                        html += '<div class="box-btn">' +
+                                            '<div class="left"></div>' +
+                                            '<div class="right">' +
+                                            '<a onclick="fn_details(\'' + info.taskId + '\', this, ' + item_num + ', \'personnel_handover\')">详情</a>' +
+                                            '</div>' +
+                                            '</div>';
+                                    }
+                                    html += '</div>'
+                                }
+                            }
+                            // 人事审批-转正
+                            if (key == 'personnel_correct') {
+                                if (!info.employee && !info.emp) {
+                                    html += '<div class="no-data">该条数据找不到转岗记录与员工信息</div>'
+                                }
+                                else {
+                                    html += '<div class="item" data-click="false" data-taskid="' + info.taskId + '">' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">姓　　名：</span><span class="neirong">' + (info.employee ? info.employee.empName : info.emp.empName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">上级领导：</span><span class="neirong">' + (info.employee ? info.employee.deptLeaderName : info.emp.deptLeaderName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">所属部门：</span><span class="neirong">' + (info.employee ? info.employee.empDeptName : info.emp.deptName) + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">当前职位：</span><span class="neirong">' + (info.employee ? info.employee.empProfessionName : info.emp.postName) + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">入职时间：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.empDate) : '') + '</span>' +
+                                        '</div>' +
+                                        '<div class="right">' +
+                                        '<span class="title">申请人员：</span><span class="neirong">' + (info.employee ? info.employee.createName : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div class="box">' +
+                                        '<div class="left">' +
+                                        '<span class="title">申请日期：</span><span class="neirong">' + (info.employee ? toTime3(info.employee.createTime) : '') + '</span>' +
+                                        '</div>' +
+                                        '</div>';
+                                    if (info.employee) {
+                                        html += '<div class="box-btn">' +
+                                            '<div class="left"></div>' +
+                                            '<div class="right">' +
+                                            '<a onclick="fn_details(\'' + info.taskId + '\', this, ' + item_num + ', \'personnel_correct\')">详情</a>' +
+                                            '</div>' +
+                                            '</div>';
+                                    }
+                                    html += '</div>'
+                                }
+                            }
+
+                            // 财务审批-请款
+                            if (key == 'finance_request') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">请款标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.create_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">实际请款金额：</span><span class="neirong">'+ info.apply_amount +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">期望日期：</span><span class="neirong">'+ (info.expert_pay_time != undefined ? toTime(info.expert_pay_time) : '暂无信息') +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'finance_request\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 财务审批-退稿
+                            if (key == 'finance_rejection') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">退稿标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime(info.create_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">供应商名称：</span><span class="neirong">'+ info.supplier_contactor +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">供应商联系人：</span><span class="neirong">'+ info.supplier_name +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">关联备用金：</span><span class="neirong">'+ info.fund_amount +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">退还备用金：</span><span class="neirong">'+ info.pay_amount +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'finance_rejection\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 财务审批-借款
+                            if (key == 'finance_loan') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">借款标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.create_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申请金额：</span><span class="neirong">'+ info.apply_amount +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">收款账户：</span><span class="neirong">'+ info.account_name +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'finance_loan\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 财务审批-报销
+                            if (key == 'finance_reimbursement') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">报销标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">报销时间：</span><span class="neirong">'+ toTime3(info.apply_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">应销金额：</span><span class="neirong">'+ info.reimbursed_money +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">实销金额：</span><span class="neirong">'+ info.total_money +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'finance_reimbursement\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 财务审批-唤醒
+                            if (key == 'finance_wake') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">请款标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.create_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">实际请款金额：</span><span class="neirong">'+ info.apply_amount +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">期望日期：</span><span class="neirong">'+ (info.expert_pay_time != undefined ? toTime(info.expert_pay_time) : '暂无信息') +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'finance_wake\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+
+                            // 业务审批-开票
+                            if (key == 'business_invoicing') {
+                                if (info.invoice_type == 0 || info.invoice_type == undefined) var invoice_type = '未指定';
+                                if (info.invoice_type == 1) var invoice_type = '普票';
+                                if (info.invoice_type == 2) var invoice_type = '专票';
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">开票标题：</span><span class="neirong">'+ info.name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.apply_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">开票公司名：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">发票类型：</span><span class="neirong">'+ invoice_type +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">实际开票金额：</span><span class="neirong">'+ info.invoice_amount +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'business_invoicing\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 业务审批-退款
+                            if (key == 'business_refund') {
+                                if (info.type == 0) var type = '直接退款';
+                                if (info.type == 1) var type = '稿件退款';
+                                if (info.type == 2) var type = '其他支出';
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">退款标题：</span><span class="neirong">'+ info.title +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.apply_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申请金额：</span><span class="neirong">'+ info.apply_amount +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">退款类型：</span><span class="neirong">'+type +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'business_refund\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            // 业务审批-项目管理
+                            if (key == 'business_commission') {
+                                html += '<div class="item" data-click="false" data-taskid="'+ info.task_id +'">' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">项目名称：</span><span class="neirong">'+ info.name +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">申<span style="margin: 0 6.5px">请</span>人：</span><span class="neirong">'+ info.apply_name +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">申请日期：</span><span class="neirong">'+ toTime3(info.apply_time) +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">销售：</span><span class="neirong">'+ info['销售'] +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">客户总监：</span><span class="neirong">'+ info['客户总监'] +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">客户经理：</span><span class="neirong">'+ info['客户经理'] +'</span>' +
+                                    '</div>' +
+                                    '<div class="right">' +
+                                    '<span class="title">策划：</span><span class="neirong">'+ info['策划'] +'</span>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<div class="left">' +
+                                    '<span class="title">客户专员：</span><span class="neirong">'+ info['客户专员'] +'</span>' +
+                                    '</div>' +
+                                    '</div>'+
+                                    '<div class="box-btn">' +
+                                    '<div class="left"></div>' +
+                                    '<div class="right">' +
+                                    '<a onclick="fn_details(\''+ info.task_id +'\', this, '+ item_num +', \'business_commission\')">详情</a>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>'
+                            }
+                            $('#' + key + '_box').find('.content-box').append(html);
+                        }
+                    }
+                    if (ispush) {
+                        isAjax = false;
+                        $('#' + key + '_box').find('.content-box .jiazai').remove();
+                    }
+                    else {
+                        $('#' + key + '_box').attr('data-ispost', 'true');
+                    }
+                    if (pageNumber == data.pages) {
+                        $('#' + key + '_box').attr('data-isBottom', 'true');
+                        var p = '<p class="is_bottom">没有更多了！</p>'
+                        $('#' + key + '_box').find('.content-box').append(p);
+                    }
+                    $('#' + key + '_box').find('.content-box').show();
+                }
+            })
+        }
+
+        function toTime (timestamp, end) {
+            function gl (k) {
+                if (k > 10 || k == 10) return k
+                return '0' + k;
+            }
+            var time = new Date(timestamp)
+            var y = time.getFullYear() // getFullYear方法以四位数字返回年份
+            var M = time.getMonth() + 1 // getMonth方法从 Date 对象返回月份 (0 ~ 11)，返回结果需要手动加一
+            var d = time.getDate() // getDate方法从 Date 对象返回一个月中的某一天 (1 ~ 31)
+            var h = time.getHours() // getHours方法返回 Date 对象的小时 (0 ~ 23)
+            var m = time.getMinutes() // getMinutes方法返回 Date 对象的分钟 (0 ~ 59)
+            var s = time.getSeconds() // getSeconds方法返回 Date 对象的秒数 (0 ~ 59)
+            if (end) {
+                return y + '/' + gl(M) + '/' + gl(d) + ' ' + gl(h) + ':' + gl(m) + ':' + gl(s)
+            }
+            else {
+                return y + '/' + gl(M) + '/' + gl(d) + ' ' + gl(h) + ':' + gl(m)
+            }
+        }
+        function toTime3 (timestamp) {
+            function gl (k) {
+                if (k > 10 || k == 10) return k
+                return '0' + k;
+            }
+            var time = new Date(timestamp)
+            var y = time.getFullYear() // getFullYear方法以四位数字返回年份
+            var M = time.getMonth() + 1 // getMonth方法从 Date 对象返回月份 (0 ~ 11)，返回结果需要手动加一
+            var d = time.getDate() // getDate方法从 Date 对象返回一个月中的某一天 (1 ~ 31)
+            return y + '/' + gl(M) + '/' + gl(d)
+        }
+        function toDays (days) {
+            var z = days.match(/(\S*)./)[1];
+            var d = days - z;
+            if (Number(d) < 5) {
+                if (Number(d) == 0) {
+                    return Number(z)
+                }
+                return Number(z) + 0.5;
+            }
+            else {
+                return Number(z) + 1;
+            }
+        }
+        function  rn_state (state) {
+            if (state == -1) return '审核驳回';
+            if (state == 0) return '已保存';
+            if (state == 1) return '已完成';
+            if (state == 2) return '审核通过';
+            if (state == 3) return '组长审核';
+            if (state == 4) return '部长审核';
+            if (state == 5) return '总监审核';
+            if (state == 6) return '财务总监审核';
+            if (state == 7) return '副总经理审核';
+            if (state == 8) return '总经理审核';
+            if (state == 9) return '会计确认出款';
+            if (state == 10) return '业务员确认';
+            if (state == 12) return '财务部长审核';
+            if (state == 16) return '出纳出款';
+            if (state == 23) return '唤醒中';
+            if (state == 26) return '媒介回填开票信息';
+        }
+        function  kaipiao_state (state) {
+            if (state == -1) return '审核驳回';
+            if (state == 0) return '已保存';
+            if (state == 1) return '已完成';
+            if (state == 2) return '确认开票';
+            if (state == 3) return '组长审核';
+            if (state == 4) return '部长审核';
+            if (state == 5) return '总监审核';
+            if (state == 6) return '财务总监审核';
+            if (state == 7) return '副总经理审核';
+            if (state == 8) return '总经理审核';
+            if (state == 11) return '财务助理开票';
+            if (state == 12) return '财务部长审核';
+        }
+        function  tuikuan_state (state) {
+            if (state == -1) return '审核驳回';
+            if (state == 0) return '已保存';
+            if (state == 1) return '已完成';
+            if (state == 2) return '审核通过';
+            if (state == 3) return '组长审核';
+            if (state == 4) return '部长审核';
+            if (state == 5) return '总监审核';
+            if (state == 6) return '财务总监审核';
+            if (state == 7) return '副总经理审核';
+            if (state == 8) return '总经理审核';
+            if (state == 9) return '会计确认出款';
+            if (state == 10) return '业务员确认';
+            if (state == 12) return '财务部长审核';
+            if (state == 16) return '出纳出款';
+            if (state == 30) return '集团财务部门负责人';
+            if (state == 31) return '集团财务分管领导';
+            if (state == 32) return '集团总裁';
+        }
+        function  tuigao_state (state) {
+            if (state == -1) return '审核驳回';
+            if (state == 0) return '已保存';
+            if (state == 1) return '已完成';
+            if (state == 2) return '审核通过';
+            if (state == 3) return '组长审核';
+            if (state == 4) return '部长审核';
+            if (state == 5) return '总监审核';
+            if (state == 6) return '财务总监审核';
+            if (state == 7) return '副总经理审核';
+            if (state == 8) return '总经理审核';
+            if (state == 9) return '会计确认出款';
+            if (state == 10) return '业务员确认';
+            if (state == 12) return '财务部长审核';
+            if (state == 16) return '出纳出款';
+        }
+
+        // 查看审批详情
+        function fn_details(id, e, i, key) {
+            stopPropagation(); // 阻止默认行为
+            $('#' + key + '_de').show().siblings('.item').hide();
+            $('#detail-box').addClass('active');
+            $('body').addClass('none');
+            var info = PROCESS[key].list[i];
+            console.log(info)
+            var html = '';
+            // 行政审批 - 请假 - 详情
+            if (key == "administrative_leave") {
+                var days = toDays(((info.end_time - info.begin_time) / 86400000).toFixed(1));
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>请假审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请假标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.emp_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请假类型<i></i></div>' +
+                    '<div class="right">'+ info.typeName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.begin_time, false) +' ~ ' + toTime(info.end_time, false) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时长<i></i></div>' +
+                    '<div class="right">'+ (info.leave_days ? info.leave_days : days) +'天</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">发起时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.create_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">请假事由</div>' +
+                    '<div class="bottom">'+ info.reason +'</div>' +
+                    '</div>' +
+                    '</div>'
+            }
+            // 行政审批 - 加班 - 详情
+            if (key == "administrative_overtime") {
+                var hous = ((info.endtime - info.begin_time) / 86400000 * 24).toFixed(1);
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>加班审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">加班标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.emp_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.begin_time, false) +' ~ ' + toTime(info.end_time, false) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时长<i></i></div>' +
+                    '<div class="right">'+ (info.work_time ? info.work_time : hous) +'小时</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">发起时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.create_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">加班事由</div>' +
+                    '<div class="bottom">'+ info.reason +'</div>' +
+                    '</div>' +
+                    '</div>'
+            }
+            // 行政审批 - 外出 - 详情
+            if (key == "administrative_goOut") {
+                var hous = ((info.endtime - info.begin_time) / 86400000 * 24).toFixed(1);
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>外出审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">外出标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.emp_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.begin_time, false) +' ~ ' + toTime(info.end_time, false) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时长<i></i></div>' +
+                    '<div class="right">'+ (info.time ? info.time : hous) +'小时</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">发起时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.create_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">外出事由</div>' +
+                    '<div class="bottom">'+ info.reason +'</div>' +
+                    '</div>' +
+                    '</div>'
+            }
+            // 行政审批 - 出差 - 详情
+            if (key == "administrative_travel") {
+                var days = toDays(((info.travel_end_time - info.travel_state_time) / 86400000).toFixed(1));
+                if (info.separate == 1) var separate = '单独出差';
+                if (info.separate == 2) var separate = '团体出差';
+
+                if (info.reason == 1) var reason = '公司派遣';
+                if (info.reason == 2) var reason = '客户谈判';
+                if (info.reason == 3) var reason = '培训学习';
+                if (info.reason == 4) var reason = '商务会议';
+                if (info.reason == 5) var reason = '工作拍摄';
+                if (info.reason == 6) var reason = '其它';
+
+                if (info.place_type == 1) var place_type = '省内';
+                if (info.place_type == 2) var place_type = '省外';
+                if (info.place_type == 3) var place_type = '国外';
+
+                if (info.traffic == 1) var traffic = '公司派车';
+                if (info.traffic == 2) var traffic = '飞机(经济舱)';
+                if (info.traffic == 3) var traffic = '飞机(商务舱)';
+                if (info.traffic == 4) var traffic = '高铁(一等座)';
+                if (info.traffic == 5) var traffic = '高铁(二等座)';
+                if (info.traffic == 6) var traffic = '高铁(特等座)';
+                if (info.traffic == 7) var traffic = '火车(硬座)';
+                if (info.traffic == 8) var traffic = '火车(硬卧)';
+                if (info.traffic == 9) var traffic = '火车(软卧)';
+                if (info.traffic == 10) var traffic = '轮船';
+                if (info.traffic == 11) var traffic = '汽车';
+
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>出差审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_travel">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出差标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所属部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>';
+                if (info.separate) {
+                    html += '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">出差类型<i></i></div>' +
+                        '<div class="right">'+ separate +'</div>' +
+                        '</div>' +
+                        '</div>'
+                }
+
+                html += '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出差事由<i></i></div>' +
+                    '<div class="right">'+ (info.reason ? reason : '未知') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出差时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.travel_state_time, false) +' ~ ' + toTime(info.travel_end_time, false) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出差时长<i></i></div>' +
+                    '<div class="right">'+ (info.number_day ? info.number_day : days) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出差地点<i></i></div>' +
+                    '<div class="right">'+ place_type +'（'+ info.place +'）</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">交通工具<i></i></div>' +
+                    '<div class="right">'+ (info.traffic ? traffic : '未知') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工作代办人<i></i></div>' +
+                    '<div class="right">'+ info.travel_user +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">同行人员<i></i></div>' +
+                    '<div class="right">'+ info.field_user +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">预算经费<i></i></div>' +
+                    '<div class="right">'+ info.cost_budget +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.application_date) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">原因及目标</div>' +
+                    '<div class="bottom">'+ info.target +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">详细行程</div>' +
+                    '<div class="bottom">'+ info.trip +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">备注</div>' +
+                    '<div class="bottom">'+ (info.note ? info.note : '') +'</div>' +
+                    '</div>'
+            }
+            // 行政审批 - 绩效 - 详情
+            if (key == "administrative_performance") {
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>绩效审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">绩效标题<i></i></div>' +
+                    '<div class="right">'+ info.pro_desc +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.create_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">提交时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.create_time, false) +'</div>' +
+                    '</div>' +
+                    '</div>'
+            }
+            // 行政审批 - 会议 - 详情
+            if (key == "administrative_meetingroom") {
+                var user_canyu = ''; // 参会人员 0
+                var user_zhuchi = ''; // 会议主持人 1
+                var user_zuzhi = ''; // 会议组织者 2
+                var user_fuze = ''; // 会议任务负责人 3
+                var user_jiancha = ''; // 会议任务检查人 4
+                var user_jiyao = ''; // 会议纪要人 5
+                for (var i = 0; i < info.userList.length; i++) {
+                    if (info.userList[i].userType == 0) {
+                        user_canyu += info.userList[i].name + '，'
+                    }
+                    if (info.userList[i].userType == 1) {
+                        user_zhuchi += info.userList[i].name + '，'
+                    }
+                    if (info.userList[i].userType == 2) {
+                        user_zuzhi += info.userList[i].name + '，'
+                    }
+                    if (info.userList[i].userType == 3) {
+                        user_fuze += info.userList[i].name + '，'
+                    }
+                    if (info.userList[i].userType == 4) {
+                        user_jiancha += info.userList[i].name + '，'
+                    }
+                    if (info.userList[i].userType == 5) {
+                        user_jiyao += info.userList[i].name + '，'
+                    }
+                }
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>会议室审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">会议标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">会议地址<i></i></div>' +
+                    '<div class="right">'+ info.address +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.createName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">预定时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.start_time) +' ~ '+ toTime(info.end_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">提交时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.create_date, false) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">会议内容<i></i></div>' +
+                    '<div class="right">'+ info.content +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议主持人</div>' +
+                    '<div class="bottom">'+ user_zhuchi.substr(0, user_zhuchi.length - 1) +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议组织者</div>' +
+                    '<div class="bottom">'+ user_zuzhi.substr(0, user_zuzhi.length - 1) +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议参与人员</div>' +
+                    '<div class="bottom">'+ user_canyu.substr(0, user_canyu.length - 1) +'</div>' +
+                    '</div>'
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议任务负责人</div>' +
+                    '<div class="bottom">'+ user_fuze.substr(0, user_fuze.length - 1) +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议任务检查人</div>' +
+                    '<div class="bottom">'+ user_jiancha.substr(0, user_jiancha.length - 1) +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">会议纪要人员</div>' +
+                    '<div class="bottom">'+ user_jiyao.substr(0, user_jiyao.length - 1) +'</div>' +
+                    '</div>'
+            }
+
+            // 财务审批 - 请款 - 详情
+            if (key == "finance_request") {
+                if (info.outgo_tax == '0.03') var out_go_tax = '3点';
+                if (info.outgo_tax == '0.06') var out_go_tax = '6点';
+                if (info.outgo_tax ==  null || info.out_go_tax == undefined) var out_go_tax = '其他';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>请款审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款日期<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商名称<i></i></div>' +
+                    '<div class="right">'+ info.supplier_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商联系人<i></i></div>' +
+                    '<div class="right">'+ info.supplier_contactor +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款人<i></i></div>' +
+                    '<div class="right">'+ info.account_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款账户<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_no +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款开户行<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">应付金额<i></i></div>' +
+                    '<div class="right">'+ info.apply_amount +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">期望付款日期<i></i></div>' +
+                    '<div class="right">'+ (info.expert_pay_time ? toTime(info.expert_pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款日期<i></i></div>' +
+                    '<div class="right">'+ (info.pay_time ? toTime(info.pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款账户<i></i></div>' +
+                    '<div class="right">'+ (info.out_account_name ? info.out_account_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款金额<i></i></div>' +
+                    '<div class="right">'+ (info.pay_amount && Number(info.pay_amount) > 0 ? info.pay_amount : info.apply_amount) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际请款成本<i></i></div>' +
+                    '<div class="right">'+ (info.actual_cost ? info.actual_cost : '0.0') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款成本抹零<i></i></div>' +
+                    '<div class="right">'+ (info.cost_erase_amount ? info.cost_erase_amount : '0.0') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际请款抹零<i></i></div>' +
+                    '<div class="right">'+ (info.outgo_erase_amount ? info.outgo_erase_amount : '0.0') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际抹零金额<i></i></div>' +
+                    '<div class="right">'+ (info.cost_erase_amount + info.outgo_erase_amount) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">是否开票<i></i></div>' +
+                    '<div class="right">'+ (info.invoice_flag == 1 ? '是' : '否') +'</div>' +
+                    '</div>' +
+                    '</div>';
+                    if (info.invoice_flag == 1) {
+                        html += '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">发票编号<i></i></div>' +
+                            '<div class="right">'+ (info.invoice_code ? info.invoice_code : '') +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">票面税点<i></i></div>' +
+                            '<div class="right">'+ (info.invoice_tax ? info.invoice_tax : '') +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">票面税点<i></i></div>' +
+                            '<div class="right">'+ (info.invoice_type == 1 ? '普票' : '专票') +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">税点<i></i></div>' +
+                            '<div class="right">'+ out_go_tax +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">税金<i></i></div>' +
+                            '<div class="right">'+ info.tax_amount +'</div>' +
+                            '</div>' +
+                            '</div>' ;
+                    }
+                html += '<div class="i-box-tb">' +
+                    '<div class="top">请款备注</div>' +
+                    '<div class="bottom">'+ (info.remark ? info.remark : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ rn_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 财务审批 - 退稿 - 详情
+            if (key == "finance_rejection") {
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>退稿审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退稿编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退稿标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商名称<i></i></div>' +
+                    '<div class="right">'+ info.supplier_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商联系人<i></i></div>' +
+                    '<div class="right">'+ info.supplier_contactor +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">关联的备用金<i></i></div>' +
+                    '<div class="right">'+ info.fund_amount +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退还的备用金<i></i></div>' +
+                    '<div class="right">'+ info.pay_amount +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ tuigao_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">备注</div>' +
+                    '<div class="bottom">'+ info.remark +'</div>' +
+                    '</div>' +
+                    '</div>'
+
+            }
+            // 财务审批 - 借款 - 详情
+            if (key == "finance_loan") {
+                if (info.type == 0) var type = '备用金';
+                if (info.type == 1) var type = '其它';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>借款审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">借款编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">借款标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">借款类型<i></i></div>' +
+                    '<div class="right">'+ (info.type ? type : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请金额<i></i></div>' +
+                    '<div class="right">'+ info.apply_amount +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款账户<i></i></div>' +
+                    '<div class="right">'+ info.account_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款开户行<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款账户<i></i></div>' +
+                    '<div class="right">'+ (info.out_account_name ? info.out_account_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款金额<i></i></div>' +
+                    '<div class="right">'+ (info.pay_amount && Number(info.pay_amount) > 0 ? info.pay_amount : info.apply_amount) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款日期<i></i></div>' +
+                    '<div class="right">'+ (info.pay_time ? toTime(info.pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ tuikuan_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 财务审批 - 报销 - 详情
+            if (key == "finance_reimbursement") {
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>报销审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款账户<i></i></div>' +
+                    '<div class="right">'+ info.account_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">账号<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_no +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款开户行<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">应报销金额<i></i></div>' +
+                    '<div class="right">'+ info.reimbursed_money +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实报销金额<i></i></div>' +
+                    '<div class="right">'+ (info.pay_amount ? info.pay_amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">冲抵借款金额<i></i></div>' +
+                    '<div class="right">'+ (info.unpaid_loan ? info.unpaid_loan : '0') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出账账户名称<i></i></div>' +
+                    '<div class="right">'+ (info.out_account_name ? info.out_account_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款金额<i></i></div>' +
+                    '<div class="right">'+ (info.pay_amount && Number(info.pay_amount) > 0 ? info.pay_amount : (info.total_money - (info.unpaid_loan ? info.unpaid_loan : 0))) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出款时间<i></i></div>' +
+                    '<div class="right">'+ (info.pay_time ? toTime(info.pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ tuikuan_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">摘要</div>' +
+                    '<div class="bottom">'+ (info.remark ? info.remark : '') +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">报销详情</div>' +
+                    '<div class="bottom">' ;
+                    for (var q = 0; q < info.reimbursementDs.length; q++) {
+                        html += '<div class="item"><div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">序号<i></i></div>' +
+                            '<div class="right">'+ (q + 1) +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">费用类型<i></i></div>' +
+                            '<div class="right">'+ info.reimbursementDs[q].costType +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">用途<i></i></div>' +
+                            '<div class="right">'+ info.reimbursementDs[q].purpose +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">金额（元）<i></i></div>' +
+                            '<div class="right">'+ info.reimbursementDs[q].money +'</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">单据张数<i></i></div>' +
+                            '<div class="right">'+ info.reimbursementDs[q].numberOfDocument +'</div>' +
+                            '</div>' +
+                            '</div></div>' ;
+                    }
+                    html += '</div>' +
+                        '</div>' +
+                    '</div>';
+
+            }
+            // 财务审批 - 唤醒 - 详情
+            if (key == "finance_wake") {
+                var edit = {}
+                if (info.edit_json) edit = JSON.parse(info.edit_json);
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>请款唤醒审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款标题<i></i></div>' +
+                    '<div class="right">'+ info.title + (edit.title ? '<span>（'+ edit.title +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款日期<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商名称<i></i></div>' +
+                    '<div class="right">'+ info.supplier_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">供应商联系人<i></i></div>' +
+                    '<div class="right">'+ info.supplier_contactor +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款人<i></i></div>' +
+                    '<div class="right">'+ info.account_name + (edit.accountName ? '<span>（'+ edit.accountName +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款账户<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_no + (edit.accountBankNo ? '<span>（'+ edit.accountBankNo +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款开户行<i></i></div>' +
+                    '<div class="right">'+ info.account_bank_name + (edit.accountBankName ? '<span>（'+ edit.accountBankName +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">应付金额<i></i></div>' +
+                    '<div class="right">'+ (info.apply_amount ? info.apply_amount : '0.0') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际请款金额<i></i></div>' +
+                    '<div class="right">'+ (info.apply_amount ? info.apply_amount : '0.0') + (edit.applyAmount ? '<span>（'+ edit.applyAmount +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">期望付款日期<i></i></div>' +
+                    '<div class="right">'+ (info.expert_pay_time ? toTime(info.expert_pay_time) : '') + (edit.expertPayTime ? '<span>（'+ edit.expertPayTime +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款日期<i></i></div>' +
+                    '<div class="right">'+ (info.pay_time ? toTime(info.pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款账户<i></i></div>' +
+                    '<div class="right">'+ (info.out_account_name ? info.out_account_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款金额<i></i></div>' +
+                    '<div class="right">'+ info.pay_amount + (edit.payAmount ? '<span>（'+ edit.payAmount +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际请款成本<i></i></div>' +
+                    '<div class="right">'+ (info.actual_cost ? info.actual_cost : '0.0') + (edit.actualCost ? '<span>（'+ edit.actualCost +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">请款成本抹零<i></i></div>' +
+                    '<div class="right">'+ (info.cost_erase_amount ? info.cost_erase_amount : '0.0') + (edit.costEraseAmount ? '<span>（'+ edit.costEraseAmount +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际请款抹零<i></i></div>' +
+                    '<div class="right">'+ (info.outgo_erase_amount ? info.outgo_erase_amount : '0.0') + (edit.outgoEraseAmount ? '<span>（'+ edit.outgoEraseAmount +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际抹零金额<i></i></div>' +
+                    '<div class="right">'+ (info.cost_erase_amount + info.outgo_erase_amount) + (edit.costEraseAmount || edit.outgoEraseAmount ? '<span>（'+ (edit.costEraseAmount ? Number(edit.costEraseAmount) : Number(info.cost_erase_amount)) + (edit.outgoEraseAmount ? Number(edit.outgoEraseAmount) : Number(info.outgo_erase_amount)) +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">是否开票<i></i></div>' +
+                    '<div class="right">'+ (info.invoice_flag == 1 ? '是' : '否') + (edit.invoiceFlag ? '<span>（'+ (edit.invoiceFlag == 1 ? '是' : '否') +'）</span>' : '') +'</div>' +
+                    '</div>' +
+                    '</div>' ;
+                if (info.invoice_flag == 1) {
+                    html += '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">进票抬头<i></i></div>' +
+                        '<div class="right">'+ (info.invoice_rise ? info.invoice_rise : '') + (edit.invoiceRise ? '<span>（'+ edit.invoiceRise +'）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">发票编号<i></i></div>' +
+                        '<div class="right">'+ (info.invoice_code ? info.invoice_code : '') + (edit.invoiceCode ? '<span>（'+ edit.invoiceCode +'）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">票面税点<i></i></div>' +
+                        '<div class="right">'+ (info.invoice_tax ? info.invoice_tax : '') + (edit.invoiceTax ? '<span>（'+ edit.invoiceTax +'）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">发票类型<i></i></div>' +
+                        '<div class="right">'+ (info.invoice_type == 1 ? '普票' : '专票') + (edit.invoiceType ? '<span>（'+ (edit.invoiceType == 1 ? "普票" : "普票") +'）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">税点<i></i></div>' +
+                        '<div class="right">'+ (info.outgo_tax ? (info.outgo_tax * 100 + '点') : '') + (edit.outgoTax ? '<span>（'+ edit.outgoTax * 100 +'点）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="i-box">' +
+                        '<div class="b-box">' +
+                        '<div class="left">税金<i></i></div>' +
+                        '<div class="right">'+ info.tax_amount + (edit.taxAmount ? '<span>（'+ edit.taxAmount * 100 +'点）</span>' : '') +'</div>' +
+                        '</div>' +
+                        '</div>' ;
+                }
+                html += '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ rn_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">请款备注</div>' +
+                    '<div class="bottom">'+ (info.remark ? info.remark : '') +'</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb tishi">' +
+                    '<div class="top">提示</div>' +
+                    '<div class="bottom">' +
+                    '<p>1、红色文字为需要修改之后的数据</p>' +
+                    '<p>2、当前跳转节点【<b>'+ edit.jumpNode +'</b>】</p>' +
+                    '<p>3、唤醒原因：'+ (edit.workupReason ? edit.workupReason : '无') +'</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+
+            // 人事审批 - 入职 - 详情
+            if (key == "personnel_onboarding") {
+                if (info.hire.empGender == null) var gender = '未知';
+                if (info.hire.empGender == 0) var gender = '女';
+                if (info.hire.empGender == 1) var gender = '男';
+
+                if (info.hire.empMarriage == 0) var empMarriage = '未婚';
+                if (info.hire.empMarriage == 1) var empMarriage = '已婚';
+                if (info.hire.empMarriage == 2) var empMarriage = '离婚';
+                if (info.hire.empMarriage == 3) var empMarriage = '丧偶';
+
+                if (info.hire.empEducation == 0) var empDducation = '初中';
+                if (info.hire.empEducation == 1) var empDducation = '高中';
+                if (info.hire.empEducation == 2) var empDducation = '专科';
+                if (info.hire.empEducation == 3) var empDducation = '本科';
+                if (info.hire.empEducation == 4) var empDducation = '硕士';
+                if (info.hire.empEducation == 5) var empDducation = '博士';
+                if (info.hire.empEducation == 6) var empDducation = '博士后';
+                if (info.hire.empEducation == 7) var empDducation = '其他';
+                if (info.hire.empEducation == 8) var empDducation = '小学';
+
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>入职审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工号<i></i></div>' +
+                    '<div class="right">'+ info.hire.empNum +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">姓名<i></i></div>' +
+                    '<div class="right">'+ info.hire.empName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">家庭住址<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empLocalAddress ? info.hire.empLocalAddress : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ (info.hire.createTime ? toTime3(info.hire.createTime) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">到岗日期<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empExpectDate ? toTime3(info.hire.empExpectDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">试用期<i></i></div>' +
+                    '<div class="right">'+ (info.hire.trialBegin && info.hire.trialBegin ? toTime3(info.hire.trialBegin) +' ~ '+ toTime3(info.hire.trialEnd) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">录用部门<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empDeptName ? info.hire.empDeptName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">安排职位<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empProfessionName ? info.hire.empProfessionName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">性别<i></i></div>' +
+                    '<div class="right">'+ gender +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">婚否<i></i></div>' +
+                    '<div class="right">'+ empMarriage +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">出生年月<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empBirth ? toTime3(info.hire.empBirth) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">学历<i></i></div>' +
+                    '<div class="right">'+ (empDducation ? empDducation : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">学院<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empCollege ? info.hire.empCollege : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">专业<i></i></div>' +
+                    '<div class="right">'+ (info.hire.empMajor ? info.hire.empMajor : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 人事审批 - 离职 - 详情
+            if (key == "personnel_resignation") {
+                if (info.employee.leaveType == 0) var leaveType = '公司劝退';
+                if (info.employee.leaveType == 1) var leaveType = '个人离职';
+
+                if (info.employee.leaveTypeContent == 0) var leaveTypeContent = '终止试用';
+                if (info.employee.leaveTypeContent == 1) var leaveTypeContent = '公司辞退';
+                if (info.employee.leaveTypeContent == 2) var leaveTypeContent = '终止续签';
+                if (info.employee.leaveTypeContent == 3) var leaveTypeContent = '试用辞退';
+                if (info.employee.leaveTypeContent == 4) var leaveTypeContent = '个人辞职';
+                if (info.employee.leaveTypeContent == 5) var leaveTypeContent = '合同期满';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>离职审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工号<i></i></div>' +
+                    '<div class="right">'+ info.employee.empNum +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">姓名<i></i></div>' +
+                    '<div class="right">'+ info.employee.empName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所属部门<i></i></div>' +
+                    '<div class="right">'+ info.employee.empDeptName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">当前职位<i></i></div>' +
+                    '<div class="right">'+ info.employee.empProfessionName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">上级领导<i></i></div>' +
+                    '<div class="right">'+ (info.employee.deptLeaderName ? info.employee.deptLeaderName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">入职日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.empDate ? toTime3(info.employee.empDate) : '不详') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">离职日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.leaveDate ? toTime3(info.employee.leaveDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">离职性质<i></i></div>' +
+                    '<div class="right">'+ (leaveType ? leaveType : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">离职类型<i></i></div>' +
+                    '<div class="right">'+ (leaveTypeContent ? leaveTypeContent : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createName ? info.employee.createName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createTime ? toTime3(info.employee.createTime) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 人事审批 - 转岗 - 详情
+            if (key == "personnel_transfer") {
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>转岗审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工号<i></i></div>' +
+                    '<div class="right">'+ info.employee.empNum +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">姓名<i></i></div>' +
+                    '<div class="right">'+ info.employee.empName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">入职日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.empDate ? toTime3(info.employee.empDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所属部门<i></i></div>' +
+                    '<div class="right">'+ info.employee.empDeptName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">当前职位<i></i></div>' +
+                    '<div class="right">'+ info.employee.empProfessionName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">调岗部门<i></i></div>' +
+                    '<div class="right">'+ info.employee.afterDeptName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">调岗职位<i></i></div>' +
+                    '<div class="right">'+ info.employee.afterProfessionName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">执行日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.transDate ? toTime3(info.employee.transDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createName ? info.employee.createName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createTime ? toTime3(info.employee.createTime) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">调岗原因</div>' +
+                    '<div class="bottom">'+ (info.employee.transReason ? info.employee.transReason : '') +'</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 人事审批 - 交接 - 详情
+            if (key == "personnel_handover") {
+                if ( info.employee.conType == 0) var conType = '离职'
+                if ( info.employee.conType == 1) var  conType = '调岗'
+
+                if ( info.employee.empState == 0) var  empState = '试用'
+                if ( info.employee.empState == 1) var  empState = '转正'
+                if ( info.employee.empState == 2) var  empState = '离职'
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>交接审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工号<i></i></div>' +
+                    '<div class="right">'+ info.employee.empNum +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">姓名<i></i></div>' +
+                    '<div class="right">'+ info.employee.empName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">入职日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.empDate ? toTime3(info.employee.empDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所属部门<i></i></div>' +
+                    '<div class="right">'+ info.employee.empDeptName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">当前职位<i></i></div>' +
+                    '<div class="right">'+ info.employee.empProfessionName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">交接日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.conDate ? toTime3(info.employee.conDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createName ? info.employee.createName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createTime ? toTime3(info.employee.createTime) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 人事审批 - 转正 - 详情
+            if (key == "personnel_correct") {
+                if ( info.employee.conType == 0) conType == '离职'
+                if ( info.employee.conType == 1) conType == '调岗'
+
+                if ( info.employee.empState == 0) empState == '试用'
+                if ( info.employee.empState == 1) empState == '转正'
+                if ( info.employee.empState == 2) empState == '离职'
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>转正审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">工号<i></i></div>' +
+                    '<div class="right">'+ info.employee.empNum +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">姓名<i></i></div>' +
+                    '<div class="right">'+ info.employee.empName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">入职日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.empDate ? toTime3(info.employee.empDate) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所属部门<i></i></div>' +
+                    '<div class="right">'+ info.employee.empDeptName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">当前职位<i></i></div>' +
+                    '<div class="right">'+ info.employee.empProfessionName +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">上级领导<i></i></div>' +
+                    '<div class="right">'+ (info.employee.deptLeaderName ? info.employee.deptLeaderName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createName ? info.employee.createName : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请日期<i></i></div>' +
+                    '<div class="right">'+ (info.employee.createTime ? toTime3(info.employee.createTime) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+
+            // 业务审批 - 开票 - 详情
+            if (key == "business_invoicing") {
+                if (info.invoice_type == 0 || info.invoice_type == undefined) var invoice_type = '未指定';
+                if (info.invoice_type == 1) var invoice_type = '普票';
+                if (info.invoice_type == 2) var invoice_type = '专票';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>开票审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">开票编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">开票标题<i></i></div>' +
+                    '<div class="right">'+ info.name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">报销时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户公司名<i></i></div>' +
+                    '<div class="right">'+ info.cust_company_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">联系人<i></i></div>' +
+                    '<div class="right">'+ info.cust_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">发票类型<i></i></div>' +
+                    '<div class="right">'+ invoice_type +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">开票公司名称<i></i></div>' +
+                    '<div class="right">'+ (info.title ? info.title : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">公司电话<i></i></div>' +
+                    '<div class="right">'+ (info.phone ? info.phone : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">公司地址<i></i></div>' +
+                    '<div class="right">'+ (info.address ? info.address : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">劳务名称<i></i></div>' +
+                    '<div class="right">'+ (info.labour_service ? info.labour_service : '') +'</div>' +
+                    '</div>' +
+                    '</div>';
+                    if ((info.state == 12 || info.state == 1) && info.no != '') {
+                        html += '<div class="i-box">' +
+                            '<div class="b-box">' +
+                            '<div class="left">发票编号<i></i></div>' +
+                            '<div class="right">'+ info.no +'</div>' +
+                            '</div>' +
+                            '</div>' ;
+                    }
+                    html += '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">税号<i></i></div>' +
+                    '<div class="right">'+ (info.tax_code ? info.tax_code : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">抬头<i></i></div>' +
+                    '<div class="right">'+ (info.tax_type ? info.tax_type : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">税点<i></i></div>' +
+                    '<div class="right">'+ (info.tax_point ? info.tax_point : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">税额<i></i></div>' +
+                    '<div class="right">'+ (info.tax_amount ? info.tax_amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际开票金额<i></i></div>' +
+                    '<div class="right">'+ (info.invoice_amount ? info.invoice_amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">价税合计<i></i></div>' +
+                    '<div class="right">'+ (info.amount ? info.amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ kaipiao_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box-tb">' +
+                    '<div class="top">备注</div>' +
+                    '<div class="bottom">'+ (info.invoice_desc ? info.invoice_desc : '') +'</div>' +
+                    '</div>';
+
+            }
+            // 业务审批 - 退款 - 详情
+            if (key == "business_refund") {
+                if (info.type == 0) var type = '直接退款';
+                if (info.type == 1) var type = '稿件退款';
+                if (info.type == 2) var type = '其他支出';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>退款审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content finance_request">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退款编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退款标题<i></i></div>' +
+                    '<div class="right">'+ info.title +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">退款类型<i></i></div>' +
+                    '<div class="right">'+ type +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户公司名<i></i></div>' +
+                    '<div class="right">'+ info.cust_company_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户联系人<i></i></div>' +
+                    '<div class="right">'+ info.cust_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款人<i></i></div>' +
+                    '<div class="right">'+ info.account_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款账户<i></i></div>' +
+                    '<div class="right">'+ (info.account_bank_no ? info.account_bank_no : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">收款银行<i></i></div>' +
+                    '<div class="right">'+ (info.account_bank_name ? info.account_bank_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请金额<i></i></div>' +
+                    '<div class="right">'+ (info.apply_amount ? info.apply_amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款账号<i></i></div>' +
+                    '<div class="right">'+ (info.out_account_name ? info.out_account_name : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">时间出款金额<i></i></div>' +
+                    '<div class="right">'+ (info.pay_amount ? info.pay_amount : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">实际出款日期<i></i></div>' +
+                    '<div class="right">'+ (info.pay_time ? toTime(info.pay_time) : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ tuikuan_state(info.state) +'</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+            // 业务审批 - 项目管理 - 详情
+            if (key == "business_commission") {
+                if (info.state == -1) var state = '审核驳回';
+                if (info.state == 0) var state = '已保存';
+                if (info.state == 1) var state = '已完成';
+                if (info.state == 27) var state = '销售审批';
+                if (info.state == 28) var state = '总经办审批';
+                html += '<div class="top-box">' +
+                    '<div class="top-content">' +
+                    '<span id="tolist-icon"><i class="fa fa-angle-left"></i></span>' +
+                    '<p>项目审批详情</p>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="item-content administrative_leave">' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">项目编号<i></i></div>' +
+                    '<div class="right">'+ info.code +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">项目名称<i></i></div>' +
+                    '<div class="right">'+ info.name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请人员<i></i></div>' +
+                    '<div class="right">'+ info.apply_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">所在部门<i></i></div>' +
+                    '<div class="right">'+ info.apply_dept_name +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">申请时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.apply_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">修改时间<i></i></div>' +
+                    '<div class="right">'+ toTime(info.update_time) +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">销售<i></i></div>' +
+                    '<div class="right">'+ (info['销售'] ? info['销售'] : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户总监<i></i></div>' +
+                    '<div class="right">'+ (info['客户总监'] ? info['客户总监'] : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户经理<i></i></div>' +
+                    '<div class="right">'+ (info['客户经理'] ? info['客户经理'] : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">策划<i></i></div>' +
+                    '<div class="right">'+ (info['策划'] ? info['策划'] : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">客户专员<i></i></div>' +
+                    '<div class="right">'+ (info['客户专员'] ? info['客户专员'] : '') +'</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="i-box">' +
+                    '<div class="b-box">' +
+                    '<div class="left">状态<i></i></div>' +
+                    '<div class="right">'+ state +'</div>' +
+                    '</div>' +
+                    '</div>';
+
+            }
+
+            $('#' + key + '_de').html(html);
+
+            // 隐藏审批详情
+            $('#' + key + '_de').find('#tolist-icon').click(function () {
+                $('#detail-box').removeClass('active');
+                $('body').removeClass('none');
+            })
+        }
+
+    </script>
+</head>
+<body>
+<!-- 审核详情 -->
+<div id="detail-box">
+    <!-- 行政审核详情 请假 -->
+    <div id="administrative_leave_de" class="item"></div>
+    <!-- 行政审核详情 加班 -->
+    <div id="administrative_overtime_de" class="item"></div>
+    <!-- 行政审核详情 外出 -->
+    <div id="administrative_goOut_de" class="item"></div>
+    <!-- 行政审核详情 出差 -->
+    <div id="administrative_travel_de" class="item"></div>
+    <!-- 行政审核详情 绩效 -->
+    <div id="administrative_performance_de" class="item"></div>
+    <!-- 行政审核详情 会议 -->
+    <div id="administrative_meetingroom_de" class="item"></div>
+
+    <!-- 人事审核详情 入职 -->
+    <div id="personnel_onboarding_de" class="item"></div>
+    <!-- 人事审核详情 离职 -->
+    <div id="personnel_resignation_de" class="item"></div>
+    <!-- 人事审核详情 转岗 -->
+    <div id="personnel_transfer_de" class="item"></div>
+    <!-- 人事审核详情 交接 -->
+    <div id="personnel_handover_de" class="item"></div>
+    <!-- 人事审核详情 转正 -->
+    <div id="personnel_correct_de" class="item"></div>
+
+
+    <!-- 财务审核详情 请款 -->
+    <div id="finance_request_de" class="item"></div>
+    <!-- 财务审核详情 退稿 -->
+    <div id="finance_rejection_de" class="item"></div>
+    <!-- 财务审核详情 借款 -->
+    <div id="finance_loan_de" class="item"></div>
+    <!-- 财务审核详情 报销 -->
+    <div id="finance_reimbursement_de" class="item"></div>
+    <!-- 财务审核详情 唤醒 -->
+    <div id="finance_wake_de" class="item"></div>
+
+    <!-- 业务审核详情 开票 -->
+    <div id="business_invoicing_de" class="item"></div>
+    <!-- 业务审核详情 退款 -->
+    <div id="business_refund_de" class="item"></div>
+    <!-- 业务审核详情 项目管理 -->
+    <div id="business_commission_de" class="item"></div>
+
+
+</div>
+
+<div id="top-box">
+    <div class="top-content">
+        <span id="back-icon" ><i class="fa fa-angle-left"></i></span>
+        <p>已审批</p>
+    </div>
+</div>
+<div class="type-box">
+    <div class="item">
+        <i class="fa fa-check-circle"></i>
+        <div>行政审批</div>
+    </div>
+    <div class="item">
+        <i class="fa fa-check-circle"></i>
+        <div>人事审批</div>
+    </div>
+    <div class="item">
+        <i class="fa fa-check-circle"></i>
+        <div>财务审批</div>
+    </div>
+    <div class="item">
+        <i class="fa fa-check-circle"></i>
+        <div>业务审批</div>
+    </div>
+</div>
+<!-- 行政审批 -->
+<div class="process-content-box" id="administrative">
+    <div class="title-top">
+        <div class="left">
+            <p><i><span>行政</span>审批</i></p>
+        </div>
+        <div class="right">
+            <span class="shouqi" data-key="administrative" data-flg="true"> <span>收起</span><i class="fa fa-angle-up"></i></span>
+        </div>
+    </div>
+    <div class="slide-box">
+        <div class="tab-box">
+            <span id="administrative_leave" class="item active">请假(<span></span>)</span>
+            <span id="administrative_overtime" class="item">加班(<span></span>)</span>
+            <span id="administrative_goOut" class="item">外出(<span></span>)</span>
+            <span id="administrative_travel" class="item">出差(<span></span>)</span>
+            <span id="administrative_performance" class="item">绩效(<span></span>)</span>
+            <span id="administrative_meetingroom" class="item">会议(<span></span>)</span>
+            <!--<span id="administrative_purchase" class="item">采购(<span></span>)</span>
+            <span id="administrative_use" class="item">领用(<span></span>)</span>-->
+        </div>
+        <div id="administrative_leave_box" class="item-box active" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_overtime_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_goOut_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_travel_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_performance_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_meetingroom_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_purchase_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="administrative_use_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+    </div>
+</div>
+<!-- 人事审批 -->
+<div class="process-content-box" id="personnel">
+    <div class="title-top">
+        <div class="left">
+            <p><i><span>人事</span>审批</i></p>
+        </div>
+        <div class="right">
+            <span class="shouqi" data-key="personnel" data-flg="true"> <span>收起</span><i class="fa fa-angle-up"></i></span>
+        </div>
+    </div>
+    <div class="slide-box">
+        <div class="tab-box">
+            <span id="personnel_onboarding" class="item active">入职(<span></span>)</span>
+            <span id="personnel_resignation" class="item">离职(<span></span>)</span>
+            <span id="personnel_transfer" class="item">转岗(<span></span>)</span>
+            <span id="personnel_handover" class="item">交接(<span></span>)</span>
+            <span id="personnel_correct" class="item">转正(<span></span>)</span>
+        </div>
+        <div id="personnel_onboarding_box" class="item-box active" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="personnel_resignation_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="personnel_transfer_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="personnel_handover_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="personnel_correct_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+    </div>
+</div>
+<!-- 财务审批 -->
+<div class="process-content-box" id="finance">
+    <div class="title-top">
+        <div class="left">
+            <p><i><span>财务</span>审批</i></p>
+        </div>
+        <div class="right">
+            <span class="shouqi" data-key="finance" data-flg="true"> <span>收起</span><i class="fa fa-angle-up"></i></span>
+        </div>
+    </div>
+    <div class="slide-box">
+        <div class="tab-box">
+            <span id="finance_request" class="item active">请款(<span></span>)</span>
+            <span id="finance_rejection" class="item">退稿(<span></span>)</span>
+            <span id="finance_loan" class="item">借款(<span></span>)</span>
+            <span id="finance_reimbursement" class="item">报销(<span></span>)</span>
+            <span id="finance_wake" class="item">唤醒(<span></span>)</span>
+        </div>
+        <div id="finance_request_box" class="item-box active" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="finance_rejection_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="finance_loan_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="finance_reimbursement_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="finance_wake_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+    </div>
+</div>
+<!-- 业务审批 -->
+<div class="process-content-box" id="business">
+    <div class="title-top">
+        <div class="left">
+            <p><i><span>业务</span>审批</i></p>
+        </div>
+        <div class="right">
+            <span class="shouqi" data-key="business" data-flg="true"> <span>收起</span><i class="fa fa-angle-up"></i></span>
+        </div>
+    </div>
+    <div class="slide-box">
+        <div class="tab-box">
+            <span id="business_invoicing" class="item active">开票(<span></span>)</span>
+            <span id="business_refund" class="item">退款(<span></span>)</span>
+            <span id="business_commission" class="item">项目管理(<span></span>)</span>
+        </div>
+        <div id="business_invoicing_box" class="item-box active" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="business_refund_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+        <div id="business_commission_box" class="item-box" data-pageNumber="1" data-isBottom="false" data-ispost="false">
+            <div class="cntloading">加载中...
+                <div>
+                    <span class="cl1"></span>
+                    <span class="cl2"></span>
+                    <span class="cl3"></span>
+                </div>
+            </div>
+            <div class="content-box"></div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+</html>

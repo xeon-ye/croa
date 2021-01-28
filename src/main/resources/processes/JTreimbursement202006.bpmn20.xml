@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="JTreimbursement202006" name="费用报销" isExecutable="true">
+    <startEvent id="startEvent1" name="启动流程"></startEvent>
+    <sequenceFlow id="sid-AB920C96-AC9F-4A7D-BB59-0F4216C9A319" name="开始" sourceRef="startEvent1" targetRef="departmentHead"></sequenceFlow>
+    <userTask id="departmentHead" name="部门负责人">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.reimbursement202006.departmentHeadler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-35291E95-6B65-4E5F-AC96-CE3B461BAA3B" name="通过" sourceRef="departmentHead" targetRef="JTCWdepartmentHead"></sequenceFlow>
+
+    <userTask id="JTCWdepartmentHead" name="集团财务部门负责人">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.reimbursement202006.JTCWdepartmentHeadler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-18CD6EC4-AA2F-400E-82B1-CAABDE6F606F" name="通过" sourceRef="JTCWdepartmentHead" targetRef="JTCWFG"></sequenceFlow>
+
+    <userTask id="JTCWFG" name="集团财务分管领导">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.reimbursement202006.JTCWMgrdepartmentHeadler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-4FEEB8B1-13D7-4CA8-952B-257D04B64AA7" name="通过" sourceRef="JTCWFG" targetRef="sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E"></sequenceFlow>
+
+    <exclusiveGateway id="sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E" name="报销费用是否大于10000"></exclusiveGateway>
+    <sequenceFlow id="sid-3FFAC87F-9EA3-46EC-9F4A-A335679E0B27" name="是" sourceRef="sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E" targetRef="JTZC">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-04FFEC9F-4484-4FF0-B939-B01072D430EB" name="否" sourceRef="sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E" targetRef="JTCWCN">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="JTZC" name="集团总裁">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.reimbursement202006.JTZCHeadler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-7997F1DD-30AC-4044-9C4A-A6C6243994A3" name="通过" sourceRef="JTZC" targetRef="JTCWCN"></sequenceFlow>
+
+    <userTask id="JTCWCN" name="出纳出款">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.reimbursement202006.JTCNdepartmentHeadler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.reimbursement202006.reimbursementFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-DB264122-6E9A-4237-9A02-E870741B35D6" sourceRef="JTCWCN" targetRef="endEvent"></sequenceFlow>
+    <endEvent id="endEvent" name="结束"></endEvent>
+
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_reimbursement202006">
+    <bpmndi:BPMNPlane bpmnElement="JTreimbursement202006" id="BPMNPlane_JTreimbursement202006">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="30.0" y="160.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="departmentHead" id="BPMNShape_departmentHead">
+        <omgdc:Bounds height="80.0" width="100.0" x="135.0" y="135.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="JTCWdepartmentHead" id="BPMNShape_JTCWdepartmentHead">
+        <omgdc:Bounds height="80.0" width="100.0" x="330.0" y="135.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="JTCWFG" id="BPMNShape_JTCWFG">
+        <omgdc:Bounds height="80.0" width="100.0" x="525.0" y="135.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E" id="BPMNShape_sid-284270AD-9DAE-4B4E-B20F-4BD09450B56E">
+        <omgdc:Bounds height="40.0" width="40.0" x="705.0" y="155.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="JTZC" id="BPMNShape_JTZC">
+        <omgdc:Bounds height="80.0" width="100.0" x="675.0" y="15.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEventS">
+        <omgdc:Bounds height="28.0" width="28.0" x="1125.0" y="161.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="JTCWCN" id="BPMNShape_JTCWCN">
+        <omgdc:Bounds height="80.0" width="100.0" x="885.0" y="135.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-35291E95-6B65-4E5F-AC96-CE3B461BAA3B" id="BPMNEdge_sid-35291E95-6B65-4E5F-AC96-CE3B461BAA3B">
+        <omgdi:waypoint x="234.94999999986936" y="175.0"></omgdi:waypoint>
+        <omgdi:waypoint x="329.9999999999363" y="175.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-AB920C96-AC9F-4A7D-BB59-0F4216C9A319" id="BPMNEdge_sid-AB920C96-AC9F-4A7D-BB59-0F4216C9A319">
+        <omgdi:waypoint x="59.94999906759471" y="175.0"></omgdi:waypoint>
+        <omgdi:waypoint x="135.0" y="175.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-4FEEB8B1-13D7-4CA8-952B-257D04B64AA7" id="BPMNEdge_sid-4FEEB8B1-13D7-4CA8-952B-257D04B64AA7">
+        <omgdi:waypoint x="624.9499999999989" y="175.16594684385382"></omgdi:waypoint>
+        <omgdi:waypoint x="705.4333333333334" y="175.43333333333337"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-3FFAC87F-9EA3-46EC-9F4A-A335679E0B27" id="BPMNEdge_sid-3FFAC87F-9EA3-46EC-9F4A-A335679E0B27">
+        <omgdi:waypoint x="725.4166666666666" y="155.41666666666666"></omgdi:waypoint>
+        <omgdi:waypoint x="725.1657676348548" y="94.95"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-DB264122-6E9A-4237-9A02-E870741B35D6" id="BPMNEdge_sid-DB264122-6E9A-4237-9A02-E870741B35D6">
+        <omgdi:waypoint x="984.9499999999294" y="175.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1125.0" y="175.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-18CD6EC4-AA2F-400E-82B1-CAABDE6F606F" id="BPMNEdge_sid-18CD6EC4-AA2F-400E-82B1-CAABDE6F606F">
+        <omgdi:waypoint x="429.9499999999802" y="175.0"></omgdi:waypoint>
+        <omgdi:waypoint x="525.0" y="175.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-04FFEC9F-4484-4FF0-B939-B01072D430EB" id="BPMNEdge_sid-04FFEC9F-4484-4FF0-B939-B01072D430EB">
+        <omgdi:waypoint x="744.4907819225251" y="175.45454545454547"></omgdi:waypoint>
+        <omgdi:waypoint x="884.9999999999961" y="175.11921241050115"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-7997F1DD-30AC-4044-9C4A-A6C6243994A3" id="BPMNEdge_sid-7997F1DD-30AC-4044-9C4A-A6C6243994A3">
+        <omgdi:waypoint x="774.9499999999944" y="55.0"></omgdi:waypoint>
+        <omgdi:waypoint x="935.0" y="55.0"></omgdi:waypoint>
+        <omgdi:waypoint x="935.0" y="135.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

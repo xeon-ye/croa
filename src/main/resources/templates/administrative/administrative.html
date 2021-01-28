@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>行政流程</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <!--<link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">-->
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <!--<script src="/js/plugins/layer/laydate/laydate.js"></script>-->
+    <!--<script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>-->
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/crm/common_util.js"></script>
+    <script src="/js/flowable/RollbackCompont.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <script type="text/javascript" src="/js/administrative/administrator.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+            var laydate = layui.laydate;
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            loadAllUserSearch3($("#empName"));
+            loadAllUserSearch1($("#travelUser2"));
+
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+
+            secretary($("#cc2"));
+            secretary($("#cc1"));
+            var startTime = {
+                elem: '#beginTime',
+                istime: true,
+                istoday: false,
+                type: 'datetime',
+                done:function (value,data) {
+                    var strTime=value;
+                    var endTime= $("#endTime").val();
+                    reslutData(strTime,endTime);
+                }
+
+            };
+            var endTime = {
+                elem: '#endTime',
+                istime: true,
+                istoday: false,
+                type: 'datetime',
+                ready:function (date) {
+                    this.dateTime.hours=23;
+                    this.dateTime.minutes=59;
+                    this.dateTime.seconds=59;
+
+                },
+                done:function (value,data) {
+                    var strTime=$("#beginTime").val();
+                    var endTime= value ;
+                    var flag = reslutData(strTime,endTime);
+                    if(flag != false){
+                        validationAddLeave(value, 1,$("#administrativeId").val()); //校验
+                    }
+                }
+
+            };
+
+
+            var outWorkBeginTime ={
+                elem: '#outWorkBeginTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+               done:function (value,date) {
+                    var endTime=$("#outWorkEndTime").val();
+                   outWorkData(value,endTime);
+               }
+
+            }
+            laydate.render(outWorkBeginTime);
+            var outWorkEndTime ={
+                elem: '#outWorkEndTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,date) {
+                    var strTime=$("#outWorkBeginTime").val();
+                    outWorkData(strTime,value);
+                }
+            }
+            laydate.render(outWorkEndTime);
+            var travelStateTime = {
+                elem: '#travelStateTime2',
+               // format: 'YYYY-MM-DD hh/mm/ss ',
+                istime: true,
+                istoday: false,
+                type: 'datetime',
+            };
+            var travelEndTime = {
+                elem: '#travelEndTime2',
+//                format: 'yyy-MM-dd hh/mm/ss',
+                istime: true,
+                istoday: false,
+                type: 'datetime',
+                ready:function (date) {
+                    this.dateTime.hours=23;
+                    this.dateTime.minutes=59;
+                    this.dateTime.seconds=59;
+                }
+            };
+            var workBeginTime ={
+                elem: '#workBeginTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,date) {
+                    var workEndTime = $("#workEndTime").val();
+                    workData(workEndTime,value);
+                }
+
+            }
+            laydate.render(workBeginTime);
+            var workEndTime ={
+                elem: '#workEndTime',
+                istime:true,
+                istoday:false,
+                type:'datetime',
+                done:function (value,date) {
+                    var workStrTime = $("#workBeginTime").val();
+                    workData(value,workStrTime);
+                }
+            }
+
+
+            var createTimeStart ={
+                elem: '#createTimeStart',
+                format: 'yyyy-MM-dd',
+                istime:true,
+                istoday:false,
+
+
+            }
+            laydate.render(createTimeStart);
+            var createTimeEnd ={
+                elem: '#createTimeEnd',
+                format: 'yyyy-MM-dd',
+                istime:true,
+                istoday:false,
+            }
+            laydate.render(createTimeEnd);
+            var endTimeStart ={
+                elem: '#endTimeStart',
+                format: 'yyyy-MM-dd',
+                istime:true,
+                istoday:false,
+
+
+            }
+            laydate.render(endTimeStart);
+            var endTimeEnd ={
+                elem: '#endTimeEnd',
+                format: 'yyyy-MM-dd',
+                istime:true,
+                istoday:false,
+            };
+
+
+            laydate.render({
+                elem: '#containsTime'
+                ,range: '~',
+            });
+            laydate.render(endTimeEnd);
+
+            laydate.render(workEndTime);
+            laydate.render(travelEndTime);
+            laydate.render(travelStateTime);
+            laydate.render(startTime);
+            laydate.render(endTime);
+
+
+
+        });
+
+        //请假模块计算时长
+        function reslutData(strTime,endTime) {
+
+            var v = document.getElementById("leaveType").value;
+            if ((v == "6" || v == "7" || v == "8" || v == "10") && strTime != "") {
+                getEndTime(strTime);
+            }
+            if (strTime != "" && endTime != "") {
+                var checkFlag = checkDate(strTime, endTime);//校验开始时间不能小于结束时间
+                if (!checkFlag) {
+                    $("#leaveTime").val("");//时间错误时，清空请假时长
+                    $("#leaveDays").val("");//时间错误时，清空折合天数
+                    $("#endTime").val("");
+                    return checkFlag;
+                }
+                //计算时间
+                var date = getTotal(strTime, endTime);
+                var hours = date["hours"];
+                var days = date["days"];
+                if (hours == 0) {
+                    alert('请假时间不能为0！');
+                    $("#leaveTime").val("");//时间错误时，清空请假时长
+                    $("#leaveDays").val("");//时间错误时，清空折合天数
+                    $("#endTime").val("");
+                    return false;
+                }
+                var vacationTime = days * 8 == 0 ? 4 : days * 8;//调休时的抵消时长（最少4小时）
+                $("#leaveDays").val(date["days"]);
+                $("#leaveTime").val(date["hours"]);
+
+                //如果请假类型为调休时，请假时长为调休时长
+                var v = document.getElementById("leaveType").value;
+                if (v == 1) {
+                    $("#vacationTime").val(vacationTime);
+                    //获取调休剩余时间，如果请假时间超过剩余时间，则提示剩余调休时间不够
+                    var vacaTime = document.getElementById("vacationTime1").value;
+                    if (vacaTime < vacationTime) {
+                        alert('剩余调休时间少于请假时间，请重新选择请假类型！');
+                        $("#leaveTime").val("");//时间错误时，清空请假时长
+                        $("#leaveDays").val("");//时间错误时，清空折合天数
+                        $("#vacationTime").val("");//调休时长清空
+                        $("#endTime").val("");
+                        return false;
+                    }
+                }
+            }
+        }
+
+        //加班模块计算时长
+        function workData(workEndTime,workStrTime) {
+            var vacationTime2 = $("#vacationTime2").val();
+            if (workStrTime != "" && workEndTime != "") {
+                var checkFlag = checkDate(workStrTime, workEndTime);//校验开始时间不能小于结束时间
+                if (!checkFlag) {
+                    $("#workHours").val("");
+                    $("#workVacationTime").val("");
+                    return;
+                }
+                var date = getWorkTime(workStrTime, workEndTime);
+                var hours = date["hours"];
+                if (hours === 0) {
+                    layer.msg("结束时间不能小于开始时间");
+                    $("#workHours").val("");
+                    $("#workVacationTime").val("");
+                    $("#workEndTime").val("");
+                    return;
+                }
+                var workVacationTime = parseFloat(vacationTime2) + parseFloat(hours);
+                $("#workHours").val(date["hours"]);
+                $("#workVacationTime").val(workVacationTime);
+            }
+        }
+
+        //外出模块
+        function outWorkData(strTime,endTime) {
+            if (strTime != "" && endTime != "") {
+                var checkFlag = checkDate(strTime, endTime);//校验开始时间不能小于结束时间
+                if (!checkFlag) {
+                    $("#outWorkTime").val("");
+                    $("#outWorkday").val("");
+                    return;
+                }
+                var date = getTotal(strTime, endTime);
+                if (date && date["hours"] === 0) {
+                    alert("外出时长不能为0");
+                    $("#outWorkTime").val("");
+                    $("#outWorkday").val("");
+                    return;
+                }
+                $("#outWorkTime").val(date["hours"]);
+                $("#outWorkday").val(date["days"]);
+            }
+        }
+
+        //出差模块
+        function onBusinessData() {
+            var strTime = $("#onBusinessBeginTime").val();
+            var endTime = $("#onBusinessEndTime").val();
+            if (strTime != "" && endTime != "") {
+                var date = getTotal(strTime, endTime);
+                $("#onBusinessDay").val(date["days"]);
+            }
+        }
+        $(function() {
+            $( "#editModal" ).draggable();
+        });
+
+    </script>
+    <style type="text/css">
+        #cjtype span, #sqstate span {
+            padding: 0;
+            margin: 0 10px;
+        }
+
+        #cjtype > label, #sqstate > div {
+            float: left;
+        }
+
+        #cjtype label:first-child, #sqstate label:first-child {
+            display: table;
+        }
+        .mainTitle{
+            height: 40px;
+            line-height: 40px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            float: left;
+        }
+        .subContent{
+            border:1px solid #eee;
+            padding: 0px;
+            padding-top: 10px;
+            float: left;
+        }
+        .manNum{
+            width: 60px;
+            text-align:center;
+            line-height:30px;
+            display: inline-block;
+            height: 30px;
+            border: none;
+            border-bottom: 1px solid;
+        }
+
+        .control-label1{
+            padding-top: 7px;
+            margin-bottom: 0;
+            text-align: right;
+        }
+
+        .layui-form-select dd{
+            text-align: left;
+        }
+    </style>
+
+
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12" style="padding-right: 0px; padding-left: 0px;">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">管理员视图</h5>
+                    </div>
+                    <div class="ibox-content" style="display: table">
+                        <div class="row col-md-12 form-group">
+                            <label class=" control-label" style="float: left;text-align: right">标题：</label>
+                            <div class="col-sm-5">
+                                <input type="text" id="administrativeTitle" name="title" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group row col-md-12">
+                            <label class="col-sm-1 control-label" style="text-align: right;float: left">申请类型：</label>
+                            <div class="col-sm-2">
+                                <!--<div class=" radio-inline i-checks" style="float: left">-->
+                                <!--<span><input name="administrativeType" type="checkbox" value="1"/>请假</span>-->
+                                <!--<span><input name="administrativeType" type="checkbox" value="2"/>加班</span>-->
+                                <!--<span><input name="administrativeType" type="checkbox" value="3"/>外出</span>-->
+                                <!--<span><input name="administrativeType" type="checkbox" value="4"/>出差</span>-->
+                                <!--</div>-->
+                                <select name="administrativeType" id="administrativeType" class="form-control height18">
+                                    <option value="">请选择</option>
+                                    <option value="1">请假</option>
+                                    <option value="2">加班</option>
+                                    <option value="3">外出</option>
+                                    <option value="4">出差</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="sqstate">
+                                <label class="col-sm-1 control-label" style="text-align: right;float: left">审批状态：</label>
+                                <div class="radio-inline i-checks col-sm-8" style="margin-top: 7px">
+                                    <span><input name="approveState" type="checkbox" value="1"/>审核中</span>
+                                    <span><input name="approveState" type="checkbox" value="2"/>审核完成</span>
+                                    <span><input name="approveState" type="checkbox" value="-1"/>驳回</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="control-label" style="float:left; width: 63px">流程包含:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="layui-input" id="containsTime" name="containsTime" placeholder=" ~ " readonly/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row col-md-12">
+                            <label class="control-label" style="text-align: right;float: left">申请人员：</label>
+                            <div class="col-sm-2 layui-form">
+                                <select id="empName" name="empId" class="form-control" lay-verify="" lay-search>
+                                    <option value="">请选择</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-4">
+                                <label id="stateTimeName" class="control-label" style="float:left; width: 106px">流程开始日期：</label>
+                                <div class="col-sm-8 input-daterange input-group">
+                                    <input class="input-sm form-control layer-date laydate-icon " id="createTimeStart"
+                                           name="createTimeStart" placeholder="开始时间" readonly/>
+                                    <span class="input-group-addon" style="padding: 3px 8px">到</span>
+                                    <input class="input-sm form-control layer-date laydate-icon" id="createTimeEnd"
+                                           name="createTimeEnd" placeholder="结束时间"
+                                           readonly/>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label id="endTimeName" class="control-label" style="float: left">流程结束日期：</label>
+                                <div class=" col-sm-8 input-daterange input-group">
+                                    <input class="input-sm form-control layer-date laydate-icon" id="endTimeStart"
+                                           name="endTimeStart" placeholder="开始时间"
+                                           readonly/>
+                                    <span class="input-group-addon" style="padding: 3px 8px">到</span>
+                                    <input class="input-sm form-control layer-date laydate-icon" id="endTimeEnd"
+                                           name="endTimeEnd" placeholder="结束时间"
+                                           readonly/>
+                                </div>
+                            </div>
+                            <button type="button" id="dataSearch" class="btn btn-warning">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ibx-content">
+                        <div class="ibox-title">
+                            <button id="addBtn" class="btn btn-primary" type="button"><i class="fa fa-plus"></i>&nbsp;申请请假
+                            </button>
+                            <button id="workAddBtn" class="btn btn-danger" type="button"><i class="fa fa-plus"></i>&nbsp;申请加班
+                            </button>
+                            <button id="outWorkAddBtn" class="btn btn-info" type="button"><i class="fa fa-plus"></i>&nbsp;申请外出
+                            </button>
+                            <button id="onBusinessBtn" class="btn btn-success" type="button"><i class="fa fa-plus"></i>&nbsp;申请出差
+                            </button>
+
+                            <button id="exportList" class="btn btn-info" type="button">
+                                <i class="glyphicon glyphicon-export"></i>导出列表
+                            </button>
+                            <button id="exportContent" class="btn btn-info" type="button">
+                                <i class="glyphicon glyphicon-export"></i>导出内容
+                            </button>
+                        </div>
+                        <div>
+                            <div class="jqGrid_wrapper">
+                                <table id="entryTable"></table>
+                                <div id="entryTableNav"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--请假查看OR审核页面-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="panel panel-default animated bounceInRight">
+            <div class="panel-heading">
+                <div class="panel-title text-center">
+                    <button type="button" class="close" aria-hidden="true" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">请假申请</h4>
+                </div>
+            </div>
+            <div class="ibox-content" style="display: table">
+                <form id="viewForm" class="form-horizontal" action="" method="post">
+                    <div class="col-sm-12">
+                        <input type="hidden" id="id1" name="id" class="form-control">
+                        <div class="form-group ">
+                            <label class="col-sm-2 control-label">请假标题:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="title1" name="title" class="form-control"
+                                       readonly="readonly">
+                            </div>
+                            <label class="col-sm-2 control-label">请假类型:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="leaveType1" name="leaveType" class="form-control"
+                                       readonly="readonly">
+                            </div>
+                            <label class="col-sm-2 control-label">申请人:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="createName" name="createName" class="form-control"
+                                       required="" readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">开始时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" placeholder="开始时间" name="beginTime" id="beginTime1"
+                                       class="form-control layer-date laydate-icon"
+                                       onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                       required="" readonly="readonly"/>
+                            </div>
+
+                            <label class="col-sm-2 control-label">结束时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" placeholder="结束时间" name="endTime" id="endTime1"
+                                       class="form-control layer-date laydate-icon"
+                                       onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                       required="" readonly="readonly"/>
+                            </div>
+                            <label class="col-sm-2 control-label">请假时长:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="leaveDays1" name="leaveDays" class="form-control"
+                                       readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">请假事由:</label>
+                            <div class="col-sm-10">
+                                        <textarea type="text" id="reason1" name="reason" class="form-control" style="height: 140px; max-width: 473px; min-width: 473px"
+                                                  required=""></textarea>
+                            </div>
+                        </div>
+                        <!--附件及图片回显展示-->
+                        <div class="form-group" id="fileInfo1">
+                            <label class="col-sm-2 control-label">附件:</label>
+                        </div>
+                        <div class="form-group" id="picInfo1"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer " style="margin-bottom: 20px">
+                <div id="auditTrue">
+                    <input type="hidden" name="taskId" id="taskId1">
+                    <div class="col-sm-12" style="margin: auto;float: none;">
+                        <div class="col-md-3" id="rollback1">
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-6">
+                            <button type="button" class="btn btn-success" id="pass1"
+                                    onclick="approve(this,1)">通过
+                            </button>
+                            <button type="button" class="btn btn-success" id="pass2" style="display: none;"
+                                    onclick="approve(this,1)">通过并结束
+                            </button>
+                            <button type="button" class="btn btn-danger" id="reject1"
+                                    onclick="reject(this,1)">驳回
+                            </button>
+                            <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                    onclick="goBackProcess()">返回主页
+                            </button>
+                            </div>
+                            <div class="col-sm-6">
+                            <div id="opinion">
+                                <label class="col-sm-1 control-label">审核意见:</label>
+                                <div class="col-sm-7">
+                                    <input type="text" id="desc" class="form-control" required="" >
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="auditFalse" align="center">
+                    <button type="button" class="btn btn-danger" id="cancel1" data-dismiss="modal">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                    </button>
+                    <button type="button" id="goback" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                            onclick="goBackProcess()">返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--加班查看OR审核页面-->
+<div class="modal inmodal" id="timeWorkViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+        <div class="panel panel-default animated bounceInRight">
+            <div class="panel-heading">
+                <div class="panel-title text-center">
+                    <button type="button" class="close" aria-hidden="true" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">加班申请</h4>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form id="timeWorkViewForm" class="form-horizontal" action="" method="post">
+                    <div class="col-sm-12">
+                        <input type="hidden" id="timeWorkId" name="id" class="form-control">
+                        <div class="form-group update">
+                            <label class="col-sm-2 control-label">加班标题:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="timeWorkTitle" name="title" class="form-control"
+                                       readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">申请人:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="timeWorkCreateName" name="createName"
+                                       class="form-control" required=""
+                                       readonly="readonly">
+                            </div>
+                            <label class="col-sm-2 control-label">加班时长:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="timeWorkDays" name="workTime" class="form-control"
+                                       readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">开始时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" placeholder="开始时间" name="beginTime" id="timeWorkBeginTime1"
+                                       class="form-control layer-date laydate-icon"
+                                       onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                       required="" readonly="readonly"/>
+                            </div>
+
+                            <label class="col-sm-2 control-label">结束时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" placeholder="结束时间" name="endTime" id="timeWorkEndTime"
+                                       class="form-control layer-date laydate-icon"
+                                       onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                       required="" readonly="readonly"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">加班事由:</label>
+                            <div class="col-sm-8">
+                                        <textarea type="text" id="timeWorkReason" name="reason" class="form-control" style="height: 140px; max-width: 473px; min-width: 473px"
+                                                  required=""></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!--附件及图片回显展示-->
+                    <div class="col-sm-12">
+                        <div class="form-group" id="timeWorkFileInfo" style="margin-left: 10px;"></div>
+                        <div class="form-group" id="timeWorkPicInfo" style="margin-left: 10px;"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div id="timeWorkAuditTrue" align="center">
+                    <input type="hidden" name="taskId" id="timeWorkTaskId1">
+                    <div class="col-sm-12">
+                        <div class="col-sm-3" id="rollbackTimeWork">
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-6">
+                            <button type="button" class="btn btn-success " id="timeWorkPass"
+                                    onclick="approve(this,2)">审核通过
+                            </button>
+                            <button type="button" class="btn btn-danger " id="timeWorkReject"
+                                    onclick="reject(this,2)">审核驳回
+                            </button>
+                            <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                    onclick="goBackProcess()">返回
+                            </button>
+                            </div>
+                            <div class="col-sm-6">
+                                <div id="opinion2">
+                                    <label class="col-sm-1 control-label">审核意见:</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" id="desc2" class="form-control" required="" >
+                                    </div>
+                                </div>
+                            </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="timeWorkAuditFalse" align="center">
+                    <button type="button" class="btn btn-danger" id="timeWorkCancel" data-dismiss="modal">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                    </button>
+                    <button type="button" id="timeWorkGoback" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                            onclick="goBackProcess()">返回
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--外出查看OR审核页面-->
+<div class="modal inmodal" id="outWorkViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+        <div class="panel panel-default animated bounceInRight">
+            <div class="panel-heading">
+                <div class="panel-title text-center">
+                    <button type="button" class="close" aria-hidden="true" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">外出申请</h4>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form id="outWorkViewForm" class="form-horizontal" action="" method="post">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <input type="hidden" id="outWorkId1" name="id" class="form-control">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">外出标题:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="outWorkTitle1" name="title" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">申请人:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="outWorkCreateName" name="createName" class="form-control"
+                                           required=""
+                                           readonly="readonly">
+                                </div>
+                                <label class="col-sm-2 control-label">外出时长(天):</label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="outWorkLeaveDays" name="days" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">开始时间:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" placeholder="开始时间" name="beginTime" id="outWorkBeginTime1"
+                                           class="form-control layer-date laydate-icon"
+                                           onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                           required="" readonly="readonly"/>
+                                </div>
+                                <label class="col-sm-2 control-label">结束时间:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" placeholder="结束时间" name="endTime" id="outWorkEndTime1"
+                                           class="form-control layer-date laydate-icon"
+                                           onclick="laydate({istime: true, istoday: false, format: 'YYYY-MM-DD hh:mm:ss',choose:reslutData})"
+                                           required="" readonly="readonly"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">外出事由:</label>
+                                <div class="col-sm-8">
+                                    <textarea type="text" id="outWorkReason1" name="reason" class="form-control"style="height: 140px; max-width: 473px; min-width: 473px"
+                                              required=""></textarea>
+                                </div>
+                            </div>
+                            <!--附件及图片回显展示-->
+                            <div class="form-group" id="outWorkFileInfo1" style="margin-left: 10px;"></div>
+                            <div class="form-group" id="outWorkPicInfo1" style="margin-left: 10px;"></div>
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <div id="outWorkAuditTrue" align="center">
+                        <input type="hidden" name="taskId" id="outWorkTaskId1">
+                        <div class="col-sm-12">
+                            <div class="col-sm-3" id="rollbackOutWork"></div>
+                            <div class="col-sm-9">
+                                <div class="col-sm-6">
+                                <button type="button" class="btn btn-success " id="outWorkPass"
+                                        onclick="approve(this,3)">审核通过
+                                </button>
+                                <button type="button" class="btn btn-danger " id="outWorkReject"
+                                        onclick="reject(this,3)">审核驳回
+                                </button>
+                                <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                        onclick="goBackProcess()">返回
+                                </button>
+                                </div>
+                                <div class="col-sm-6" id="opinion3">
+                                    <label class="col-sm-1 control-label">审核意见:</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" id="desc3" class="form-control" required="" >
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="outWorkAuditFalse" align="center">
+                        <button type="button" class="btn btn-danger" id="outWorkCancel1" data-dismiss="modal">
+                            <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                        </button>
+                        <button type="button" id="outWorkGoback" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                onclick="goBackProcess()">返回
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--出差计划查看页面-->
+<div class="modal inmodal fade" id="viewPlan" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: auto" data-backdrop="static" >
+    <div class="modal-dialog modal-lg" style="width:80%;">
+        <div class="modal-content">
+            <div class="modal-body" style="display: table">
+                <form id="onBusinessEditForm" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+                    <div class="mainTitle">出差详情</div>
+                    <div class="col-md-12 subContent">
+                        <input type="hidden" id="taskState" name="taskState">
+                        <input type="hidden" id="onBusinessId" name="id">
+                        <input type="hidden" id="itemId" name="itemId">
+                        <input type="hidden" id="onBusinessAdministrativeId" name="administrativeId">
+                        <label class="col-sm-1 control-label1" style="margin-right: 11px;">
+                            <span class="text-red"> * </span> 标题:
+                        </label>
+                        <div class="form-group col-sm-4">
+                            <input readonly id="titleQc" name="title" type="text" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-1 control-label1" style="margin-right: 11px;">
+                            所属部门:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="deptName" name="deptName" type="text" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            日期:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="applicationDate" name="applicationDate" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差地点:
+                        </label>
+                        <div class="form-group col-sm-2 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="1">省内</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="2">省外</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="3">国外</span>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <input readonly id="place" name="place" type="text" class="form-control" placeholder="（详细地点）" required/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">出差事由:
+                        </label>
+                        <div class="form-group col-sm-11 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="1">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="2">客户谈判</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="3">培训学习</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="4">商务会议</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="5">工作拍摄</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="6">其他</span>
+
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">交通工具:
+                        </label>
+                        <div class="form-group col-sm-11 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="1">公司派车</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="2">飞机(经济舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="3">飞机(商务舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="4">高铁(一等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="5">高铁(二等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="6">高铁(特等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="7">火车(硬座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="8">火车(硬卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="9">火车(软卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="10">轮船</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="11">汽车</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差时间:
+                        </label>
+                        <div class="col-sm-5">
+                            <input readonly placeholder="开始日期" style="width: 200px;margin-left:0;vertical-align: middle; display: inline-block"
+                                   class="form-control layer-date" id="travelStateTime" name="travelStateTime" required>
+                            <span style="display:inline-block;padding:0 10px;">至</span>
+                            <input readonly placeholder="结束日期" style="width: 200px;vertical-align: middle;display: inline-block"
+                                   class="form-control layer-date" id="travelEndTime" name="travelEndTime" required >
+                            <span style="display:inline-block;padding:0 10px;">共</span>
+                            <input readonly type="text" name="numberDay" class="form-control manNum"   onkeyup="value=value.replace(/[^\d]/g,'')" required/>天
+                        </div>
+                        <label class="col-sm-2 control-label1">
+                            <span class="text-red"> * </span>工作待办人:
+                        </label>
+                        <div class="form-group col-sm-2 layui-form">
+                            <input readonly type="text" name="travelUser" class="form-control" style="width: 120px;" required/>
+                            <!--<select readonly id="travelUser1" name="travelUser" class="form-control" lay-verify="" lay-search>-->
+                                <!--<option value="">请选择</option>-->
+                            <!--</select>-->
+                        </div>
+                        <div class="form-group col-sm-2 control-label1" style="text-align: center;">
+                            <span class="radio-inline i-checks" style="margin-right: 5px;">
+                                <input readonly  type="radio" name="separate"  value="1">单独出差
+                            </span>
+                            <span class="radio-inline i-checks" style="margin-right: 5px;">
+                                <input readonly type="radio" name="separate"  value="2" checked>团体出差
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent licence" >
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>同行人员:
+                        </label>
+                        <div class="form-group col-sm-5">
+                            <input readonly type="text" name="fieldUser" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label1">合计:
+                        </label>
+                        <div class="form-group col-sm-3">
+                            男<input readonly type="text" name="boy" class="form-control manNum" onkeyup="value=value.replace(/[^\d]/g,'')"/>人、
+                            女<input readonly type="text" name="female" class="form-control manNum" onkeyup="value=value.replace(/[^\d]/g,'')"/>人
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>原因及目标:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea readonly name="target" id="target" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>详细行程:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea readonly name="trip" id="trip" class="form-control" ></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>费用预算:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea readonly name="costBudget" id="costBudget" class="form-control" placeholder="（主要包括：交通费、住宿费、通信费、业务招待费及其他杂费）"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">备注:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea readonly class="form-control" id="note" name="note" placeholder="（若携带公司物品需备注）"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>申请人:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="applyName" name="applyName" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>审核:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="reviewerUser" name="reviewerUser" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>批准:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="approverUser" name="approverUser" class="form-control">
+                        </div>
+                            <label class="control-label" id="cs2" style="text-align: right;float: left">抄送：</label>
+                            <div class="col-sm-2 layui-form" id="ccinput2">
+                                <select id="cc2" name="cc" class="form-control" lay-verify="" lay-search>
+                                </select>
+                            </div>
+                    </div>
+                    <div class="form-group" id="attachment">
+                    <label class="col-sm-2 control-label">附件:</label>
+                    <div class="col-sm-3">
+                    <input type="file" id="onBusinessFile" name="file1"
+                    accept=".xls,.doc,.txt,.pdf" class="form-control" multiple/>
+                    </div>
+                    <label class="col-sm-2 control-label">图片:</label>
+                    <div class="col-sm-3">
+                    <input type="file" id="onBusinessPic" name="pic1"
+                    accept="image/gif,image/jpeg,image/png" class="form-control" multiple/>
+                    </div>
+                    </div>
+                    <div class="col-sm-12 view">
+                    <div class="form-group" id="onBusinessFileInfo1" style="display:none"></div>
+                    <div class="form-group" id="onBusinessPicInfo1" style="display:none"></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="modal-footer">
+                            <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                            <input type="hidden" id="onBusinessTaskId" name="taskId">
+                            <input type="hidden" id="onBusinessState" name="state" value="0">
+                            <input type="hidden" id="onBusinessCompanyCode" name="companyCode">
+                            <button id="onBusinessConclusion" class="btn btn-success" type="button"><i class="fa fa-plus"></i>&nbsp;出差总结
+                            </button>
+                            <button type="button" class="btn btn-primary" id="confirm" onclick="submitHander(this,'/userBusinessPlan/confirm',4,4)">确认
+                            </button>
+                            <button type="button" class="btn btn-white" id="onBusinessCance2"
+                                    data-dismiss="modal">关闭
+                            </button>
+
+                        </div>
+                        <div class="modal-footer">
+                            <div id="onBusinessAuditTrue" align="center">
+                                <input type="hidden" name="taskId" id="onBusinessTaskId1">
+                                <div class="col-sm-12" style="margin: auto;float: none;">
+                                    <div class="col-md-12">
+                                        <div class="col-md-3" id="rollbackOnBusiness"></div>
+                                        <div class="col-md-9">
+                                            <div class="col-sm-6">
+                                            <button type="button" class="btn btn-success view " id="onBusinessPass"
+                                                    onclick="approve(this,4)">通过
+                                            </button>
+                                            <button type="button" class="btn btn-danger view" id="onBusinessReject"
+                                                    onclick="reject(this,4)">驳回
+                                            </button>
+                                            <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left view"
+                                                    onclick="goBackProcess()">返回
+                                            </button>
+                                            </div>
+                                            <div class="col-sm-6" id="opinion4">
+                                                <label class="col-sm-1 control-label">审核意见:</label>
+                                                <div class="col-sm-7">
+                                                    <input type="text" id="desc4" class="form-control" required="" >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="onBusinessReport" align="center" style="display:none">
+                                <input type="hidden" name="taskId" id="onBusinessTaskId2">
+                                <button type="button" class="btn btn-success " id="updateReport"
+                                        onclick="submitHander(this,'/onBusiness/updateOnBusinessById',0,5)">提交报告
+                                </button>
+                                <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                        onclick="goBackProcess()">返回
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                        <div class="col-sm-3" id="fileInfo4"></div>
+                        <div class="col-sm-3" id="picInfo4"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--新增编辑出差计划-->
+<div class="modal inmodal fade" id="addPlan" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: auto" data-backdrop="static" >
+    <div class="modal-dialog modal-lg" style="width:80%;">
+        <div class="modal-content">
+            <div class="modal-body" style="display: table">
+                <form id="editorPlanFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+                    <div class="mainTitle save">新增出差</div>
+                    <div class="mainTitle update">更改出差</div>
+                    <div class="col-md-12 subContent">
+                        <input type="hidden" id="taskState2" name="taskState">
+                        <input type="hidden" id="onBusinessId2" name="id">
+                        <input type="hidden" id="itemId2" name="itemId">
+                        <input type="hidden" id="onBusinessAdministrativeId2" name="administrativeId">
+                        <label class="col-sm-1 control-label1" style="margin-right: 11px;">
+                            <span class="text-red"> * </span> 标题:
+                        </label>
+                        <div class="form-group col-sm-4">
+                            <input  name="title" type="text" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-1 control-label1" style="margin-right: 11px;">
+                            所属部门:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="deptName2" name="deptName" type="text" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            日期:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="applicationDate2" name="applicationDate" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差地点:
+                        </label>
+                        <div class="form-group col-sm-2 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="1">省内</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="2">省外</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="3">国外</span>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <input  name="place" type="text" class="form-control" placeholder="（详细地点）" required/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">出差事由:
+                        </label>
+                        <div class="form-group col-sm-11 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="1">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="2">客户谈判</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="3">培训学习</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="4">商务会议</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="5">工作拍摄</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="6">其他</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">交通工具:
+                        </label>
+                        <div class="form-group col-sm-11 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="1">公司派车</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="2">飞机(经济舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="3">飞机(商务舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="4">高铁(一等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="5">高铁(二等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="6">高铁(特等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="7">火车(硬座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="8">火车(硬卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="9">火车(软卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="10">轮船</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="11">汽车</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差时间:
+                        </label>
+                        <div class="col-sm-5">
+                            <input placeholder="开始日期" style="width: 200px;margin-left:0;vertical-align: middle; display: inline-block"
+                                   class="form-control layer-date" id="travelStateTime2" name="travelStateTime" required>
+                            <span style="display:inline-block;padding:0 10px;">至</span>
+                            <input placeholder="结束日期" style="width: 200px;vertical-align: middle;display: inline-block"
+                                   class="form-control layer-date" id="travelEndTime2" name="travelEndTime" required >
+                            <span style="display:inline-block;padding:0 10px;">共</span>
+                            <input type="text" name="numberDay" class="form-control manNum"   onkeyup="value=value.replace(/[^\d]/g,'')" required/>天
+                        </div>
+                        <label class="col-sm-2 control-label1">
+                            <span class="text-red"> * </span>工作待办人:
+                        </label>
+                        <div class="form-group col-sm-2 layui-form">
+                            <!--<input type="text" name="travelUser" class="form-control" style="width: 120px;"/>-->
+                            <select id="travelUser2" name="travelUser" class="form-control" lay-verify="" lay-search >
+                                <option value="">请选择</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-2 control-label1" style="text-align: center;" id="businessType2">
+                            <span class="radio-inline i-checks" style="margin-right: 5px;">
+                                <input type="radio" id="separate1" name="separate"  value="1">单独出差
+                            </span>
+                            <span class="radio-inline i-checks" style="margin-right: 5px;" checked>
+                                <input type="radio" id="separate2" name="separate"  value="2" checked>团体出差
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent licence" id="peerPerson2">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>同行人员:
+                        </label>
+                        <div class="form-group col-sm-5">
+                            <input type="text" name="fieldUser" class="form-control" required/>
+                        </div>
+                        <label class="col-sm-1 control-label1">合计:
+                        </label>
+                        <div class="form-group col-sm-3">
+                            男<input type="text" name="boy" class="form-control manNum" onkeyup="value=value.replace(/[^\d]/g,'')"/>人、
+                            女<input type="text" name="female" class="form-control manNum" onkeyup="value=value.replace(/[^\d]/g,'')"/>人
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>原因及目标:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="target" id="target2" class="form-control" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>详细行程:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="trip" id="trip2" class="form-control" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>费用预算:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="costBudget" id="costBudget2" class="form-control" placeholder="（主要包括：交通费、住宿费、通信费、业务招待费及其他杂费）" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">备注:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea class="form-control" id="note2" name="note" placeholder="（若携带公司物品需备注）"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>申请人:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="applyName2" name="applyName" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>审核:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="reviewerUser2" name="reviewerUser" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>批准:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="approverUser2" name="approverUser" class="form-control">
+                        </div>
+                        <label class="control-label" id="cs" style="text-align: right;float: left">抄送：</label>
+                        <div class="col-sm-2 layui-form" id="ccinput">
+                            <select id="cc" name="cc" class="form-control" lay-verify="" lay-search>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="attachment2">
+                        <label class="col-sm-2 control-label">附件:</label>
+                        <input type="hidden" name="attachmentLink">
+                        <input type="hidden" name="attachment">
+                        <div class="col-sm-4">
+                            <div id="fileInfo7" name="file1"></div>
+                            <input type="file" id="onBusinessFile2" name="file1"
+                                   accept=".xls,.doc,.txt,.pdf" class="form-control" multiple/>
+                        </div>
+                        <label class="col-sm-2 control-label">图片:</label>
+                        <input type="hidden" name="picture">
+                        <input type="hidden" name="pictureLink">
+                        <div class="col-sm-4">
+                            <div style="margin-top: 10px;" id="picInfo7" name="pic1"></div>
+                            <input type="file" id="onBusinessPic2" name="pic1"
+                                   accept="image/gif,image/jpeg,image/png" class="form-control" multiple/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 view">
+                        <div class="form-group" id="onBusinessFileInfo12" style="display:none"></div>
+                        <div class="form-group" id="onBusinessPicInfo12" style="display:none"></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="modal-footer">
+                            <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                            <input type="hidden" id="onBusinessTaskId4" name="taskId">
+                            <input type="hidden" id="onBusinessState2" name="state" value="0">
+                            <input type="hidden" id="onBusinessCompanyCode2" name="companyCode">
+                            <button type="button" class="btn btn-success save" id="onBusinessBaocun"
+                                    onclick="submitHander(this,'/userBusinessPlan/save',0,7)">保存
+                            </button>
+                            <button type="button" style="display: none" class="btn btn-primary save" id="onBusinessSave"
+                                    onclick="submitHander(this,'/userBusinessPlan/editOnBusiness',4,7)">提交审核
+                            </button>
+                            <button type="button" class="btn btn-success update" id="onBusinessBaocun2"
+                                    onclick="submitHander(this,'/userBusinessPlan/updateBusiness',0,7)">保存
+                            </button>
+                            <button type="button" class="btn btn-primary update" id="onBusinessUpdate"
+                                    onclick="submitHander(this,'/userBusinessPlan/editUpdateOnBusiness',4,7)">提交审核
+                            </button>
+                            <button type="button" class="btn btn-white" id="onBusinessCancel"
+                                    data-dismiss="modal">关闭
+                            </button>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="col-sm-12">
+
+                        </div></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--出差总结框-->
+<div class="modal inmodal fade" id="businessConclusion" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: auto" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width:80%;">
+        <div class="modal-content">
+            <div class="modal-body" style="display: table">
+                <form id="businessConclusionFrom" autocomplete="off" class="form-horizontal" method="post">
+                    <div class="mainTitle view">出差总结</div>
+                    <div class="col-md-12 subContent">
+                        <input type="hidden" id="taskState1" name="taskState">
+                        <input type="hidden" id="administrativeId1" name="administrativeId">
+                        <input type="hidden" id="planId" name="planId">
+                        <input type="hidden" id="itemConclusionId" name="itemConclusionId">
+                        <label class="col-sm-1 control-label1" style="margin-right: 11px;">
+                            所属部门:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="deptName1" name="deptName" type="text" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            日期:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="applicationDate1" name="applicationDate" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差地点:
+                        </label>
+                        <div class="form-group col-sm-2 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="1">省内</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="2">省外</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="3">国外</span>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <input readonly id="place1" name="place" type="text" class="form-control" placeholder="（详细地点）"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差事由:
+                        </label>
+                        <div class="form-group col-sm-11 control-label1" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="1">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="2">客户谈判</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="3">培训学习</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="4">商务会议</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="5">工作拍摄</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="6">其他</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>出差时间:
+                        </label>
+                        <div class="col-sm-5">
+                            <input readonly placeholder="开始日期" style="width: 150px;margin-left:0;vertical-align: middle;display: inline-block"
+                                   class="form-control layer-date" id="travelStateTime1" name="travelStateTime">
+                            <span style="display:inline-block;padding:0 10px;">至</span>
+                            <input readonly placeholder="结束日期" style="width: 150px;vertical-align: middle;display: inline-block"
+                                   class="form-control layer-date" id="travelEndTime1" name="travelEndTime">
+                            <span style="display:inline-block;padding:0 10px;">共</span>
+                            <input readonly type="text" name="numberDay" class="form-control manNum" />天
+                        </div>
+                        <label class="col-sm-2 control-label1">
+                            <span class="text-red"> * </span>工作待办人:
+                        </label>
+                        <div class="form-group col-sm-2 layui-from">
+                            <input readonly type="text" name="travelUser" class="form-control" style="width: 120px;"/>
+                            <!--<select id="travelUser" name="travelUser" class="form-control" lay-verify="" lay-search>-->
+                            <!--</select>-->
+                        </div>
+                        <!--<div class="form-group col-sm-2 control-label1" style="text-align: center;">-->
+                            <!--<span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="1">单独出差</span>-->
+                            <!--<span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="2">团体出差</span>-->
+                        <!--</div>-->
+                        <div class="form-group col-sm-2 control-label1" style="text-align: center;" id="businessType">
+                            <span class="radio-inline i-checks" style="margin-right: 5px;">
+                                <input readonly  type="radio" name="separate"  value="1">单独出差
+                            </span>
+                            <span class="radio-inline i-checks" style="margin-right: 5px;">
+                                <input readonly type="radio" name="separate"  value="2">团体出差
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent licence" id="peerPerson">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>同行人员:
+                        </label>
+                        <div class="form-group col-sm-5">
+                            <input readonly type="text" name="fieldUser" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>合计:
+                        </label>
+                        <div class="form-group col-sm-3">
+                            男<input readonly type="text" name="boy" class="form-control manNum"/>人、
+                            女<input readonly type="text" name="female" class="form-control manNum"/>人
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <div class="form-group col-sm-12">
+                            <textarea id="conclusion" name="conclusion" class="form-control" style="height: 400px" placeholder="出差状况或培训心得描述（按时间及重要性顺序列写）" required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>申请人:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="applyName1" name="applyName" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>审核:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="reviewerUser1" name="reviewerUser" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label1">
+                            <span class="text-red"> * </span>批准:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly type="text" id="approverUser1" name="approverUser" class="form-control">
+                        </div>
+                        <label class="control-label" id="cs1" style="text-align: right;float: left">抄送：</label>
+                        <div class="col-sm-2 layui-form" id="ccinput1">
+                            <select id="cc1" name="cc" class="form-control" lay-verify="" lay-search>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="conclusionFile">
+                        <label class="col-sm-2 control-label">附件:</label>
+                        <div class="col-sm-3">
+                            <input type="file" id="file1" name="attach"
+                                   accept=".xls,.doc,.txt,.pdf" class="form-control" multiple/>
+                        </div>
+                        <label class="col-sm-2 control-label">图片:</label>
+                        <div class="col-sm-3">
+                            <input type="file" id="pic1" name="pic"
+                                   accept="image/gif,image/jpeg,image/png" class="form-control" multiple/>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 view">
+                        <div class="form-group" id="onBusinessFileInfo2" style="display:none"></div>
+                        <div class="form-group" id="onBusinessPicInfo2" style="display:none"></div>
+                    </div>
+                    <div class="ibx-content">
+                        <div class="ibox-title">
+                            <input type="hidden" name="taskId" id="onBusinessTaskId3">
+                            <button id="onBusinessPlan" class="btn btn-success" type="button"><i class="fa fa-plus"></i>&nbsp;出差计划
+                            </button>
+                            <button type="button" class="btn btn-success " id="updateReport1"
+                                    onclick="submitHander(this,'/userBusinessPlan/addConclusion',0,5)">提交报告
+                            </button>
+                            <button type="button" class="btn btn-success" id="onBusinessPass1"
+                                    onclick="approve(this,4)">通过
+                            </button>
+                            <button type="button" class="btn btn-danger" id="onBusinessReject1"
+                                    onclick="reject(this,4)">驳回
+                            </button>
+                            <button type="button" class="btn btn-primary" id="confirm1" onclick="submitHander(this,'/userBusinessPlan/confirm1',4,6)">确认
+                            </button>
+                            <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left" id="back"
+                                    onclick="goBackProcess()">返回
+                            </button>
+                            <button type="button" class="btn btn-warning " id="reimbursement"
+                                    onclick="jumpSubmitHander()">报销申请
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--请假新增OR编辑页面-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1300px">
+        <form id="editForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:650px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title save">新增请假信息</h4>
+                    <h4 class="modal-title update">更改请假信息</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <input type="hidden" id="id" name="id" class="form-control">
+                                <input type="hidden" id="administrativeId" name="administrativeId" class="form-control">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="title" name="title" class="form-control" required="true">
+                                    </div>
+                                    <label class="col-sm-2 control-label">请假类型<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <select id="leaveType" name="leaveType" class="form-control height18"></select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="vacationType" style="display:none">
+                                    <label class="col-sm-2 control-label">剩余调休时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" disabled="disabled" id="vacationTime1" name="vacationTime"
+                                               class="form-control" required="">
+                                    </div>
+                                    <label class="col-sm-2 control-label">调休时长<span>:</span></label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="vacationTime" name="vacationTime"
+                                               placeholder="4小时（半天）起" class="form-control" onkeyup="value=value.replace(/[^\d.]/g,'')" required="">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="annualLeaveType" style="display:none">
+                                    <label class="col-sm-2 control-label">剩余假期时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" disabled="disabled" id="surplusTime" name="surplusTime"
+                                               class="form-control" required="">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">开始时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="开始时间" name="beginTime" id="beginTime"
+                                               class="form-control layer-date laydate-icon"  required="true" readonly/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">结束时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="结束时间" name="endTime" id="endTime" class="form-control layer-date laydate-icon"
+                                              required="true" readonly/>
+                                        <!--这个当点击提交有表单校验信息，会覆盖内容，所以我们可以在结束日期确定事件中改变值-->
+                                        <label class="error" id="endTime-error" for="endTime">
+
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">请假时长<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="leaveTime" name="leaveTime" readonly="readonly"
+                                               placeholder="请输入时长"
+                                               class="form-control" required="">
+                                    </div>
+
+                                    <label class="col-sm-2 control-label">折合天数<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input onkeyup="value=value.replace(/[^\d{1,}\.\d{1,}|\d{1,}]/g,'')" type="text"
+                                               id="leaveDays" name="leaveDays" placeholder="只能输入数字和小数点"
+                                               class="form-control" required="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">请假事由<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" id="reason" name="reason" class="form-control" style="height: 140px; max-width: 473px; min-width: 473px"
+                                                  required=""></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="file" name="file" class="form-control" multiple/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">图片:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="pic" name="pic" accept="image/gif,image/jpeg,image/png"
+                                               class="form-control" multiple/>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--附件及图片回显展示-->
+                            <div class="col-sm-4">
+                                <div class="col-sm-4" id="fileInfo">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                </div>
+
+                                <div class="col-sm-4" id="picInfo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                            <input type="hidden" id="taskId" name="taskId">
+                            <input type="hidden" id="state" name="state" value="0">
+                            <input type="hidden" id="companyCode" name="companyCode">
+                            <!--如果当前请假人部门绑定了政委，则选择政委人员-->
+                            <div id="zwDiv" class="form-group col-sm-5">
+                                <label class="col-md-3" style="margin-bottom:0px;text-align: right;padding: 7px 0px 0px;margin-right: -10px;width: 18%">
+                                    <span class="text-red">*</span>政委审核人:
+                                </label>
+                                <div class="col-md-6 layui-form">
+                                    <select id="zwExamine" class="form-control" lay-search placeholder="请选择审核人名称">
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-success save" id="baocun"
+                                    onclick="submitHander(this,'/administrativeLeave/saveLeave',0,1)">保存
+                            </button>
+                            <button type="button" class="btn btn-primary save" id="save"
+                                    onclick="submitHander(this,'/administrativeLeave/editLeave',4,1)">提交审核
+                            </button>
+                            <button type="button" class="btn btn-success update" id="baocun2"
+                                    onclick="submitHander(this,'/administrativeLeave/updateLeaById',0,1)">保存
+                            </button>
+                            <button type="button" class="btn btn-primary update" id="update"
+                                    onclick="submitHander(this,'/administrativeLeave/editUpdateLeave',4,1)">提交审核
+                            </button>
+                            <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+                            <label class="col-sm-12" style="text-align:left;font-size: 16px; color:#555">
+                                请假须知：<br/>
+                                一、请假一天及一天以上的同事请注意：“请假开始时间”中，选择请假第一天的日期，点击“选择时间”，将时间选择为“8时30分00秒”，点击确定，“请假结束时间”中，选择请假最后一天的日期，点击“选择时间”，将时间选择为“18时00分00秒”，点击确定。
+                                举例1：9月6日请假一天，“请假开始时间”选择9月6日 8:30，“请假结束时间”选择9月6日18:00
+                                举例2：9月6日-9月8日请假三天，“请假开始时间”选择9月6日 8：30，“请假结束时间”选择9月8日18:00<br/>
+                                二、请假半天的同事请注意：“请假开始时间”中，选择当天请假的日期，点击“选择时间”，将时间选择为“8时30分00秒”，或“14时00分00秒，点击确定，“请假结束时间”中，选择当天请假的日期，点击“选择时间”，将时间选择为“12时00分00秒”，“18时00分00秒”，点击确定
+                                举例1:9月6日上午请假半天，“请假开始时间”选择9月6日 8:30，“请假结束时间”选择9月6日12:00
+                                举例2：9月6日下午请假半天，“请假开始时间”选择9月6日 14:00，“请假结束时间”选择9月6日18:00
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--加班新增OR编辑页面-->
+<div class="modal inmodal" id="workEditModal" tabindex="-1" role="dialog" aria-hidden="true"  data-backdrop="static">
+    <div class="modal-dialog" style="width:1300px">
+        <form id="workEditForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:688px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title save">新增加班信息</h4>
+                    <h4 class="modal-title update">更改加班信息</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <input type="hidden" id="workId" name="id" class="form-control">
+                                <input type="hidden" id="workAdministrativeId" name="administrativeId"
+                                       class="form-control">
+                                <input type="hidden" id="vacationTime2" name="vacationTime" class="form-control">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="title2" name="title" class="form-control"
+                                               required="true">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">开始时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="开始时间" name="beginTime" id="workBeginTime"
+                                               class="form-control layer-date laydate-icon" required="true" readonly/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">结束时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="结束时间" name="endTime" id="workEndTime"
+                                               class="form-control layer-date laydate-icon" required="true" readonly/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">时长<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="workHours" name="workTime" placeholder="请输入时长"
+                                               class="form-control" required="true" readonly="readonly" >
+                                    </div>
+                                    <label class="col-sm-3 control-label">审批通过后剩余调休时间<span
+                                            class="text-red">*</span>:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" disabled="disabled" id="workVacationTime" name="vacationTime"
+                                               class="form-control" required="true">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">加班原因<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" id="workReason" name="reason" class="form-control" style="height: 140px; max-width: 473px; min-width: 473px"
+                                                  required="true"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="workFile" name="file" class="form-control" multiple/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">图片:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="workPic" name="pic"
+                                               accept="image/gif,image/jpeg,image/png" class="form-control" multiple/>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--附件及图片回显展示-->
+                            <div class="col-sm-4">
+                                <div class="col-sm-4" id="fileInfo2">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                </div>
+
+                                <div class="col-sm-4" id="picInfo2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                    <input type="hidden" id="workTaskId" name="taskId">
+                    <input type="hidden" id="workState" name="state" value="0">
+                    <input type="hidden" id="workCompanyCode" name="companyCode">
+                    <button type="button" class="btn btn-success save" id="workBaocun"
+                            onclick="submitHander(this,'/workTime/saveWorkTime',0,2)">保存
+                    </button>
+                    <button type="button" class="btn btn-primary save" id="workSave"
+                            onclick="submitHander(this,'/workTime/editWorkTime',4,2)">提交审核
+                    </button>
+                    <button type="button" class="btn btn-success update" id="workBaocun2"
+                            onclick="submitHander(this,'/workTime/updateTimeworkByAdmId',0,2)">保存
+                    </button>
+                    <button type="button" class="btn btn-primary update" id="workUpdate"
+                            onclick="submitHander(this,'/workTime/editUpdateTimeWork',4,2)">提交审核
+                    </button>
+                    <button type="button" class="btn btn-white" id="workCancel" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--外出新增OR编辑页面-->
+<div class="modal inmodal" id="outWorkEditModal" tabindex="-1" role="dialog" aria-hidden="true"  data-backdrop="static">
+    <div class="modal-dialog" style="width:1300px">
+        <form id="outWorkEditForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:688px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title save">新增外出信息</h4>
+                    <h4 class="modal-title update">更改外出信息</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <input type="hidden" id="outWorkId" name="id" class="form-control">
+                                <input type="hidden" id="outWorkAdministrativeId" name="administrativeId"
+                                       class="form-control">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="title3" name="title" class="form-control"
+                                               required="true">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">开始时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="开始时间" name="beginTime" id="outWorkBeginTime"
+                                               class="form-control layer-date laydate-icon"
+                                               required="true" readonly/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">结束时间<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="结束时间" name="endTime" id="outWorkEndTime"
+                                               class="form-control layer-date laydate-icon"
+                                               required="true" readonly/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">外出时长<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="outWorkTime" name="time" placeholder="请输入时长"
+                                               class="form-control" required="true" readonly="readonly">
+                                    </div>
+
+                                    <label class="col-sm-2 control-label">折合天数<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="outWorkday" name="days" placeholder="请输入时长"
+                                               class="form-control" required="true" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">外出事由<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" id="outWorkReason" name="reason" class="form-control" style="height: 140px; max-width: 473px; min-width: 473px"
+                                                  required="true"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="outWorkFile" name="file" class="form-control" multiple/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">图片:</label>
+                                    <div class="col-sm-3">
+                                        <input type="file" id="outWorkPic" name="pic"
+                                               accept="image/gif,image/jpeg,image/png" class="form-control" multiple/>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--附件及图片回显展示-->
+                            <div class="col-sm-4">
+                                <div class="col-sm-12" id="fileInfo3">
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                </div>
+
+                                <div class="col-sm-12" id="picInfo3">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                    <input type="hidden" id="outWorkTaskId" name="taskId">
+                    <input type="hidden" id="outWorkState" name="state" value="0">
+                    <input type="hidden" id="outWorkCompanyCode" name="companyCode">
+                    <button type="button" class="btn btn-success save" id="outWorkBaocun"
+                            onclick="submitHander(this,'/outWork/saveOutWork',0,3)">保存
+                    </button>
+                    <button type="button" class="btn btn-primary save" id="outWorkSave"
+                            onclick="submitHander(this,'/outWork/editOutWork',4,3)">提交审核
+                    </button>
+                    <button type="button" class="btn btn-success update" id="outWorkBaocun2"
+                            onclick="submitHander(this,'/outWork/updateOutWorkById',0,3)">保存
+                    </button>
+                    <button type="button" class="btn btn-primary update" id="outWorkUpdate"
+                            onclick="submitHander(this,'/outWork/editUpdateOutWork',4,3)">提交审核
+                    </button>
+                    <button type="button" class="btn btn-white" id="outWorkCancel" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--审核流程详情-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <form class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--审核流程详情-->
+<div class="modal inmodal" id="docPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content" style="min-height: 900px">
+                <iframe style="min-height: 900px" width='100%' height='100%' frameborder='1'></iframe>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

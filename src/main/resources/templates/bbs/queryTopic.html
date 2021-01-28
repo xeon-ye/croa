@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>论坛列表</title>
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/need/laydate.css"/>
+    <link rel="stylesheet" href="/css/ztree/bootstrapStyle.css"/>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/dropzone/dropzone.js"></script>
+    <script type="text/javascript" src="/js/fileUpload.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/bbs/queryTopic.js"></script>
+    <script  src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/ztree/jquery.ztree.all.min.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <style type="text/css">
+        *{
+            padding: 0px;
+            margin: 0px;
+        }
+        body{ overflow: auto !important;}
+        .modal{ overflow: auto !important;}
+        #themelist li{
+            padding: 14.5px 0px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+        }
+        #themelist .theme-img{
+            width: 50px;
+            height: 50px;
+            margin-right: 16px;
+            margin-left: 10px;
+            border-radius: 50%;
+        }
+        #themelist .theme-r{
+            height: 50px;
+            flex: 1;
+        }
+        #themelist .theme-title{
+            font-size: 18px;
+            color: #222222;
+        }
+        #themelist a:visited{
+            color: #999999;
+        }
+        #themelist h3{
+            height: 25px;
+            line-height: 25px;
+            font-weight: normal;
+            display: block;
+            position: relative;
+        }
+        #themelist p{
+            color: #999999;
+        }
+        #themelist .numb {
+            float: right;
+            display: block;
+            margin-right: 30px;
+        }
+        .layui-laypage-em{
+            background-color: #3396fb!important;
+        }
+        .bbs_number{
+            background: #3396fb;
+            color: #ffffff;
+        }
+        .text-focus{
+            background-color: #a2d0c7;
+            border-bottom: #a2d0c7 1px solid;
+            overflow: hidden;
+        }
+        .forum-style{
+            text-align: center;
+            padding: 15px 20px;
+            color: white;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+        .li-style{
+            background-color: #1AB394;
+            height: 60px;
+            line-height: 60px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .searchDiv{
+            float: right;
+            margin: 10px 0;
+        }
+        .imageFlag p{
+            text-indent: 2em;
+            margin: 0 0 10px;
+            /*字大小16排序,行高36px*/
+            font: 14px/24px Microsoft Yahei;
+        }
+        .imageFlag span{
+            margin: 0 0 10px;
+            /*字大小16排序,行高36px*/
+            font: 14px/24px Microsoft Yahei;
+        }
+        .imageFlag{
+            max-height: 200px;
+            color: #888888;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+            min-height: 50px;
+        }
+        .imageFlag img{
+            max-width: 100px;
+        }
+        .showSearchContent{
+            background-color: #F1F1F1F1;
+            margin: 20px 0;
+            border-radius: 3px;
+            padding:0 20px 20px;
+            clear: both;
+        }
+        .commonTodayStyle{
+            margin-right: 14px;
+            padding: 3px 5px;
+            font-size: 12px;
+        }
+        .li-cell-style{
+            padding: 10px 0px 20px 10px;
+            max-width: 260px;
+            overflow:hidden;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+        }
+        .noDataStyle{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding-bottom: 40px;
+        }
+        .search-style{
+            width: 220px;
+            height: 40px;
+            color: #676A6C;
+            font-size: 14px;
+            border-radius: 2px;
+            background: url(/img/bbs/sousuo.png) 10px 12px no-repeat;
+            padding-left: 35px;
+        }
+        .fatie-style{
+            width: 260px;
+            height: 40px;
+            border: #3396fb;
+            background-color: #3396fb;
+            font-size: 14px;
+            color: #ffffff;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-control:focus{
+            border-color: #3396fb!important;
+        }
+        .searchBtnStyle{
+            width: 60px;
+            height: 40px;
+            border: #3396fb;
+            background-color: #3396fb;
+            font-size: 14px;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+        .commonStyle{
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        .touchfocus{
+            background-color: #3396fb;
+            border-radius: 4px;
+        }
+        .hotTitleStyle{
+            color: #999999;
+            font-size: 14px;
+        }
+        .load-box {
+            display: flex;
+            justify-content: space-between;
+        }
+        #showPublicTopic a:hover{
+            cursor: pointer;
+        }
+        #showPublicTopic li{
+            list-style: none;
+        }
+        #showRoad a:hover{
+            cursor: pointer;
+            color: blue;
+        }
+        .ztree{
+            margin: 10px 80px;
+        }
+        .w-65 {
+            width: 96%;
+        }
+        @media (min-width: 1366px) {
+            .w-65 {
+                width: 94%;
+            }
+        }
+        #topicList {
+            display: flex;
+            justify-content: space-between;
+        }
+        .ke-container-default{
+            width:100%!important;
+        }
+        .inmodal .modal-header{
+            padding: 15px 0!important;
+        }
+        .pager-style{
+            text-align: center;vertical-align: bottom;
+        }
+    </style>
+</head>
+<body>
+<form style="display: none" class="dropzone" id="word2htmlForm" enctype="multipart/form-data"></form>
+<form style="display: none" class="dropzone" id="imageUploadForm" enctype="multipart/form-data"></form>
+<!--查询条件-->
+<div style="height: 100%;">
+    <div style="height: 100%;">
+        <div style="height: 60px;border-radius: 3px;display: flex; justify-content: center;border-bottom: #ebebeb 1px solid;">
+            <div class="w-65 load-box">
+                <div style="height: 60px;" id="showRoad">
+                    <input type="hidden" id="topicTypeVal">
+                    <div style="font-size: 14px;height:40px;line-height:40px;margin: 10px 0;float: right">
+                        <span style="color: #555555;">你的位置<b>:</b></span>&nbsp;&nbsp;
+                        <a href="/bbs/firstTopic" style="color: #555555">首页</a>&nbsp;&nbsp;
+                        <i class="glyphicon glyphicon-menu-right" style="color: #999999"></i>&nbsp;&nbsp;
+                        <span style="color: #999999" id="showbbsType" onclick="topicObj.initPagerPlugin()"></span>
+                    </div>
+                </div>
+                <div class="searchDiv">
+                    <div style=" width: 230px;height: 40px;float: left;">
+                        <input autocomplete="off" class="search-style form-control" placeholder="请输入标题" type="text" name="titleQc" id="titleQc"/>
+                    </div>
+                    <div style="width: 60px;height: 40px;float: left;">
+                        <button type="button" class="form-control searchBtnStyle" id="searchBtn">确定</button>
+                    </div>
+                    <div style="width: 120px;height: 40px;float: left;margin-left: 20px;">
+                        <img src="/img/bbs/guanli.png" id="manageCenter"/>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div style="width: 100%;height: calc(100% - 60px); display: flex; justify-content: center;">
+            <div class="w-65 row" id="topicList">
+                <div class="topic-left" style="flex: 1;width: 80%">
+                    <div id="queryTopicState" style="margin: 16px 20px 16px 0;color: #999999;">
+                        <a href="javascript:void(0)" class="touchfocus commonStyle" type="button" onclick="searchTopic(1,this)">所有</a>
+                        <a href="javascript:void(0)" class="commonStyle" type="button" onclick="searchTopic(2,this)">置顶</a>
+                        <a href="javascript:void(0)" class="commonStyle" type="button" onclick="searchTopic(3,this)">精华</a>
+                        <input type="hidden" id="searchState">
+                    </div>
+                    <div id="showTopicHtml" style="height: 100%">
+                        <input type="hidden" id="pageNum" name="pageNum"/>
+                        <div id="showTopic" style="padding-right: 36px;height: 100%;">
+                            <ul id="themelist" style="height: 100%"></ul>
+                        </div>
+                        <div id="queryTablePager" class="pager-style"></div>
+                        <!--分页插件-->
+                    </div>
+                    <div id="showSearchHtml" style="height: 100%;">
+                        <div id="searchDiv" style="padding-right: 36px;height: 100%">
+
+                        </div>
+                    </div>
+                </div>
+                <div style="padding-top: 10px" class="topic-right">
+                    <div style="display: flex;justify-content: center;color: #999999;">
+                        <div style="width: 80px;height: 80px;margin-right: 16px">
+                            <img id="userImage" src="" onerror="this.src='/img/mrtx_2.png'" class="" style="width: 80px;height: 80px;border-radius: 50%"/>
+                        </div>
+                        <div style="margin: 10px 0;font-size: 14px">
+                            <div style="height: 30px">
+                                <p style="height: 30px;line-height: 30px;color: #222222">我的发帖</p>
+                            </div>
+                            <div style="height: 30px;">
+                                <p style="height: 30px;line-height: 30px;">
+                                    今日<b>:</b>&nbsp;&nbsp;<span style="color: #222222" id="showTodayNum">0</span>&nbsp;
+                                    总帖子<b>:</b>&nbsp;&nbsp;<span style="color: #222222" id="showYourTopicNum">0</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex;justify-content: center">
+                        <button id="addBtn" class="fatie-style">我要发帖</button>
+                    </div>
+                    <div style="border-top: #ebebeb 1px solid; padding-bottom: 20px">
+                        <div>
+                            <p style="height: 50px;line-height: 50px;font-size: 18px;color: #3396fb;">总发帖</p>
+                        </div>
+                        <div style="display: flex;justify-content:  space-evenly;">
+                            <div style="display: inline-block; width: 50%; text-align: center">
+                                <span id="showTopicNum" style="color: #222222;font-size: 18px">0</span>
+                                <span style="color: #999999;font-size: 14px; margin-top: 10px; display: block;">今日</span>
+                            </div>
+                            <div style="display: inline-block; width: 50%; text-align: center">
+                                <span id="showTotalTopicNum" style="color: #222222;font-size: 18px">0</span>
+                                <span style="color: #999999;font-size: 14px; margin-top: 10px; display: block;">总帖子</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="showHotTopicDiv">
+                        <div id="showHotTitle" style="border-top: #ebebeb 1px solid;padding: 20px 0px;">
+                            <h3 style="color: #3396fb"><b>热门推荐</b></h3>
+                        </div>
+                        <div id="showPublicTopicDiv">
+                            <ul id="showPublicTopic"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <form id="termForm" style="display: none">
+                    <input id="topicType" name="forumId" type="hidden"/>
+                    <input id="moderator" name="moderator" type="hidden"/>
+                    <input id="forumName" name="forumName" type="hidden"/>
+                    <input id="companyCode" name="companyCode" type="hidden"/>
+                    <input id="lookSetting" type="hidden"/>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增编辑页面-->
+<div class="modal inmodal" id="editModal" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="w-65 modal-dialog">
+        <form id="editForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h4 class="modal-title save">我要发帖</h4>
+                    <h4 class="modal-title update">修改发帖</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id" name="id">
+                                <input type="hidden" id="imageSign" name="imageSign">
+                                <!--<input type="hidden" id="httpPicture" name="httpPicture">-->
+                                <input id="companyCode2" name="companyCode" type="hidden"/>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="title" id="title" autocomplete="true" required="" placeholder="标题"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">所属板块<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <select id ="forumId" name="forumId" class="form-control" required="required"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">发帖人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="userId" name="userId"/>
+                                        <input type="text" class="form-control" name="userName" id="userName" readonly="readonly"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">发帖时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="createTime" id="createTime" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <!--<input type="hidden" id="topicContent" name="content"/>-->
+                                    <label class="col-sm-2 control-label">论坛<span class="text-red">*</span>：</label>
+                                    <div class="col-sm-8 ">
+                                        <!--<div id="articleContent" class="summernote" style="height: 300px"></div>-->
+                                        <textarea id="editTool" name="content" style="width:800px;height:360px;"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">可见设置<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <div class="radio-inline i-checks">
+                                            <!--部分可见：可见人员集合-->
+                                            <input type="hidden" id="users" name="users">
+                                            <!--部分可见：评论人员集合-->
+                                            <input type="hidden" id="commentUsers" name="commentUsers">
+                                            <!--全部可见：评论人员集合-->
+                                            <input type="hidden" id="comm" name="commUserIds">
+                                            <input type="radio" value="0" name="viewSetting"/>部分可见&nbsp;&nbsp;
+                                            <input type="radio" value="1" name="viewSetting"/>全部可见
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-1 control-label"></label>
+                                    <div class="col-sm-6">
+                                        <button type="button" id="word2html" class="col-sm-2 btn btn-success">
+                                            上传附件
+                                        </button>
+                                        <a id="showFile" name="showFiles" target="_blank" style="line-height: 32px;margin-left: 15px"><span id="showName" name="showNames"></span></a>
+                                        <input type="hidden" id="affixLink" name="affixLink">
+                                        <input type="hidden" id="affixName" name="affixName">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">主题图:</label>
+                                    <div class="col-sm-3">
+                                        <div class="radio-inline i-checks">
+                                            <input type="radio" value="1" name="imageFlag"/>是&nbsp;&nbsp;
+                                            <input type="radio" value="0" name="imageFlag" checked/>否
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-1 control-label"></label>
+                                    <div id="imageDiv" class="col-sm-6" style="display: none">
+                                        <button class="col-sm-2 btn btn-primary" type="button" id="imageUpload">上传图片</button>
+                                        <input type="hidden" name="imageUrl" id="imageUrl"/>
+                                        <input type="hidden" name="imageName" id="imageTips"/>
+                                        <a id="imageShowUrl" target="_blank" style="line-height: 32px;margin-left: 15px"><span id="imageName"></span></a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-4" style="text-align:center;color: #3396fb">注意：全部可见的主题图才有效</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="text-align: center;">
+                    <button type="button" class="btn btn-success save" id="save"
+                            onclick="submitForm(this,'/topic/add')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="update"
+                            onclick="submitForm(this,'/topic/edit')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-danger" id="closeBtn"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--查看页面-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <form id="viewForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:700px">
+                <div class="modal-header">
+                    <h4 class="modal-title">帖子详情</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="id">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">标题<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="title" id="title2" disabled="disabled" placeholder="标题"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">所属板块<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <select id ="forumId2" name="forumId" class="form-control" disabled="disabled"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">发帖人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" name="userId"/>
+                                        <input type="text" class="form-control" name="userName" id="userName2" disabled="disabled"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">发帖时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="createTime" id="createTime2" disabled="disabled"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">正文:</label>
+                                    <div class="col-sm-8">
+                                        <textarea cols="30" rows="14" id="content2" name="content" class="form-control" disabled="disabled"></textarea>
+                                    </div>
+                                </div>
+                                <label class="col-sm-2 control-label">附件:</label>
+                                <input type="hidden" name="affixLink">
+                                <input type="hidden" name="affixName">
+                                <div class="col-sm-3">
+                                    <a id="affixLink2" href="" target="_blank">
+                                        <span id="affixName2"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--可见权限设置页面-->
+<div class="modal inmodal" id="queryResourceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="w-65 modal-dialog">
+        <div class="modal-content animated bounceInRight" style="height:800px">
+            <div class="modal-header">
+                <h4 class="modal-title">权限设置</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <form id="form" class="form-horizontal">
+                            <div class="row">
+                                <div id="showTitle2" style='margin: 3px 100px;'>
+                                    <h3>可见设置</h3>
+                                </div>
+                                <div>
+                                    <ul id="treeDemo" class="ztree"></ul>
+                                </div>
+                                <div>
+                                    <div id="showTitle" class="radio-inline i-checks" style='margin: 3px 100px;'>
+                                        <input type="checkbox" class="i-checks" name="all" id="all"/>评论设置
+                                        <p style="color: #999999;font-size: 14px;">
+                                            可见设置：在上图勾选可见人员;评论设置：勾选可评论人员
+                                        </p>
+                                    </div>
+                                    <div id="showCommTips" class="radio-inline i-checks" style='margin: 3px 100px;'>
+                                        <p style="color: #999999;font-size: 14px;">
+                                            全部可见评论人员
+                                        </p>
+                                    </div>
+                                    <div id="showDeptUser" class="col-md-12" style="margin-left: 10px;">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="col-sm-12" style="text-align: center;">
+                                        <button class="btn btn-success" id="saveTopicUser" type="button">
+                                            <i class="fa fa-save"></i>&nbsp;确认
+                                        </button>
+                                        <button class="btn btn-danger backButton" id="cancel3" type="button">
+                                            <i class="fa fa-close"></i>&nbsp;关闭
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(document).ready(function () {
+        $('body').bind('keyup', function (event) {
+            if (event.keyCode == "13") {
+                //回车执行查询
+                $("#search").click();
+            }
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+
+    <title>课程管理</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/courseManage.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <!--课程范围选择-->
+    <link href="/css/utils/sysUserCompont.css" rel="stylesheet">
+    <script src="/js/utils/sysUserCompont.js"></script>
+    <script src="/js/study/courseManage.js"></script>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //----------------课程审批---------------------
+                //课程审批-表格复选框事件
+                form.on('checkbox(courseAllChoose)', function(data){
+                    var child = $(data.elem).closest(".listContentOuter").find('tbody input[type="checkbox"]');
+                    child.each(function(index, item){
+                        item.checked = data.elem.checked;
+                    });
+                    form.render('checkbox');
+                });
+                //课程审批-讲师名称
+                form.on('select(courseAuditUserId)', function(data){
+                    courseAuditObj.init();
+                });
+                //课程审批-培训板块
+                form.on('select(courseAuditTrainPlate)', function(data){
+                    courseAuditObj.init();
+                });
+                //课程审批-培训方式
+                form.on('select(courseAuditTrainWay)', function(data){
+                    courseAuditObj.init();
+                });
+                //课程审批-报名范围
+                form.on('select(courseAuditSignRange)', function(data){
+                    courseAuditObj.courseRangeChange(data.value);
+                });
+
+                //----------------课程报名---------------------
+                //课程报名-讲师名称
+                form.on('select(courseSignUserId)', function(data){
+                    courseSignObj.init();
+                });
+                //课程报名-培训板块
+                form.on('select(courseSignTrainPlate)', function(data){
+                    courseSignObj.init();
+                });
+                //课程报名-培训方式
+                form.on('select(courseSignTrainWay)', function(data){
+                    courseSignObj.init();
+                });
+
+                //----------------课程考试---------------------
+                //课程考试-试卷板块
+                form.on('select(coursePaperCoursePlate)', function(data){
+                    courseExamObj.init();
+                });
+                //课程考试-时间设置
+                form.on('select(coursePaperTimeSetting)', function(data){
+                    courseExamObj.init();
+                });
+                //课程考试-试卷展现
+                form.on('select(coursePaperWay)', function(data){
+                    courseExamObj.init();
+                });
+                //课程考试-试卷状态
+                form.on('select(coursePaperState)', function(data){
+                    courseExamObj.init();
+                });
+
+                //添加试卷-下拉列表改变事件
+                form.on('select(courseId)', function(data){
+                    var $form = $(data.elem).closest("form");
+                    var coursePlate = $(data.elem).find("option[value='"+data.value+"']").attr("data-plate");
+                    var trainEndTime = $(data.elem).find("option[value='"+data.value+"']").attr("data-trainEndTime");
+                    $form.find("input[name='coursePlate']").val(coursePlate || "");
+                    $form.find("select[name='coursePlateSle']").val(coursePlate || "");
+                    form.render();
+                });
+
+                //添加试卷-下拉列表改变事件
+                form.on('select(paperTimeSetting)', function(data){
+                   var $form = $(data.elem).closest("form");
+                   if(data.value == 0){
+                       $form.find(".paperBaseContentWrap").css("height", "150px");
+                       $form.find(".paperBaseContentWrap > div:last-child").css("display", "none");
+                   }else {
+                       $form.find(".paperBaseContentWrap").css("height", "190px");
+                       $form.find(".paperBaseContentWrap > div:last-child").css("display", "block");
+                   }
+                });
+                //添加试卷-下拉列表改变事件
+                form.on('select(paperWay)', function(data){
+                    if(data.value == 0){
+                        console.log(data.value);
+                    }else {
+                        console.log(data.value);
+                    }
+                });
+                //题库选择-筛选
+                form.on('select(questionCoursePlate)', function(data){
+                   courseExamObj.queryQuestion(data.elem);
+                });
+
+                //----------------课程管理---------------------
+                //课程管理-讲师名称
+                form.on('select(courseManageUserId)', function(data){
+                    courseManageObj.init();
+                });
+                //课程管理-培训板块
+                form.on('select(courseManageTrainPlate)', function(data){
+                    courseManageObj.init();
+                });
+                //课程管理-培训方式
+                form.on('select(courseManageTrainWay)', function(data){
+                    courseManageObj.init();
+                });
+                //课程管理-报名范围
+                form.on('select(courseManageSignRange)', function(data){
+                    courseManageObj.courseRangeChange(data.value);
+                });
+
+                //----------------我的测试---------------------
+                //我的测试-试卷板块
+                form.on('select(userExamCoursePlate)', function(data){
+                    userExamObj.init();
+                });
+                //我的测试-展现方式
+                form.on('select(userExamCoursePaperWay)', function(data){
+                    userExamObj.init();
+                });
+                //我的测试-试卷状态
+                form.on('select(userExamCoursePaperState)', function(data){
+                    userExamObj.init();
+                });
+                //我的测试-考试状态
+                form.on('select(answerCardState)', function(data){
+                    userExamObj.init();
+                });
+            });
+
+            //加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    //如果不点击搜索按钮，进行处理
+                    if($(data.elem.context).find("input").length < 1){
+                        commonObj.tabChange(data.index);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--顶部搜索-->
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li id="courseAuditTab" class="layui-this">课程审批</li>
+        <li id="courseManageTab">课程管理</li>
+        <li id="courseSignTab">课程报名</li>
+        <li id="courseExamTab">试卷管理</li>
+        <li id="userExamTab">我的测试</li>
+    </ul>
+</div>
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content">
+    <!--课程审批-->
+    <div id="courseAudit" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="courseAuditForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            讲师姓名:
+                        </label>
+                        <select name="createId" placeholder="讲师名称" class="form-control" lay-search lay-filter="courseAuditUserId">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程标题:
+                        </label>
+                        <input name="title" placeholder="请输入课程标题" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程板块:
+                        </label>
+                        <select name="coursePlate" placeholder="培训板块" class="form-control" lay-search lay-filter="courseAuditTrainPlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            培训方式:
+                        </label>
+                        <select name="trainWay" placeholder="培训方式" class="form-control" lay-search lay-filter="courseAuditTrainWay">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            报名范围:
+                        </label>
+                        <select name="courseEnrollFlag" class="form-control" lay-search lay-filter="courseAuditSignRange">
+                            <option value="">请选择课程报名范围</option>
+                            <option value="0">未设置</option>
+                            <option value="1">部门</option>
+                            <option value="2">角色</option>
+                            <option value="3">用户</option>
+                        </select>
+                    </div>
+
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter layui-form">
+                <div class="paramDiv" style="text-align: left;float: left;">
+                    <button class="btn btn-success" type="button" onclick="courseAuditObj.batchAudit(2);">
+                        <i class="fa fa-check"></i>&nbsp;批量同意
+                    </button>
+                    <button class="btn btn-danger" type="button" onclick="courseAuditObj.batchAudit(4);">
+                        <i class="fa fa-close"></i>&nbsp;批量拒绝
+                    </button>
+                </div>
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="6%">
+                        <col width="12%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="11%">
+                        <col width="11%">
+                        <col width="7%">
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="6%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                <input id="courseAllChoose" type="checkbox" lay-skin="primary" lay-filter="courseAllChoose">序号
+                            </div>
+                        </th>
+                        <th title="讲师">
+                            <div class="ellipsisContent">
+                                讲师
+                            </div>
+                        </th>
+                        <th title="课程标题">
+                            <div class="ellipsisContent">
+                                课程标题
+                            </div>
+                        </th>
+                        <th title="课程板块">
+                            <div class="ellipsisContent">
+                                课程板块
+                            </div>
+                        </th>
+                        <th title="培训方式">
+                            <div class="ellipsisContent">
+                                培训方式
+                            </div>
+                        </th>
+                        <th title="报名时间">
+                            <div class="ellipsisContent">
+                                报名时间
+                            </div>
+                        </th>
+                        <th title="培训时间">
+                            <div class="ellipsisContent">
+                                培训时间
+                            </div>
+                        </th>
+                        <th title="课程反馈截止时间">
+                            <div class="ellipsisContent">
+                                课程反馈截止时间
+                            </div>
+                        </th>
+                        <th title="课程学分">
+                            <div class="ellipsisContent">
+                                课程学分
+                            </div>
+                        </th>
+                        <th title="课程报名范围">
+                            <div class="ellipsisContent">
+                                课程报名范围
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="6%">
+                            <col width="12%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="11%">
+                            <col width="11%">
+                            <col width="7%">
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="6%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="courseAuditList">
+                         <!--<tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 <input type="checkbox" lay-skin="primary">1
+                             </div>
+                         </td>
+                         <td title="讲师">
+                             <div class="ellipsisContent">
+                                 讲师
+                             </div>
+                         </td>
+                         <td title="业务培训课程">
+                             <div class="ellipsisContent">
+                                 业务培训课程
+                             </div>
+                         </td>
+                         <td title="业务知识">
+                             <div class="ellipsisContent">
+                                 业务知识
+                             </div>
+                         </td>
+                         <td title="业务类">
+                             <div class="ellipsisContent">
+                                 业务类
+                             </div>
+                         </td>
+                         <td title="2020-12-01 14:30~2020-12-01 14:30">
+                             <div class="ellipsisContent">
+                                 2020-12-01 14:30~2020-12-01 14:30
+                             </div>
+                         </td>
+                         <td title="2020-12-01 14:30~2020-12-01 14:30">
+                             <div class="ellipsisContent">
+                                 2020-12-01 14:30~2020-12-01 14:30
+                             </div>
+                         </td>
+                         <td title="2020-03-20 14:30:00">
+                             <div class="ellipsisContent">
+                                 2020-03-20 14:30
+                             </div>
+                         </td>
+                         <td title="10">
+                             <div class="ellipsisContent">
+                                10
+                             </div>
+                         </td>
+                         <td title="业务一部、业务二部">
+                             <div class="ellipsisContent">
+                                 业务一部、业务二部
+                             </div>
+                         </td>
+                         <td title="启用">
+                             <div class="ellipsisContent">
+                                 启用
+                             </div>
+                         </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button">
+                                     预览
+                                 </button>
+                                 <button class="tableButton blueBtn" type="button">
+                                     启用
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="courseAuditListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--课程管理-->
+    <div id="courseManage" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="courseManageForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form tearcherWrap">
+                        <label class="control-label">
+                            讲师姓名:
+                        </label>
+                        <select name="createId" placeholder="讲师名称" class="form-control" lay-search lay-filter="courseManageUserId">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程标题:
+                        </label>
+                        <input name="title" placeholder="请输入课程标题" class="form-control" onkeydown="commonObj.enterEvent(1, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程板块:
+                        </label>
+                        <select name="coursePlate" placeholder="培训板块" class="form-control" lay-search lay-filter="courseManageTrainPlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            培训方式:
+                        </label>
+                        <select name="trainWay" placeholder="培训方式" class="form-control" lay-search lay-filter="courseManageTrainWay">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            报名范围:
+                        </label>
+                        <select name="courseEnrollFlag" class="form-control" lay-search lay-filter="courseManageSignRange">
+                            <option value="">请选择课程报名范围</option>
+                            <option value="0">未设置</option>
+                            <option value="1">部门</option>
+                            <option value="2">角色</option>
+                            <option value="3">用户</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter layui-form">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="6%">
+                        <col width="12%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="11%">
+                        <col width="11%">
+                        <col width="7%">
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="6%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="讲师">
+                            <div class="ellipsisContent">
+                                讲师
+                            </div>
+                        </th>
+                        <th title="课程标题">
+                            <div class="ellipsisContent">
+                                课程标题
+                            </div>
+                        </th>
+                        <th title="课程板块">
+                            <div class="ellipsisContent">
+                                课程板块
+                            </div>
+                        </th>
+                        <th title="培训方式">
+                            <div class="ellipsisContent">
+                                培训方式
+                            </div>
+                        </th>
+                        <th title="报名时间">
+                            <div class="ellipsisContent">
+                                报名时间
+                            </div>
+                        </th>
+                        <th title="培训时间">
+                            <div class="ellipsisContent">
+                                培训时间
+                            </div>
+                        </th>
+                        <th title="课程反馈截止时间">
+                            <div class="ellipsisContent">
+                                课程反馈截止时间
+                            </div>
+                        </th>
+                        <th title="课程学分">
+                            <div class="ellipsisContent">
+                                课程学分
+                            </div>
+                        </th>
+                        <th title="课程报名范围">
+                            <div class="ellipsisContent">
+                                课程报名范围
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="6%">
+                            <col width="12%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="11%">
+                            <col width="11%">
+                            <col width="7%">
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="6%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="courseManageList">
+                        <!--<tr>
+                        <td title="1">
+                            <div class="ellipsisContent">
+                                1
+                            </div>
+                        </td>
+                        <td title="讲师">
+                            <div class="ellipsisContent">
+                                讲师
+                            </div>
+                        </td>
+                        <td title="业务培训课程">
+                            <div class="ellipsisContent">
+                                业务培训课程
+                            </div>
+                        </td>
+                        <td title="业务知识">
+                            <div class="ellipsisContent">
+                                业务知识
+                            </div>
+                        </td>
+                        <td title="业务类">
+                            <div class="ellipsisContent">
+                                业务类
+                            </div>
+                        </td>
+                        <td title="2020-12-01 14:30~2020-12-01 14:30">
+                            <div class="ellipsisContent">
+                                2020-12-01 14:30~2020-12-01 14:30
+                            </div>
+                        </td>
+                        <td title="2020-12-01 14:30~2020-12-01 14:30">
+                            <div class="ellipsisContent">
+                                2020-12-01 14:30~2020-12-01 14:30
+                            </div>
+                        </td>
+                        <td title="2020-03-20 14:30:00">
+                            <div class="ellipsisContent">
+                                2020-03-20 14:30
+                            </div>
+                        </td>
+                        <td title="10">
+                            <div class="ellipsisContent">
+                               10
+                            </div>
+                        </td>
+                        <td title="业务一部、业务二部">
+                            <div class="ellipsisContent">
+                                业务一部、业务二部
+                            </div>
+                        </td>
+                        <td title="启用">
+                            <div class="ellipsisContent">
+                                启用
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ellipsisContent">
+                                <button class="tableButton blueBtn" type="button">
+                                    预览
+                                </button>
+                                <button class="tableButton blueBtn" type="button">
+                                    启用
+                                </button>
+                            </div>
+                        </td>
+                    </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="courseManageListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--课程报名-->
+    <div id="courseSign" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="courseSignForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            讲师姓名:
+                        </label>
+                        <select name="createId" placeholder="讲师名称" class="form-control" lay-search lay-filter="courseSignUserId">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程标题:
+                        </label>
+                        <input name="title" placeholder="请输入课程标题" class="form-control" onkeydown="commonObj.enterEvent(2, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程板块:
+                        </label>
+                        <select name="coursePlate" placeholder="培训板块" class="form-control" lay-search lay-filter="courseSignTrainPlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            培训方式:
+                        </label>
+                        <select name="trainWay" placeholder="培训方式" class="form-control" lay-search lay-filter="courseSignTrainWay">
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter layui-form">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="6%">
+                        <col width="12%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="11%">
+                        <col width="11%">
+                        <col width="7%">
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="6%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="讲师">
+                            <div class="ellipsisContent">
+                                讲师
+                            </div>
+                        </th>
+                        <th title="课程标题">
+                            <div class="ellipsisContent">
+                                课程标题
+                            </div>
+                        </th>
+                        <th title="课程板块">
+                            <div class="ellipsisContent">
+                                课程板块
+                            </div>
+                        </th>
+                        <th title="培训方式">
+                            <div class="ellipsisContent">
+                                培训方式
+                            </div>
+                        </th>
+                        <th title="报名时间">
+                            <div class="ellipsisContent">
+                                报名时间
+                            </div>
+                        </th>
+                        <th title="培训时间">
+                            <div class="ellipsisContent">
+                                培训时间
+                            </div>
+                        </th>
+                        <th title="课程反馈截止时间">
+                            <div class="ellipsisContent">
+                                课程反馈截止时间
+                            </div>
+                        </th>
+                        <th title="课程学分">
+                            <div class="ellipsisContent">
+                                课程学分
+                            </div>
+                        </th>
+                        <th title="课程报名范围">
+                            <div class="ellipsisContent">
+                                课程报名范围
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="6%">
+                            <col width="12%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="11%">
+                            <col width="11%">
+                            <col width="7%">
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="6%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="courseSignList">
+                        <!--<tr>
+                        <td title="1">
+                            <div class="ellipsisContent">
+                                1
+                            </div>
+                        </td>
+                        <td title="讲师">
+                            <div class="ellipsisContent">
+                                讲师
+                            </div>
+                        </td>
+                        <td title="业务培训课程">
+                            <div class="ellipsisContent">
+                                业务培训课程
+                            </div>
+                        </td>
+                        <td title="业务知识">
+                            <div class="ellipsisContent">
+                                业务知识
+                            </div>
+                        </td>
+                        <td title="业务类">
+                            <div class="ellipsisContent">
+                                业务类
+                            </div>
+                        </td>
+                        <td title="2020-12-01 14:30~2020-12-01 14:30">
+                            <div class="ellipsisContent">
+                                2020-12-01 14:30~2020-12-01 14:30
+                            </div>
+                        </td>
+                        <td title="2020-12-01 14:30~2020-12-01 14:30">
+                            <div class="ellipsisContent">
+                                2020-12-01 14:30~2020-12-01 14:30
+                            </div>
+                        </td>
+                        <td title="2020-03-20 14:30:00">
+                            <div class="ellipsisContent">
+                                2020-03-20 14:30
+                            </div>
+                        </td>
+                        <td title="10">
+                            <div class="ellipsisContent">
+                               10
+                            </div>
+                        </td>
+                        <td title="业务一部、业务二部">
+                            <div class="ellipsisContent">
+                                业务一部、业务二部
+                            </div>
+                        </td>
+                        <td title="启用">
+                            <div class="ellipsisContent">
+                                启用
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ellipsisContent">
+                                <button class="tableButton blueBtn" type="button">
+                                    预览
+                                </button>
+                                <button class="tableButton blueBtn" type="button">
+                                    启用
+                                </button>
+                            </div>
+                        </td>
+                    </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="courseSignListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--课程考试-->
+    <div id="courseExam" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="courseExamForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷标题:
+                        </label>
+                        <input name="paperTitle" placeholder="请输入试卷标题" class="form-control" onkeydown="commonObj.enterEvent(3, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷板块:
+                        </label>
+                        <select name="coursePlate" placeholder="试卷板块" class="form-control" lay-search lay-filter="coursePaperCoursePlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            时间设置:
+                        </label>
+                        <select name="paperTimeSetting" placeholder="试卷状态" class="form-control" lay-search lay-filter="coursePaperTimeSetting">
+                            <option value="">请选择时间设置</option>
+                            <option value="0">不固定时间</option>
+                            <option value="1">固定时间</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            展现方式:
+                        </label>
+                        <select name="paperWay" placeholder="试卷状态" class="form-control" lay-search lay-filter="coursePaperWay">
+                            <option value="">请选择展现方式</option>
+                            <option value="0">逐题展示</option>
+                            <option value="1">整卷展示</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷状态:
+                        </label>
+                        <select name="state" placeholder="试卷状态" class="form-control" lay-search lay-filter="coursePaperState">
+                            <option value="">请选择试卷状态</option>
+                            <option value="0">启用</option>
+                            <option value="1">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <div class="paramDiv" style="text-align: left;float: left;">
+                    <button class="btn btn-primary" type="button" onclick="courseExamObj.courseExamModalShow();">
+                        <i class="fa fa-plus"></i>&nbsp;新增试卷
+                    </button>
+                </div>
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="7%">
+                        <col width="16%">
+                        <col width="9%">
+                        <col width="9%">
+                        <col width="8%">
+                        <col width="8%">
+                        <col width="13%">
+                        <col width="6%">
+                        <col width="7%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="讲师姓名">
+                            <div class="ellipsisContent">
+                                讲师姓名
+                            </div>
+                        </th>
+                        <th title="试卷标题">
+                            <div class="ellipsisContent">
+                                试卷标题
+                            </div>
+                        </th>
+                        <th title="所属课程">
+                            <div class="ellipsisContent">
+                                所属课程
+                            </div>
+                        </th>
+                        <th title="试卷板块">
+                            <div class="ellipsisContent">
+                                试卷板块
+                            </div>
+                        </th>
+                        <th title="时间设置">
+                            <div class="ellipsisContent">
+                                时间设置
+                            </div>
+                        </th>
+                        <th title="展现方式">
+                            <div class="ellipsisContent">
+                                展现方式
+                            </div>
+                        </th>
+                        <th title="参加考试时间(参加考试的起止时间)">
+                            <div class="ellipsisContent">
+                                参加考试时间
+                            </div>
+                        </th>
+                        <th title="考试时长(分钟)">
+                            <div class="ellipsisContent">
+                                时长(分钟)
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="7%">
+                            <col width="16%">
+                            <col width="9%">
+                            <col width="9%">
+                            <col width="8%">
+                            <col width="8%">
+                            <col width="13%">
+                            <col width="6%">
+                            <col width="7%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="courseExamList">
+                         <!--<tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="邹丽">
+                             <div class="ellipsisContent">
+                                 邹丽
+                             </div>
+                         </td>
+                         <td title="业务基础知识考试">
+                             <div class="ellipsisContent">
+                                 业务基础知识考试
+                             </div>
+                         </td>
+                         <td title="业务知识">
+                             <div class="ellipsisContent">
+                                 业务知识
+                             </div>
+                         </td>
+                         <td title="业务类">
+                             <div class="ellipsisContent">
+                                 业务类
+                             </div>
+                         </td>
+                         <td title="不固定时间">
+                             <div class="ellipsisContent">
+                                 不固定时间
+                             </div>
+                         </td>
+                         <td title="逐题展示">
+                             <div class="ellipsisContent">
+                                 逐题展示
+                             </div>
+                         </td>
+                         <td title="2020.12.01 14:30~2020.12.01 14:30">
+                             <div class="ellipsisContent">
+                                 2020.12.01 14:30~2020.12.01 14:30
+                             </div>
+                         </td>
+                         <td title="60">
+                             <div class="ellipsisContent">
+                                 60
+                             </div>
+                         </td>
+                         <td title="启用">
+                             <div class="ellipsisContent">
+                                 启用
+                             </div>
+                         </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button">
+                                     编辑
+                                 </button>
+                                 <button class="tableButton blueBtn" type="button">
+                                     启用
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="courseExamListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--我的测试-->
+    <div id="userExam" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="userExamForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷标题:
+                        </label>
+                        <input name="paperTitle" placeholder="请输入试卷标题" class="form-control" onkeydown="commonObj.enterEvent(4, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷板块:
+                        </label>
+                        <select name="coursePlate" placeholder="试卷板块" class="form-control" lay-search lay-filter="userExamCoursePlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            展现方式:
+                        </label>
+                        <select name="paperWay" placeholder="试卷状态" class="form-control" lay-search lay-filter="userExamCoursePaperWay">
+                            <option value="">请选择展现方式</option>
+                            <option value="0">逐题展示</option>
+                            <option value="1">整卷展示</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            试卷状态:
+                        </label>
+                        <select name="state" placeholder="试卷状态" class="form-control" lay-search lay-filter="userExamCoursePaperState">
+                            <option value="">请选择试卷状态</option>
+                            <option value="0">启用</option>
+                            <option value="1">禁用</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            考试状态:
+                        </label>
+                        <select name="answerCardState" placeholder="考试状态" class="form-control" lay-search lay-filter="answerCardState">
+                            <option value="">请选择考试状态</option>
+                            <option value="0">未批改</option>
+                            <option value="1">已批改</option>
+                            <option value="2">未考试</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="15%">
+                        <col width="9%">
+                        <col width="9%">
+                        <col width="8%">
+                        <col width="14%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="7%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="试卷标题">
+                            <div class="ellipsisContent">
+                                试卷标题
+                            </div>
+                        </th>
+                        <th title="所属课程">
+                            <div class="ellipsisContent">
+                                所属课程
+                            </div>
+                        </th>
+                        <th title="试卷板块">
+                            <div class="ellipsisContent">
+                                试卷板块
+                            </div>
+                        </th>
+                        <th title="展现方式">
+                            <div class="ellipsisContent">
+                                展现方式
+                            </div>
+                        </th>
+                        <th title="参加考试时间(参加考试的起止时间)">
+                            <div class="ellipsisContent">
+                                参加考试时间
+                            </div>
+                        </th>
+                        <th title="考试时长(分钟)">
+                            <div class="ellipsisContent">
+                                时长(分钟)
+                            </div>
+                        </th>
+                        <th title="试卷状态">
+                            <div class="ellipsisContent">
+                                试卷状态
+                            </div>
+                        </th>
+                        <th title="考试分数">
+                            <div class="ellipsisContent">
+                                考试分数
+                            </div>
+                        </th>
+                        <th title="考试状态">
+                            <div class="ellipsisContent">
+                                试卷状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="15%">
+                            <col width="9%">
+                            <col width="9%">
+                            <col width="8%">
+                            <col width="14%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="7%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="userExamList">
+                         <!--<tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="业务基础知识考试">
+                             <div class="ellipsisContent">
+                                 业务基础知识考试
+                             </div>
+                         </td>
+                         <td title="业务知识">
+                             <div class="ellipsisContent">
+                                 业务知识
+                             </div>
+                         </td>
+                         <td title="业务类">
+                             <div class="ellipsisContent">
+                                 业务类
+                             </div>
+                         </td>
+                         <td title="逐题展示">
+                             <div class="ellipsisContent">
+                                 逐题展示
+                             </div>
+                         </td>
+                         <td title="2020.03.20 14:30~2020.03.20 14:30">
+                             <div class="ellipsisContent">
+                                 2020.03.20 14:30~2020.03.20 14:30
+                             </div>
+                         </td>
+                         <td title="60">
+                             <div class="ellipsisContent">
+                                 60
+                             </div>
+                         </td>
+                         <td title="启用">
+                             <div class="ellipsisContent">
+                                 启用
+                             </div>
+                         </td>
+                         <td title="98">
+                             <div class="ellipsisContent">
+                                 98
+                             </div>
+                         </td>
+                         <td title="未批改">
+                                 <div class="ellipsisContent">
+                                     未批改
+                                 </div>
+                             </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button">
+                                     启用
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="userExamListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+</div>
+</body>
+<!--题目模板-->
+<div id="questionTemplate" style="display: none;">
+    <!--单项选择题-->
+    <div id="radioQuestionItem">
+        <div data-id="${questionItem-seq}" class="radioQuestionItem questionItem" data-type="1">
+            <span class="seq"></span>
+            <input type="hidden" data-key="questionSeq" name="${question-seq}" value="${question-seq-value}" class="questionInput" />
+            <input type="hidden" data-key="questionId" name="${question-id}" class="questionInput"/>
+            <input type="hidden" data-key="paperDetailId" name="${paper_detail_id}" class="questionInput"/>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>题干:
+                    </label>
+                </div>
+                <div class="col-sm-7">
+                    <input data-key="questionTitle" name="${question-title}" placeholder="请选择题干" class="form-control questionInput"  ${input-readonly}/>
+                </div>
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>分值:
+                    </label>
+                </div>
+                <div class="col-sm-2">
+                    <input data-key="questionGrade" name="${question-grade}" class="form-control grade questionInput" onkeyup="value=value.replace(/[^\d]/g,'')" oninput="courseExamObj.calGradeTotal(this);"/>
+                </div>
+                <div class="col-sm-1">
+                    <span class="delQuestion1" onclick="courseExamObj.removeQuestion(this);">删除</span>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>选项:
+                    </label>
+                </div>
+                <div class="col-sm-11" style="padding: 0px !important;">
+                    <div class="col-sm-6">
+                        <input type="radio" value="A" class="questionInput" data-key="questionAnswer" name="${question-answer}" title="A" ${input-disabled}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                    </div>
+                    <div class="col-sm-2">
+
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="radio" value="B" class="questionInput" data-key="questionAnswer" name="${question-answer}" title="B" ${input-disabled}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+
+                </div>
+                <div class="col-sm-11" style="padding: 0px !important;">
+                    <div class="col-sm-6">
+                        <input type="radio" value="C" class="questionInput" data-key="questionAnswer" name="${question-answer}" title="C" ${input-disabled}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                    </div>
+                    <div class="col-sm-2">
+
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="radio" value="D" class="questionInput" data-key="questionAnswer" name="${question-answer}" title="D" ${input-disabled}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--多项选择题-->
+    <div id="checkQuestionItem">
+        <div data-id="${questionItem-seq}" class="checkQuestionItem questionItem" data-type="2">
+            <span class="seq"></span>
+            <input type="hidden" data-key="questionSeq" name="${question-seq}" value="${question-seq-value}" class="questionInput"/>
+            <input type="hidden" data-key="questionId" name="${question-id}" class="questionInput"/>
+            <input type="hidden" data-key="paperDetailId" name="${paper_detail_id}" class="questionInput"/>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>题干:
+                    </label>
+                </div>
+                <div class="col-sm-7">
+                    <input data-key="questionTitle" name="${question-title}" placeholder="请选择题干" class="form-control questionInput" ${input-readonly}/>
+                </div>
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>分值:
+                    </label>
+                </div>
+                <div class="col-sm-2">
+                    <input data-key="questionGrade" name="${question-grade}" class="form-control grade questionInput" onkeyup="value=value.replace(/[^\d]/g,'')" oninput="courseExamObj.calGradeTotal(this);"/>
+                </div>
+                <div class="col-sm-1">
+                    <span class="delQuestion1" onclick="courseExamObj.removeQuestion(this);">删除</span>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>选项:
+                    </label>
+                </div>
+                <div class="col-sm-11" style="padding: 0px !important;margin-top: 7px;">
+                    <div class="col-sm-6">
+                        <input type="checkbox" value="A" data-key="questionAnswer" name="${question-answer}" title="A" lay-skin="primary" class="questionInput" ${input-readonly}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-disabled}></textarea>
+                    </div>
+                    <div class="col-sm-2">
+
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="checkbox" value="B" data-key="questionAnswer" name="${question-answer}" title="B" lay-skin="primary" class="questionInput" ${input-readonly}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-disabled}></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+
+                </div>
+                <div class="col-sm-11" style="padding: 0px !important;margin-top: 7px;">
+                    <div class="col-sm-6">
+                        <input type="checkbox" value="C" data-key="questionAnswer" name="${question-answer}" title="C" lay-skin="primary" class="questionInput" ${input-readonly}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-disabled}></textarea>
+                    </div>
+                    <div class="col-sm-2">
+
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="checkbox" value="D" data-key="questionAnswer" name="${question-answer}" title="D" lay-skin="primary" class="questionInput" ${input-readonly}>
+                        <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-disabled}></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--判断选择题-->
+    <div id="judgeQuestionItem">
+        <div data-id="${questionItem-seq}" class="judgeQuestionItem questionItem" data-type="3">
+            <span class="seq"></span>
+            <input type="hidden" data-key="questionSeq" name="${question-seq}" value="${question-seq-value}" class="questionInput"/>
+            <input type="hidden" data-key="questionId" name="${question-id}" class="questionInput"/>
+            <input type="hidden" data-key="paperDetailId" name="${paper_detail_id}" class="questionInput"/>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>题干:
+                    </label>
+                </div>
+                <div class="col-sm-7">
+                    <input data-key="questionTitle" name="${question-title}" placeholder="请选择题干" class="form-control questionInput" ${input-readonly}/>
+                </div>
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>分值:
+                    </label>
+                </div>
+                <div class="col-sm-2">
+                    <input data-key="questionGrade" name="${question-grade}" class="form-control grade questionInput" onkeyup="value=value.replace(/[^\d]/g,'')" oninput="courseExamObj.calGradeTotal(this);"/>
+                </div>
+                <div class="col-sm-1">
+                    <span class="delQuestion1" onclick="courseExamObj.removeQuestion(this);">删除</span>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>选项:
+                    </label>
+                </div>
+                <div class="col-sm-11" style="padding: 0px !important;">
+                    <div class="col-sm-6">
+                        <input type="radio" value="1" data-key="questionAnswer" name="${question-answer}" title="正确" class="questionInput" ${input-disabled}>
+                        <!--<textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>-->
+                    </div>
+                    <div class="col-sm-2">
+
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="radio" value="0" data-key="questionAnswer" name="${question-answer}" title="错误" class="questionInput" ${input-disabled}>
+                        <!--<textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--填空题-->
+    <div id="completeQuestionItem">
+        <div data-id="${questionItem-seq}" class="completeQuestionItem questionItem" data-type="4">
+            <span class="seq"></span>
+            <input type="hidden" data-key="questionSeq" name="${question-seq}" value="${question-seq-value}" class="questionInput"/>
+            <input type="hidden" data-key="questionId" name="${question-id}" class="questionInput"/>
+            <input type="hidden" data-key="paperDetailId" name="${paper_detail_id}" class="questionInput"/>
+            <div class="col-sm-12">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>题干:
+                    </label>
+                </div>
+                <div class="col-sm-7">
+                    <textarea data-key="questionTitle" name="${question-title}" placeholder="示例：题目内容[填空答案]题目内容[填空答案]" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                </div>
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>分值:
+                    </label>
+                </div>
+                <div class="col-sm-2">
+                    <textarea data-key="questionGrade" name="${question-grade}" class="layui-textarea grade questionInput" onkeyup="value=value.replace(/[^\d]/g,'')" oninput="courseExamObj.calGradeTotal(this);"></textarea>
+                </div>
+                <div class="col-sm-1">
+                    <span class="delQuestion2" onclick="courseExamObj.removeQuestion(this);">删除</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--问答题-->
+    <div id="essayQuestionItem">
+        <div data-id="${questionItem-seq}" class="essayQuestionItem questionItem" data-type="5">
+            <span class="seq"></span>
+            <input type="hidden" data-key="questionSeq" name="${question-seq}" value="${question-seq-value}" class="questionInput"/>
+            <input type="hidden" data-key="questionId" name="${question-id}" class="questionInput"/>
+            <input type="hidden" data-key="paperDetailId" name="${paper_detail_id}" class="questionInput"/>
+            <div class="col-sm-12 questionTitle">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>题干:
+                    </label>
+                </div>
+                <div class="col-sm-7">
+                    <textarea data-key="questionTitle" name="${question-title}" placeholder="请输入题干内容" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                </div>
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>分值:
+                    </label>
+                </div>
+                <div class="col-sm-2">
+                    <textarea data-key="questionGrade" name="${question-grade}" class="layui-textarea grade questionInput" onkeyup="value=value.replace(/[^\d]/g,'')" oninput="courseExamObj.calGradeTotal(this);"></textarea>
+                </div>
+                <div class="col-sm-1">
+                    <span class="delQuestion2" onclick="courseExamObj.removeQuestion(this);">删除</span>
+                </div>
+            </div>
+            <div class="col-sm-12" style="margin-top: 5px;">
+                <div class="col-sm-1 textRightAlign">
+                    <label class="control-label">
+                        <span class="text-red">*</span>答案:
+                    </label>
+                </div>
+                <div class="col-sm-11" style="width: 90.9%;">
+                    <textarea data-key="questionAnswerDesc" name="${question-answer-desc}" placeholder="请输入答案描述" class="layui-textarea questionInput" ${input-readonly}></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增试卷-->
+<div id="addPaperModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--顶部按钮-->
+        <div class="courseModalBtnOuter">
+            <div class="courseModalTitle">
+                添加试卷
+            </div>
+            <div class="courseModalBtn">
+                <div onclick="courseExamObj.courseExamModalClose()">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="courseExamObj.submit(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <form id="paperForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <input type="hidden" name="id"/>
+                <!--小标题-->
+                <div class="paperSubTitleWrap">
+                    <div class="paperSubTitle">基本信息</div>
+                    <div class="paperGrade">
+                        总分值：
+                        <input name="paperGrade" type="text" readonly>
+                    </div>
+                </div>
+                <!--试卷基本信息-->
+                <div class="paperBaseContentWrap">
+                    <div class="form-group col-sm-11">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>关联课程:
+                        </label>
+                        <div class="col-sm-4">
+                            <select name="courseId" placeholder="请选择关联课程" class="form-control" lay-search lay-filter="courseId">
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            所属板块:
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="hidden" name="coursePlate">
+                            <select name="coursePlateSle" placeholder="请选择所属板块" class="form-control" lay-search disabled>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-11">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>试卷标题:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="paperTitle" placeholder="请输入试卷标题" class="form-control"/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>考试时长:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="paperTime" placeholder="请输入考试时长(分钟)" class="form-control" onkeyup="value=value.replace(/[^\d]/g,'')"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-11">
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>时间设置:
+                        </label>
+                        <div class="col-sm-4">
+                            <select name="paperTimeSetting" class="form-control" lay-search lay-filter="paperTimeSetting">
+                                <option value="0">不固定时间</option>
+                                <option value="1">固定时段</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            <span class="text-red">*</span>展现方式:
+                        </label>
+                        <div class="col-sm-4">
+                            <select name="paperWay" class="form-control" lay-search lay-filter="paperWay">
+                                <option value="0">逐题展示</option>
+                                <option value="1">整卷展示</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-11" style="display: none;">
+                        <label class="col-sm-2 control-label" title="参加考试的开始时间">
+                            <span class="text-red">*</span>开始时间:
+                        </label>
+                        <div class="col-sm-4">
+                            <input name="paperStartTime" placeholder="请选择考试开始时间" class="form-control"/>
+                        </div>
+                        <label class="col-sm-2 control-label">
+                            截止时间:
+                        </label>
+                        <div class="col-sm-4" title="参加考试的截止时间">
+                            <input name="paperEndTime" placeholder="请选择考试截止时间" class="form-control"/>
+                        </div>
+                    </div>
+                </div>
+                <!--题目类型-->
+                <div class="questionTypeWrap">
+                    <span onclick="courseExamObj.questionTypeClick(this);" data-type="1" class="questionColor questionActive">
+                        单项选择题<i class="layui-badge">0</i>
+                    </span>
+                    <span onclick="courseExamObj.questionTypeClick(this);" data-type="2" class="questionColor">
+                        多项选择题<i class="layui-badge">0</i>
+                    </span>
+                    <span onclick="courseExamObj.questionTypeClick(this);" data-type="3" class="questionColor">
+                        判断选择题<i class="layui-badge">0</i>
+                    </span>
+                    <span onclick="courseExamObj.questionTypeClick(this);" data-type="4" class="questionColor">
+                        填空题<i class="layui-badge">0</i>
+                    </span>
+                    <span onclick="courseExamObj.questionTypeClick(this);" data-type="5" class="questionColor">
+                        问答题<i class="layui-badge">0</i>
+                    </span>
+                    <span class="questionColor questionGradeTotal">
+                        题目总分值<i class="layui-badge">0</i>
+                    </span>
+                </div>
+                <!--题目基本信息-->
+                <div class="questionContentWrap">
+                    <!--单项选择题-->
+                    <div class="questionContent" style="display: block;">
+
+                    </div>
+                    <!--多项选择题-->
+                    <div class="questionContent" style="display: none;">
+
+                    </div>
+                    <!--判断选择题-->
+                    <div class="questionContent" style="display: none;">
+
+                    </div>
+                    <!--填空题-->
+                    <div class="questionContent" style="display: none;">
+
+                    </div>
+                    <!--问答题-->
+                    <div class="questionContent" style="display: none;">
+
+                    </div>
+                    <!--添加按钮-->
+                    <div class="questionAddBtnWrap">
+                        <div class="questionAddBtn" onclick="courseExamObj.addNewQuestion(this);">
+                            创&nbsp;建&nbsp;题&nbsp;目
+                        </div>
+                        <div class="questionAddBtn" style="border-left: 1px solid;" onclick="courseExamObj.questionModalShow(this);">
+                            题&nbsp;库&nbsp;选&nbsp;择
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!--底部内容-->
+        <div class="courseModalBottomOuter ellipsisContent" title="1、添加题目顺序不代表考试试卷题目顺序">
+            <span style="font-weight: bold;">试卷说明：</span>1、添加题目顺序不代表考试试卷题目顺序
+        </div>
+    </div>
+</div>
+<!--题目选择-->
+<div id="chooseQuestionModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--顶部按钮-->
+        <div class="courseModalBtnOuter">
+            <div class="courseModalTitle">
+                单项选择题
+            </div>
+            <div class="courseModalBtn">
+                <div onclick="courseExamObj.questionModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="courseExamObj.questionChooseBtn(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    确定
+                </div>
+            </div>
+        </div>
+
+        <!--顶部搜索条件-->
+        <div class="searchParamOuter">
+            <form id="questionSearchForm" autocomplete="off" method="post" class="layui-form">
+                <div class="col-sm-12">
+                    <label class="control-label" style="margin-top: 8px;float: left;">
+                        题目标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="questionTitle" placeholder="请输入题目标题" class="form-control" onkeydown="commonObj.enterEvent(3,'queryQuestion', event, this);"/>
+                    </div>
+                    <label class="control-label" style="margin-top: 8px;float: left;">
+                        所属板块:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="coursePlate" placeholder="所属板块" class="form-control" lay-search lay-filter="questionCoursePlate">
+
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <!--题目基本信息-->
+            <div class="questionContentWrap" style="overflow: auto;padding: 15px;">
+                <form id="questionForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                    <!-- <div class="radioQuestionItemShow" onclick="courseExamObj.questionClick(this);">
+                         <input type="hidden" name="questionType" value="1"/>
+                         <input type="hidden" name="questionId" value="1"/>
+                         <div class="ellipsisContent questionTitleShow">
+                             <input type="hidden" name="questionTitle" value="这是一个单选题标题"/>
+                             <span>1、</span>
+                             <span class="questionInput">这是一个单选题标题</span>
+                         </div>
+                         <div class="col-sm-12">
+                             <input type="hidden" name="questionAnswer" value="A"/>
+                             <input type="hidden" name="questionAnswerDesc" value="选项一<^_^>选项二<^_^>选项三<^_^>选项四"/>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="A"  class="questionInput" title="A、" disabled checked>
+                                 <span class="questionDesc questionInput">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="B"  class="questionInput" title="B、" disabled>
+                                 <span class="questionDesc questionInput">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="A"  class="questionInput" title="C、" disabled>
+                                 <span class="questionDesc questionInput">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="B"  class="questionInput" title="D、" disabled>
+                                 <span class="questionDesc questionInput">dadadadada</span>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="checkQuestionItemShow" onclick="courseExamObj.questionClick(this);">
+                         <input type="hidden" name="questionType" value="2"/>
+                         <input type="hidden" name="questionId" value="2"/>
+                         <div class="ellipsisContent questionTitleShow">
+                             <input type="hidden" name="questionTitle" value="这是一个多选题标题"/>
+                             <span>1、</span>
+                             <span class="questionInput">这是一个多选题标题</span>
+                         </div>
+                         <div class="col-sm-12">
+                             <input type="hidden" name="questionAnswer" value="B<^_^>D"/>
+                             <input type="hidden" name="questionAnswerDesc" value="选项一<^_^>选项二<^_^>选项三<^_^>选项四"/>
+                             <div class="col-sm-6">
+                                 <input type="checkbox" value="A" class="questionInput" title="A、" lay-skin="primary" disabled>
+                                 <span class="questionDesc questionInput" style="margin-top: 2px;">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="checkbox" value="B" class="questionInput" title="B、" lay-skin="primary" disabled checked>
+                                 <span class="questionDesc questionInput" style="margin-top: 2px;">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="checkbox" value="A" class="questionInput" title="C、" lay-skin="primary" disabled>
+                                 <span class="questionDesc questionInput" style="margin-top: 2px;">dadadadada</span>
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="checkbox" value="B" class="questionInput" title="D、" lay-skin="primary" disabled checked>
+                                 <span class="questionDesc questionInput" style="margin-top: 2px;">dadadadada</span>
+                             </div>
+                         </div>
+                     </div>
+                     <div class="judgeQuestionItemShow" onclick="courseExamObj.questionClick(this);">
+                         <input type="hidden" name="questionType" value="3"/>
+                         <input type="hidden" name="questionId" value="3"/>
+                         <div class="ellipsisContent questionTitleShow">
+                             <input type="hidden" name="questionTitle" value="这是一个判断题标题"/>
+                             <span>1、</span>
+                             <span class="questionInput">这是一个判断题标题</span>
+                         </div>
+                         <div class="col-sm-12">
+                             <input type="hidden" name="questionAnswer" value="0"/>
+                             <input type="hidden" name="questionAnswerDesc" value="选项一<^_^>选项一"/>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="1" title="正确" class="questionInput" disabled>
+                                 &lt;!&ndash;<span class="questionDesc questionInput" style="width: 98%;margin-left: unset;">选项一</span>&ndash;&gt;
+                             </div>
+                             <div class="col-sm-6">
+                                 <input type="radio" value="0" title="错误" class="questionInput" disabled checked>
+                                 &lt;!&ndash;<span class="questionDesc questionInput" style="width: 98%;margin-left: unset;">选项二</span>&ndash;&gt;
+                             </div>
+                         </div>
+                     </div>
+                     <div class="completeQuestionItemShow" onclick="courseExamObj.questionClick(this);">
+                         <input type="hidden" name="questionType" value="4"/>
+                         <input type="hidden" name="questionId" value="4"/>
+                         <input type="hidden" name="questionTitle" value="这是一个题目标题[答案1]dada[答案2]"/>
+                         <div class="questionTitleShow questionInput" style="height: 100% !important;">
+                             1、这是一个题目标题<span class="completeAnswer">答案1</span>dada<span class="completeAnswer">答案2</span>
+                         </div>
+                     </div>
+                     <div class="essayQuestionItemShow" onclick="courseExamObj.questionClick(this);">
+                         <input type="hidden" name="questionType" value="5"/>
+                         <input type="hidden" name="questionId" value="5"/>
+                         <div class="ellipsisContent questionTitleShow">
+                             <input type="hidden" name="questionTitle" value="这是一个问答题标题"/>
+                             <span>1、</span>
+                             <span class="questionInput">这是一个问答题标题</span>
+                         </div>
+                         <div class="essayAnswer">
+                             <input type="hidden" name="questionAnswerDesc" value="1 - 5 = -4"/>
+                             <span style="color: #cec2c2;">答案解析：</span>
+                             <span class="questionInput">
+                                 1 - 5 = -4
+                             </span>
+                         </div>
+                     </div>-->
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--进入考试确认信息-->
+<div id="enterExamModal" style="display: none;">
+    <div class="courseModalCommon" style="padding-bottom: 70px;">
+        <div class="titleWrap">考生信息</div>
+        <div class="contentWrap">
+            <div class="contentItem">
+                <div class="contentLabel">
+                    姓名：
+                </div>
+                <div class="contentDesc studentName">
+
+                </div>
+            </div>
+            <div class="contentItem">
+                <div class="contentLabel">
+                    本次考试名称：
+                </div>
+                <div class="contentDesc paperTitle">
+                </div>
+            </div>
+            <div class="contentItem">
+                <div class="contentLabel">
+                    考试开始时间：
+                </div>
+                <div class="contentDesc startTime">
+
+                </div>
+            </div><div class="contentItem">
+            <div class="contentLabel">
+                考试结束时间：
+            </div>
+            <div class="contentDesc endTime">
+
+            </div>
+        </div><div class="contentItem">
+            <div class="contentLabel">
+                考试时长：
+            </div>
+            <div class="contentDesc paperTime">
+            </div>
+        </div>
+        </div>
+        <div class="descWrap">
+            请确认以上考生信息
+        </div>
+        <div class="btnWrap">
+            <div data-id="" data-studentId="" data-examStartTime="" data-examEndTime="" class="enterExamBtn" onclick="userExamObj.enterExam(this);">确认无误，进入考试</div>
+            <div onclick="userExamObj.enterExamModalClose();">取消</div>
+        </div>
+    </div>
+</div>
+<!--阅卷列表-->
+<div id="markPaperModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--备注信息-->
+        <div class="columnTitle">
+            <!--说明-->
+            <span style="flex:1;">
+                    *注意：考试还未结束不能进行阅卷。
+                </span>
+            <!--导出按钮-->
+            <span id="trainPaperAnswerExportBtn" data-paperId="" data-courseTitle="" data-coursePlate=""
+                  style="cursor: pointer;" class="blueBtn courseSingExportBtn"
+                  onclick="courseExamObj.trainPaperAnswerExport(this);">导出列表</span>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <!--题目基本信息-->
+            <div class="markContentWrap">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="14%">
+                        <col width="14%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="8%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="考生姓名">
+                            <div class="ellipsisContent">
+                                考生姓名
+                            </div>
+                        </th>
+                        <th title="试卷标题">
+                            <div class="ellipsisContent">
+                                试卷标题
+                            </div>
+                        </th>
+                        <th title="所属课程">
+                            <div class="ellipsisContent">
+                                所属课程
+                            </div>
+                        </th>
+                        <th title="试卷板块">
+                            <div class="ellipsisContent">
+                                试卷板块
+                            </div>
+                        </th>
+                        <th title="展现方式">
+                            <div class="ellipsisContent">
+                                展现方式
+                            </div>
+                        </th>
+                        <th title="考试时长(分钟)">
+                            <div class="ellipsisContent">
+                                考试时长(分钟)
+                            </div>
+                        </th>
+                        <th title="学员用时(分钟)">
+                            <div class="ellipsisContent">
+                                学员用时(分钟)
+                            </div>
+                        </th>
+                        <th title="考试分数">
+                            <div class="ellipsisContent">
+                                考试分数
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <!--<div class="markItem">
+                        <div title="1">1</div>
+                        <div title="邹丽">邹丽</div>
+                        <div title="业务基础知识考试">业务基础知识考试</div>
+                        <div title="业务知识">业务知识</div>
+                        <div title="业务类">业务类</div>
+                        <div title="逐题展示">逐题展示</div>
+                        <div title="60">60</div>
+                        <div title="60">60</div>
+                        <div title="60">60</div>
+                        <div>
+                            <button class="tableButton blueBtn" type="button">
+                                阅卷
+                            </button>
+                        </div>
+                    </div>-->
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!--课程审批原因-->
+<div id="courseAuditReasonModal" style="display: none;">
+    <div style="margin: 10px 0px;">
+        <form id="courseAuditReasonForm" class="form-horizontal" action=""  type="post">
+            <div class="col-md-12">
+                <label class="col-sm-2 control-label">
+                    审批原因:
+                </label>
+                <div class="col-sm-10">
+                    <textarea maxlength="512" placeholder="请输入审批原因" class="layui-textarea" style="height: 100px;"></textarea>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+<!--课程预览-->
+<div id="coursePreviewModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--顶部按钮-->
+        <div class="courseModalBtnOuter">
+            <div class="courseModalTitle">
+                课程预览
+            </div>
+            <div class="courseModalBtn">
+                <div class="modalClickBtn" onclick="coursePreviewObj.coursePreviewModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <!--其他按钮-->
+                <div class="otherBtn" style="display: none;">
+
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <!--课程头部-->
+            <div class="courseTopWrap">
+                <!--课程图片-->
+                <div class="coursePic"></div>
+                <!--课程-->
+                <div class="courseWrap">
+                    <div class="courseItemWrap" style="height: 40px;">
+                        <div class="coursePlate" title="">
+                           <div class="ellipsisContent-100"></div>
+                        </div>
+                        <div class="courseTitle" title="">
+                            <div class="ellipsisContent-100">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap">
+                        <div class="courseScore">
+                            <span class="cousreTotalStar"></span>
+                            <span>(<span class="cousreScoreNum">0</span>个评分)</span>
+                        </div>
+                        <div class="courseLike">
+                            <i class="fa fa-thumbs-up"></i>&nbsp;
+                            <div>点赞数</div>&nbsp;
+                            <div class="courseLikeNum">0</div>
+                        </div>
+                        <div class="courseVent">
+                            <i class="fa fa-thumbs-down"></i>&nbsp;
+                            <div>吐槽数</div>&nbsp;
+                            <div class="courseVentNum">0</div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap">
+                        <div class="courseSignTime" title="">
+                            <i class="fa fa-calendar-minus-o"></i>&nbsp;
+                            <div class="ellipsisContent-100"></div>
+                        </div>
+                        <div class="courseAddress" title="">
+                            <i class="fa fa-map-marker"></i>&nbsp;
+                            <div class="ellipsisContent-100"></div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap" style="height: 40px;font-size: 16px;font-weight: bold;">
+                        <span>讲师：</span>
+                        <span class="courseTeacherName"></span>
+                    </div>
+                    <div class="courseItemWrap courseStateWrap" style="height: 40px;">
+                        <!--<div class="courseState background-6BB9DD" title="待审核">
+                            待审核
+                        </div>
+                        <div class="courseState background-00A2FF" title="待审核">
+                            进行中
+                        </div>
+                        <div class="courseState background-EEEEEE" title="待审核">
+                            已完成
+                        </div>-->
+                    </div>
+                </div>
+                <!--课程学分、报名人数、完课人数-->
+                <div class="courseParamWrap">
+                    <!--课程学分-->
+                    <div class="courseParamItem">
+                        <div class="courseValue courseScoreValue">0</div>
+                        <div class="courseValueName">课程学分</div>
+                    </div>
+                    <!--课程学分-->
+                    <div class="courseParamItem">
+                        <!--报名人数-->
+                        <div class="courseSignNumWrap">
+                            <div class="courseValue courseSignNum">0</div>
+                            <div class="courseValueName">报名人数</div>
+                        </div>
+                        <!--完课人数-->
+                        <div class="courseCompleteNumWrap">
+                            <div class="courseValue courseCompleteNum">0</div>
+                            <div class="courseValueName">完课人数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--课程内容-->
+            <div class="courseContentWrap">
+                <!--Tab切换-->
+                <div class="tabWrap">
+                    <span data-target="courseRemake" class="courceTabActive" onclick="coursePreviewObj.tabChange(this);">课程大纲</span>
+                    <span data-target="courseCommentWrap" onclick="coursePreviewObj.tabChange(this);">
+                        评论(<span class="courseCommentTotal">0</span>)
+                    </span>
+                    <span data-target="courseSignUserWrap" onclick="coursePreviewObj.tabChange(this);">报名名单</span>
+                </div>
+
+                <!--Tab对应内容-->
+                <div class="tabContentWrap">
+                    <!--课程大纲-->
+                    <div class="courseRemake">
+                    </div>
+
+                    <!--评论区域-->
+                    <div class="courseCommentWrap" style="display: none;">
+                        <!--评论-->
+                        <div class="courseComment">
+                            <!--栏目标题-->
+                            <div class="columnTitle">
+                                评论(评分每个学员仅允许一次)
+                            </div>
+                            <div class="columnContentWrap layui-form">
+                                <!---评论-->
+                                <div class="columnContentItem">
+                                    <textarea name="courseComment" placeholder="有虾米疑问，提出来大家交流交流" class="form-control"></textarea>
+                                </div>
+                                <!---发表评论按钮-->
+                                <div class="columnContentItem" style="height: 22px;">
+                                    <span class="commentBtn studentSignState0" onclick="coursePreviewObj.likeClick(this);">
+                                         点赞&nbsp;
+                                        <i class="fa fa-thumbs-o-up likeBtn"></i>&nbsp;
+                                    </span>
+                                    <span class="commentBtn studentSignState0" onclick="coursePreviewObj.ventClick(this);">
+                                        吐槽&nbsp;
+                                        <i class="fa fa-thumbs-o-down ventBtn"></i>
+                                    </span>
+                                    <span class="studentSignState0">评分：</span>
+                                    <span class="cousreStar">评分</span>
+                                    <span class="publishCommentBtn background-6BB9DD" title="发表评论" onclick="coursePreviewObj.publishComment(this);">
+                                        发表评论
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--评论列表-->
+                        <div class="courseCommentListWrap">
+                            <!--栏目标题-->
+                            <div class="columnTitle">评论详情</div>
+                            <!--评论列表-->
+                            <div class="columnContentWrap commentDetailList">
+                                <!--评论列表项-->
+                                <!--<div class="courseCommentItem">
+                                    &lt;!&ndash;用户名&ndash;&gt;
+                                    <div class="userWrap">
+                                        &lt;!&ndash;用户头像+姓名&ndash;&gt;
+                                        <div class="userItem" title="邹丽">
+                                            <div class="userPic"></div>
+                                            <div class="userName">
+                                                <div class="ellipsisContent">邹丽邹丽邹丽邹丽邹丽邹丽邹丽</div>
+                                            </div>
+                                        </div>
+
+                                        &lt;!&ndash;评分&ndash;&gt;
+                                        <div class="userScore"></div>
+                                    </div>
+
+                                    &lt;!&ndash;评论内容&ndash;&gt;
+                                    <div class="courseCommentInfo">
+                                        &lt;!&ndash;评论内容&ndash;&gt;
+                                        <div class="courseCommentContent">
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                        </div>
+                                        <div class="courseCommentTime">
+                                            2019-12-12 14:30:20
+                                        </div>
+                                    </div>
+                                </div>-->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--报名名单-->
+                    <div class="courseSignUserWrap" style="display: none;">
+                        <!--栏目标题-->
+                        <div class="columnTitle" style="border: 1px solid #e6e6e6;">
+                            <!--说明-->
+                            <span style="flex:1;">
+                                *注意：名单列表不一定展示当前课程所有报名学员，根据用户权限展示。
+                            </span>
+                            <!--导出按钮-->
+                            <span id="signExportBtn" style="cursor: pointer;display: none;"
+                                  class="blueBtn courseSingExportBtn"
+                                  onclick="coursePreviewObj.listCourseSignExport(this);">导出列表</span>
+                        </div>
+
+                        <!--学员信息-->
+                        <div class="courseSignTableWrap">
+                            <table class="layui-table" lay-skin="line"
+                                   style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="10%">
+                                    <col width="12%">
+                                    <col width="20%">
+                                    <col width="14%">
+                                    <col width="10%">
+                                    <col width="16%">
+                                    <col width="10%">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th title="序号">
+                                        <div class="ellipsisContent">
+                                            序号
+                                        </div>
+                                    </th>
+                                    <th title="学员姓名">
+                                        <div class="ellipsisContent">
+                                            学员姓名
+                                        </div>
+                                    </th>
+                                    <th title="所属部门">
+                                        <div class="ellipsisContent">
+                                            所属部门
+                                        </div>
+                                    </th>
+                                    <th title="课程名称">
+                                        <div class="ellipsisContent">
+                                            课程名称
+                                        </div>
+                                    </th>
+                                    <th title="上课时间/分钟">
+                                        <div class="ellipsisContent">
+                                            上课时间/分钟
+                                        </div>
+                                    </th>
+                                    <th title="所获积分">
+                                        <div class="ellipsisContent">
+                                            所获积分
+                                        </div>
+                                    </th>
+                                    <th title="报名时间">
+                                        <div class="ellipsisContent">
+                                            报名时间
+                                        </div>
+                                    </th>
+                                    <th title="状态">
+                                        <div class="ellipsisContent">
+                                            状态
+                                        </div>
+                                    </th>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div class="tbodyWrap">
+                                <table class="layui-table" lay-skin="line"
+                                       style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="10%">
+                                        <col width="12%">
+                                        <col width="20%">
+                                        <col width="14%">
+                                        <col width="10%">
+                                        <col width="16%">
+                                        <col width="10%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--学员管理-->
+<div id="studentManageModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--顶部按钮-->
+        <div class="courseModalBtnOuter">
+            <div class="courseModalTitle">
+                学员管理
+            </div>
+            <div class="courseModalBtn">
+                <div onclick="studentManageObj.studentManageModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="studentManageObj.studentManageModalClose();">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                <colgroup>
+                    <col width="6%">
+                    <col width="10%">
+                    <col width="13%">
+                    <col width="12%">
+                    <col width="10%">
+                    <col width="15%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="14%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th title="序号">
+                        <div class="ellipsisContent">
+                            序号
+                        </div>
+                    </th>
+                    <th title="学员姓名">
+                        <div class="ellipsisContent">
+                            学员姓名
+                        </div>
+                    </th>
+                    <th title="所属部门">
+                        <div class="ellipsisContent">
+                            所属部门
+                        </div>
+                    </th>
+                    <th title="职位">
+                        <div class="ellipsisContent">
+                            职位
+                        </div>
+                    </th>
+                    <th title="完成率(%)">
+                        <div class="ellipsisContent">
+                            完成率(%)
+                        </div>
+                    </th>
+                    <th title="完成时间(分钟)">
+                        <div class="ellipsisContent">
+                            完成时间(分钟)
+                        </div>
+                    </th>
+                    <th title="积分">
+                        <div class="ellipsisContent">
+                            积分
+                        </div>
+                    </th>
+                    <th title="状态">
+                        <div class="ellipsisContent">
+                            状态
+                        </div>
+                    </th>
+                    <th title="操作">
+                        <div class="ellipsisContent">
+                            操作
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <div class="tbodyWrap">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="10%">
+                        <col width="13%">
+                        <col width="12%">
+                        <col width="10%">
+                        <col width="15%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="14%">
+                    </colgroup>
+                    <tbody class="courseStudentList">
+                    <!-- <tr onmouseover="commonObj.mouseOver(this);" onmouseout="commonObj.mouseOut(this);">
+                  <td title="1">
+                      <div class="ellipsisContent">
+                          1
+                      </div>
+                  </td>
+                  <td title="张三">
+                      <div class="ellipsisContent">
+                          张三
+                      </div>
+                  </td>
+                  <td title="业务一部">
+                      <div class="ellipsisContent">
+                          业务一部
+                      </div>
+                  </td>
+                  <td title="业务员">
+                      <div class="ellipsisContent">
+                          业务员
+                      </div>
+                  </td>
+                  <td title="8.4">
+                      <div class="ellipsisContent">
+                          8.4
+                      </div>
+                  </td>
+                  <td title="1440">
+                      <div class="ellipsisContent">
+                          <input type="text" value="200" readonly class="editInput" onkeyup="value=value.replace(/[^\d]/g,'')">
+                      </div>
+                  </td>
+                  <td title="10">
+                      <div class="ellipsisContent">
+                          10
+                      </div>
+                  </td>
+                  <td title="已完成">
+                      <div class="ellipsisContent">
+                          已完成
+                      </div>
+                  </td>
+                  <td>
+                      <div class="ellipsisContent">
+                          <button class="tableButton blueBtn" type="button" >
+                              迟到
+                          </button>
+                      </div>
+                  </td>
+              </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!--计划报名-->
+<div id="trainSignModal" style="display: none;">
+    <div class="courseModalCommon">
+        <!--顶部按钮-->
+        <div class="courseModalBtnOuter">
+            <div class="courseModalTitle">
+                培训计划报名(课程计划及大纲)
+            </div>
+            <div class="courseModalBtn">
+                <div onclick="courseManageObj.editCourseModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="courseManageObj.trainSignSubmit(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="courseModalContentOuter">
+            <form id="trainSignForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <div class="col-md-12">
+                    <input type="hidden" name="id"/>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程标题:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="title" placeholder="请输入课程标题" maxlength="256" class="form-control" required/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程板块:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="coursePlate"/>
+                        <select name="coursePlate" class="form-control" lay-search disabled>
+                            <option value="">请选择培训板块</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训方式:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="trainWay"/>
+                        <select name="trainWay" class="form-control" lay-search disabled>
+                            <option value="">请选择培训方式</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>报名开始时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="signStartTime" name="signStartTime" placeholder="请输入报名开始时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="signStartTime-error" for="signStartTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>报名截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="signEndTime" name="signEndTime" placeholder="请输入报名截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="signEndTime-error" for="signEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训开始时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="trainStartTime" name="trainStartTime" placeholder="请输入培训开始时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="trainStartTime-error" for="trainStartTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="trainEndTime" name="trainEndTime" placeholder="请输入培训截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="trainEndTime-error" for="trainEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        培训地址:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="trainAddress" placeholder="请输入培训地址" maxlength="256" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程学分:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="trainGrade" placeholder="请输入课程学分" class="form-control" value="10" onkeyup="value=value.replace(/[^\d.]/g,'')" required/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程反馈截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="courseEndTime" name="courseEndTime" placeholder="请输入课程反馈截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="courseEndTime-error" for="courseEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        添加图片:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="coursePic"/>
+                        <div class="editCoursePic" onclick="commonObj.imageUpload.upload();">
+                            <i class="fa fa-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        课程报名范围:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="courseEnrollFlag" class="form-control" lay-search lay-filter="courseEnrollFlag">
+                            <option value="0">请选择课程报名范围</option>
+                            <option value="1">部门</option>
+                            <option value="2">角色</option>
+                            <option value="3">用户</option>
+                        </select>
+                        <div class="courseEnrollBtn" style="display: none;">
+                            <button type="button" class="btn btn-primary  glyphicon glyphicon-search" style="margin-top: 5px;" onclick="courseManageObj.courseSignRangeModalShow(this);"></button>
+                            <button type="button" class="btn btn-danger  glyphicon glyphicon-remove" style="margin-top: 5px;" onclick="courseManageObj.courseSignRangeClear(this);"></button>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        课程大纲:
+                    </label>
+                    <div class="col-sm-9">
+                        <textarea name="courseRemake" placeholder="请输入课程大纲" class="form-control" style="height: 240px;"></textarea>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--图片上传-->
+<form style="display: none" class="dropzone" id="imageUploadForm"></form>
+</html>

@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>费用报销</title>
+    <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script th:src="@{//js/flowable/RollbackCompont.js(v=${version})}"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css"/>
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script th:src="@{//js/fee/expenseReimbursement.js(v=${version})}"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //在使用Bootstrap中模态框过程中，如果出现多层嵌套的时候，如打开模态框A，然后在A中打开模态框B，在关闭B之后，
+            // 如果A的内容比较多，滚动条会消失，而变为Body的滚动条，这是由于模态框自带的遮罩的问题。
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+            //回车提交事件
+            $('#queryDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#querySearch").click();
+                }
+            });
+            $('#accountDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#accountSearch").click();
+                }
+            });
+            $('#borrowDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#borrowSearch").click();
+                }
+            });
+            var applyStartTimeQc = {
+                elem: '#applyStartTimeQc',
+                format: 'YYYY-MM-DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // applyEndTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // applyEndTimeQc.start = datas; //将结束日的初始值设定为开始日
+                    var startTime = $("#applyStartTimeQc").val();
+                    var endTime = $("#applyEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyStartTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var applyEndTimeQc = {
+                elem: '#applyEndTimeQc',
+                format: 'YYYY-MM-DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // applyStartTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#applyStartTimeQc").val();
+                    var endTime = $("#applyEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyEndTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(applyStartTimeQc);
+            laydate(applyEndTimeQc);
+            var payTimeStateQc = {
+                elem: '#payTimeStateQc',
+                format: 'YYYY-MM-DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                //max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+               choose: function (datas) {
+                   // payTimeEndQc.min = datas; //开始日选好后，重置结束日的最小日期
+                   // payTimeEndQc.start = datas; //将结束日的初始值设定为开始日
+                   var startTime = $("#payTimeStateQc").val();
+                   var endTime = $("#payTimeEndQc").val();
+                   if(startTime && endTime && startTime > endTime){
+                       layer.msg("开始时间不能大于结束时间");
+                       $("#payTimeStateQc").val("")
+                       return;
+                   }
+               }
+            };
+            var payTimeEndQc = {
+                elem: '#payTimeEndQc',
+                format: 'YYYY-MM-DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+               choose: function (datas) {
+                   // payTimeStateQc.max = datas; //结束日选好后，重置开始日的最大日期
+                   var startTime = $("#payTimeStateQc").val();
+                   var endTime = $("#payTimeEndQc").val();
+                   if(startTime && endTime && startTime > endTime){
+                       layer.msg("开始时间不能大于结束时间");
+                       $("#payTimeEndQc").val("")
+                       return;
+                   }
+               }
+            };
+            laydate(payTimeEndQc);
+            laydate(payTimeStateQc);
+            $("#editModal").draggable();
+            $("#borrowModal").draggable();
+            $("#accountModal").draggable();
+        });
+    </script>
+</head>
+<body>
+<div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal" id="queryDiv">
+                        <form id="queryForm">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">报销时间:</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon " id="applyStartTimeQc"
+                                           name="applyStartTimeQc" readonly="readonly">
+                                    <!--<span style="display:inline-block;padding:0 1px;">至</span>-->
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="applyEndTimeQc"
+                                           name="applyEndTimeQc" readonly="readonly">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="codeQc" name="codeQc" class="form-control"
+                                           placeholder="报销编号">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="titleQc" name="titleQc" class="form-control"
+                                           placeholder="报销标题">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="remarkQc" name="remarkQc" class="form-control"
+                                           placeholder="摘要">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="applyNameQc" name="applyNameQc" class="form-control"
+                                           placeholder="报销人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="accountNameQc" name="accountNameQc" class="form-control"
+                                           placeholder="收款人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="accountBankNameQc" name="accountBankNameQc"
+                                           class="form-control" placeholder="收款开户行">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="outAccountNameQc" name="outAccountNameQc"
+                                           class="form-control" placeholder="出款账户">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="payAmountQc" name="payAmountQc"
+                                           class="form-control" placeholder="出款金额" onkeyup="value=value.replace(/[^\d\.\-]/g,'')" >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">出款时间:</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon " id="payTimeStateQc"
+                                           name="payTimeStateQc" readonly="readonly">
+                                    <!--<span style="display:inline-block;padding:0 1px;">至</span>-->
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="payTimeEndQc"
+                                           name="payTimeEndQc" readonly="readonly">
+                                </div>
+                                <div class="col-sm-1">
+                                    <select class="form-control" name="stateQc" id="stateQc">
+                                        <option value="">选择状态</option>
+                                        <option value="-1">已驳回</option>
+                                        <option value="0">已保存</option>
+                                        <option value="3">审批中</option>
+                                        <option value="2">出款中</option>
+                                        <option value="4">确认中</option>
+                                        <option value="1">已完成</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" id="companyCode1" name="companyCode"/>
+                                <div id="deptDiv" class="col-sm-2" style="display: none">
+                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                        <input type="hidden" id="deptId1" name="deptId" class="height18">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly">
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF" id="selDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="选择部门"></span>
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF" id="cleanDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="清除选择的部门"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-content">
+                <div class="form-horizontal" id="tj">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <label>实际报销金额合计: ￥ </label><label id="totalMoney1" class="text-danger">0</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>实际出款金额合计: ￥ </label><label id="payAmount1" class="text-danger">0</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="addBtn" class="btn btn-success" type="button"><i class="fa fa-plus"></i>&nbsp;新增报销
+                    </button>
+                    <button id="exportBtn" class="btn btn-info" type="button"><i class="glyphicon glyphicon-export"></i>&nbsp;导出
+                    </button>
+                    <button  class="btn btn-info" type="button" id="batchDownload" onclick="downLoadAndPrintObj.batchDownloadData();" style="display: none;">
+                        <i class="fa fa-download"></i>&nbsp;批量下载
+                    </button>
+                    <button  class="btn btn-info" type="button" id="batchPrint" onclick="downLoadAndPrintObj.batchPrintData();" style="display: none;">
+                        <i class="fa fa-print"></i>&nbsp;批量打印
+                    </button>
+                </div>
+                <div>
+                    <div class="jqGrid_wrapper">
+                        <table id="query_table_logs"></table>
+                        <div id="query_pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!--新增报销页面-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:98%">
+        <form id="editForm" class="form-horizontal" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight" style="height:100%">
+                <div class="modal-header" style="padding: 15px;">
+                    <button type="button" class="close" id="btn_close"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h5 class="modal-title">新增费用报销</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row col-sm-12">
+                        <input type="hidden" id="administrativeId" name="administrativeId"/>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">流程标题<span class="text-red">*</span>:</label>
+                            <div class="col-sm-11">
+                                <input type="hidden" id="id" name="id"/>
+                                <input type="text" class="form-control" id="title" name="title" required=""/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">收款账户<span class="text-red">*</span>:</label>
+                            <div class="col-sm-2 changeOnView">
+                                <input type="hidden" id="accountId" name="accountId" class="form-control">
+                                <input type="text" id="accountName" name="accountName" class="form-control"
+                                       required="">
+                            </div>
+                            <div class="col-sm-1 selectAccountBtnDiv" id="selectAccountBtnDiv">
+                                <button type="button"
+                                        class="btn btn-primary btn-circle glyphicon  glyphicon-search selAccount"
+                                        id="selAccount" title="从个人账户库中选择账户"></button>
+                                <button type="button"
+                                        class="btn btn-warning btn-circle glyphicon  glyphicon-remove cleanAccount"
+                                        title="清空填写的收款账户信息"></button>
+                            </div>
+                            <label class="col-sm-1 control-label">账号<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="accountBankNo" name="accountBankNo" class="form-control"
+                                       required="">
+                            </div>
+                            <label class="col-sm-1 control-label">开户行:<span class="text-red">*</span>:</label>
+                            <div class="col-sm-2 changeOnView">
+                                <input type="text" id="accountBankName" name="accountBankName" class="form-control"
+                                       required="">
+                            </div>
+                            <div class="col-sm-1 selectAccountBtnDiv">
+                                <button type="button" class="btn btn-success btn-circle glyphicon  glyphicon-plus"
+                                        id="addAccount" title="把收款账户信息存入收款账户库中，方便下次使用！"></button>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <label class="col-sm-1 control-label">报销详情:</label>
+                            <div class="col-sm-11 ">
+                                <table class="table table-condensed table-bordered" id="checkTable">
+                                    <thead>
+                                    <tr class="active">
+                                        <td align="center" class="col-sm-1" style="width:5%;">序号</td>
+                                        <td align="center" class="col-sm-2">费用类型</td>
+                                        <td align="center" class="col-sm-6">用途</td>
+                                        <td align="center" class="col-sm-1">金额(元)</td>
+                                        <td align="center" class="col-sm-1">单据张数</td>
+                                        <td align="center" class="col-sm-1" style="width:4%;">
+                                            <button type="button" id="btn_addCheck" name="btn_addCheck"
+                                                    class="btn btn-white btn-xs"
+                                                    onclick="addCheck();">
+                                                <i class="glyphicon glyphicon-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">摘要:</label>
+                            <div class="col-sm-11">
+                                <textarea id="remark" name="remark" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">应报销金额<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="reimbursedMoney" name="reimbursedMoney" class="form-control"
+                                       readonly="readonly" required="">
+                            </div>
+                            <label class="col-md-1 control-label">实报销金额<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="totalMoney" name="totalMoney" class="form-control"
+                                       value="0" onblur="getZhCN()" required=""
+                                       onkeyup="this.value=this.value.toString().match(/^\d+(?:\.\d{0,2})?/)">
+                            </div>
+
+                            <label class="col-sm-1 control-label showOnEdit">充抵借款<span class="text-red">*</span>:</label>
+                            <div class="col-sm-2 changeOnView  showOnEdit">
+                                <input id="unpaidLoan" name="unpaidLoan" type="text" class="form-control" required=""
+                                       readonly="readonly" value="0" onchange="calculatePrice();">
+                            </div>
+                            <div class="col-sm-1  showOnEdit" id="selectBorrowBtnDiv">
+                                <button type="button" class="btn btn-primary btn-circle glyphicon  glyphicon-search"
+                                        id="selBorrow" title="选择需要冲抵的借款"></button>
+                                <button type="button"
+                                        class="btn btn-warning btn-circle glyphicon  glyphicon-remove cleanBorrow"
+                                        id="cleanBorrow" title="清除关联的冲抵借款信息"></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-md-1 control-label">大写:</label>
+                            <div class="col-sm-7">
+                                <input id="sumUpper" name="sumUpper" type="text" class="form-control"
+                                       readonly="readonly" value="零元整"/>
+                            </div>
+                            <label class="col-md-1 control-label  stateDiv">状态:</label>
+                            <div class="col-sm-3 stateDiv">
+                                <input type="hidden" id="state" name="state" value="0">
+                                <input id="state11" name="state1" type="text" class="form-control" style="border:0;"/>
+                            </div>
+                        </div>
+                        <div class="form-group" id="viewAndConfirm">
+                            <label class="col-sm-1 control-label">实际出款账户<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3 showOnView">
+                                <input type="hidden" id="outAccountId" name="outAccountId" class="form-control"
+                                       style="border-width: 0;">
+                                <input type="text" id="outAccountName" name="outAccountName" class="form-control"
+                                       style="border-width: 0;">
+                            </div>
+                            <div class="col-sm-3 layui-form showOnConfirm">
+                                <select id="outAccountSelect" lay-filter="test" lay-verify="" lay-search name="outAccountIds"
+                                        style="margin-top:30px;z-index:-1" class="form-control height18" required="">
+                                </select>
+                                <input type="hidden" id="outAccountIds" value="">
+                            </div>
+                            <label class="col-sm-1 control-label">实际出款日期:</label>
+                            <div class="col-sm-3">
+                                <input type="text" placeholder="实际出款日期" name="payTime" id="payTime"
+                                       class="form-control layer-date laydate-icon"
+                                       onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"/>
+                            </div>
+                            <label class="col-sm-1 control-label">实际出款金额<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="payAmount" name="payAmount" class="form-control" required="">
+                            </div>
+                        </div>
+                        <div class="form-group stateDiv">
+                            <label class="col-sm-1 control-label">报销人:</label>
+                            <div class="col-sm-2">
+                                <input type="hidden" id="deptId" name="deptId"/>
+                                <input type="text" id="deptName" name="deptName" class="form-control"
+                                       required="" readonly="readonly">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="hidden" id="applyId" name="applyId"/>
+                                <input type="text" id="applyName" name="applyName" class="form-control"
+                                       readonly="readonly" required=""/>
+                            </div>
+                            <label class="col-sm-1 control-label">报销编号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="code" name="code" class="form-control"
+                                       readonly="readonly" required=""/>
+                            </div>
+                            <label class="col-sm-1 control-label">报销时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="applyTime" name="applyTime" class="form-control" required=""
+                                       readonly="readonly">
+                            </div>
+                        </div>
+                        <div class="form-group licence">
+                            <label class="col-sm-1 control-label">审核理由:</label>
+                            <input type="text" id="desc" name="desc"
+                                   style="width:600px;display:inline;padding-top:2px; padding-bottom:5px;"
+                                   class="form-control"
+                                   placeholder="请输入审核备注">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-md-1 control-label">附件:</label>
+                            <div class="col-sm-5">
+                                <div id="affixDiv"></div>
+                                <input type="file" id="affix" name="affix" class="form-control" multiple style="width:300px">
+                            </div>
+                        </div>
+                        <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审批流程不一样-->
+                        <input type="hidden" id="taskId" name="taskId">
+                        <!--flag标志位，如果flag=-2,则是编辑或新增，允许增减报销详情，否则不允许-->
+                        <input type="hidden" id="flag" name="flag">
+                        <!--冲抵借款的id-->
+                        <input type="hidden" id="borrowId" name="borrowId"/>
+                        <!--采购关联报销:采购Id-->
+                        <input type="hidden" id="purchaseIds" name="purchaseIds"/>
+                    </div>
+                    <div class="ibox-content" id="borrowInfo"></div>
+                    <div class="modal-footer" id="editFooter">
+                        <span class="text-red showOnAdd">提示：保存报销后可以冲抵借款！</span>
+                        <button type="button" class="btn btn-success" id="save"
+                                onclick="submitForm(this,$('#save').data('url'),0)"><i class="fa fa-save"></i>&nbsp;保存
+                        </button>
+                        <button type="button" class="btn btn-primary showOnAdd" id="save2"
+                                onclick="submitForm(this,'/reimbursement/add',4)"><i class="fa fa-submit"></i>&nbsp;提交审批
+                        </button>
+                        <button type="button" class="btn btn-primary  showOnEdit" id="submit"
+                                onclick="submitForm(this,$('#submit').data('url'),4)"><i class="fa fa-submit"></i>&nbsp;提交审批
+                        </button>
+                        <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                        </button>
+                    </div>
+                    <div class="modal-footer" id="viewFooter">
+                        <div id="auditTrue" align="center" class="">
+                            <div class="col-md-3" id="rollback1"></div>
+                            <div class="col-md-9">
+                                <button type="button" class="btn btn-warning " id="reimbursement1"
+                                        onclick="businessConclusion(this)">出差总结
+                                </button>
+                                <button type="button" class="btn btn-info" id="expense"
+                                        onclick="showHistory($('#expense').data('id'))">审核详情
+                                </button>
+                                <button type="button" class="btn btn-success " id="pass1"
+                                        onclick="approve(this)">审核通过
+                                </button>
+                                <button type="button" class="btn btn-danger " id="reject1"
+                                        onclick="reject(this)">审核驳回
+                                </button>
+                                <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left"
+                                        onclick="goBackProcess()">返回
+                                </button>
+                            </div>
+                        </div>
+                        <div id="auditFalse" class="">
+                            <div class="col-md-3" id="rollback2"></div>
+                            <div class="col-md-9">
+                                <button type="button" class="btn btn-success glyphicon glyphicon-ok" id="review"
+                                        onclick="checkBtoB()">确认出款
+                                </button>
+                                <button type="button" class="btn btn-success glyphicon glyphicon-ok" id="changeAccountBtn" onclick="changeAccount()" >
+                                    更改出款账户
+                                </button>
+                                <button type="button" class="btn btn-warning " id="reimbursement"
+                                        onclick="businessConclusion(this)">出差总结
+                                </button>
+                                <button type="button" class="btn btn-white" id="cancel1" data-dismiss="modal">
+                                    <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                                </button>
+                                <button type="button" id="goback" class="btn btn-white" onclick="goBackHtml()">
+                                    返回
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" id="confirmFooter">
+                        <div class="col-md-3" id="rollback3"></div>
+                        <div class="col-md-9">
+                            <button type="button" class="btn btn-success glyphicon glyphicon-yen" id="confirm"
+                                    onclick="submitHander2(this,'/reimbursement/confirm')">出纳出款
+                            </button>
+                            <button type="button" class="btn btn-danger glyphicon glyphicon-repeat" id="reject2"
+                                    onclick="CWReject(this)">驳回
+                            </button>
+                            <button type="button" class="btn btn-white" data-dismiss="modal" id="cancel2">关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--借款信息-->
+<div class="modal inmodal" id="borrowModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <input type="hidden" name="remId" id="remId" data-th-value="${session.user.id}"/>
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">选择抵消的借款</h4>
+            </div>
+            <div class="">
+                <div class="wrapper wrapper-content  animated fadeInRight">
+                    <div class="row"  id="borrowDiv">
+                        <div class="col-sm-12">
+                            <form id="borrowForm">
+                                <div class="ibox ">
+                                    <div class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">标题:</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" name="title" class="form-control">
+                                            </div>
+                                            <label class="col-sm-1 control-label">借款人:</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" name="applyName"
+                                                       class="form-control">
+                                            </div>
+                                            <label class="col-sm-1 control-label">部门:</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" name="deptName"
+                                                       class="form-control">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" id="borrowSearch" class="btn btn-primary">
+                                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="borrow_table_logs"></table>
+                                        <div id="borrow_pager_logs"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3>选中的借款</h3>
+                                </div>
+                                <table id="borrowTable" class="table table-bordered" style="text-align: center">
+                                    <thead>
+                                    <tr>
+                                        <th style="text-align:center;vertical-align:middle;">借款编号</th>
+                                        <th style="text-align:center;vertical-align:middle;">标题</th>
+                                        <th style="text-align:center;vertical-align:middle;">类型</th>
+                                        <th style="text-align:center;vertical-align:middle;">借款人</th>
+                                        <th style="text-align:center;vertical-align:middle;">所属部门</th>
+                                        <th style="text-align:center;vertical-align:middle;">申请金额</th>
+                                        <th style="text-align:center;vertical-align:middle;">实付金额</th>
+                                        <th style="text-align:center;vertical-align:middle;">支付日期</th>
+                                        <th style="text-align:center;vertical-align:middle;">已还金额</th>
+                                        <th style="text-align:center;vertical-align:middle;">未还金额</th>
+                                        <th style="text-align:center;vertical-align:middle;">抵消金额</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="borrowDetail">
+                                    </tbody>
+                                </table>
+                                <div class="modal-footer">
+                                    <input type="hidden" name="id">
+                                    <input type="hidden" id="borrowIds" name="borrowIds">
+                                    <button type="button" class="btn btn-primary" id="selectBorrow">选择</button>
+                                    <button type="button" class="btn btn-white"
+                                            data-dismiss="modal">关闭
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--审核流程详情-->
+<div class="modal inmodal" id="historyModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <form class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--选择个人银行账号-->
+<div class="modal inmodal" id="accountModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">选择收款账户信息</h4>
+            </div>
+            <div class="">
+                <div class="">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="ibox-content">
+                                    <div class="form-horizontal" id="accountDiv">
+                                        <form id="accountForm">
+                                            <div class="form-group">
+                                                <div class="col-sm-2">
+                                                    <input type="text" id="companyNameQc" name="companyNameQc"
+                                                           class="form-control" placeholder="公司名称">
+                                                </div>
+                                                <div class="col-sm-2 ">
+                                                    <input type="text" id="nameQc" name="nameQc" class="form-control"
+                                                           placeholder="账户名称">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" id="bankNoQc" name="bankNoQc"
+                                                           class="form-control" placeholder="账号">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" id="bankNameQc" name="bankNameQc"
+                                                           class="form-control" placeholder="开户行">
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <input type="text" id="ownerQc" name="ownerQc"
+                                                           class="form-control" placeholder="联系人">
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <button type="button" id="accountSearch" class="btn btn-primary">
+                                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox ">
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="account_table_logs"></table>
+                                        <div id="account_pager_logs"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="tips">可在账户管理菜单下管理自己的个人账户&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <button type="button" class="btn btn-primary glyphicon glyphicon-ok" id="selectAccount">选择&nbsp;</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">&nbsp;关闭&nbsp;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--审核流程详情-->
+<div class="modal inmodal" id="docPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content" style="min-height: 900px">
+                <iframe style="min-height: 900px" width='100%' height='100%' frameborder='1'></iframe>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+<!--文件预览-->
+<!--<div class="modal inmodal" id="fileModal" tabindex="-1" role="dialog" aria-hidden="true">-->
+    <!--<div class="modal-dialog" style="width:80%">-->
+        <!--<div class="modal-content animated bounceInRight">-->
+            <!--<div class="modal-header" style="padding: 15px;">-->
+                <!--<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span-->
+                        <!--class="sr-only">关闭</span>-->
+                <!--</button>-->
+                <!--<h4 class="modal-title">文件预览</h4>-->
+            <!--</div>-->
+            <!--<div id="fileDiv" class="ibox-content" style="max-height: 600px;width:100%;padding: 0px;">-->
+
+            <!--</div>-->
+            <!--<div class="modal-footer" style="position:relative;z-index:2;">-->
+                <!--<button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+<!--预览页面-->
+<div id="reimburseViewModal" style="display: none;">
+    <div id="modalContentWrap" style="width: 100%;padding: 5px 0;display: flex;flex-direction: column;page-break-after: always;">
+        <style type="text/css">
+            *{
+                box-sizing: border-box;
+                word-break: break-all;
+            }
+            #modalContentWrap{
+                font-size: 10px;
+            }
+            .modalTitle{
+                width: 100%;height: 40px;display: flex;align-items: center;justify-content: center;font-weight: bold;
+            }
+            .modalContentWrap{
+                width: 100%;
+                flex: 1;
+            }
+            .modalContentItem{
+                width: 100%;padding: 5px 15px;display: flex;align-items: center;
+            }
+            .modalLabel{
+                width: 15%;height: 34px;padding-right: 15px;display: flex;align-items: center;justify-content: flex-end;
+            }
+            .spaceDiv{
+                width: 15%;height: 34px;
+            }
+            .col-12{
+                width: 70%;min-height: 34px;padding: 5px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .col-6-1{
+                width: 35%;padding: 5px;min-height: 34px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .col-6-2{
+                width: 20%;padding: 5px;min-height: 34px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .radioSpan{
+                display: inline-flex;align-items: center;
+            }
+            .radioInput{
+                width: 16px;height: 16px;flex-shrink: 0;
+            }
+            .modalContentItem table{
+                width: 90%;
+                border-top: 1px solid #999;
+                border-left: 1px solid #999;
+                border-spacing: 0;/*去掉单元格间隙*/
+            }
+            .modalContentItem table tr{
+                height: 30px;
+            }
+            .modalContentItem table tr th,  .modalContentItem table tr td{
+                text-align: center;
+                border-bottom: 1px solid #999;
+                border-right: 1px solid #999;
+            }
+        </style>
+        <div class="modalTitle">
+            <!--[报销]编号-发起人-发起时间-->
+        </div>
+        <div class="modalContentWrap">
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    报销标题:
+                </div>
+                <div class="col-12 title">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    报销编号:
+                </div>
+                <div class="col-6-1 code">
+
+                </div>
+                <div class="modalLabel">
+                    报销时间:
+                </div>
+                <div class="col-6-2 applyTime">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    报销人:
+                </div>
+                <div class="col-6-1 applyName">
+
+                </div>
+                <div class="modalLabel">
+                    报销人部门:
+                </div>
+                <div class="col-6-2 deptName">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    收款人:
+                </div>
+                <div class="col-6-1 accountName">
+
+                </div>
+                <div class="modalLabel">
+                    收款人账号:
+                </div>
+                <div class="col-6-2 accountBankNo">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    收款人开户行:
+                </div>
+                <div class="col-6-1 accountBankName">
+
+                </div>
+                <div class="modalLabel">
+                    报销状态:
+                </div>
+                <div class="col-6-2 state">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem detailTable" style="justify-content: center;">
+                <table>
+                    <colgroup>
+                        <col width="7%">
+                        <col width="18%">
+                        <col width="50%">
+                        <col width="15%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>费用类型</th>
+                        <th>用途</th>
+                        <th>金额(元)</th>
+                        <th>单据张数</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>报销</td>
+                        <td>吃饭</td>
+                        <td>1200</td>
+                        <td>1</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    应报销金额:
+                </div>
+                <div class="col-6-1 reimbursedMoney">
+
+                </div>
+                <div class="modalLabel">
+                    实报销金额:
+                </div>
+                <div class="col-6-2 totalMoney">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    金额大写:
+                </div>
+                <div class="col-6-1 sumUpper">
+
+                </div>
+                <div class="modalLabel">
+                    充抵借款:
+                </div>
+                <div class="col-6-2 unpaidLoan">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    实际出款账户:
+                </div>
+                <div class="col-6-1 outAccountName">
+
+                </div>
+                <div class="modalLabel">
+                    实际出款日期:
+                </div>
+                <div class="col-6-2 payTime">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    实际出款金额:
+                </div>
+                <div class="col-12 payAmount">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    附件:
+                </div>
+                <div class="col-12 affixName">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    报销原因:
+                </div>
+                <div class="col-12 remark">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem borrowTable" style="justify-content: center;">
+                <table>
+                    <colgroup>
+                        <col width="10%">
+                        <col width="20%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>借款编号</th>
+                        <th>借款标题</th>
+                        <th>借款类型</th>
+                        <th>借款人</th>
+                        <th>所属部门</th>
+                        <th>借款金额</th>
+                        <th>已还金额</th>
+                        <th>未还金额</th>
+                        <th>抵充金额</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--<tr>
+                        <td>JK202003620</td>
+                        <td>21141241</td>
+                        <td>其他</td>
+                        <td>邹丽</td>
+                        <td>媒介部</td>
+                        <td>500</td>
+                        <td>300</td>
+                        <td>200</td>
+                        <td>100</td>
+                    </tr>-->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modalContentItem auditTable" style="justify-content: center;">
+                <table>
+                    <colgroup>
+                        <col width="25%">
+                        <col width="25%">
+                        <col width="25%">
+                        <col width="25%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>审核节点</th>
+                        <th>审核人</th>
+                        <th>操作详情</th>
+                        <th>操作时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--<tr>
+                        <td>直属领导审核</td>
+                        <td>邹丽</td>
+                        <td>正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核</td>
+                        <td>2020-01-15 14:57:25</td>
+                    </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:800px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择业务部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

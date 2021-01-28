@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script th:src="@{//js/performance/performProgramList.js(v=${version})}"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <!--部门树-->
+    <link rel="stylesheet" href="/css/ztree/bootstrapStyle.css"/>
+    <script type="text/javascript" src="/js/ztree/jquery.ztree.all.min.js"></script>
+    <title>绩效计划</title>
+</head>
+<style>
+    .font-red {
+        color: red;
+    }
+    #schemeView > div{
+        margin-top: 15px;
+    }
+    #schemeDetail > div{
+        margin-top: 15px;
+    }
+    .ztree li span.button.ico_docu{
+        margin: 0 0 0 4px!important;
+    }
+</style>
+<body>
+<div class="row">
+    <input type="hidden" id="selectNode"/>
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-title">
+                <h3 style="font-weight: bold">绩效考核计划</h3>
+            </div>
+            <div class="ibox-content">
+                <div class="form-group" style="width:100%;text-align:center">
+                    <div class="col-sm-3" style="position: relative">
+                        <div class="form-group" style="width:100%;text-align:center">
+                            <div class="col-sm-3">
+                                <button id="schAdd" type="button" class="btn btn-primary">
+                                    <i class="fa fa-plus" aria-hidden="true"></i>&nbsp;&nbsp;新增
+                                </button>
+                            </div>
+                            <!--<div class="col-sm-3" style="">-->
+                                <!--<button id="schEdit" type="button" class="btn btn-success">-->
+                                    <!--<i class="fa fa-edit" aria-hidden="true"> </i>修改-->
+                                <!--</button>-->
+                            <!--</div>-->
+                            <div class="col-sm-3">
+                                <button type="button" id="deleteProgram" class="btn btn-danger">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;删除
+                                </button>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-warning" id="copyProgram">
+                                    <i class="fa fa-copy" aria-hidden="true"></i>&nbsp;&nbsp;拷贝
+                                </button>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" id="programUsed" class="btn btn-info">
+                                    <i class="fa fa-power-off" aria-hidden="true"></i>&nbsp;&nbsp;启用
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="width:100%;text-align:center">
+                            <div class="col-sm-3">
+                                <button type="button" id="startFlow"                                       class="btn btn-normal">
+                                    <i class="fa fa-play-circle" aria-hidden="true"></i>&nbsp;&nbsp;发起流程
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="width:100%;text-align:center;position: absolute;top: 76px;left: 25px;">
+                            <ul id="schemeTree" class="ztree"></ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-9 text-left" id="schemeView">
+                        <div class="col-sm-12">
+                            <label class="col-sm-1  right0">计划编码:</label>
+                            <span class="col-sm-2" id="proCode" name="proCode">
+                            </span>
+
+                            <label class="col-sm-1  right0">计划名称:</label>
+                            <span class="col-sm-2" id="proName" name="proName">
+                            </span>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <label class="col-sm-1 ">考核阶段:</label>
+                            <span class="col-sm-2" id="proType" name="proType">
+                            </span>
+
+                            <label class="col-sm-1 ">考核日期:</label>
+                            <span class="col-sm-4" id="proDate" name="proDate">
+                            </span>
+                        </div>
+                        <div class="col-sm-12">
+                            <label class="col-sm-1">统分比例:</label>
+                            <span class="col-sm-8" id="proportion" name="proportion">
+                            </span>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <input type="hidden" id="proUsed"/>
+                            <label class="col-sm-1">启用状态:</label>
+                            <span class="col-sm-8" id="userType" name="proportion">
+                            </span>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="col-sm-1"></div>
+                            <div class="col-sm-10">
+                                <table class="table table-bordered">
+                                    <colgroup>
+                                        <col width="30%">
+                                        <col width="60%">
+                                        <col width="10%">
+                                    </colgroup>
+                                    <thead>
+                                    <tr>
+                                        <td>考核方案</td>
+                                        <td>考核对象</td>
+                                        <td>合格等级</td>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="schemeDetail">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <label class="col-sm-1 ">计划备注:</label>
+                            <span class="col-sm-11" id="proDesc">
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">删除考核计划</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="showTipsContent" style="font-size: 14px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schDel">确定删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="copyConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="copyConfirmTitle">拷贝该计划</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="copyForm" class="form-horizontal" action="" type="post">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                                <div class="ibox-content" style="border: 0px">
+                                    <div class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">计划名称<span class="text-red">*</span>:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" name="proName" autocomplete="off" class="form-control" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label" style="text-align: right;float: left">考核日期<span class="text-red">*</span>:</label>
+                                            <div class="col-sm-6">
+                                                <input class="input-sm form-control layer-date" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                                       name="proBegin" placeholder="开始时间"
+                                                       onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})" readonly/>
+                                                <input class="input-sm form-control layer-date" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                                       name="proEnd" placeholder="结束时间"
+                                                       onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})" readonly/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schCopy">确定拷贝</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="starConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="starConfirmTitle">启动流程</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                是否确定启动该计划流程
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schStar">确定发起流程</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="usedConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userConfirmTitle">更新启用状态</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                是否确定更新该计划启用状态
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schUsed">确定更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

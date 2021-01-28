@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+
+    <title>进销存首页</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/inventory/inventory_home.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <script src="/js/inventory/inventory_home.js"></script>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //采购时间改变事件
+                form.on('select(purchaseOrderTime)', function(data){
+                    if(data.value == 3){
+                        $("#purchaseOrderTimeRange").css("display", "inline-block");
+                    }else {
+                        $("#purchaseOrderTimeRange").css("display", "none");
+                        $("#purchaseOrderTimeStart").val("");
+                        $("#purchaseOrderTimeEnd").val("");
+                        commonObj.loadPurchaseOrderData();
+                    }
+                });
+                //商品库存分析
+                form.on('select(shopInventoryTime)', function(data){
+                    if(data.value == 3){
+                        $("#shopInventoryTimeRange").css("display", "inline-block");
+                    }else {
+                        $("#shopInventoryTimeRange").css("display", "none");
+                        $("#shopInventoryTimeStart").val("");
+                        $("#shopInventoryTimeEnd").val("");
+                        commonObj.loadStockAnalysisData();
+                    }
+                });
+                form.on('select(wareId)',function (data) {
+                    commonObj.loadStockAnalysisData();
+                });
+                //物品出入库统计趋势图
+                form.on('select(outBoundTime)', function(data){
+                    if(data.value == 3){
+                        $("#outBoundTimeRange").css("display", "inline-block");
+                    }else {
+                        $("#outBoundTimeRange").css("display", "none");
+                        $("#outBoundTimeStart").val("");
+                        $("#outBoundTimeEnd").val("");
+                        commonObj.loadOutBoundData();
+                    }
+                });
+                //物品出库统计趋势图
+                // form.on('select(purchaseOutTime)', function(data){
+                //     if(data.value == 3){
+                //         $("#purchaseOutTimeRange").css("display", "inline-block");
+                //     }else {
+                //         $("#purchaseOutTimeRange").css("display", "none");
+                //     }
+                // });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--页面顶部统计汇总功能-->
+<!--<div class="outDiv" style="height: 130px !important;">-->
+    <!--<div class="topOutDivContent">-->
+        <!--<div class="topContent">-->
+            <!--<div class="topContentLeft">-->
+                <!--<div class="topContentNum">-->
+                    <!--30-->
+                <!--</div>-->
+                <!--<div class="topContentDesc">-->
+                    <!--待审批流程-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="topContentRight">-->
+                <!--<img src="/img/inventory/shenpi.png" width="50" height="50"/>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="topOutDivContent">-->
+        <!--<div class="topContent">-->
+            <!--<div class="topContentLeft">-->
+                <!--<div class="topContentNum">-->
+                    <!--30-->
+                <!--</div>-->
+                <!--<div class="topContentDesc">-->
+                    <!--我发起的流程-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="topContentRight">-->
+                <!--<img src="/img/inventory/faqi.png" width="50" height="50"/>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="topOutDivContent">-->
+        <!--<div class="topContent">-->
+            <!--<div class="topContentLeft">-->
+                <!--<div class="topContentNum">-->
+                    <!--30-->
+                <!--</div>-->
+                <!--<div class="topContentDesc">-->
+                    <!--库存预警-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="topContentRight">-->
+                <!--<img src="/img/inventory/yujing.png" width="50" height="50"/>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div class="topOutDivContent" style="margin-right: unset;">-->
+        <!--<div class="topContent">-->
+            <!--<div class="topContentLeft">-->
+                <!--<div class="topContentNum">-->
+                    <!--30-->
+                <!--</div>-->
+                <!--<div class="topContentDesc">-->
+                    <!--采购入库-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="topContentRight">-->
+                <!--<img src="/img/inventory/caigou.png" width="50" height="50"/>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+<!--<div class="stockWarningDiv">-->
+    <!--<button type="button" class="stockWarningButton form-control"><i class="fa fa-bell" style="margin-right: 15px;"></i>库存预警</button>-->
+<!--</div>-->
+
+<!--采购订单趋势-->
+<div class="outDiv" style="margin-top: 12px;">
+    <div class="outDivContent">
+        <div class="statisticsTop">
+            <div class="statisticsTitle">
+                采购订单统计趋势图
+            </div>
+            <div class="statisticsContent">
+                <span>订单金额(元)：</span>
+                <span id="orderAmount" style="color: #00A2FD;">0</span>
+                <span style="margin-left: 15px;">订单数量(个)：</span>
+                <span id="orderNum" style="color: #FFAD6B;">0</span>
+            </div>
+            <div class="statisticsParam">
+                <form id="purchaseOrderSearchForm" class="layui-form">
+                    <div class="form-group">
+                        <button type="button" onclick="commonObj.loadPurchaseOrderData()" style="float: right;margin-top: 2px;" class="btn btn-primary"><i class="fa fa-search" style="margin-right: 10px"></i>查询</button>
+                        <div id="purchaseOrderTimeRange" style="display: none;float: right;margin-right: 10px;margin-left: 10px;">
+                            <label class="control-label" style="float: left;font-weight: unset;">起始时间：</label>
+                            <input class="input-sm form-control layer-date laydate-icon" id="purchaseOrderTimeStart" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="purchaseOrderTimeStart" placeholder="选择开始日期"/>
+                            <span style="padding: 3px 8px">-</span>
+                            <input class="input-sm form-control layer-date laydate-icon" id="purchaseOrderTimeEnd" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="purchaseOrderTimeEnd" placeholder="选择结束日期"/>
+                        </div>
+                        <div class="col-sm-2" style="float: right;">
+                            <!--时间段-->
+                            <select id="purchaseOrderTime" name="purchaseOrderTime" class="form-control height18" lay-search lay-filter="purchaseOrderTime">
+                                <option value="1" selected="selected">本月</option>
+                                <option value="2">本年</option>
+                                <option value="3">时间区间</option>
+                            </select>
+                        </div>
+                        <!--<div class="col-sm-3" style="float: right;">-->
+                            <!--&lt;!&ndash;仓库名称&ndash;&gt;-->
+                            <!--<select id="purchaseType" name="purchaseType" class="form-control height18" lay-search lay-filter="purchaseType">-->
+                                <!--<option value="1" selected="selected">全部仓库</option>-->
+                                <!--<option value="2">仓库一</option>-->
+                                <!--<option value="3">仓库二</option>-->
+                            <!--</select>-->
+                        <!--</div>-->
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="statisticsBottom">
+            <!--趋势图-->
+            <div id="purchaseOrderTrend" style="width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+</div>
+
+<!--商品库存分析-->
+<div class="outDiv">
+    <div class="outDivContent">
+        <div class="statisticsTop">
+            <div class="statisticsTitle">
+                商品库存分析
+            </div>
+            <div class="statisticsContent">
+                <span>库存金额(元)：</span>
+                <span id="stockMoney" style="color: #00A2FD;">0</span>
+                <span style="margin-left: 15px;">库存数量(个)：</span>
+                <span id="stockAmount" style="color: #FFAD6B;">0</span>
+            </div>
+            <div class="statisticsParam">
+                <form id="shopInventorySearchForm" class="layui-form">
+                    <div class="form-group">
+                        <button type="button" onclick="commonObj.loadStockAnalysisData()" style="float: right;margin-top: 2px;" class="btn btn-primary"><i class="fa fa-search" style="margin-right: 10px"></i>查询</button>
+                        <div id="shopInventoryTimeRange" style="display: none;float: right;margin-right: 10px;margin-left: 10px;">
+                            <label class="control-label" style="float: left;font-weight: unset;">起始时间：</label>
+                            <input class="input-sm form-control layer-date laydate-icon" id="shopInventoryTimeStart" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="shopInventoryTimeStart" placeholder="选择开始日期"/>
+                            <span style="padding: 3px 8px">-</span>
+                            <input class="input-sm form-control layer-date laydate-icon" id="shopInventoryTimeEnd" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="shopInventoryTimeEnd" placeholder="选择结束日期"/>
+                        </div>
+                        <div class="col-sm-2" style="float: right;">
+                            <!--时间段-->
+                            <select id="shopInventoryTime" name="shopInventoryTime" class="form-control height18" lay-search lay-filter="shopInventoryTime">
+                                <option value="1" selected="selected">本月</option>
+                                <option value="2">本年</option>
+                                <option value="3">时间区间</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-3" style="float: right;">
+                        <!--仓库名称-->
+                        <select id="wareId" name="wareId" class="form-control height18" lay-search lay-filter="wareId">
+
+                        </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="statisticsBottom">
+            <!--饼图-->
+            <div id="shopInventoryPie" style="width: 30%; height: 100%;float: left;"></div>
+            <!--趋势图-->
+            <div id="shopInventoryTrend" style="width: 70%; height: 100%;float: left;"></div>
+        </div>
+    </div>
+</div>
+
+<!--出入库统计趋势图-->
+<div class="outDiv">
+    <div class="outDivContent">
+        <div class="statisticsTop">
+            <div class="statisticsTitle">
+                出入库统计趋势图
+            </div>
+            <div class="statisticsContent">
+                <span>入库金额(元)：</span>
+                <span id="putMoney" style="color: #00A2FD;">0</span>
+                <!--<span style="margin-left: 15px;">入库单数量(个)：</span>-->
+                <!--<span id="putAmount" style="color: #FFAD6B;">0</span>-->
+                <span style="margin-left: 5px">出库金额(元)：</span>
+                <span id="outMoney" style="color: #00A2FD;">0</span>
+                <!--<span style="margin-left: 15px;">出库单数量(个)：</span>-->
+                <!--<span id="outAmount" style="color: #FFAD6B;">0</span>-->
+            </div>
+            <div class="statisticsParam">
+                <form id="outBoundSearchForm" class="layui-form">
+                    <div class="form-group">
+                        <button type="button" onclick="commonObj.loadOutBoundData()" style="float: right;margin-top: 2px;" class="btn btn-primary"><i class="fa fa-search" style="margin-right: 10px"></i>查询</button>
+                        <div id="outBoundTimeRange" style="display: none;float: right;margin-right: 10px;margin-left: 10px;">
+                            <label class="control-label" style="float: left;font-weight: unset;">起始时间：</label>
+                            <input class="input-sm form-control layer-date laydate-icon" id="outBoundTimeStart" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="outBoundTimeStart" placeholder="选择开始日期"/>
+                            <span style="padding: 3px 8px">-</span>
+                            <input class="input-sm form-control layer-date laydate-icon" id="outBoundTimeEnd" style="width: 120px;display: inline-block;height: 37.99px;"
+                                   name="outBoundTimeEnd" placeholder="选择结束日期"/>
+                        </div>
+                        <div class="col-sm-2" style="float: right;">
+                            <!--时间段-->
+                            <select id="outBoundTime" name="outBoundTime" class="form-control height18" lay-search lay-filter="outBoundTime">
+                                <option value="1" selected="selected">本月</option>
+                                <option value="2">本年</option>
+                                <option value="3">时间区间</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="statisticsBottom">
+            <!--趋势图-->
+            <div id="outBoundTrend" style="width: 100%; height: 100%;overflow: auto"></div>
+        </div>
+    </div>
+</div>
+
+<!--物品出库统计趋势图-->
+<!--<div class="outDiv">-->
+    <!--<div class="outDivContent">-->
+        <!--<div class="statisticsTop">-->
+            <!--<div class="statisticsTitle">-->
+                <!--物品出库统计趋势图-->
+            <!--</div>-->
+            <!--<div class="statisticsContent">-->
+                <!--<span>出库金额(元)：</span>-->
+                <!--<span style="color: #00A2FD;">62000</span>-->
+                <!--<span style="margin-left: 15px;">出库个数(个)：</span>-->
+                <!--<span style="color: #FFAD6B;">58</span>-->
+            <!--</div>-->
+            <!--<div class="statisticsParam">-->
+                <!--<form id="purchaseOutSearchForm" class="layui-form">-->
+                    <!--<div class="form-group">-->
+                        <!--<div id="purchaseOutTimeRange" style="display: none;float: right;margin-right: 10px;margin-left: 10px;">-->
+                            <!--<label class="control-label" style="float: left;font-weight: unset;">起始时间：</label>-->
+                            <!--<input class="input-sm form-control layer-date laydate-icon" id="purchaseOutTimeStart" style="width: 120px;display: inline-block;height: 37.99px;"-->
+                                   <!--name="purchaseOutTimeStart" placeholder="选择开始日期"/>-->
+                            <!--<span style="padding: 3px 8px">-</span>-->
+                            <!--<input class="input-sm form-control layer-date laydate-icon" id="purchaseOutTimeEnd" style="width: 120px;display: inline-block;height: 37.99px;"-->
+                                   <!--name="purchaseOutTimeEnd" placeholder="选择结束日期"/>-->
+                        <!--</div>-->
+                        <!--<div class="col-sm-2" style="float: right;">-->
+                            <!--&lt;!&ndash;时间段&ndash;&gt;-->
+                            <!--<select id="purchaseOutTime" name="purchaseOutTime" class="form-control height18" lay-search lay-filter="purchaseOutTime">-->
+                                <!--<option value="1" selected="selected">本月</option>-->
+                                <!--<option value="2">本年</option>-->
+                                <!--<option value="3">时间区间</option>-->
+                            <!--</select>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</form>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<div class="statisticsBottom">-->
+            <!--&lt;!&ndash;趋势图&ndash;&gt;-->
+            <!--<div id="purchaseOutTrend" style="width: 100%; height: 100%;"></div>-->
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+</body>
+</html>

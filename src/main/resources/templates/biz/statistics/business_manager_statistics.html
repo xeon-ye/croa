@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>业务管理统计</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <!--统计概况模态框Css-->
+    <link href="/css/statisticsModal/statisticsModal.css" rel="stylesheet">
+    <script th:inline="javascript">
+        user = [[${session.user}]];
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- 自定义js -->
+    <script src="/js/hplus.js?v=4.1.0"></script>
+    <script type="text/javascript" src="/js/contabs.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <!--页面js-->
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <!--部门树-->
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <style>
+        .searchCondition{
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 5px 5px 3px #888888;
+            background-color: white;
+            margin-left:5px;
+            margin-right: 5px;
+            height: 40px;
+            border: 1px solid #C7C7CD;
+            width: 99%;
+        }
+
+        .topz {
+            height: 100%;
+            display: table;
+            min-height: 100px;
+        }
+
+        .topz div:not(.echarts-tooltip) {
+            /*height: 100%;*/
+            /*min-height: 100px;*/
+        }
+
+        #top .topz > div, #bottom .topz > div {
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        #meddle_chart {
+            padding: 0 !important;
+            display: table;
+            width: 100%;
+            height: 86%;
+            /*border: 1px solid red;*/
+        }
+
+        .date_select {
+            background: white;
+            text-align: center;
+            display: inline-block;
+            width: 26px;
+            height: 20px;
+            margin: 3px 0;
+        }
+
+        .hover {
+            color: white;
+            background-color: #1c84c6;
+        }
+
+        .text > a:hover {
+            color: red;
+        }
+
+        div.colorValue {
+            margin-right: 10px;
+            /*width: 70px;*/
+        }
+
+        #top {
+            height: 18%;
+            margin: 0.5%;
+        }
+
+        #top > div:not(.echarts-tooltip) {
+            height: 100% !important;
+            margin: auto;
+        }
+
+        .topz > div, #middle {
+            box-shadow: 5px 5px 3px #888888;
+            background-color: white;
+        }
+
+        /*#top > div > div > div:first-child > span, #middleBox > span, #profitSortBox > div > span, #saleAmountSortBox > div > span, #noIncomeSortBox > div > span, #noIncomeSortBox1 > div > span {*/
+        .topz > div > div:first-child > span {
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 30px;
+            margin-left: 5px;
+        }
+
+        /*#top > div > div {*/
+        .topz > div {
+            box-shadow: 5px 5px 5px 5px #888888;
+        }
+
+        /*#top > div > div > div:nth-child(2) {*/
+        #top .topz > div > div:nth-child(2):not(#meddle_chart) {
+            margin: 10px 0 0 10px;
+            min-height: 100px;
+        }
+
+        /*#top > div > div > div:first-child >, #middleBox, #profitSortBox > div, #saleAmountSortBox > div, #noIncomeSortBox > div, #noIncomeSortBox1 > div {*/
+        .topz > div > div:first-child {
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0px;
+            line-height: 24px;
+            text-decoration: none;
+            margin-left: 5px;
+            border-bottom: 1px solid #eeeeee;
+            height: 34px;
+            margin-top: 5px;
+        }
+
+        /*.topz > div > div:first-child > div:not(.zr-element), #middleBox > div, #profitSortBox > div:first-child > div, #saleAmountSortBox > div:first-child > div, #noIncomeSortBox > div:first-child > div, #noIncomeSortBox1 > div:first-child > div {*/
+        .text {
+            border-radius: 2px;
+            float: right;
+            width: 100px;
+            height: 28px !important;
+            left: 394px;
+            top: 136px;
+            z-index: 233;
+            background-color: #1c84c6;
+            font-size: 14px;
+            padding: 0px;
+            border: 1px solid #eeeeee;
+            text-align: center;
+            line-height: 20px;
+            font-weight: normal;
+            font-style: normal;
+            opacity: 1;
+            margin: 3px 5px;
+
+        }
+
+        /*#top > div > div > div:nth-child(2) > span:first-child {*/
+        .topz > div > div:nth-child(2) > span:first-child {
+            font-weight: bold;
+            font-size: 30px;
+            color: red;
+            font-style: normal;
+            letter-spacing: 0px;
+            line-height: 41px;
+            margin-left: 8px;
+            text-decoration: none;
+            float: left;
+        }
+
+        #top > div > div > div:nth-child(2) > span:nth-child(2) {
+            /*#top > div > div > div:nth-child(2) > span:nth-child(2) {*/
+            font-weight: bold;
+            font-size: 14px;
+            color: black;
+            font-style: normal;
+            letter-spacing: 0px;
+            line-height: 20px;
+            text-decoration: none;
+            float: left;
+        }
+
+        #top > div > div > div:nth-child(2) > div {
+            height: 21px;
+            left: 1396px;
+            top: 236px;
+            z-index: 216;
+            border: 0;
+            opacity: 1;
+            float: right;
+        }
+
+        #top > div > div > div:nth-child(2) > div > span:nth-child(1) {
+            font-weight: 400;
+            font-size: 14px;
+            font-style: normal;
+            letter-spacing: 0px;
+            line-height: 20px;
+            text-decoration: none;
+            float: right;
+            margin-right: 8px;
+        }
+
+        #middle {
+            height: 40%;
+            display: table;
+            width: 97.3%;
+            margin: 10px auto;
+        }
+
+        #middle > div > div {
+            height: 96%;
+            box-shadow: none;
+        }
+
+        #bottom {
+            height: 50%;
+            display: block;
+            width: 100%;
+            margin: 0.5%;
+        }
+
+        #bottom > form {
+            height: 95%;
+            width: 24.75%;
+            float: left;
+        }
+
+        #bottom > form > div {
+            width: 100%;
+        }
+
+        #bottom > form > div > div > div:nth-child(2) {
+            height: 90%;
+            min-height: 150px;
+        }
+
+        #profitSortBox > div:nth-child(2) {
+            height: 100%;
+        }
+    </style>
+
+    <script src="/js/biz/statistics/business_manager_statistics.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script src="/js/statisticsModal/statisticsModal.js"></script>
+
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            deptTree.loadDept();//加载部门树
+            topOption.init();
+            middleOption.init();
+            profitSort.init();
+            saleAmountSort.init();
+            noIncomeSort.init();
+            noIncomeSort1.init();
+            statisticsModal.init();//初始化模态框
+            if (user.currentDeptQx) {
+                deptBusiness.init();
+                deptSaleAmountSort.init();
+                deptIncomeSort.init();
+            }
+        });
+    </script>
+
+</head>
+
+<body>
+<div class="searchCondition" id ="deptDiv" style="display:none">
+    <div>
+        <div style="height: 40px;line-height: 40px;width: 7%;float: left;text-align: right;">业务部门：</div>
+        <div class="col-sm-1" style="text-align:center;padding-top: 2px;">
+            <input type="hidden" id="currentDeptId" name="currentDeptId" class="form-control">
+            <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly"
+                   style="width:180%">
+        </div>
+        <div class="col-sm-2" style="text-align:center">
+            <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                    id="selDept"></button>
+            <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"
+                    id="cleanDept"></button>
+        </div>
+    </div>
+</div>
+<div class="row" style="height:100%">
+    <div id="top" class="row">
+        <div class="topz col-sm-3">
+            <div id="artCountBox">
+                <div>
+                    <span>稿件数量</span>
+                    <div class="text">
+                        <a id="artCountDay" onclick="common.dateSelect('artCountBox',this);topOption.setValue('artCountBox','4');"
+                           class="date_select hover">天&nbsp;</a>
+                        <a onclick="common.dateSelect('artCountBox',this);topOption.setValue('artCountBox','3');"
+                           class="date_select">月&nbsp;</a>
+                        <a onclick="common.dateSelect('artCountBox',this);topOption.setValue('artCountBox','1');"
+                           class="date_select">年&nbsp;</a>
+                    </div>
+                </div>
+                <div>
+                    <span class="value"></span>
+                    <span  style=" font-size: 24px;color: red; margin-top: 11px;"><!--总数量-->篇</span>
+                    <div class="colorValue">
+                        <span class="colorValue changeValue"></span>
+                        <span class="icon fa iconValue" style="font-size: 21px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="topz col-sm-3">
+            <div id="saleAmountBox">
+                <div>
+                    <span >应收金额</span>
+                    <div class="text">
+                        <a id="saleAmountDay" onclick="common.dateSelect('saleAmountBox',this);topOption.setValue('saleAmountBox','4');"
+                           class="date_select hover">天&nbsp;</a>
+                        <a onclick="common.dateSelect('saleAmountBox',this);topOption.setValue('saleAmountBox','3');"
+                           class="date_select">月&nbsp;</a>
+                        <a onclick="common.dateSelect('saleAmountBox',this);topOption.setValue('saleAmountBox','1');"
+                           class="date_select">年&nbsp;</a>
+                    </div>
+                </div>
+                <div>
+                    <span class="value"></span>
+                    <span style=" font-size: 24px;color: red; margin-top: 11px;"><!--需支付-->元</span>
+                    <div class="colorValue">
+                        <span class="colorValue changeValue"></span>
+                        <span class="icon fa iconValue" style="font-size: 21px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="topz col-sm-3">
+            <div id="incomeAmountBox">
+                <div>
+                    <span>入账金额</span>
+                    <div class="text">
+                        <a id="incomeAmountDay" onclick="common.dateSelect('incomeAmountBox',this);topOption.setValue('incomeAmountBox','4');"
+                           class="date_select hover">天&nbsp;</a>
+                        <a onclick="common.dateSelect('incomeAmountBox',this);topOption.setValue('incomeAmountBox','3');"
+                           class="date_select">月&nbsp;</a>
+                        <a onclick="common.dateSelect('incomeAmountBox',this);topOption.setValue('incomeAmountBox','1');"
+                           class="date_select">年&nbsp;</a>
+                    </div>
+                </div>
+                <div>
+                    <span class="value"></span>
+                    <span style=" font-size: 24px;color: red; margin-top: 11px;"><!--已支付-->元</span>
+                    <div class="colorValue">
+                        <span class="colorValue changeValue"></span>
+                        <span class="icon fa iconValue" style="font-size: 21px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="topz col-sm-3">
+            <div id="cjPeoBox">
+                <div>
+                    <span>成交客户量</span>
+                    <div class="text">
+                        <a id="cjPeoDay" onclick="common.dateSelect('cjPeoBox',this);topOption.setValue('cjPeoBox','4');"
+                           class="date_select hover">天&nbsp;</a>
+                        <a onclick="common.dateSelect('cjPeoBox',this);topOption.setValue('cjPeoBox','3');"
+                           class="date_select">月&nbsp;</a>
+                        <a onclick="common.dateSelect('cjPeoBox',this);topOption.setValue('cjPeoBox','1');"
+                           class="date_select">年&nbsp;</a>
+                    </div>
+                </div>
+                <div>
+                    <span class="value"></span>
+                    <span style=" font-size: 24px;color: red; margin-top: 11px;"><!--请款金额-->位</span>
+                    <div class="colorValue">
+                        <span class="colorValue changeValue"></span>
+                        <span class="icon fa iconValue" style="font-size: 21px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="middle">
+        <div class="topz col-sm-12">
+            <div>
+                <div id="middleBox">
+                    <span>业务管理</span>
+                    <div class="text">
+                        <a id="middleDay" onclick="common.dateSelect('middleBox',this);middleOption.setValue('middleBox','4')"
+                           class="date_select hover">天&nbsp;</a>
+                        <a onclick="common.dateSelect('middleBox',this);middleOption.setValue('middleBox','3')"
+                           class="date_select">月&nbsp;</a>
+                        <a onclick="common.dateSelect('middleBox',this);middleOption.setValue('middleBox','1')"
+                           class="date_select">年&nbsp;</a>
+                    </div>
+                </div>
+                <div id="meddle_chart">
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="bottom">
+        <form id="profitSortForm">
+            <div class="topz col-sm-3" style="display: block !important;">
+                <div id="profitSortBox" style="height: 100%;">
+                    <div>
+                        <span>利润排名</span>
+                        <input type="hidden" name="dateSelect"/>
+                        <input type="hidden" name="currentDeptId"/> <!--部门选择-->
+                        <div class="text">
+                            <a id="profitSortDay" onclick="common.dateSelect('profitSortBox',this);profitSort.reflush('4')"
+                               class="date_select hover">天&nbsp;</a>
+                            <a onclick="common.dateSelect('profitSortBox',this);profitSort.reflush('3')"
+                               class="date_select">月&nbsp;</a>
+                            <a onclick="common.dateSelect('profitSortBox',this);profitSort.reflush('1')"
+                               class="date_select">年&nbsp;</a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="jqGrid_wrapper" style="height: 102% !important;overflow-y: auto;">
+                            <table id="profitSortTable"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form id="saleAmountSortForm">
+            <div class="topz col-sm-3" style="display: block !important;height: 100%;">
+                <div id="saleAmountSortBox" style="height: 100%;">
+                    <div>
+                        <span>应收金额排名</span>
+                        <input type="hidden" name="dateSelect"/>
+                        <input type="hidden" name="currentDeptId"/> <!--部门选择-->
+                        <input type="hidden" name="tjType" value="saleAmountSortBox"/>
+                        <div class="text">
+                            <a id="saleAmountSortDay" onclick="common.dateSelect('saleAmountSortBox',this);saleAmountSort.reflush('4')"
+                               class="date_select hover">天&nbsp;</a>
+                            <a onclick="common.dateSelect('saleAmountSortBox',this);saleAmountSort.reflush('3')"
+                               class="date_select">月&nbsp;</a>
+                            <a onclick="common.dateSelect('saleAmountSortBox',this);saleAmountSort.reflush('1')"
+                               class="date_select">年&nbsp;</a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="jqGrid_wrapper" style="height: 102% !important;overflow-y: auto;">
+                            <table id="saleAmountSortTable"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form id="noIncomeSortForm">
+            <div class="topz col-sm-3"  style="display: block !important;height: 100%;">
+                <div id="noIncomeSortBox" style="height: 100%;">
+                    <div>
+                        <span>未到款排名（客户）</span>
+                        <input type="hidden" name="dateSelect"/>
+                        <input type="hidden" name="currentDeptId"/> <!--部门选择-->
+                        <input type="hidden" name="tjType" value="noIncomeSortBox"/>
+                        <div class="text">
+                            <a id="noIncomeSortDay" onclick="common.dateSelect('noIncomeSortBox',this);noIncomeSort.reflush('4')"
+                               class="date_select hover">天&nbsp;</a>
+                            <a onclick="common.dateSelect('noIncomeSortBox',this);noIncomeSort.reflush('3')"
+                               class="date_select">月&nbsp;</a>
+                            <a onclick="common.dateSelect('noIncomeSortBox',this);noIncomeSort.reflush('1')"
+                               class="date_select">年&nbsp;</a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="jqGrid_wrapper" style="height: 102% !important;overflow-y: auto;">
+                            <table id="noIncomeSortTable"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form id="noIncomeSortForm1">
+            <div class="topz col-sm-3"  style="display: block !important;height: 100%;">
+                <div id="noIncomeSortBox1" style="height: 100%;">
+                    <div>
+                        <span>未到款排名（业务员）</span>
+                        <input type="hidden" name="dateSelect"/>
+                        <input type="hidden" name="currentDeptId"/> <!--部门选择-->
+                        <input type="hidden" name="tjType" value="noIncomeSortBox1"/>
+                        <div class="text">
+                            <a id="noIncomeSortDay1" onclick="common.dateSelect('noIncomeSortBox1',this);noIncomeSort1.reflush('4')"
+                               class="date_select hover">天&nbsp;</a>
+                            <a onclick="common.dateSelect('noIncomeSortBox1',this);noIncomeSort1.reflush('3')"
+                               class="date_select">月&nbsp;</a>
+                            <a onclick="common.dateSelect('noIncomeSortBox1',this);noIncomeSort1.reflush('1')"
+                               class="date_select">年&nbsp;</a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="jqGrid_wrapper" style="height: 102% !important;overflow-y: auto;">
+                            <table id="noIncomeSortTable1"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="deptBusiness" style="display:none;height:40%;padding:0 2%!important;margin-top:0px;">
+        <div class="topz col-sm-12" style="background-color:white;">
+            <div id="deptBusinessBox" style="height: 33px;">
+                <span style="font-size: 16px; font-weight: 400; line-height: 30px; margin-left: 5px;">各部门业务量报告</span>
+                <button class="btn btn-primary" type="button" style="display:none" id="returnS"
+                        onclick="deptBusiness.returnS()">返回上一级
+                </button>
+                <div class="text">
+                    <a onclick="common.dateSelect('deptBusinessBox',this);deptBusiness.setValue(deptBusiness.dept,'4')"
+                       class="date_select hover">天&nbsp;</a>
+                    <a onclick="common.dateSelect('deptBusinessBox',this);deptBusiness.setValue(deptBusiness.dept,'3')"
+                       class="date_select">月&nbsp;</a>
+                    <a onclick="common.dateSelect('deptBusinessBox',this);deptBusiness.setValue(deptBusiness.dept,'1')"
+                       class="date_select">年&nbsp;</a>
+                </div>
+            </div>
+            <div id="deptBusiness_chart" class="col-sm-12" style="height: 92%;">
+            </div>
+        </div>
+    </div>
+
+    <div id="deptSaleAmountSort" style="display:none;height:40%;padding:0 2%!important;margin-top:35px;">
+        <div class="topz col-sm-12" style="background-color:white;">
+            <div id="deptSaleAmountSortBox" style="height: 33px;">
+                <span style="font-size: 16px; font-weight: 400; line-height: 30px; margin-left: 5px;">业务排名</span>
+                <div class="text">
+                    <a id="deptSaleAmountSortDay" onclick="common.dateSelect('deptSaleAmountSortBox',this);deptSaleAmountSort.setValue('deptSaleAmountSortBox','4');deptIncomeSort.setValue('deptIncomeSortBox', '4');"
+                       class="date_select hover">天&nbsp;</a>
+                    <a onclick="common.dateSelect('deptSaleAmountSortBox',this);deptSaleAmountSort.setValue('deptSaleAmountSortBox','3');deptIncomeSort.setValue('deptIncomeSortBox', '3');"
+                       class="date_select">月&nbsp;</a>
+                    <a onclick="common.dateSelect('deptSaleAmountSortBox',this);deptSaleAmountSort.setValue('deptSaleAmountSortBox','1');deptIncomeSort.setValue('deptIncomeSortBox', '1');"
+                       class="date_select">年&nbsp;</a>
+                </div>
+            </div>
+            <!--图表-->
+            <div style="height: 92%;">
+                <div id="deptSaleAmountSort_chart" class="col-sm-6" style="height: 100%;width:49%;border-right: 1px solid #ccc;margin-top:0px;">
+                </div>
+                <div id="deptIncomeSort_chart" class="col-sm-6" style="height: 99%;width:49%;border-left: 1px solid #ccc;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <h5>部门信息</h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+
+                                    <div id="treeview"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--统计模态框导入-->
+<div th:include="statisticsmodal/statisticsModal" ></div>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>业务统计</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <!--统计概况模态框Css-->
+    <link href="/css/statisticsModal/statisticsModal.css" rel="stylesheet">
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- 自定义js -->
+    <script src="/js/hplus.js?v=4.1.0"></script>
+    <script type="text/javascript" src="/js/contabs.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <!--页面js-->
+    <script th:src="@{/js/crm/common_util.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/commonDatagrid.js(v=${version})}"  data-th-inline="javascript"></script>
+    <style>
+        .ui-jqgrid{
+            width: 99% !important;
+        }
+        .ui-jqgrid-bdiv{/*表格展示滚动条*/
+            overflow: auto !important;
+        }
+        .top_block {
+            height: 100px;
+            width: 16%;
+            float: left;
+            margin: 0 0.5%;
+            text-align: center;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+            padding: 25px 0;
+        }
+
+        .text-content {
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 20px;
+
+        }
+
+        .val-content {
+            font-weight: bold;
+            font-size: 10px;
+            color: red;
+            line-height: 29px;
+        }
+        .top_block > div {
+            display: table;
+            margin: auto;
+        }
+
+        .top_block > div > i {
+            font-size: 40px;
+            float: left;
+            margin-right: 10px;
+
+        }
+
+        .rightContent{
+            height: 100%;
+            width: 100%;
+            display: block;
+            float: left;
+        }
+
+        .rightContent > .top{
+            border: 0px solid purple;
+            width: 100%;
+            height: 15%;
+            min-height: 100px;
+            display: flex;
+            justify-content:center;
+            align-items:center;
+            float: left;padding: 0px !important;
+        }
+
+        .rightContent > .top > .top_block > div{
+            display: flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .rightContent > .middle{
+            border: 0px solid #C7C7CD;
+            width: 99%;
+            height: 40%;
+            display: block;
+            float:left;
+            margin-top: 15px;
+            margin-left: 0.5%;
+        }
+
+        #statisticsTrend{
+            border:0px solid red;
+            width: 100%;
+            height: 100%;
+            display:block;
+            float: left;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+        }
+
+        .chartPie {
+            width:24%;
+            height: 100%;
+            display:block;
+            float: left;
+            margin: 0 0.5%;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+        }
+
+        .chartPie > div{
+            height: 100%;
+            width: 100%;
+        }
+
+      /*  #chart > div {
+            background-color: white;
+            height: 100%;
+            margin-left: 4px;
+            width: 100%;
+        }
+
+        #chart > div > div {
+            width: 50%;
+            height: 95%;
+            margin-top: 10px;
+            float: left;
+        }*/
+
+        .rightContent > .bottom{
+            border: 0px solid #C7C7CD;
+            width: 99%;
+            height: 41%;
+            display: block;
+            float:left;
+            margin-top: 15px;
+            margin-left: 0.5%;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+        }
+
+        .rightContent .top_block:nth-child(1) > div > i {
+            color: #EE7383;
+        }
+
+        .rightContent .top_block:nth-child(1) > div > div > div:first-child {
+            color: #EE7383;
+        }
+
+        .rightContent .top_block:nth-child(2) > div > i {
+            color: #72C7D9
+        }
+
+        .rightContent .top_block:nth-child(2) > div > div > div:first-child {
+            color: #72C7D9
+        }
+
+        .rightContent .top_block:nth-child(3) > div > i {
+            color: #FFB148;
+        }
+
+        .rightContent .top_block:nth-child(3) > div > div > div:first-child {
+            color: #FFB148;
+        }
+
+        .rightContent .top_block:nth-child(4) > div > i {
+            color: #A5D16F;
+        }
+
+        .rightContent .top_block:nth-child(4) > div > div > div:first-child {
+            color: #A5D16F;
+        }
+
+        .rightContent .top_block:nth-child(5) > div > i {
+            color: #2FA82E;
+        }
+
+        .rightContent .top_block:nth-child(5) > div > div > div:first-child {
+            color: #2FA82E;
+        }
+
+        .rightContent .top_block:nth-child(6) > div > i {
+            color: #FF69B4;
+        }
+
+        .rightContent .top_block:nth-child(6) > div > div > div:first-child {
+            color: #FF69B4;
+        }
+
+
+        .top_block > div > div, .top_block > div > img {
+            float: left;
+            text-align: left;
+        }
+
+        .title-content {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        #topChart {
+            margin-top: 10px;
+            display: block;
+            border: 0px solid red;
+            float: left;
+            height: 100%;
+            width: 100%;
+        }
+
+        #statisticsRankingTable {
+            background-color: white;
+            padding:0;
+            overflow-x: auto;
+            height: 100%;
+            display: block;
+            float: left;
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+        }
+
+        .tabContent{
+            height: 75%;
+            overflow-y: auto;
+        }
+        .bottom .layui-tab .ui-jqgrid-pager tbody tr{
+            display: flex;
+            justify-content:center;
+            align-items:center;
+        }
+    </style>
+
+    <script src="/js/biz/statistics/business_statistics.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script src="/js/statisticsModal/statisticsModal.js"></script>
+</head>
+<body>
+<form id="searchForm" class="layui-form">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-16px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content" style="padding:0 0 0 0">
+                    <div class="form-horizontal">
+                        <div class="form-group" id="rowOne" style="margin-top:15px;">
+                            <!--最近三个月未成交客户-->
+                            <input type="hidden" name="latelyNot" id="latelyNot" value="3">
+
+                            <label class="col-sm-1 control-label right0">时间范围:</label>
+                            <div class="col-sm-1">
+                                <!--时间段-->
+                                <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                                    <option value="1" selected="selected">本月</option>
+                                    <option value="2">本年</option>
+                                    <option value="3">时间区间</option>
+                                </select>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">媒体板块:</label>
+                            <div class="col-sm-1">
+                                <select name="mediaType" class="form-control height18" lay-filter="mediaType" lay-search>
+                                    <option value="">全部</option>
+                                </select>
+                            </div>
+
+                            <div id ="deptDiv" style="display:none">
+                                <label class="col-sm-1 control-label right0">业务部门：</label>
+                                <div class="col-sm-2">
+                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                        <input type="hidden" id="currentDeptId" name="currentDeptId" class="form-control">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly">
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF" id="selDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="选择部门"></span>
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF" id="cleanDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="清除选择的部门"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">业务员:</label>
+                            <div class="col-sm-1">
+                                <select name="currentUserId" id="currentUserId" class="form-control height18" lay-filter="user" lay-search>
+
+                                </select>
+                            </div>
+
+                            <div id="XMhide">
+                            <label class="col-sm-1 control-label right0">对接人:</label>
+                            <div class="col-sm-1">
+                                <select name="custId" id="docPeo" class="form-control height18" lay-filter="cust" lay-search>
+                                </select>
+                            </div>
+                            </div>
+
+                            <button type="button" id="searchButton" class="btn btn-primary"
+                                    onclick="searchForm.search()">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                            </button>
+                        </div>
+
+                        <div class="form-group" id="rowTwo">
+                            <div id="issuedDateFormGroup" style="display: none">
+                                <label class="col-sm-1 control-label right0">选择时间范围：</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateStart" name="issuedDateStart" autocomplete="off">
+                                    <span style="display:inline-block;padding:0 10px;">至</span>
+                                    <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateEnd" name="issuedDateEnd" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DIV>
+            </div>
+        </div>
+    </div>
+
+    <!--<div id="topChart" style="margin-top:5px;">
+        <div id="statisticsResultChart" style="height: 300px;" class="col-sm-12">
+
+        </div>
+    </div>
+
+    <div>
+        <div id="statisticsRankingTable" style="background-color:#ffffff" class="col-sm-12">
+            <div class="jqGrid_wrapper">
+                <table id="table"></table>
+                <div id="pager"></div>
+            </div>
+        </div>
+    </div>-->
+</form>
+<div id="topChart">
+    <div class="rightContent">
+        <!--顶部统计-->
+        <div class="top">
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <div class="title-content">总稿件数量</div>
+                        <div class="text-content">实际：<span class="val-content" id="articleNum"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <div class="title-content">总客户数量</div>
+                        <div class="text-content">实际：<span class="val-content" id="custNum"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div>
+                        <div class="title-content">成交总额</div>
+                        <div class="text-content">实际：<span class="val-content" id="saleAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div style="margin-top: -9px;">
+                        <div class="title-content">未到款额</div>
+                        <div class="text-content">实际：<span class="val-content" id="noIncomeAmount"></span></div>
+                        <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="noIncomeAmountRate"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div>
+                        <div class="title-content">逾期款金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="dqysIncomeAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div style="margin-top: -9px;">
+                        <div class="title-content">利润总金额</div>
+                        <div class="text-content">实际：<span class="val-content" id="profit"></span></div>
+                        <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="profitRate"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--图表-->
+        <div class="middle">
+            <!--饼图-->
+            <div class="chartPie">
+                <div id="statisticsPie1">
+                </div>
+            </div>
+            <div class="chartPie">
+                <div id="statisticsPie2">
+                </div>
+            </div>
+            <!--饼图-->
+            <div class="chartPie">
+                <div id="statisticsPie3">
+                </div>
+            </div>
+            <div class="chartPie">
+                <div id="statisticsPie4">
+                </div>
+            </div>
+        </div>
+
+        <!--图表-->
+        <div class="middle">
+            <!--趋势图-->
+            <div id="statisticsTrend"></div>
+        </div>
+
+        <!--业务排名图形-->
+        <div id="deptBusiness" class="middle" style="display:none;box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;border-radius: 5px;">
+            <span style="font-size: 16px; font-weight: bold; line-height: 30px; margin-left: 5px;">各部门业务量报告</span>
+            <button class="btn btn-primary" type="button" style="display:none" id="returnS"
+                    onclick="deptBusiness.returnS()">返回上一级
+            </button>
+            <div id="deptBusiness_chart" class="col-sm-12" style="height: 92%;">
+            </div>
+
+        </div>
+        <div id="deptSaleAmountSort" class="middle" style="display:none;box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;border-radius: 5px;">
+            <div id="deptSaleAmountSort_chart" class="col-sm-6" style="height: 100%;width:49%;border-right: 1px solid #ccc;margin-top:0px;">
+            </div>
+            <div id="deptIncomeSort_chart" class="col-sm-6" style="height: 99%;width:49%;border-left: 1px solid #ccc;">
+            </div>
+        </div>
+
+        <!--列表-->
+        <div class="bottom">
+            <div id="statisticsRankingTable">
+                <div class="jqGrid_wrapper">
+                    <table id="table"></table>
+                    <div id="pager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <h5>部门信息</h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+
+                                    <div id="treeview"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--统计模态框导入-->
+<div th:include="statisticsmodal/statisticsModal" ></div>
+</html>

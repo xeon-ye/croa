@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script th:src="@{//js/performance/performSchemeList.js(v=${version})}"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <!--部门树-->
+    <link rel="stylesheet" href="/css/ztree/bootstrapStyle.css"/>
+    <script type="text/javascript" src="/js/ztree/jquery.ztree.all.min.js"></script>
+    <title>绩效方案</title>
+</head>
+<style>
+    .font-red {
+        color: red;
+    }
+    #schemeView > div{
+        margin-top: 15px;
+    }
+    #okrSchemeView > div{
+        margin-top: 15px;
+    }
+    .ztree li span.button.ico_docu{
+        margin: 0 0 0 4px!important;
+    }
+</style>
+<body>
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0px;">
+    <!--查询条件-->
+    <ul class="layui-tab-title">
+        <input id="tabIndex" name="tabIndex" type="hidden"/>
+        <input id="performSchemeType" name="performSchemeType" type="hidden"/>
+        <li class="layui-this" id="kplScheme">KPI绩效方案</li>
+        <li id="okrScheme">OKR目标考核方案</li>
+    </ul>
+    <!--列表内容-->
+    <div class="bottomContentOuter layui-tab-content">
+        <!--KPL绩效方案-->
+        <div id="kplTab" class="tabContent" style="height: 100%;width: 100%;">
+            <!--KPL绩效方案-->
+            <div class="contentOuter">
+                <div class="row">
+                    <input type="hidden" id="selectNode"/>
+                    <div class="col-sm-12">
+                        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                            <div class="ibox-title" style="border: 0px;margin-top: -8px;">
+                                <h3 style="font-weight: bold">KPI绩效考核方案</h3>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="form-group" style="width:100%;text-align:center">
+                                    <div class="col-sm-3" style="position: relative;">
+                                        <div class="form-group" style="width:100%;text-align:center">
+                                            <div class="col-sm-3">
+                                                <button id="schAdd" type="button" class="btn btn-primary">
+                                                    <i class="fa fa-plus" aria-hidden="true"> </i>&nbsp;新增
+                                                </button>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <button type="button" id="copyScheme" class="btn btn-warning">
+                                                    <i class="fa fa-copy" aria-hidden="true"></i>&nbsp;拷贝
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="width:100%;text-align:center;position: absolute;top: 40px;left: 25px;">
+                                            <ul id="schemeTree" class="ztree"></ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-9 text-left" id="schemeView">
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1  right0">方案编码:</label>
+                                            <span class="col-sm-2" id="schCode" name="schCode" title=""
+                                                  style="white-space: nowrap;text-overflow: ellipsis;overflow: hidden"></span>
+
+                                            <label class="col-sm-1  right0">方案名称:</label>
+                                            <span class="col-sm-2" id="schName" name="schName"></span>
+
+                                            <label class="col-sm-1 ">考核职位:</label>
+                                            <span class="col-sm-2" id="postName" name="postName"></span>
+                                        </div>
+
+                                        <div class="col-sm-12" style="">
+                                            <label class="col-sm-1 ">考核阶段:</label>
+                                            <span class="col-sm-2" id="schType" name="schType"></span>
+                                            <label class="col-sm-1 ">考核总分:
+                                            </label>
+                                            <span class="col-sm-2" id="schTotal" name="schTotal"></span>
+                                            <label class="col-sm-1 ">合格等级:</label>
+                                            <span class="col-sm-2" id="schSufficeView"
+                                                  name="schSufficeView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1 ">评价等级:</label>
+                                            <span class="col-sm-6" id="schLevelView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1">考核对象:</label>
+                                            <span class="col-sm-4" id="schUserView"></span>
+                                            <label class="col-sm-1">排除人员:</label>
+                                            <span class="col-sm-4" id="evaluationUserView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1">启用状态:</label>
+                                            <span class="col-sm-4" id="schUsed" name="schUsed"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <table class="table table-bordered">
+                                                <colgroup>
+                                                    <col width="8%">
+                                                    <col width="12%">
+                                                    <col width="12%">
+                                                    <col width="20%">
+                                                    <col width="6%">
+                                                </colgroup>
+                                                <thead>
+                                                <tr>
+                                                    <td>考核项目</td>
+                                                    <td>考核指标</td>
+                                                    <td>指标要求</td>
+                                                    <td>评分标准</td>
+                                                    <td>分值</td>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="tableContent">
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1 ">方案备注:</label>
+                                            <span class="col-sm-11" id="schDesc"></span>
+                                        </div>
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button id="schEdit" type="button" class="btn btn-success">
+                                                <i class="fa fa-edit" aria-hidden="true"> </i>&nbsp;修改
+                                            </button>
+                                            <button type="button" id="deleteScheme" class="btn btn-danger">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;删除
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--okr绩效方案-->
+        <div id="okrTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+            <div class="contentOuter">
+                <div class="row">
+                    <input type="hidden" id="okrNode"/>
+                    <div class="col-sm-12">
+                        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                            <div class="ibox-title" style="border: 0px;margin-top: -8px;">
+                                <h3 style="font-weight: bold">OKR绩效考核方案</h3>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="form-group" style="width:100%;text-align:center">
+                                    <div class="col-sm-3" style="position: relative">
+                                        <div class="form-group" style="width:100%;text-align:center">
+                                            <div class="col-sm-3">
+                                                <button id="okrAdd" type="button" class="btn btn-primary">
+                                                    <i class="fa fa-plus" aria-hidden="true"> </i>&nbsp;新增
+                                                </button>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <button type="button" id="copyOKRScheme" class="btn btn-warning">
+                                                    <i class="fa fa-copy" aria-hidden="true"></i>&nbsp;拷贝
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="width:100%;text-align:center;position: absolute;top: 40px;left: 25px;">
+                                            <ul id="okrSchemeTree" class="ztree"></ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-9 text-left" id="okrSchemeView" style="">
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1  right0">方案编码:</label>
+                                            <span class="col-sm-2" id="okrCode" name="schCode" title=""
+                                                  style="white-space: nowrap;text-overflow: ellipsis;overflow: hidden"></span>
+
+                                            <label class="col-sm-1  right0">方案名称:</label>
+                                            <span class="col-sm-2" id="okrName" name="schName"></span>
+
+                                            <label class="col-sm-1 ">考核职位:</label>
+                                            <span class="col-sm-2" id="postionName" name="postName"></span>
+                                        </div>
+
+                                        <div class="col-sm-12" style="">
+                                            <label class="col-sm-1 ">考核总分:
+                                            </label>
+                                            <span class="col-sm-2" id="okrTotal" name="schTotal"></span>
+                                            <label class="col-sm-1 ">合格等级:</label>
+                                            <span class="col-sm-2" id="okrSufficeView"
+                                                  name="schSufficeView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1 ">评价等级:</label>
+                                            <span class="col-sm-6" id="okrLevelView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1">考核对象:</label>
+                                            <span class="col-sm-4" id="okrUserView"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1">启用状态:</label>
+                                            <span class="col-sm-4" id="okrUsed" name="schUsed"></span>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <table class="table table-bordered">
+                                                <colgroup>
+                                                    <col width="24%">
+                                                    <col width="8%">
+                                                    <col width="12%">
+                                                    <col width="20%">
+                                                </colgroup>
+                                                <thead>
+                                                <tr>
+                                                    <td>工作目标</td>
+                                                    <td>分值</td>
+                                                    <td>是否完成/进度</td>
+                                                    <td>未完成原因</td>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="okrContent">
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <label class="col-sm-1 ">方案备注:</label>
+                                            <span class="col-sm-11" id="okrDesc"></span>
+                                        </div>
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button id="okrSchemeEdit" type="button" class="btn btn-success">
+                                                <i class="fa fa-edit" aria-hidden="true"> </i>&nbsp;修改
+                                            </button>
+                                            <button type="button" id="okrSchemeDelete" class="btn btn-danger">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;删除
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="deleteConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">删除该方案</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                是否确定删除该方案
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schDel">确定删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="copyConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="copyConfirmTitle">拷贝该方案</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                是否确定拷贝该方案
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="schCopy">确定拷贝</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

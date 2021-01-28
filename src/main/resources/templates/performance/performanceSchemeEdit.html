@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>编辑方案</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/utils/sysUserCompont.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/js/utils/sysUserCompont.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script th:src="@{//js/performance/performSchemeEdit.js(v=${version})}"></script>
+    <script th:src="@{//js/performance/performanceAssessEdit.js(v=${version})}"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+</head>
+<body>
+
+<style>
+    .font-red {
+        color: red;
+    }
+
+    .font-burlywood {
+        color: burlywood;
+    }
+
+    .font-big {
+        font-size: 18px;
+    }
+
+    .right0 {
+        margin-right: -23px;
+    }
+
+    #levelModal .levelLabel{
+        padding-top: 1rem;
+        padding-left: 15rem;
+    }
+
+    .float-div{
+        position: fixed;
+        bottom: 60px;
+        width: 100%;
+        text-align: center;
+        z-index: 1;
+    }
+    #checkTable textarea{
+        border:0px;
+    }
+    #checkTable input{
+        border:0px;
+    }
+    #checkTable th,td{
+        border: #ebebeb 1px solid;
+    }
+    #okrTable textarea{
+        border:0px;
+    }
+    #okrTable input{
+        border:0px;
+    }
+    #okrTable th,td{
+        border: #ebebeb 1px solid;
+    }
+    textarea{
+        resize: none;
+    }
+    .control-label{
+        text-align: right!important;
+        padding-right: 14px!important;
+        margin-right: -23px!important;
+        width:16.7%!important;
+    }
+    .plus-style{
+        display: inline-block;
+    }
+    .minus-style{
+        display: inline-block;
+        margin-left: 10px;
+    }
+</style>
+
+<div id="content">
+    <form id="plateForm" class="form-horizontal" action="" type="post">
+        <input name="schId" id="schId" type="hidden">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold"><span id="schemeType">KPI</span>绩效考核方案</h5>
+                        <input type="hidden" name="schemeType"/>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="kpl form-group">
+                                <label class="col-sm-2 control-label right0">方案名称<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-2 layui-form">
+                                    <input type="text" id="schName" name="schName" required
+                                           class="form-control height18">
+                                </div>
+
+                                <label class="col-sm-1 right0" style="text-align: right;padding-top: 7px;">考核职位<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-2">
+                                    <select id="postId" value="1" name="postId" class="form-control height18">
+                                    </select>
+                                    <input type="hidden" id="postName" name="postName"/>
+                                </div>
+                                <label class="col-sm-1 right0" style="text-align: right;padding-top: 7px;">考核阶段<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-2">
+                                    <select id="schType" name="schType" class="form-control height18">
+                                        <option value="0">月度计划</option>
+                                        <option value="1">季度计划</option>
+                                        <option value="2">年中计划</option>
+                                        <option value="3">年终计划</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="okr form-group">
+                                <label class="col-sm-2 control-label right0">方案名称<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-2 layui-form">
+                                    <input type="text" name="schName" autocomplete="off" required class="form-control height18">
+                                </div>
+
+                                <label class="col-sm-1 right0" style="text-align: right;padding-top: 7px;">考核对象<span
+                                        class="font-red">*</span>:</label>
+                                <div class="layui-form col-sm-2">
+                                    <select id="userIds" name="groupIdsLs" lay-verify="" lay-search lay-filter="userIds" class="form-control height18">
+                                    </select>
+                                    <input type="hidden" name="groupNamesLs"/>
+                                </div>
+                                <label class="col-sm-1 right0" style="text-align: right;padding-top: 7px;">岗位<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="postName" required class="form-control height18">                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label right0">考核总分
+                                    <span class="font-red">*</span>:</label>
+                                <div class="col-sm-1">
+                                    <input type="text" id="schTotal" name="schTotal" data-value="" value="120" required
+                                           class="form-control height18" onblur="changeTotalScore()" onkeyup="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                                <label class="col-sm-2 control-label right0">合格等级<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-1">
+                                    <select name="schSuffice" id="schSuffice" class="form-control height18">
+                                        <option value="A+">A+</option>
+                                        <option value="A">A</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B">B</option>
+                                        <option value="B-">B-</option>
+                                        <option value="C+">C+</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-2 control-label right0">是否启用<span class="font-red">*</span>:</label>
+                                <div class="col-sm-2 radio i-checks">
+                                    <input checked type="radio" value="0" name="schUsed"/>启用
+                                    <input type="radio" value="1" name="schUsed"/>禁用
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label right0">评价等级<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" readonly id="schLevelView"/>
+                                    <input type="hidden" class="form-control" id="schLevel" name="schLevel"/>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" id="choseLevel" class="btn btn-primary">等级选择
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group kpl">
+                                <label class="col-sm-2 control-label right0">排除对象:</label>
+                                <div class="col-sm-1">
+                                    <button type="button" id="excludePeople" class="btn btn-primary">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                                <label class="col-sm-1 right0" style="text-align: right;padding-top: 7px;">排除人员:</label>
+                                <div class="col-sm-6" style="padding-right: 30px;">
+                                    <div id="exclude-people-btn"
+                                         style="border: 1px solid #CCCCCC;overflow: scroll;height: 120px;overflow-x:visible;">
+
+                                    </div>
+                                </div>
+                                <input type="text" id="schUserName" style="display: none"
+                                       class="form-control height18">
+                                <input style="display: none" id="schUserId"/>
+                            </div>
+                            <div class="form-group" id="plateView">
+                                <label class="col-sm-2 control-label right0" style="padding-top: 14px!important;">考核模块<span
+                                        class="font-red">*</span>:</label>
+                                <div class="col-sm-8" style="padding-right: 50px;">
+                                    <table class="kpl" id="checkTable" width="100%" style="text-align: center;line-height: 30px;font-weight: bold;border: #ebebeb 1px solid" border="1px" cellspacing="0" cellpadding="0">
+                                        <colgroup>
+                                            <col width="6%">
+                                            <col width="12%">
+                                            <col width="12%">
+                                            <col width="12%">
+                                            <col width="18%">
+                                            <col width="6%">
+                                            <col width="6%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align: center;padding: 5px">添加项目</th>
+                                            <th style="text-align: center;padding: 5px">考核项目</th>
+                                            <th style="text-align: center;padding: 5px">考核指标</th>
+                                            <th style="text-align: center;padding: 5px">指标要求</th>
+                                            <th style="text-align: center;padding: 5px">评分标准</th>
+                                            <th style="text-align: center;padding: 5px">单项分值</th>
+                                            <th style="text-align: center;padding: 5px">指标操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                    <table class="okr" id="okrTable" width="100%" style="text-align: center;line-height: 30px;font-weight: bold;border: #ebebeb 1px solid" border="1px" cellspacing="0" cellpadding="0">
+                                        <colgroup>
+                                            <col width="6%">
+                                            <col width="20%">
+                                            <col width="6%">
+                                            <col width="12%">
+                                            <col width="16%">
+                                            <col width="6%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align: center;padding: 5px">添加项目</th>
+                                            <th style="text-align: center;padding: 5px">工作目标</th>
+                                            <th style="text-align: center;padding: 5px">分值</th>
+                                            <th style="text-align: center;padding: 5px">是否完成/进度</th>
+                                            <th style="text-align: center;padding: 5px">未完成原因</th>
+                                            <th style="text-align: center;padding: 5px">指标操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                    <h3 style="text-align: center;margin: 10px;">
+                                        当前方案剩余分值：&nbsp;&nbsp;<span id="remainingScore">0</span>
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label right0">备注:</label>
+                                <div class="col-sm-8" style="padding-right: 55px;">
+                                    <textarea name="schDesc" id="schDesc" placeholder="方案备注"
+                                              class="form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="float-div form-group">
+                                <button type="button" class="btn btn-success editPlate">
+                                    <i class="fa fa-save"></i>&nbsp;保存
+                                </button>
+                                <button type="button" class="btn btn-success cancelPlate">
+                                    取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script id="plateHtml" type="text/html">
+    <div class="parentBox">
+        <hr class="style1">
+        <div class="form-group">
+            <input type="hidden" name="plateId" value="{{data.parent.plateId}}">
+            <input type="hidden" name="plateOrder" value="{{num}}">
+            <button type="button" class="btn btn-danger right0" onclick="removePlate(this)">
+                <i class="fa fa-times"></i>&nbsp;&nbsp;移除考核项
+            </button>
+            <label class="col-sm-1 control-label font-red font-big" style="margin-left: 10px">板块:</label>
+            <div class="col-sm-3">
+                <input type="text" name="plateContent" class="form-control height18"
+                       value="{{data.parent.plateContent}}"/>
+            </div>
+            <label class="col-sm-1 control-label right0">权重</label>
+            <div class="col-sm-3">
+                <input type="hidden" value="{{data.parent.plateLevel}}" name="plateLevel"/>
+                <input type="hidden" value="{{data.parent.plateParent}}" name="plateParent"/>
+                <input type="number" name="plateProportion" value="{{data.parent.plateProportion}}"
+                       class="form-control height18 parentProportion" history="{{data.parent.plateProportion}}"
+                       onblur="changeWeights(this)"/>
+            </div>
+            <span class="font-red col-sm-1">%</span>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-1"></div>
+            <div class="col-md-10">
+                <table width="100%" class="layui-table" style="table-layout:fixed;" border="1" cellspacing="0"
+                       cellpadding="0">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="6%">
+                        <col width="20%">
+                        <col width="6%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>考核项</th>
+                        <th>项目权重</th>
+                        <th>考核细则</th>
+                        <th>分值</th>
+                        <th>描述</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{each data.plates v i}}
+                    {{each v.childs value index}}
+                    <!--总分隐藏在tr元素，方便取值-->
+                    <tr class="scoreDiv plateBox{{value.plateParent}}"
+                        data-value="{{totalScore * v.plate.plateProportion / 100}}">
+                        {{if index==0}}
+                        <td rowspan="{{v.plate.plateId==value.plateParent?v.childs.length:0}}">
+                            <!--考核项-->
+                            <textarea name="plateContent" class="form-control">{{v.plate.plateContent}}</textarea>
+                            <input name="plateId" type="hidden" value="{{v.plate.plateId}}"/>
+                            <input type="hidden" value="{{v.plate.plateLevel}}" name="plateLevel"/>
+                            <input type="hidden" value="{{v.plate.plateParent}}" name="plateParent"/>
+                            <input type="hidden" name="plateOrder" value="{{i}}">
+                        </td>
+                        {{/if}}
+                        {{if index==0}}
+                        <td rowspan="{{v.plate.plateId==value.plateParent?v.childs.length:0}}">
+                            <!--项目权重-->
+                            <input type="number" name="plateProportion" value="{{v.plate.plateProportion}}"
+                                   data-id="{{value.plateParent}}"
+                                   class="form-control height18 projectProportion"
+                                   onblur="changeProjectScore(this)"/>
+                        </td>
+                        {{/if}}
+                        <td>
+                            <!--考核细则-->
+                            <input type="hidden" value="{{value.plateLevel}}" name="plateLevel"/>
+                            <input type="hidden" value="{{value.plateParent}}" name="plateParent"/>
+                            <textarea name="plateContent" class="form-control">{{value.plateContent}}</textarea>
+                            <input name="plateId" type="hidden" value="{{value.plateId}}"/>
+                            <input type="hidden" name="plateOrder"
+                                   value="{{value.plateOrder ? value.plateOrder : index}}"/>
+                        </td>
+                        <td>
+                            <!--分值-->
+                            <input type="number" class="plateStandard form-control" name="plateProportion"
+                                   value="{{value.plateProportion}}"/>
+                        </td>
+                        {{if index==0}}
+                        <td rowspan="{{v.plate.plateId==value.plateParent?v.childs.length:0}}">
+                            <label class="plateMaxScore"
+                                   maxValue="{{totalScore * v.plate.plateProportion / 100}}"
+                                   plateProportion="{{v.plate.plateProportion}}">
+                                该项目最高{{totalScore * v.plate.plateProportion / 100}}分
+                            </label>
+                        </td>
+                        {{/if}}
+                    </tr>
+                    {{/each}}
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    function changeProjectScore(t) {
+        var $maxScore = $(t).parent().parent().find(".plateMaxScore");
+        var curProportion = $(t).val();
+        plate.setTotalScore();
+        var curVal = plate.plateTotalScore * curProportion / 100;
+        $maxScore.attr("plateProportion", curProportion);
+        $maxScore.attr("maxValue", curVal);
+        $maxScore.html("该项目最高" + curVal + "分");
+        var index = $(t).attr("data-id");
+        $(".plateBox"+index).attr("data-value",curVal);
+    }
+
+    function changeWeights(t) {
+        var history = parseInt($(t).attr("history"));
+        var weight = parseInt($(t).val());
+
+        //修改板块比重 重新计算剩余比重
+        var reduce = plate.plateWeights + (weight - history);
+
+        if (reduce > 100 || reduce < 0) {
+            layer.msg("权重大于100或者小于0");
+            $(t).val(history);
+            return;
+        }
+        $(t).attr("history", weight);
+        plate.plateWeights = reduce;
+        plate.computeWeight();
+    }
+
+    function removePlate(t) {
+        $(t).parent().parent().remove();
+
+        ///重新计算权重
+        var proportionWeight = $(t).parent().find("input[name='plateProportion']").val();
+        var plateId = parseInt($(t).parent().find("input[name='plateId']").val());
+        plate.plateWeights -= parseInt(proportionWeight);
+        plate.plateList = plate.plateList.map(function (value) {
+            if (value !== plateId) return value;
+            else return "";
+        });
+        plate.getLv0();
+        plate.computeWeight();
+
+        //重新渲染PlateView
+        plate.plateModule = plate.plateModule.map(function (value) {
+            if (value.plateId !== plateId) return value;
+        });
+        if (!plate.plateModule[0]) plate.plateModule = [];
+        plate.computePlateModule();
+
+        plate.plateNum--;
+    }
+</script>
+<script id="excludePeopleHtml" type="text/html">
+    {{each data value index}}
+    <hr>
+    <div class="col-sm-12">
+        <div class="col-md-2">
+            <input type="hidden" name="deptId" class="form-control" value="{{value[0].deptId}}">
+            <span class="i-checks">
+                    <input class="deptSpan" sign="dept{{value[0].deptId}}" type="checkbox" deptId="{{value[0].deptId}}"><i></i>
+                    <span>{{value[0].deptName}}</span>
+                </span>
+        </div>
+        <div class="col-sm-10">
+            {{each value v i}}
+            <div class="col-sm-3">
+                    <span class="i-checks">
+                        <input type="checkbox" userId="{{v.id}}" userName="{{v.name}}" deptId="{{v.deptId}}"><i></i>
+                        <span>{{v.name}}</span>
+                    </span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    <hr>
+    {{/each}}
+</script>
+
+<div class="modal fade" id="levelModal" tabindex="-1" role="dialog" aria-labelledby="levelModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="levelModalLabel">等级选择</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                        <legend class="center-pill font-red" id="select-level-limit"></legend>
+                    </fieldset>
+
+                    <div class="form-group col-sm-12" id="Aplus" >
+                        <label lv="A+" class="col-sm-2 control-label text-center right0 levelLabel">A+</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,0)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,0)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="A" >
+                        <label lv="A" class="col-sm-2 control-label text-center right0 levelLabel">A</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,1)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,1)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="Aredu" >
+                        <label lv="A-" class="col-sm-2 control-label text-center right0 levelLabel">A-</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,2)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,2)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="Bplus" >
+                        <label lv="B+" class="col-sm-2 control-label text-center right0 levelLabel">B+</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,3)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,3)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="B" >
+                        <label lv="B" class="col-sm-2 control-label text-center right0 levelLabel">B</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,4)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,4)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="Bredu" >
+                        <label lv="B-" class="col-sm-2 control-label text-center right0 levelLabel">B-</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,5)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,5)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="Cplus" >
+                        <label lv="C+" class="col-sm-2 control-label text-center right0 levelLabel">C+</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,6)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,6)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-12" id="C" >
+                        <label lv="C" class="col-sm-2 control-label text-center right0 levelLabel">C</label>
+                        <div class="col-sm-10">
+                            <div class="col-sm-3">
+                                <input class="form-control score-min" type="number" onblur="checkScoreRange(this,7)"/>
+                            </div>
+                            <span class="col-sm-1" style="padding-top: 10px;width: auto;">到</span>
+                            <div class="col-sm-3">
+                                <input class="form-control score-max" type="number" onblur="checkScoreRange(this,7)"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitScoreLevel">提交更改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="excludeModal" tabindex="-1" role="dialog" aria-labelledby="excludeModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="excludeModalLabel">排除人员</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label right0">员工姓名:</label>
+                        <div class="col-sm-5">
+                            <input type="text" data-id="nameQc" name="name" class="form-control">
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" data-id="search" class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                        <span class="i-checks">
+                            <input data-id="all" type="checkbox" class=" level1"><i></i>
+                            <span style="font-size: 20px;">全选</span>
+                        </span>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 20px;">
+                        <div data-id="groups">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitExcludePeople">提交更改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<div class="modal fade" id="evaluationModal" tabindex="-1" role="dialog" aria-labelledby="evaluationModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="evaluationModalLabel">考核人员</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label right0">员工姓名:</label>
+                        <div class="col-sm-5">
+                            <input type="text" data-id="nameQc" name="name" class="form-control">
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" data-id="search" class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                        <span class="i-checks">
+                            <input data-id="all" type="checkbox" class=" level1"><i></i>
+                            <span style="font-size: 20px;">全选</span>
+                        </span>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 20px;">
+                        <div data-id="groups">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitEvaluationPeople">提交更改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+</body>
+</html>

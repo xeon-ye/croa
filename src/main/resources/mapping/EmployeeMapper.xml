@@ -1,0 +1,964 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工花名册； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.Employee">
+        <id column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_phone" jdbcType="VARCHAR" property="empPhone"/>
+        <result column="emp_marriage" jdbcType="INTEGER" property="empMarriage"/>
+        <result column="emp_urgent" jdbcType="VARCHAR" property="empUrgent"/>
+        <result column="emp_urgent_phone" jdbcType="VARCHAR" property="empUrgentPhone"/>
+        <result column="emp_work_location" jdbcType="VARCHAR" property="empWorkLocation"/>
+        <result column="emp_age" jdbcType="INTEGER" property="empAge"/>
+        <result column="emp_work_year" jdbcType="DECIMAL" property="empWorkYear"/>
+        <result column="emp_house" jdbcType="INTEGER" property="empHouse"/>
+        <result column="emp_family" jdbcType="VARCHAR" property="empFamily"/>
+        <result column="emp_contract_unit" jdbcType="VARCHAR" property="empContractUnit"/>
+        <result column="emp_contract_date" jdbcType="DATE" property="empContractDate"/>
+        <result column="emp_two_contract_date" jdbcType="DATE" property="empTwoContractDate"/>
+        <result column="emp_three_contract_date" jdbcType="DATE" property="empThreeContractDate"/>
+        <result column="emp_security_code" jdbcType="VARCHAR" property="empSecurityCode"/>
+        <result column="emp_security_company" jdbcType="VARCHAR" property="empSecurityCompany"/>
+        <result column="emp_security_protocol" jdbcType="VARCHAR" property="empSecurityProtocol"/>
+        <result column="emp_compliance" jdbcType="INTEGER" property="empCompliance"/>
+        <result column="emp_remark" jdbcType="VARCHAR" property="empRemark"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="task_id" jdbcType="VARCHAR" property="taskId"/>
+        <result column="item_id" jdbcType="INTEGER" property="itemId"/>
+        <result column="process_id" jdbcType="INTEGER" property="processId"/>
+        <result column="process_state" jdbcType="INTEGER" property="processState"/>
+        <result column="valid_code" jdbcType="VARCHAR" property="validCode"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_profession,
+        emp_phone,
+        emp_marriage,
+        emp_urgent,
+        emp_urgent_phone,
+        emp_work_location,
+        emp_age,
+        emp_work_year,
+        emp_house,
+        emp_family,
+        emp_contract_unit,
+        emp_contract_date,
+        emp_two_contract_date,
+        emp_three_contract_date,
+        emp_security_code,
+        emp_security_company,
+        emp_security_protocol,
+        emp_compliance,
+        emp_remark,
+        entry_id,
+        user_id,
+        user_name,
+        task_id,
+        item_id,
+        process_id,
+        process_state,
+        valid_code,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <sql id="EmpMapList">
+        a.emp_id as empId,
+        a.emp_num as empNum,
+        a.emp_name as empName,
+        a.emp_dept as empDept,
+        a.emp_profession as empProfession,
+        a.emp_phone as empPhone,
+        a.emp_marriage as empMarriage,
+        a.emp_urgent as empUrgent,
+        a.emp_urgent_phone as empUrgentPhone,
+        a.emp_work_location as empWorkLocation,
+        a.emp_age as empAge,
+        a.emp_work_year as empWorkYear,
+        a.emp_house as empHouse,
+        a.emp_family as empFamily,
+        a.emp_contract_unit as empContractUnit,
+        a.emp_contract_date as empContractDate,
+        a.emp_two_contract_date as empTwoContractDate,
+        a.emp_three_contract_date as empThreeContractDate,
+        a.emp_security_code as empSecurityCode,
+        a.emp_security_company as empSecurityCompany,
+        a.emp_security_protocol as empSecurityProtocol,
+        a.emp_compliance as empCompliance,
+        a.emp_remark as empRemark
+    </sql>
+
+    <sql id="BasicMapList">
+        b.bas_id as basId,
+        b.emp_gender as empGender,
+        b.emp_race as empRace,
+        b.emp_birth as empBirth,
+        b.emp_birthday as empBirthday,
+        b.emp_code as empCode,
+        b.emp_code_address as empCodeAddress,
+        b.emp_native_province as empNativeProvince,
+        b.emp_native_city as empNativeCity,
+        b.emp_native as empNative,
+        b.emp_education as empEducation,
+        b.emp_education_other as empEducationOther,
+        b.emp_relative as empRelative,
+        b.emp_relative_name as empRelativeName,
+        b.emp_relative_phone as empRelativePhone,
+        b.emp_relative_relation as empRelativeRelation
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据主键ID查询员工相关的信息； -->
+    <select id="selectEditInfoById" parameterType="java.lang.Integer" resultType="java.util.Map" useCache="true">
+        select
+        <include refid="EmpMapList"/>
+        ,
+        <include refid="BasicMapList"/>
+        from
+        e_employee a
+        left join e_employee_basic b on a.entry_id = b.entry_id
+        where a.state &lt;&gt; -1 and a.emp_id = #{empId}
+    </select>
+
+    <!-- 根据主键查询关联的用户ID； -->
+    <select id="selectUserIdById" parameterType="java.lang.Integer" resultType="java.lang.Integer"
+            useCache="true">
+        select
+        user_id
+        from
+        e_employee
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据主键查询关联的用户ID； -->
+    <select id="selectUserIdsByIds" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select
+        user_id
+        from
+        e_employee
+        where
+        state &lt;&gt; -1
+        and emp_id in
+        <foreach item="empId" collection="empIds" index="index" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </select>
+
+    <!-- 根据主键ID获取转正流程所需的信息； -->
+    <select id="selectEmployeeInfoById" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select
+        a.emp_id as empId,
+        a.emp_num as empNum,
+        a.emp_name as empName,
+        a.emp_dept as empDept,
+        a.emp_profession as empProfession,
+        a.user_id as userId,
+        a.task_id as taskId,
+        a.process_id as processId,
+        a.state,
+        a.process_state as processState,
+        b.emp_date as empDate,
+        a.create_time AS createTime
+        from
+        e_employee a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        a.emp_id = #{empId,jdbcType=INTEGER}
+        <choose>
+            <when test="state != null">
+                and a.state = #{state}
+            </when>
+            <otherwise>
+                and a.state &lt;&gt; -1
+            </otherwise>
+        </choose>
+        <if test="stateList != null and stateList.size() > 0">
+            AND a.state in
+            <foreach collection="stateList" item="state" index="index" open="(" close=")" separator=",">
+                #{state}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 根据权限访问码获取转正流程所需的信息； -->
+    <select id="selectApproveInfoByCode" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select emp_id, task_id, process_id, process_state, user_id from e_employee
+        where
+        valid_code = #{code} and process_id = #{processId}
+        <choose>
+            <when test="state != null">
+                and state = #{state}
+            </when>
+            <otherwise>
+                and state &lt;&gt; -1
+            </otherwise>
+        </choose>
+        <if test="stateList != null and stateList.size() > 0">
+            AND state in
+            <foreach collection="stateList" item="state" index="index" open="(" close=")" separator=",">
+                #{state}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 获取生成系统账号需要的信息； -->
+    <select id="selectUserInfoById" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        a.emp_id, a.entry_id, a.emp_num, a.emp_name, a.emp_phone, a.emp_dept, a.emp_profession, a.create_time, b.emp_code as emp_remark
+        from
+        e_employee a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        a.emp_id = #{empId,jdbcType=INTEGER} and a.state &lt;&gt; -1 and a.user_id is null
+    </select>
+
+    <!--通过userId获取员工信息-->
+    <select id="selectUserInfoByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        a.emp_id, a.entry_id, a.emp_num, a.emp_name, a.emp_phone, a.emp_dept, a.emp_profession, a.create_time, b.emp_code as emp_remark
+        from
+        e_employee a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        a.user_id = #{userId,jdbcType=INTEGER} and a.state &lt;&gt; -1
+    </select>
+
+
+    <!-- 员工列表； -->
+    <select id="selectPageEmployee" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select *,u.user_name as userName from e_employee a left join e_employee_basic b on a.entry_id = b.entry_id
+        left join sys_user u on a.user_id = u.id
+        left join sys_post p on a.emp_profession = p.id and p.state>-2
+        <where>
+            a.state &lt;&gt; -1
+            <if test="roleType=='RS' or roleType=='XZ' or roleType=='CW'">
+                and p.name!='总经理' and p.name!='副总经理' and p.name!='业务总监'
+            </if>
+            <if test="roleType=='ZJB' and roleCode=='FZ'">
+                and p.name!='总经理' and p.name!='业务总监' and p.name!='副总经理'
+            </if>
+            <if test="roleType=='YW' and roleCode=='ZJ'">
+                and p.name!='总经理' and p.name!='副总经理'
+            </if>
+            <if test="roleType=='ZJB' and roleCode=='ZJL'">
+
+            </if>
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            a.emp_id desc
+        </if>
+    </select>
+
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <where>
+                <choose>
+                    <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                        and u.id=#{currentUserId}
+                    </when>
+                    <otherwise>
+                        <if test="companyCode!= null and companyCode != '' and companyCode != 'XH' and companyCode != 'JT'">
+                            AND u.company_code=#{companyCode}
+                        </if>
+                        <if test="deptIds != ''">
+                            AND u.`dept_id` IN (${deptIds})
+                        </if>
+                    </otherwise>
+                </choose>
+                <if test="userTj != ''">
+                    ${userTj}
+                </if>
+            </where>
+        </if>
+    </sql>
+
+
+    <sql id="selectDate">
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and ${timeField} &gt;= concat(year(now()),'-01-01')
+            and ${timeField} &lt;= concat(year(now()),'-12-31')
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(${timeField}) = year(now())
+            and QUARTER(${timeField}) = QUARTER(now())
+        </if>
+        <!--本月份-->
+        <if test="timeQuantum == 3">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+        </if>
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+            and day(${timeField}) = day(now())
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            <if test="issuedDateStart != null">
+                and ${timeField} &gt;= #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null">
+                and ${timeField} &lt;= #{issuedDateEnd}
+            </if>
+        </if>
+    </sql>
+
+    <!-- 根据姓名和联系电话查询人员信息； -->
+    <select id="selectIdByNameAndPhone" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select emp_id from e_employee where emp_name = #{empName} and emp_phone = #{empPhone} and state &lt;&gt; 2 and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据身份证号码查询是否为正式员工，离职人员也可以再次录入； -->
+    <select id="checkRepeatByCode" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select count(*) from
+        e_employee a left join e_employee_basic b on a.entry_id = b.entry_id left join e_entry c on a.entry_id = c.entry_id
+        where
+        b.emp_code = #{empCode} and a.state not in (-1, 2)
+        <if test="entryCompanyCode != null and entryCompanyCode != ''">
+            and c.entry_company_code = #{entryCompanyCode}
+        </if>
+        <if test="entryId != null">
+            and a.entry_id &lt;&gt; #{entryId}
+        </if>
+    </select>
+
+    <!-- 根据身份证号码查询主键ID，包含离职人员； -->
+    <select id="selectIdByCode" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select a.emp_id from
+        e_employee a
+        INNER JOIN sys_dept sd ON sd.id = a.emp_dept
+        left join e_employee_basic b on a.entry_id = b.entry_id
+        where sd.company_code = #{companyCode} and b.emp_code = #{empCode} and a.state &lt;&gt; -1
+    </select>
+
+    <!-- 查询工号是否存在； -->
+    <select id="checkRepeatByNum" parameterType="com.qinfei.qferp.entity.employ.Employee" resultType="java.lang.Integer"
+            useCache="true">
+        select count(*) from
+        e_employee
+        where
+        emp_num = #{empNum} and (state &lt;&gt; 2 and state &lt;&gt; -1)
+        <if test="empId != null">
+            and emp_id &lt;&gt; #{empId}
+        </if>
+    </select>
+
+    <!-- 根据身份证号码查询状态； -->
+    <select id="checkStateByCode" parameterType="java.lang.String" resultType="java.lang.Integer" useCache="true">
+        select
+        state
+        from
+        e_employee
+        where
+        emp_id = (
+          select max(a.emp_id) from e_employee a left join e_employee_basic b on a.entry_id = b.entry_id where a.state &lt;&gt; -1 and b.emp_code = #{empCode}
+        )
+    </select>
+
+    <!-- 根据ID查询状态； -->
+    <select id="checkStateById" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select state from e_employee where emp_id = #{empId}
+    </select>
+
+    <!-- 根据入职申请ID查询主键ID； -->
+    <select id="selectIdByEntryId" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select
+        emp_id
+        from
+        e_employee
+        where
+        state &lt;&gt; -1 and entry_id = #{entryId}
+    </select>
+
+    <!-- 根据主键ID查询工号； -->
+    <select id="selectNumById" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        select
+        emp_num
+        from
+        e_employee
+        where
+        state &lt;&gt; -1 and emp_id = #{empId}
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empWorkYear != null">
+            and a.emp_work_year = #{empWorkYear}
+        </if>
+        <if test="empNum != null">
+            and a.emp_num like CONCAT('%', #{empNum}, '%')
+        </if>
+        <if test="empName != null">
+            and a.emp_name like CONCAT('%', #{empName}, '%')
+        </if>
+        <if test="empDept != null">
+            and a.emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null and companyCode !='JT' ">
+            and a.emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="deptIds != null and deptIds !='' ">
+            and a.emp_dept in (${deptIds})
+        </if>
+
+        <if test="empProfession != null">
+            and a.emp_profession = #{empProfession}
+        </if>
+        <if test="empPhone != null">
+            and a.emp_phone like CONCAT('%', #{empPhone}, '%')
+        </if>
+        <if test="empMarriage != null">
+            and a.emp_marriage = #{empMarriage}
+        </if>
+        <if test="empHouse != null">
+            and a.emp_house = #{empHouse}
+        </if>
+        <if test="empSecurityCode != null">
+            <choose>
+                <when test="empSecurityCode == 0">
+                    and a.emp_security_code is not null
+                </when>
+                <otherwise>
+                    and a.emp_security_code is null
+                </otherwise>
+            </choose>
+        </if>
+        <if test="createTimeStart != null">
+            and a.create_time &gt;= #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            and a.create_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="empHouse != null">
+            and a.emp_house = #{empHouse}
+        </if>
+        <if test="state != null">
+            <choose>
+                <!--查询审核中的员工-->
+                <when test="state == 6">
+                    and a.process_state &gt; 2
+                </when>
+                <otherwise>
+                    and a.state = #{state}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="empIds != null">
+            and a.emp_id in
+            <foreach item="empId" collection="empIds" index="index" open="(" close=")" separator=",">
+                #{empId}
+            </foreach>
+        </if>
+        <if test="empGender != null">
+            and b.emp_gender = #{empGender}
+        </if>
+        <if test="empRace != null">
+            and b.emp_race = #{empRace}
+        </if>
+        <if test="empCode != null">
+            and b.emp_code like CONCAT('%', #{empCode}, '%')
+        </if>
+        <if test="empBirthStart != null">
+            and b.emp_birth &gt;= #{empBirthStart}
+        </if>
+        <if test="empBirthEnd != null">
+            and b.emp_birth &lt;= #{empBirthEnd}
+        </if>
+        <if test="empDateStart != null">
+            and b.emp_date &gt;= #{empDateStart}
+        </if>
+        <if test="empDateEnd != null">
+            and b.emp_date &lt;= STR_TO_DATE(concat(#{empDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="empRelative != null">
+            and b.emp_relative = #{empRelative}
+        </if>
+        <if test="empNativeProvince != null">
+            and b.emp_native_province = #{empNativeProvince}
+        </if>
+        <if test="empNativeCity != null">
+            and b.emp_native_city = #{empNativeCity}
+        </if>
+        <if test="empNative != null">
+            and b.emp_native like CONCAT('%', #{empNative}, '%')
+        </if>
+        <if test="empEducation != null">
+            and b.emp_education = #{empEducation}
+        </if>
+        <if test="empEducationOther != null">
+            and b.emp_education_other like CONCAT('%', #{empEducationOther}, '%')
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.Employee" useGeneratedKeys="true"
+            keyProperty="empId">
+        insert into e_employee (
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_profession,
+        emp_phone,
+        emp_marriage,
+        emp_urgent,
+        emp_urgent_phone,
+        emp_work_location,
+        emp_age,
+        emp_work_year,
+        emp_house,
+        emp_family,
+        emp_contract_unit,
+        emp_contract_date,
+        emp_two_contract_date,
+        emp_three_contract_date,
+        emp_security_code,
+        emp_security_company,
+        emp_security_protocol,
+        emp_compliance,
+        emp_remark,
+        entry_id,
+        user_id,
+        user_name,
+        task_id,
+        item_id,
+        process_id,
+        process_state,
+        valid_code,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empProfession,jdbcType=INTEGER},
+        #{empPhone,jdbcType=VARCHAR},
+        #{empMarriage,jdbcType=INTEGER},
+        #{empUrgent,jdbcType=VARCHAR},
+        #{empUrgentPhone,jdbcType=VARCHAR},
+        #{empWorkLocation,jdbcType=VARCHAR},
+        #{empAge,jdbcType=INTEGER},
+        #{empWorkYear,jdbcType=FLOAT},
+        #{empHouse,jdbcType=INTEGER},
+        #{empFamily,jdbcType=VARCHAR},
+        #{empContractUnit,jdbcType=VARCHAR},
+        #{empContractDate,jdbcType=DATE},
+        #{empTwoContractDate,jdbcType=DATE},
+        #{empThreeContractDate,jdbcType=DATE},
+        #{empSecurityCode,jdbcType=VARCHAR},
+        #{empSecurityCompany,jdbcType=VARCHAR},
+        #{empSecurityProtocol,jdbcType=VARCHAR},
+        #{empCompliance,jdbcType=INTEGER},
+        #{empRemark,jdbcType=VARCHAR},
+        #{entryId,jdbcType=INTEGER},
+        #{userId,jdbcType=INTEGER},
+        #{userName,jdbcType=VARCHAR},
+        #{taskId,jdbcType=VARCHAR},
+        #{itemId,jdbcType=INTEGER},
+        #{processId,jdbcType=INTEGER},
+        #{processState,jdbcType=INTEGER},
+        #{validCode,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.Employee" useGeneratedKeys="true"
+            keyProperty="empId">
+        insert into e_employee
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empPhone != null">emp_phone,</if>
+            <if test="empMarriage != null">emp_marriage,</if>
+            <if test="empUrgent != null">emp_urgent,</if>
+            <if test="empUrgentPhone != null">emp_urgent_phone,</if>
+            <if test="empWorkLocation != null">emp_work_location,</if>
+            <if test="empAge != null">emp_age,</if>
+            <if test="empWorkYear != null">emp_work_year,</if>
+            <if test="empHouse != null">emp_house,</if>
+            <if test="empFamily != null">emp_family,</if>
+            <if test="empContractUnit != null">emp_contract_unit,</if>
+            <if test="empContractDate != null">emp_contract_date,</if>
+            <if test="empTwoContractDate != null">emp_two_contract_date,</if>
+            <if test="empThreeContractDate != null">emp_three_contract_date,</if>
+            <if test="empSecurityCode != null">emp_security_code,</if>
+            <if test="empSecurityCompany != null">emp_security_company,</if>
+            <if test="empSecurityProtocol != null">emp_security_protocol,</if>
+            <if test="empCompliance != null">emp_compliance,</if>
+            <if test="empRemark != null">emp_remark,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null">user_name,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="processId != null">process_id,</if>
+            <if test="processState != null">process_state,</if>
+            <if test="validCode != null">valid_code,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empPhone != null">#{empPhone,jdbcType=VARCHAR},</if>
+            <if test="empMarriage != null">#{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empUrgent != null">#{empUrgent,jdbcType=VARCHAR},</if>
+            <if test="empUrgentPhone != null">#{empUrgentPhone,jdbcType=VARCHAR},</if>
+            <if test="empWorkLocation != null">#{empWorkLocation,jdbcType=VARCHAR},</if>
+            <if test="empAge != null">#{empAge,jdbcType=INTEGER},</if>
+            <if test="empWorkYear != null">#{empWorkYear,jdbcType=FLOAT},</if>
+            <if test="empHouse != null">#{empHouse,jdbcType=INTEGER},</if>
+            <if test="empFamily != null">#{empFamily,jdbcType=VARCHAR},</if>
+            <if test="empContractUnit != null">#{empContractUnit,jdbcType=VARCHAR},</if>
+            <if test="empContractDate != null">#{empContractDate,jdbcType=DATE},</if>
+            <if test="empTwoContractDate != null">#{empTwoContractDate,jdbcType=DATE},</if>
+            <if test="empThreeContractDate != null">#{empThreeContractDate,jdbcType=DATE},</if>
+            <if test="empSecurityCode != null">#{empSecurityCode,jdbcType=VARCHAR},</if>
+            <if test="empSecurityCompany != null">#{empSecurityCompany,jdbcType=VARCHAR},</if>
+            <if test="empSecurityProtocol != null">#{empSecurityProtocol,jdbcType=VARCHAR},</if>
+            <if test="empCompliance != null">#{empCompliance,jdbcType=INTEGER},</if>
+            <if test="empRemark != null">#{empRemark,jdbcType=VARCHAR},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="userId != null">#{userId,jdbcType=INTEGER},</if>
+            <if test="userName != null">#{userName,jdbcType=VARCHAR},</if>
+            <if test="taskId != null">#{taskId,jdbcType=VARCHAR},</if>
+            <if test="itemId != null">#{itemId,jdbcType=INTEGER},</if>
+            <if test="processId != null">#{processId,jdbcType=INTEGER},</if>
+            <if test="processState != null">#{processState,jdbcType=INTEGER},</if>
+            <if test="validCode != null">#{validCode,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <insert id="insertSelectiveFormExcel" parameterType="java.util.List"
+            useGeneratedKeys="true"
+            keyProperty="empId">
+        insert into e_employee
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            emp_num,
+            emp_name,
+            emp_dept,
+            emp_profession,
+            emp_phone,
+            emp_marriage,
+            emp_urgent,
+            emp_urgent_phone,
+            emp_work_location,
+            emp_age,
+            emp_work_year,
+            emp_house,
+            emp_family,
+            emp_contract_unit,
+            emp_contract_date,
+            emp_two_contract_date,
+            emp_three_contract_date,
+            emp_security_code,
+            emp_security_company,
+            emp_security_protocol,
+            emp_compliance,
+            emp_remark,
+            entry_id,
+            user_id,
+            user_name,
+            task_id,
+            item_id,
+            process_id,
+            process_state,
+            valid_code,
+            create_id,
+            create_name,
+            create_time,
+            update_id,
+            update_name,
+            update_time,
+            state,
+            version
+        </trim>
+        values
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.empNum,jdbcType=VARCHAR},
+            #{element.empName,jdbcType=VARCHAR},
+            #{element.empDept,jdbcType=INTEGER},
+            #{element.empProfession,jdbcType=INTEGER},
+            #{element.empPhone,jdbcType=VARCHAR},
+            #{element.empMarriage,jdbcType=INTEGER},
+            #{element.empUrgent,jdbcType=VARCHAR},
+            #{element.empUrgentPhone,jdbcType=VARCHAR},
+            #{element.empWorkLocation,jdbcType=VARCHAR},
+            #{element.empAge,jdbcType=INTEGER},
+            #{element.empWorkYear,jdbcType=FLOAT},
+            #{element.empHouse,jdbcType=INTEGER},
+            #{element.empFamily,jdbcType=VARCHAR},
+            #{element.empContractUnit,jdbcType=VARCHAR},
+            #{element.empContractDate,jdbcType=DATE},
+            #{element.empTwoContractDate,jdbcType=DATE},
+            #{element.empThreeContractDate,jdbcType=DATE},
+            #{element.empSecurityCode,jdbcType=VARCHAR},
+            #{element.empSecurityCompany,jdbcType=VARCHAR},
+            #{element.empSecurityProtocol,jdbcType=VARCHAR},
+            #{element.empCompliance,jdbcType=INTEGER},
+            #{element.empRemark,jdbcType=VARCHAR},
+            #{element.entryId,jdbcType=INTEGER},
+            #{element.userId,jdbcType=INTEGER},
+            #{element.userName,jdbcType=VARCHAR},
+            #{element.taskId,jdbcType=VARCHAR},
+            #{element.itemId,jdbcType=INTEGER},
+            #{element.processId,jdbcType=INTEGER},
+            #{element.processState,jdbcType=INTEGER},
+            #{element.validCode,jdbcType=VARCHAR},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.state,jdbcType=INTEGER},
+            #{element.version,jdbcType=INTEGER}
+        </foreach>
+    </insert>
+
+    <update id="updateFromExcel" parameterType="com.qinfei.qferp.entity.employ.Employee">
+        update e_employee
+        <set>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empPhone != null">emp_phone = #{empPhone,jdbcType=VARCHAR},</if>
+            <if test="empWorkYear != null">emp_work_year = #{empWorkYear,jdbcType=FLOAT},</if>
+            <if test="empMarriage != null">emp_marriage = #{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empHouse != null">emp_house = #{empHouse,jdbcType=INTEGER},</if>
+            <if test="empContractUnit != null">emp_contract_unit = #{empContractUnit,jdbcType=VARCHAR},</if>
+            <if test="empContractDate != null">emp_contract_date = #{empContractDate,jdbcType=DATE},</if>
+            <if test="empTwoContractDate != null">emp_two_contract_date = #{empTwoContractDate,jdbcType=DATE},</if>
+            <if test="empThreeContractDate != null">emp_three_contract_date = #{empThreeContractDate,jdbcType=DATE},</if>
+            <if test="empSecurityCode != null">emp_security_code = #{empSecurityCode,jdbcType=VARCHAR},</if>
+            <if test="empSecurityCompany != null">
+                emp_security_company = #{empSecurityCompany,jdbcType=VARCHAR},
+            </if>
+            <if test="empSecurityProtocol != null">
+                emp_security_protocol = #{empSecurityProtocol,jdbcType=VARCHAR},
+            </if>
+            <if test="empCompliance != null">emp_compliance = #{empCompliance,jdbcType=INTEGER},</if>
+            <if test="empRemark != null">emp_remark = #{empRemark,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        <where>
+            entry_id = #{entryId,jdbcType=INTEGER}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByEntryId" parameterType="com.qinfei.qferp.excel.EmployeeExcelInfo">
+        update e_employee
+        <set>
+            update_id = #{updateId,jdbcType=INTEGER},
+            update_name = #{updateName,jdbcType=VARCHAR},
+            update_time = #{updateTime,jdbcType=TIMESTAMP},
+            state = -1
+        </set>
+        <where>
+            entry_id = #{entryId,jdbcType=INTEGER}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.Employee">
+        update e_employee
+        <include refid="EmployCommon.deleteInfo"/>
+        where emp_id = #{empId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 批量更新状态； -->
+    <update id="updateStateByBatchId" parameterType="java.util.Map">
+        update
+        e_employee
+        <set>
+            <if test="validCode != null">
+                <choose>
+                    <when test="validCode == 0">
+                        valid_code = null,
+                    </when>
+                    <otherwise>
+                        valid_code = #{validCode},
+                    </otherwise>
+                </choose>
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where state &lt;&gt; -1
+        and emp_id in
+        <foreach item="empId" collection="empIds" index="index" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </update>
+
+    <!-- 更新员工的一些额外信息； -->
+    <update id="updateExtraInfoByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.Employee">
+        update e_employee
+        <set>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empPhone != null">emp_phone = #{empPhone,jdbcType=VARCHAR},</if>
+            <if test="empWorkYear != null">emp_work_year = #{empWorkYear,jdbcType=FLOAT},</if>
+            <if test="empMarriage != null">emp_marriage = #{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empHouse != null">emp_house = #{empHouse,jdbcType=INTEGER},</if>
+            <if test="empContractUnit != null">emp_contract_unit = #{empContractUnit,jdbcType=VARCHAR},</if>
+            <if test="empContractDate != null">emp_contract_date = #{empContractDate,jdbcType=DATE},</if>
+            <if test="empTwoContractDate != null">emp_two_contract_date = #{empTwoContractDate,jdbcType=DATE},</if>
+            <if test="empThreeContractDate != null">emp_three_contract_date = #{empThreeContractDate,jdbcType=DATE},</if>
+            <if test="empSecurityCode != null">emp_security_code = #{empSecurityCode,jdbcType=VARCHAR},</if>
+            <if test="empSecurityCompany != null">
+                emp_security_company = #{empSecurityCompany,jdbcType=VARCHAR},
+            </if>
+            <if test="empSecurityProtocol != null">
+                emp_security_protocol = #{empSecurityProtocol,jdbcType=VARCHAR},
+            </if>
+            <if test="empCompliance != null">emp_compliance = #{empCompliance,jdbcType=INTEGER},</if>
+            <if test="empRemark != null">emp_remark = #{empRemark,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.Employee">
+        update e_employee
+        <set>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empPhone != null">emp_phone = #{empPhone,jdbcType=VARCHAR},</if>
+            <if test="empWorkYear != null">emp_work_year = #{empWorkYear,jdbcType=FLOAT},</if>
+            <if test="empMarriage != null">emp_marriage = #{empMarriage,jdbcType=INTEGER},</if>
+            <if test="empUrgent != null">emp_urgent = #{empUrgent,jdbcType=VARCHAR},</if>
+            <if test="empUrgentPhone != null">emp_urgent_phone = #{empUrgentPhone,jdbcType=VARCHAR},</if>
+            <if test="empWorkLocation != null">emp_work_location = #{empWorkLocation,jdbcType=VARCHAR},</if>
+            <if test="empAge != null">emp_age = #{empAge,jdbcType=INTEGER},</if>
+            <if test="empHouse != null">emp_house = #{empHouse,jdbcType=INTEGER},</if>
+            <if test="empFamily != null">emp_family = #{empFamily,jdbcType=VARCHAR},</if>
+            <if test="empContractUnit != null">emp_contract_unit = #{empContractUnit,jdbcType=VARCHAR},</if>
+            <if test="empContractDate != null">emp_contract_date = #{empContractDate,jdbcType=DATE},</if>
+            <if test="empTwoContractDate != null">emp_two_contract_date = #{empTwoContractDate,jdbcType=DATE},</if>
+            <if test="empThreeContractDate != null">emp_three_contract_date = #{empThreeContractDate,jdbcType=DATE},</if>
+            <if test="empSecurityCode != null">emp_security_code = #{empSecurityCode,jdbcType=VARCHAR},</if>
+            <if test="empSecurityCompany != null">
+                emp_security_company = #{empSecurityCompany,jdbcType=VARCHAR},
+            </if>
+            <if test="empSecurityProtocol != null">
+                emp_security_protocol = #{empSecurityProtocol,jdbcType=VARCHAR},
+            </if>
+            <if test="empCompliance != null">emp_compliance = #{empCompliance,jdbcType=INTEGER},</if>
+            <if test="empRemark != null">emp_remark = #{empRemark,jdbcType=VARCHAR},</if>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="state != null">state = #{state,jdbcType=INTEGER},</if>
+            <if test="userId != null">user_id = #{userId,jdbcType=INTEGER},</if>
+            <if test="userName != null">user_name = #{userName,jdbcType=VARCHAR},</if>
+            <if test="taskId != null">task_id = #{taskId,jdbcType=VARCHAR},</if>
+            <if test="itemId != null">item_id = #{itemId,jdbcType=INTEGER},</if>
+            <if test="processId != null">process_id = #{processId,jdbcType=INTEGER},</if>
+            <if test="processState != null">process_state = #{processState,jdbcType=INTEGER},</if>
+            <if test="validCode != null">
+                <choose>
+                    <when test="validCode == 0">
+                        valid_code = null,
+                    </when>
+                    <otherwise>
+                        valid_code = #{validCode,jdbcType=VARCHAR},
+                    </otherwise>
+                </choose>
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.Employee">
+        update
+        e_employee
+        set
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_phone = #{empPhone,jdbcType=VARCHAR},
+        emp_marriage = #{empMarriage,jdbcType=INTEGER},
+        emp_urgent = #{empUrgent,jdbcType=VARCHAR},
+        emp_urgent_phone = #{empUrgentPhone,jdbcType=VARCHAR},
+        emp_work_location = #{empWorkLocation,jdbcType=VARCHAR},
+        emp_age = #{empAge,jdbcType=INTEGER},
+        emp_work_year = #{empWorkYear,jdbcType=FLOAT},
+        emp_house = #{empHouse,jdbcType=INTEGER},
+        emp_family = #{empFamily,jdbcType=VARCHAR},
+        emp_contract_unit = #{empContractUnit,jdbcType=VARCHAR},
+        emp_contract_date = #{empContractDate,jdbcType=DATE},
+        emp_two_contract_date = #{empTwoContractDate,jdbcType=DATE},
+        emp_three_contract_date = #{empThreeContractDate,jdbcType=DATE},
+        emp_security_code = #{empSecurityCode,jdbcType=VARCHAR},
+        emp_security_company = #{empSecurityCompany,jdbcType=VARCHAR},
+        emp_security_protocol = #{empSecurityProtocol,jdbcType=VARCHAR},
+        emp_compliance = #{empCompliance,jdbcType=INTEGER},
+        emp_remark = #{empRemark,jdbcType=VARCHAR},
+        entry_id = #{entryId,jdbcType=INTEGER},
+        user_id = #{userId,jdbcType=INTEGER},
+        user_name = #{userName,jdbcType=VARCHAR},
+        task_id = #{taskId,jdbcType=VARCHAR},
+        item_id = #{itemId,jdbcType=INTEGER},
+        process_id = #{processId,jdbcType=INTEGER},
+        process_state = #{processState,jdbcType=INTEGER},
+        valid_code = #{validCode,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <!--查询公司所有发票-->
+    <select id="listEmpNumByCompanyCode" resultType="java.lang.String">
+        SELECT
+        e.emp_num
+        FROM
+        e_employee e
+        INNER JOIN sys_dept sd ON sd.id = e.emp_dept
+        WHERE
+        sd.company_code = #{companyCode}
+        <if test="year != null and year != ''">
+            AND e.emp_num LIKE CONCAT('%', #{year}, '%')
+        </if>
+        ORDER BY
+        e.emp_num ASC
+    </select>
+</mapper>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>建议管理</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" th:src="@{//js/propose/queryPropose.js(v=${version})}"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script>
+        $(function () {
+            var startTimeQc = {
+                elem: '#startTimeQc',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false
+            };
+            var endTimeQc = {
+                elem: '#endTimeQc',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: false,
+                istoday: false
+            };
+            var startTime = {
+                elem: '#startTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false
+            };
+            var endTime = {
+                elem: '#endTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: false,
+                istoday: false
+            };
+            laydate(startTimeQc);
+            laydate(endTimeQc);
+            laydate(startTime);
+            laydate(endTime);
+            grid = new dataGrid("query_table_logs3", gridObject, "query_pager_logs3", "queryCount");
+            //加载表格
+            grid.loadGrid();
+        });
+    </script>
+    <style type="text/css">
+        textarea{
+            resize: vertical;
+        }
+        .layui-select-title input{
+            padding-left: 30px;
+        }
+    </style>
+</head>
+<body>
+<!--查询条件-->
+<form id="queryForm">
+    <div class="ibox-title col-md-12" style="display: table" id="queryManageParam">
+        <div class="form-group form-inline col-md-12" style="margin-bottom: 10px">
+            <div class="col-md-3 form-group form-inline">
+                <label class=" control-label right0">提出人:</label>
+                <input type="text" id="userName" name="userName" autocomplete="off" class="form-control ">
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">问题描述:</label>
+                <input type="text" id="problem" name="problem" autocomplete="off" class="form-control">
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">建议类型:</label>
+                <select type="text" id="proposeTypeQc" name="proposeTypeQc" autocomplete="off" class="form-control" onchange="queryProposeManage()">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">状态:</label>
+                <select type="text" id="proposeState" name="proposeState" class="form-control" onchange="queryProposeManage()">
+                    <option value="">请选择</option>
+                    <option value="0" selected="selected">未处理</option>
+                    <option value="2">处理中</option>
+                    <option value="1">已处理</option>
+                    <option value="3">已确认</option>
+                    <option value="4">已驳回</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group form-inline col-md-12" style="margin-bottom: 10px">
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">解决人:</label>
+                <input type="text" id="handlePersonQc" name="handlePersonQc" class="form-control">
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">录入时间:</label>
+                <input placeholder="开始日期"style="width:120px;vertical-align: middle" autocomplete="off"
+                       class="form-control layer-date laydate-icon " id="startTimeQc" name="startTimeQc">
+                <input placeholder="结束日期" style="width:120px;vertical-align: middle" autocomplete="off"
+                       class="form-control layer-date laydate-icon" id="endTimeQc" name="endTimeQc">
+            </div>
+
+            <div class="col-md-3 form-group form-inline">
+                    <label class="control-label right0">解决时间:</label>
+                    <input placeholder="开始日期" style="width:120px;vertical-align: middle" autocomplete="off"
+                           class="form-control layer-date laydate-icon " id="startTime" name="startTime">
+                    <input placeholder="结束日期" style="width:120px;vertical-align: middle" autocomplete="off"
+                           class="form-control layer-date laydate-icon" id="endTime" name="endTime">
+            </div>
+            <div class="col-md-1 form-group form-inline">
+                <button type="button" id="querySearch" class="btn btn-primary">
+                    <i class="fa fa-search"></i>&nbsp;查询
+                </button>
+            </div>
+        </div>
+        <div class="form-group form-inline col-md-12" style="margin-bottom: 10px">
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">年:&nbsp;&nbsp;</label>
+                <select name="yearQc" class="form-control" onchange="queryProposeManage()">
+                    <option value=""></option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">月:&nbsp;&nbsp;</label>
+                <select name="monthQc" class="form-control" onchange="queryProposeManage()">
+                    <option value=""></option>
+                    <option value="1">一月</option>
+                    <option value="2">二月</option>
+                    <option value="3">三月</option>
+                    <option value="4">四月</option>
+                    <option value="5">五月</option>
+                    <option value="6">六月</option>
+                    <option value="7">七月</option>
+                    <option value="8">八月</option>
+                    <option value="9">九月</option>
+                    <option value="10">十月</option>
+                    <option value="11">十一月</option>
+                    <option value="12">十二月</option>
+                </select>
+            </div>
+            <div class="col-md-3 form-group form-inline">
+                <label class="control-label right0">处理结果:&nbsp;&nbsp;</label>
+                <select name="handleResultQc" class="form-control" onchange = "queryProposeManage()">
+                    <option value=""></option>
+                    <option value="1">已处理</option>
+                    <option value="2">处理中</option>
+                    <option value="3">指定给其他人</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+</form>
+<div>
+    <div class="ibox float-e-margins" style="margin: 0px;">
+        <div class="ibox-title">
+            <button id="exportPropose" class="btn btn-primary" type="button" style="margin-top: -7px">
+                <i class="glyphicon glyphicon-export"></i>&nbsp;导出
+            </button>
+        </div>
+        <div class="tabs-container">
+            <ul class="nav nav-tabs" id="tabList2">
+                <li class="active" id="tabChild0"><a data-toggle="tab" aria-expanded="true">
+                    <span class="text-success">建议状态</span></a></li>
+                <li class="" id="tabChild1"><a data-toggle="tab" aria-expanded="true"><span>未处理</span></a></li>
+                <li class="" id="tabChild2"><a data-toggle="tab" aria-expanded="true"><span>处理中</span></a></li>
+                <li class="" id="tabChild3"><a data-toggle="tab" aria-expanded="true"><span>已处理</span></a></li>
+                <li class="" id="tabChild4"><a data-toggle="tab" aria-expanded="true"><span>已确认</span></a></li>
+                <li class="" id="tabChild5"><a data-toggle="tab" aria-expanded="true"><span>已驳回</span></a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="jqGrid_wrapper">
+                    <table id="query_table_logs2"></table>
+                    <div id="query_pager_logs2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<form id="queryCount">
+    <div class="ibox-title col-md-12" style="display: table;" >
+        <div class="form-group form-inline col-md-12">
+            <div class="col-md-4 form-group form-inline">
+                <label class="control-label right0" style="font-size: 16px;">未录入建议人员&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            </div>
+        </div>
+        <div class="form-group form-inline col-md-12">
+            <div class="col-md-8 form-group form-inline">
+                <input id="timeRange" name="timeRange" type="hidden" class="form-control"/>
+                <label class="control-label right0">统计月份:</label>
+                <input placeholder="开始日期" style="width:14%;vertical-align: middle"
+                       class="form-control layer-date laydate-icon " id="startMonth" name="startMonth">
+                <input placeholder="结束日期" style="width:14%;vertical-align: middle"
+                       class="form-control layer-date laydate-icon" id="endMonth" name="endMonth">&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="button" id="find" class="btn btn-primary">
+                    <i class="fa fa-search"></i>&nbsp;查询
+                </button>
+                <button id="exportNoPropose" class="btn btn-primary" type="button">
+                    <i class="glyphicon glyphicon-export"></i>&nbsp;导出
+                </button>
+                <button id="timeSection" class="btn btn-primary" type="button">
+                    <i class="fa fa-gears"></i>&nbsp;设置时间区间
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+<!--统计本月未录入的人员-->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style='height:500px;overflow:auto;'>
+            <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;margin-top: -10px;">
+                <div class="jqGrid_wrapper">
+                    <table id="query_table_logs3"></table>
+                    <div id="query_pager_logs3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--处理建议-->
+<div class="modal inmodal" id="updateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:800px">
+            <div class="modal-header" style="line-height: 30px">
+                <h4>处理建议</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="updateForm" class="form-horizontal" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group" style="margin-top: 8px">
+                                    <label class="col-sm-2 control-label">录入人:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" name="id">
+                                        <input type="hidden" name="userId">
+                                        <input type="hidden" name="state">
+                                        <input type="hidden" name="itemId">
+                                        <input type="text" id="name" name="name" placeholder="录入人" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">录入部门:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" name="deptId">
+                                        <input type="text" id="deptName" name="deptName" placeholder="录入部门" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">录入年/月:</label>
+                                    <div class="col-sm-1">
+                                        <input type="text" id="year" name="year" placeholder="录入年" class="form-control">
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input type="text" id="month" name="month" placeholder="录入月" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">录入时间:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="entryTime" name="entryTime" placeholder="录入时间" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">建议类型:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" id="adviceType" name="proposeType">
+                                        <select id="proposeType" class="form-control" disabled="disabled">
+                                            <option value="">请选择</option>
+                                        </select>
+                                    </div>
+                                    <label class="col-sm-1 control-label">处理时间:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" name="handleTime" id="handleTime" placeholder="处理时间" class="form-control"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">问题描述:</label>
+                                    <div class="col-sm-8">
+                                        <textarea rows="6" cols="30" id="problemDescription" name="problemDescription" placeholder="问题描述" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px">
+                                    <label class="col-sm-2 control-label">期望的解决方案:</label>
+                                    <div class="col-sm-8">
+                                        <textarea rows="6" cols="30" id="expectSolution" name="expectSolution" placeholder="期望的解决方案" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">处理人:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="handlePerson" name="handlePerson" placeholder="处理人" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">处理结果<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-2">
+                                        <select name="handleResult" id="handleResult2" class="form-control" required onchange="handleChange()">
+                                            <option value=""></option>
+                                            <option value="1">已处理</option>
+                                            <option value="2">处理中</option>
+                                            <option value="3">指定给其他人</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="show">
+                                        <label class="col-sm-1 control-label" style="margin-left: -6px;">指定人<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-2 layui-form" style="position: relative;padding-left: 0px;">
+                                            <i class="fa fa-search" style="position: absolute;top: 13px;left: 12px;z-index: 1;"></i>
+                                            <select lay-verify="" lay-search name="appointPerson" id="appointPerson" class="form-control" onblur="changePerson()">
+                                                <option value="">请选择</option>
+                                            </select>
+                                            <span id="message" style="color: #7b1fa2;font-size: 14px"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">历史处理意见:</label>
+                                    <div class="col-sm-8" id="showHistoryAdvice">
+
+                                    </div>
+                                </div>
+                                <div class="form-group layui-form">
+                                    <label class="col-sm-2 control-label">详细处理意见<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea rows="6" cols="30" placeholder="详细处理意见" id="handleAdvice4" required name="handleAdvice" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary handle" id="handle" onclick="submitHander2(this,'/propose/handleAdvice',1)">
+                                        <i class="fa fa-save"></i>&nbsp;处理
+                                    </button>
+                                    <button type="button" class="btn btn-danger backButton" id="cancel"
+                                            data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--建议管理统计时间设置-->
+<div class="modal inmodal" id="setTimeSectionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:750px">
+        <div class="modal-content animated bounceInRight" style="height:450px">
+            <div class="modal-header">
+                <h2>建议管理统计时间设置</h2>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content" style="height: 50%">
+                <form id="setTimeSectionForm" class="form-horizontal" method="post">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <div class="col-sm-2"></div>
+                                <label class="col-sm-3 control-label">建议统计时间设置<span class="text-red">*</span>:</label>
+                                <div class="col-sm-2"></div>
+                                <div class="layui-form col-sm-3">
+                                    <select lay-filter="timeFilter" id="timeState" name="state" class="form-control">
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-3">
+                                    <input id="startTimeSection" name="startTime" class="form-control"
+                                           placeholder="开始时间" readonly/>
+                                </div>
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-3">
+                                    <input id="endTimeSection" name="endTime" class="form-control" placeholder="结束时间"
+                                           readonly/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">创建人:</label>
+                                <div class="col-sm-3">
+                                    <input id="createName" name="createName" class="form-control"
+                                           placeholder="创建人" readonly/>
+                                </div>
+                                <label class="col-sm-2 control-label">创建部门:</label>
+                                <div class="col-sm-3">
+                                    <input id="createDeptName" name="deptName" class="form-control"
+                                           placeholder="创建部门" readonly/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="setTime" type="button" class="btn btn-primary set" onclick="submitTimeSection(this)">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button type="button" class="btn btn-danger backButton" id="cancel3"
+                        data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--建议查看-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:800px">
+            <div class="modal-header" style="line-height: 30px">
+                <h4 class="view">建议详情</h4>
+                <h4 class="confirm">确认建议详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="viewForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group" style="margin-top: 8px">
+                                    <label class="col-sm-2 control-label">录入人:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" name="id" id="proposeId">
+                                        <input type="hidden" name="userId">
+                                        <input type="hidden" name="state" id="state">
+                                        <input type="hidden" name="itemId">
+                                        <input type="text" id="name3" name="name" placeholder="录入人" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">录入部门:</label>
+                                    <div class="col-sm-2">
+                                        <input type="hidden" name="deptId">
+                                        <input type="text" id="deptName3" name="deptName" placeholder="录入部门" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">录入年/月:</label>
+                                    <div class="col-sm-1">
+                                        <input type="text" id="year3" name="year" placeholder="录入年" class="form-control">
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <input type="text" id="month3" name="month" placeholder="录入月" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">录入时间:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="entryTime3" name="entryTime" placeholder="录入时间" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">建议类型:</label>
+                                    <div class="col-sm-2">
+                                        <select id="proposeType3" name="proposeType" class="form-control" disabled="disabled">
+                                            <option value="">请选择</option>
+                                        </select>
+                                    </div>
+                                    <label class="col-sm-1 control-label">处理时间:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" name="handleTime" id="handleTime3" placeholder="处理时间" class="form-control "/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">问题描述:</label>
+                                    <div class="col-sm-8">
+                                        <textarea rows="6" cols="30" id="problemDescription3" name="problemDescription" placeholder="问题描述" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px">
+                                    <label class="col-sm-2 control-label">期望的解决方案:</label>
+                                    <div class="col-sm-8">
+                                        <textarea rows="6" cols="30" id="expectSolution3" name="expectSolution" placeholder="期望的解决方案" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">处理人:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="handlePerson3" name="handlePerson" placeholder="处理人" class="form-control">
+                                    </div>
+                                    <label class="col-sm-1 control-label">处理结果<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-2">
+                                        <select name="handleResult" id="handleResult3" class="form-control" required onchange="handleChange()">
+                                            <option value=""></option>
+                                            <option value="1">已处理</option>
+                                            <option value="2">处理中</option>
+                                            <option value="3">指定给其他人</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="showView" style="display: none;">
+                                        <label class="col-sm-1 control-label">指定人:</label>
+                                        <div class="col-sm-2">
+                                            <select name="appointPerson" id="appointPerson3" class="form-control">
+                                                <option value="">请选择</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">历史处理意见:</label>
+                                    <div class="col-sm-8" id="showHistoryAdvice3">
+
+                                    </div>
+                                </div>
+                                <!--<div class="form-group">-->
+                                    <!--<label class="col-sm-2 control-label">详细处理意见:</label>-->
+                                    <!--<div class="col-sm-8">-->
+                                        <!--<textarea rows="6" cols="30" placeholder="详细处理意见" id="handleAdvice3" name="handleAdvice" class="form-control"></textarea>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary confirm" id="review" onclick="submitHander2(this,'/propose/confirmAdvice',0)">
+                                        <i class="fa fa-save"></i>&nbsp;确认
+                                    </button>
+                                    <button type="button" class="btn btn-warning confirm" id="back" onclick="submitHander2(this,'/propose/confirmAdvice',3)">
+                                        <i class="fa fa-reply"></i>&nbsp;驳回
+                                    </button>
+                                    <button type="button" class="btn btn-danger backButton" id="cancel2"
+                                            data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

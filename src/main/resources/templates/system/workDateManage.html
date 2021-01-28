@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>日期管理</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/system/workDateManage.js"></script>
+    <style type="text/css">
+        .ui-jqgrid{
+            width: 99% !important;
+        }
+        .ui-jqgrid-bdiv{/*表格展示滚动条*/
+            overflow: auto !important;
+        }
+
+        /*日历*/
+        .planCalender{
+            width: 100%;height: 355px;float: left;display:block;border: 1px solid #eeeeee;overflow-y: auto;
+        }
+        .planCalenderMonth{
+            width: 100%;height: 80px;float: left;
+        }
+        .planCalenderMonthLeft{
+            width: 28%;height: 80px;line-height: 80px;float: left;
+        }
+        .planCalenderMonthText{
+            width: 100%;height: 60px;line-height: 60px;color: #5a5b5b;font-size: 18px;font-weight:bold;font-family: SourceHanSansCN-Bold;float: left;padding-left: 20%;
+        }
+        .planCalenderYearText{
+            width: 100%;height: 20px;line-height: 20px;float: left;font-size: 10px;padding-left: 20%;margin-top: -15px;
+        }
+        .planCalenderMonthChange{
+            width: 72%;height: 60px;line-height: 60px;float: left;text-align: right;font-size: 18px;font-weight:bold;font-family: SourceHanSansCN-Bold;padding-right: 5%;
+        }
+        .planCalenderWeek{
+            width: 100%;height: 40px;line-height: 40px;float: left;
+        }
+        .planCalenderWeek ul li{
+            width: 14.28%;text-align: center;font-weight: bold;float: left;font-family: SourceHanSansCN-Bold;max-width: 50px;
+        }
+        .planCalenderDay{
+            width: 100%;height: 230px;float: left;
+        }
+        .planCalenderDay ul li{
+            width: 14.28%;heigh:38px;line-height:38px;text-align: center;float: left;color: #5a5b5b;font-family: SourceHanSansCN-Bold;cursor: pointer;
+        }
+        .planCalenderDayText{
+            width: 100%;text-align: center;height: 38px;line-height: 38px;float: left;
+        }
+        .planCalenderDayText > div:first-child{
+            width: 42px;height: 42px;line-height: 38px;text-align: center;margin: 0 auto;
+        }
+        .otherMonthDay{
+            color: #999999;
+        }
+        .currentMonthDay{
+            color: #000000;
+        }
+        .dateClick{
+            /*color: #1c84c6;*/
+            background-color: #FFBB00;
+            color: white;
+        }
+        .zmDay{
+            color: red;
+        }
+        .jqDay{
+            height: 18px;width: 16px;position: relative;left: 3px;top: -42px;background-color: #FF4433;color: white;line-height: 18px;float: left;
+        }
+        .activeDay{
+            color: white;
+        }
+        .existDay{
+            color: #DEFAF2;
+        }
+        .planCalenderDayActive{
+            border:2px solid #FFBB00;
+            /*color: white;*/
+            /*border-radius: 100%;*/
+        }
+        .planCalenderDayPoint{
+            width: 100%;text-align: center;height: 38px;line-height: 38px;font-size: 40px;float: left;margin-top: -38px;
+        }
+        .whitePoint{
+            color: white;
+        }
+        .bluePoint{
+            color: #1c84c6;
+        }
+        .greyPoint{
+            color: #d5d5d5;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    reflushTable();
+                }
+            });
+
+            //加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    tabFromObj.tabTableSelect(data.index);
+                });
+            });
+
+            //加载时间控件
+            var startDate1 = {
+                elem: '#startDate1',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate1").val();
+                    var endTime = $("#endDate1").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startDate1").val("")
+                        return;
+                    }
+                    reflushTable();//刷新数据
+                }
+            };
+            laydate(startDate1);
+            var endDate1 = {
+                elem: '#endDate1',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate1").val();
+                    var endTime = $("#endDate1").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#endDate1").val("")
+                        return;
+                    }
+                    reflushTable();//刷新数据
+                }
+            };
+            laydate(endDate1);
+            //范围编辑日期
+            var startDate = {
+                elem: '#startDate',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startDate").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(startDate);
+            var endDate = {
+                elem: '#endDate',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#startDate").val();
+                    var endTime = $("#endDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#endDate").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(endDate);
+            //默认表单日期
+            var defaultStartDate = {
+                elem: '#defaultStartDate',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#defaultStartDate").val();
+                    var endTime = $("#defaultEndDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#defaultStartDate").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(defaultStartDate);
+            var defaultEndDate = {
+                elem: '#defaultEndDate',
+                format: 'YYYY-MM-DD',
+                istime: false,
+                istoday: false,
+                choose:function () {
+                    var startTime = $("#defaultStartDate").val();
+                    var endTime = $("#defaultEndDate").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#defaultEndDate").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(defaultEndDate);
+
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //日期类型改变事件
+                form.on('select(selDateType)', function(data){
+                   reflushTable();
+                });
+                //时间改变事件
+                form.on('select(timeQuantum)', function(data){
+                    showDate(data.value);
+                });
+            });
+
+            //导出功能
+            $("#tableExportBtn").click(function () {
+                var params = $("#queryForm").serializeJson();
+                location.href = "/workDate/exportWorkDate" + "?" + $.param(params);
+            })
+        });
+
+        //搜索单击事件
+        function searchBtn() {
+            reflushTable();
+        }
+    </script>
+</head>
+<body>
+<!--查询条件-->
+<form id="queryForm">
+    <div class="ibox-title">
+        <h4>查询条件</h4>
+    </div>
+    <div class="ibox-content" style="padding:0 0 0 0">
+        <div class="form-horizontal">
+            <div class="form-group" style="margin-top:5px;">
+                <label class="col-sm-1 control-label right0">时间范围:</label>
+                <div class="col-sm-1 layui-form">
+                    <!--时间段-->
+                    <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                        <option value="" selected>请选择日期</option>
+                        <option value="1">本周</option>
+                        <option value="2">本月</option>
+                        <option value="3">本年</option>
+                        <option value="4">日期范围</option>
+                    </select>
+                </div>
+
+                <div id="dateFormGroup" style="display: none;">
+                    <label class="col-sm-1 control-label right0">日期范围:</label>
+                    <div class="col-sm-3">
+                        <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                               class="form-control layer-date" id="startDate1" name="startDate">
+                        <span style="display:inline-block;padding:0 10px;">至</span>
+                        <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                               class="form-control layer-date" id="endDate1" name="endDate">
+                    </div>
+                </div>
+
+                <label class="col-sm-1 control-label right0">日期类型:</label>
+                <div class="col-sm-1 layui-form">
+                    <!--时间段-->
+                    <select id="selDateType" name="dateType" class="form-control height18" lay-search lay-filter="selDateType">
+                        <option value="" selected>请选择日期类型</option>
+                        <option value="0">工作日</option>
+                        <option value="1">休息日</option>
+                        <option value="2">法定节假日</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="button" id="searchButton" class="btn btn-primary"
+                            style="float:left;margin-left:20px;"
+                            onclick="searchBtn();">
+                        <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row" >
+    <div class="ibox">
+        <div class="ibox-title">
+            <button id="tableExportBtn" class="btn btn-info" type="button">
+                <i class="fa fa-download"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+            </button>
+            <div style="display: inline-block;padding-left: 20px;width: 92%;" title="1、单击下列表格数据行或者选中日历中日期时，左侧日历下方编辑栏目可进行编辑！">
+                <div style="display: inline-block;width: 33%;padding-left:10px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                    小技巧：1、单击下列表格数据行或者选中日历中日期时，左侧日历下方编辑栏目可进行编辑！
+                </div>
+                <div style="display: inline-block;width: 33%;padding-left:10px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;" title=" 2、取消日历中选中日期或者选择范围编辑栏目时，左侧日历下方范围编辑栏目可进行范围编辑！">
+                    2、取消日历中选中日期或者选择范围编辑栏目时，左侧日历下方范围编辑栏目可进行范围编辑！
+                </div>
+                <div style="display: inline-block;width: 33%;padding-left:10px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;" title="3、左侧日历下方默认值栏目是为系统添加默认日期（周一至周五为工作日，周末为休息日）！">
+                    3、左侧日历下方默认值栏目是为系统添加默认日期（周一至周五为工作日，周末为休息日）！
+                </div>
+            </div>
+        </div>
+        <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 15px !important;margin: 0 auto;">
+            <!--内容-->
+            <div style="border-bottom: 1px solid #c9c9c9;width: 100%;display: flex;">
+                <div style="border-right:1px solid #c9c9c9;width: 350px;">
+                    <!--日历-->
+                    <div class="planCalender" >
+                        <!--月份-->
+                        <div class="planCalenderMonth">
+                            <div class="planCalenderMonthLeft">
+                                <div class="planCalenderMonthText" id="calenderMonth">八月</div>
+                                <div class="planCalenderYearText" id="calenderYear">2019年</div>
+                            </div>
+                            <div class="planCalenderMonthChange">
+                                <span style="cursor: pointer;" onclick="scheduleObj.lastMonth();"><i class="fa fa-chevron-left"></i></span>&nbsp;&nbsp;
+                                <span style="cursor: pointer;" onclick="scheduleObj.nextMonth();"><i class="fa fa-chevron-right"></i></span>
+                            </div>
+                        </div>
+                        <!--星期-->
+                        <div class="planCalenderWeek">
+                            <ul>
+                                <li class="zmDay">日</li>
+                                <li>一</li>
+                                <li>二</li>
+                                <li>三</li>
+                                <li>四</li>
+                                <li>五</li>
+                                <li class="zmDay">六</li>
+                            </ul>
+                        </div>
+                        <!--日期-->
+                        <div class="planCalenderDay">
+                            <ul id="scheduleCalender">
+                                <!--<li>
+                                    <div class="planCalenderDayText">
+                                        <div class="otherMonthDay">
+                                            28
+                                        </div>
+                                    </div>
+                                    <div class="jqDay">
+                                        休
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="planCalenderDayText">
+                                        <div class="planCalenderDayActive">29</div>
+                                    </div>
+                                    <div class="jqDay">
+                                        法
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="planCalenderDayText">
+                                        <div class="otherMonthDay">30</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="planCalenderDayText">
+                                        <div class="currentMonthDay">31</div>
+                                    </div>
+                                    <div class="planCalenderDayPoint bluePoint">休</div>
+                                </li>-->
+
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!--新增编辑日期-->
+                    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="display: block;float: left;width:100%;">
+                        <ul class="layui-tab-title">
+                            <li class="tabTitle" id="rangeTab">范围编辑</li>
+                            <li class="tabTitle" id="editTab">编辑</li>
+                            <li class="tabTitle" id="defaultTab">默认值</li>
+                        </ul>
+                        <div class="layui-tab-content" style="width: 100%;height: 100%;padding: 0px !important;">
+                            <div class="tabContent" id="rangEditFormDiv">
+                                <form id="rangeEditForm" class="form-horizontal" method="post">
+                                    <div class="col-md-12" style="padding-top: 10px;">
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                <span class="text-red"> * </span>开始日期:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <input placeholder="开始日期" class="form-control layer-date" id="startDate" name="startDate" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                <span class="text-red"> * </span>结束日期:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <input placeholder="结束日期" class="form-control layer-date" id="endDate" name="endDate" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                日期类型:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <select id="dateType" name="dateType" class="form-control height18" lay-search lay-filter="dateType">
+                                                    <option value="0">工作日</option>
+                                                    <option value="1">休息日</option>
+                                                    <option value="2">法定节假日</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                备注:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <textarea name="remarks" maxlength="500" placeholder="备注" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="col-sm-12" style="text-align: right;">
+                                    <button id="batchEditBtn" class="btn btn-danger" type="button"  btn-type="admin" onclick="tabFromObj.batchEditWorkDate()">
+                                        <i class="fa fa-save"></i>&nbsp;编辑
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tabContent" id="editFormDiv" style="display: none;">
+                                <form id="editForm" class="form-horizontal" method="post">
+                                    <div class="col-md-12" style="padding-top: 10px;">
+                                        <input type="hidden" id="id" name="id"/>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                日期:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <input placeholder="日期" class="form-control" id="editWorkDate" name="workDate" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                日期类型:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <select id="editDateType" name="dateType" class="form-control height18" lay-search lay-filter="dateType">
+                                                    <option value="0">工作日</option>
+                                                    <option value="1">休息日</option>
+                                                    <option value="2">法定节假日</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                备注:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <textarea id="editRemarks" name="remarks" maxlength="500" placeholder="备注" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="col-sm-12" style="text-align: right;">
+                                    <button id="editBtn" class="btn btn-danger" type="button"  btn-type="admin" onclick="tabFromObj.eidtWorkDate()">
+                                        <i class="fa fa-save"></i>&nbsp;编辑
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="tabContent" id="defaultFormDiv">
+                                <form id="defaultForm" class="form-horizontal" method="post">
+                                    <div class="col-md-12" style="padding-top: 10px;">
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                <span class="text-red"> * </span>开始日期:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <input placeholder="开始日期" class="form-control layer-date" id="defaultStartDate" name="startDate" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                <span class="text-red"> * </span>结束日期:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <input placeholder="结束日期" class="form-control layer-date" id="defaultEndDate" name="endDate" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">
+                                                备注:
+                                            </label>
+                                            <div class="col-sm-7">
+                                                <textarea name="remarks" maxlength="500" placeholder="备注" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="col-sm-12" style="text-align: right;">
+                                    <button id="defaultBtn" class="btn btn-danger" type="button"  btn-type="admin" onclick="tabFromObj.initWorkDate()">
+                                        <i class="fa fa-save"></i>&nbsp;重置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--日期列表-->
+                <div class="jqGrid_wrapper" style="flex: 1;">
+                    <table id="workDateTable"></table>
+                    <div id="workDateTablePaper"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

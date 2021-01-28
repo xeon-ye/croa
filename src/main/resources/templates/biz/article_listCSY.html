@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>稿件管理（催收员）</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script th:src="@{/js/crm/common_util.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/commonDatagrid.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/biz/article_listCSY.js(v=${version})}"  data-th-inline="javascript"></script>
+    <style>
+        .right0 {
+            margin-right: -23px;
+        }
+
+        .option_button {
+            width: 60px;
+            float: left;
+            margin-left: 10px;
+            display: block;
+            background: rgb(24, 144, 255);
+            color: white;
+            border-width: 1px;
+            border-radius: 4px;
+        }
+
+        .option_button_head {
+            height: 25px;
+            margin-left: 5px;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        /*.layui-form-select dl {*/
+        /*    max-height: 100px;*/
+        /*}*/
+
+        .ui-jqgrid-bdiv {
+            overflow-x: scroll !important;
+        }
+
+        .ui-jqgrid .ui-jqgrid-htable thead th div {
+            text-align: center !important;
+        }
+
+        th.ui-th-column div, .ui-jqgrid tr.jqgrow td {
+            white-space: normal !important;
+            height: auto;
+        }
+    </style>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script th:inline="javascript">
+        $(function () {
+            $('body').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#searchButton").click();
+                }
+            });
+            var issuedDateStart = {
+                elem: '#issuedDateStart',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // issuedDateEnd.min = datas; //开始日选好后，重置结束日的最小日期
+                    // issuedDateEnd.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#issuedDateStart").val();
+                    var endTime = $("#issuedDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#issuedDateStart").val("")
+                        return;
+                    }
+                }
+            };
+            //从未到款点击进入就不需要查看前30天这个条件
+            if(getQueryString("custName")==null||getQueryString("custName")==undefined){
+                $('#issuedDateStart').val(laydate.now(-30, 'YYYY/MM/DD'));
+            }
+
+            var issuedDateEnd = {
+                elem: '#issuedDateEnd',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // issuedDateStart.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#issuedDateStart").val();
+                    var endTime = $("#issuedDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#issuedDateEnd").val("")
+                        return;
+                    }
+                }
+            };
+            var promiseDateStart = {
+                elem: '#promiseDateStart',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                //max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // promiseDateEnd.min = datas; //开始日选好后，重置结束日的最小日期
+                    // promiseDateEnd.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#promiseDateStart").val();
+                    var endTime = $("#promiseDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#promiseDateStart").val("")
+                        return;
+                    }
+                }
+            };
+            var promiseDateEnd = {
+                elem: '#promiseDateEnd',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                //max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // promiseDateStart.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#promiseDateStart").val();
+                    var endTime = $("#promiseDateEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("结束时间不能小于开始时间");
+                        $("#promiseDateEnd").val("")
+                        return;
+                    }
+                }
+            };
+
+
+            laydate(promiseDateStart);
+            laydate(promiseDateEnd);
+            laydate(issuedDateStart);
+            laydate(issuedDateEnd);
+
+            Views.loadParentMediaType("mType");
+
+            // 加载媒介；
+            loadAllMJ("#mediaUserId");
+
+            //创建表格对象
+            grid = new dataGrid("table", gridObject, "pager", "searchForm");
+            //加载表格
+            grid.loadGrid();
+            $("#table").setGridHeight(390);
+            //设置下面的按钮
+            grid.setNavGrid();
+
+            grid.addOptionButton([
+                {
+                    "text": "<i class=\" fa fa-sign-out\"></i>&nbsp;导出", "href": "javascript:Business.exportArt()"
+                }
+            ], "buttons");
+
+            $("input").change(function () {
+                $(this).css({color: "#00796a"})
+            });
+            $("select").change(function () {
+                $(this).css({color: "#00796a"})
+            });
+        });
+
+    </script>
+
+</head>
+
+<body>
+<!--&lt;!&ndash;导出不能用ajax，所以用表单&ndash;&gt;-->
+<form action="/article/exportArticleCSY" method="post" id="exportForm">
+    <input name="datas" type="hidden">
+</form>
+<!--查询条件-->
+<form id="searchForm">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label right0">发布时间：</label>
+                            <div class="col-sm-2">
+                                <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon" id="issuedDateStart"
+                                       name="issuedDateStart" readonly="readonly">
+                                <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon" id="issuedDateEnd"
+                                       name="issuedDateEnd" readonly="readonly">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center">
+                                <input type="hidden" id="deptId" name="deptId" class="form-control">
+                                <input type="text" id="deptName" class="form-control height18" placeholder="业务部门" readonly="readonly" style="width:120%">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center">
+                                <button type="button" class="btn btn-primary  glyphicon glyphicon-search" id="selDept"></button>
+                                <button type="button" class="btn btn-danger  glyphicon glyphicon-remove" id="cleanDept"></button>
+                            </div>
+                            <div class="col-sm-1 layui-form">
+                                <select lay-verify="" lay-search name="userId" id="userId"
+                                        class="form-control height18">
+                                    <option value="">业务员</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 layui-form">
+                                <select lay-verify="" lay-search id="mediaUserId" name="mediaUserId"
+                                        class="form-control height18">
+                                    <option value="">媒介</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1">
+                                <select name="mType" class="form-control height18">
+                                    <option value="">媒体板块</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" name="mediaName"
+                                       class="form-control height18" placeholder="媒体">
+                            </div>
+                            <div class="col-sm-2">
+                                <input type="text" name="title"
+                                       class="form-control height18" placeholder="稿件标题">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label right0">客户答应到款时间：</label>
+                            <div class="col-sm-2">
+                                <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon" id="promiseDateStart"
+                                       name="promiseDateStart" readonly="readonly">
+                                <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon" id="promiseDateEnd"
+                                       name="promiseDateEnd" readonly="readonly">
+                            </div>
+                            <div class="col-sm-2">
+                                <input type="text" name="companyName"
+                                       class="form-control height18" placeholder="客户公司名称">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="dockingPeopleName" name="dockingPeopleName"
+                                       class="form-control height18" placeholder="对接人">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="brand" name="brand"
+                                       class="form-control height18" placeholder="品牌">
+                            </div>
+                            <div class="col-sm-1">
+                                <select name="incomeStates" class="form-control height18">
+                                    <option value="">回款状态</option>
+                                    <option value="0">未回款</option>
+                                    <option value="2">部分回款</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1">
+                                <select name="invoiceStates" class="form-control height18">
+                                    <option value="">开票状态</option>
+                                    <option value="0">未开票</option>
+                                    <option value="1">已开票</option>
+                                    <option value="2">开票中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1">
+                                <select name="messState" class="form-control height18">
+                                    <option value="">烂账状态</option>
+                                    <option value="0">无烂账</option>
+                                    <option value="1">已烂账</option>
+                                    <option value="2">烂账中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1  form-inline">
+                                <button type="button" id="searchButton" class="btn btn-primary" onclick="grid.setPageSelected('artId');grid.search();">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12"  id="tj">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <div class="col-sm-2">
+                            <label>应收（报价）合计:￥</label><span id="saleAmountSum" class="text-danger">0</span>
+                        </div>
+                        <div class="col-sm-2">
+                            <label>回款（进账）合计:￥</label><span id="incomeAmountSum" class="text-danger">0</span>
+                        </div>
+                        <div class="col-sm-2">
+                            <label>税金合计:￥</label><span id="taxesSum" class="text-danger">0</span>
+                        </div>
+                        <div class="col-sm-2">
+                            <label>成本（请款）合计:￥</label><span id="outgoAmountSum" class="text-danger">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!--查询条件结束-->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-title" id="buttons">
+
+            </div>
+            <div class="ibox-content" style="padding-left: 5px;padding-right: 5px;">
+                <div class="form-horizontal">
+                    <div class="jqGrid_wrapper">
+                        <table id="table"></table>
+                        <div id="pager"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <h5>部门信息</h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools">
+                                        <!--<a class="collapse-link">-->
+                                        <!--<i class="fa fa-chevron-up"></i>-->
+                                        <!--</a>-->
+                                        <!--<a class="close-link">-->
+                                        <!--<i class="fa fa-times"></i>-->
+                                        <!--</a>-->
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+
+                                    <div id="treeview"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

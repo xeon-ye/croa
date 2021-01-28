@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>建议类型管理</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/system/querySuggest.js"></script>
+
+    <style type="text/css">
+        .select2-container--open{
+            z-index:9999999;
+        }
+        p img{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<!--查询条件-->
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <!--查询条件-->
+    <ul class="layui-tab-title">
+        <li class="layui-this" id="proposeTypeManage">建议类型管理</li>
+        <li id="proposeTipsManage">建议提示管理</li>
+    </ul>
+    <div class="layui-tab-content" style="padding: 0px;">
+        <input id="tabIndex" name="tabIndex" type="hidden"/>
+        <!--建议类型管理-->
+        <div id="proposeTypeTab" class="tabContent" style="height: 100%;width: 100%;">
+            <div class="wrapper wrapper-content animated fadeInRight" style="padding-top: 0px;">
+                <!--建议类型管理列表-->
+                <div class="row">
+                    <div class="ibox">
+                        <form id="queryProposeTypeForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+                            <!--查询条件-->
+                            <div class="ibox-title col-sm-12" style="display: table;border-top:0px;">
+                                <div class="form-group" style="margin-bottom: 7px">
+                                    <label class="col-sm-1 control-label">建议类型:</label>
+                                    <div class="col-sm-1" style="text-align:center">
+                                        <input type="text" name="nameQc" id="nameQc" class="form-control ">
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button type="button" id="suggestSearch" class="btn btn-primary">
+                                            <i class="fa fa-search"></i>&nbsp;查询
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--按钮操作-->
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="ibox">
+                                        <div class="ibox-title" style="border-top:#E7EAED 1px solid;">
+                                            <button id="addSuggest" class="btn btn-primary" type="button">
+                                                <i class="fa fa-plus"></i>&nbsp;新增建议类型
+                                            </button>
+                                        </div>
+                                        <div style="padding-left: 0px;padding-right: 0px;margin-top: 7px;">
+                                            <div class="jqGrid_wrapper">
+                                                <table id="query_suggest_table"></table>
+                                                <div id="query_suggest_pager"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--建议内容提示管理-->
+        <div id="proposeContentTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+            <div class="wrapper wrapper-content animated fadeInRight" style="padding-top: 0px;">
+                <div class="row">
+                    <div class="ibox">
+                        <!--建议内容提示管理-->
+                        <form id="queryGoodsTypeForm" autocomplete="off" method="post" class="form-horizontal">
+                            <div class="ibox-content" style="padding: 0px;">
+                                <!--查询条件-->
+                                <div class="ibox-title col-sm-12" style="display: table;border-top:0px;">
+                                    <div class="form-group" style="margin-bottom: 7px">
+                                        <label class="col-sm-1 control-label">配置类型:</label>
+                                        <div class="col-sm-1" style="text-align:center">
+                                            <select id="typeQc" name="typeQc" class="form-control">
+                                                <option value="">请选择</option>
+                                                <option value="1">提示内容</option>
+                                                <option value="2">制度链接</option>
+                                            </select>
+
+                                        </div>
+                                        <label class="col-sm-1 control-label">状态:</label>
+                                        <div class="col-sm-1" style="text-align:center">
+                                            <select id="stateQc" name="stateQc" class="form-control">
+                                                <option value="">请选择</option>
+                                                <option value="0">已保存</option>
+                                                <option value="1">已启用</option>
+                                                <option value="2">已停用</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <button type="button" id="suggestTipsSearch" class="btn btn-primary">
+                                                <i class="fa fa-search"></i>&nbsp;查询
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="ibox ">
+                                            <div class="ibox-title" style="border-top: #E7EAED 1px solid;">
+                                                <button id="addSuggestTips" onclick="suggestTipsObj.showSuggestTips()" class="btn btn-primary" type="button">
+                                                    <i class="fa fa-plus"></i>&nbsp;新增建议提示
+                                                </button>
+                                                <button id="addSuggestUrl" onclick="suggestTipsObj.showSuggestDocument()" class="btn btn-primary" type="button">
+                                                    <i class="fa fa-plus"></i>&nbsp;新增制度跳转
+                                                </button>
+                                            </div>
+                                            <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;margin-top: 7px;">
+                                                <div class="jqGrid_wrapper">
+                                                    <table id="query_suggestTips_table"></table>
+                                                    <div id="query_suggestTips_pager"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增编辑建议类型-->
+<div class="modal inmodal" id="editModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:800px">
+        <form id="editForm" class="form-horizontal layui-form" action="" type="post">
+            <div class="modal-content animated bounceInRight" style="height:600px">
+                <div class="modal-header">
+                    <h4 class="modal-title save">新增建议类型</h4>
+                    <h4 class="modal-title update">修改建议类型</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <input type="hidden" id="id" name="id"/>
+                                    <label class="col-sm-2 control-label">建议名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" name="name" id="name" required="" th:placeholder="请填写建议名称"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">创建人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="createId" name="createId"/>
+                                        <input type="text" class="form-control" name="createUser" id="createUser" readonly="readonly"/>
+                                    </div>
+                                    <label class="col-sm-2 control-label">创建时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" name="createTime" id="createTime" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">负责人<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3" id="showSelect2">
+                                        <input type="hidden" id="ids" name="ids"/>
+                                        <select id="type" onload="loadUser(this)" data-value="${data-value}" data-text="${data-value}" class="form-control" style="border: grey 1px solid" multiple>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注:</label>
+                                    <div class="col-sm-8">
+                                        <textarea cols="30" rows="6" id="desc" name="desc" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success save" id="saveBtn"
+                            onclick="submitSuggest(this,'/dict/saveAdvice')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="updateBtn"
+                            onclick="submitSuggest(this,'/dict/editAdvice')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增编辑建议提示内容-->
+<div class="modal inmodal" id="editSuggestTipsModal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+        <form id="editSuggestTipsForm" class="form-horizontal layui-form" action="" type="post">
+            <div class="modal-content animated bounceInRight" style="height:760px">
+                <div class="modal-header">
+                    <h4 class="modal-title save">新增建议提示</h4>
+                    <h4 class="modal-title update">修改建议提示</h4>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-12 form-group">
+                            <input type="hidden" name="id" id="id2"/>
+                            <input type="hidden" name="type" value="1"/>
+                            <label class="tips col-sm-2 control-label">
+                                <span class="text-red">*</span>建议提示:
+                            </label>
+                            <div class="tips col-sm-9">
+                                <textarea id="addTipsContent" name="content" style="width:100%;height:320px;"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-2 control-label">创建人:</label>
+                            <div class="col-sm-3">
+                                <input type="hidden" id="createId2" name="createId"/>
+                                <input type="text" class="form-control" id="createName2" name="createName" readonly="readonly"/>
+                            </div>
+                            <div class="col-sm-1"></div>
+                            <label class="col-sm-2 control-label">创建时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="createTime2" name="createTime" readonly="readonly"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-2 control-label">备注:</label>
+                            <div class="col-sm-9">
+                                <textarea cols="30" rows="6" name="remark" id="remark2" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success save" id="saveTipsBtn"
+                            onclick="suggestTipsObj.submitSuggestTips(this,'/proposeTips/saveProposeTips')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="updateTipsBtn"
+                            onclick="suggestTipsObj.submitSuggestTips(this,'/proposeTips/editProposeTips')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增编辑建议制度跳转-->
+<div class="modal inmodal" id="editSuggestDocumentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1000px">
+        <form id="editSuggestDocumentForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight" style="height:560px">
+                <div class="modal-header">
+                    <h4 class="modal-title save">新增建议制度跳转</h4>
+                    <h4 class="modal-title update">修改建议制度跳转</h4>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-12 form-group">
+                            <input type="hidden" name="id" id="id3"/>
+                            <input type="hidden" name="type" value="2"/>
+                            <label class="col-sm-2 control-label">制度名称<span class="text-red">*</span>:</label>
+                            <div class="col-sm-3 layui-form">
+                                <select class="form-control" lay-verify="" lay-search name="documentId" id="documentId">
+
+                                </select>
+                            </div>
+                            <div class="col-sm-1"></div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-2 control-label">创建人:</label>
+                            <div class="col-sm-3">
+                                <input type="hidden" id="createId3" name="createId"/>
+                                <input type="text" class="form-control" id="createName3" name="createName"
+                                       readonly="readonly"/>
+                            </div>
+                            <div class="col-sm-1"></div>
+                            <label class="col-sm-2 control-label">创建时间:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="createTime3" name="createTime"
+                                       readonly="readonly"/>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 form-group">
+                            <label class="col-sm-2 control-label">备注:</label>
+                            <div class="col-sm-9">
+                                <textarea cols="30" rows="6" name="remark" id="remark3" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success save" id="saveDocumentBtn"
+                            onclick="suggestTipsObj.submitSuggestDocument(this,'/proposeTips/saveProposeTips')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="editDocumentBtn"
+                            onclick="suggestTipsObj.submitSuggestDocument(this,'/proposeTips/editProposeTips')"><i class="fa fa-save"></i>&nbsp;保存
+                    </button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i
+                            class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

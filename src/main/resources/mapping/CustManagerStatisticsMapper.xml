@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CustManagerStatisticsMapper">
+    <!--权限相关-->
+    <!--<sql id="userQxSql">-->
+    <!--<if test="currentDeptQx == 'true'">-->
+    <!--<if test="currentDeptId != null and currentDeptId != ''">-->
+    <!--inner join(-->
+    <!--select u.id uid,d.id did from sys_dept d-->
+    <!--inner join sys_user u-->
+    <!--on u.dept_id = d.id-->
+    <!--where find_in_set(d.id,getChilds(#{currentDeptId}))-->
+    <!--)usersdepts-->
+    <!--${userTj}-->
+    <!--</if>-->
+    <!--</if>-->
+    <!--</sql>  -->
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <where>
+                <choose>
+                    <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                        and u.id=#{currentUserId}
+                    </when>
+                    <otherwise>
+                        <if test="companyCode!= null and companyCode != '' and companyCode != 'XH' and companyCode != 'JT'">
+                            AND u.company_code=#{companyCode}
+                        </if>
+                        <if test="deptIds != ''">
+                            AND u.`dept_id` IN (${deptIds})
+                        </if>
+                    </otherwise>
+                </choose>
+                <if test="userTj != ''">
+                    ${userTj}
+                </if>
+            </where>
+        </if>
+    </sql>
+
+    <sql id="selectDate">
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and ${timeField} &gt;= concat(year(now()),'-01-01')
+            and ${timeField} &lt;= concat(year(now()),'-12-31')
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(${timeField}) = year(now())
+            and QUARTER(${timeField}) = QUARTER(now())
+        </if>
+        <!--本月份-->
+        <if test="timeQuantum == 3">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+        </if>
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+            and day(${timeField}) = day(now())
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            <if test="issuedDateStart != null">
+                and ${timeField} &gt;= #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null">
+                and ${timeField} &lt;= #{issuedDateEnd}
+            </if>
+        </if>
+    </sql>
+
+    <select id="topStatistics" parameterType="map" resultType="map">
+        select a.*,b.* from(
+        select count(1) djkhs from t_crm_company_user ccu left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        where ccu.delete_flag = 0 and ccu.is_public = 0 and ccus.delete_flag = 0
+        <if test="currentUserId != null and currentUserId != ''">
+            and ccus.id = #{currentUserId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND ccus.`dept_id` IN (${deptIds})
+        </if>
+        <include refid="selectDate">
+            <property name="timeField" value="ccu.create_time"/>
+        </include>
+        ) a ,(
+        select count(DISTINCT(ord.cust_id)) cjkhs,sum(art.sale_amount) xsyj,
+        sum(art.profit) lryj,
+        sum(art.income_amount) hke
+        from t_biz_article art, t_biz_order ord
+        <!--权限相关,统计当前部门-->
+        <include refid="userQxSql">
+            <property name="userTj" value=" AND u.id = ord.user_id"/>
+        </include>
+        <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+            where 1=1
+        </if>
+        and ord.id = art.order_id
+        and art.state = 1 and art.issue_states = 4
+        <!--权限相关，统计当前用户-->
+        <if test="currentUserId != null and currentUserId != ''">
+            and ord.user_id = #{currentUserId}
+        </if>
+        <include refid="selectDate">
+            <property name="timeField" value="art.issued_date"/>
+        </include>
+        ) b
+    </select>
+
+    <!--统计各部门的男女人数-->
+    <select id="everyDeptUserCount" resultType="map">
+        <foreach collection="list" index="index" item="item" open="" separator=" UNION ALL "
+                 close=" order by deptId asc">
+            SELECT *
+            FROM (
+            SELECT
+            dept.id deptId,
+            dept.name deptName
+            FROM sys_dept dept
+            WHERE id = #{item} and dept.state>-2
+            ) a
+            LEFT JOIN (
+            SELECT sum(
+            case when u.sex = 0
+            then 1
+            else 0
+            end
+            ) nv,
+            sum(
+            case when u.sex != 0
+            then 1
+            else 0
+            end
+            ) nan
+            FROM sys_user u
+            INNER JOIN
+            (
+            SELECT
+            u.id uid,
+            d.id did
+            FROM sys_dept d
+            INNER JOIN sys_user u
+            ON u.dept_id = d.id
+            WHERE find_in_set(d.id, getChilds(#{item})) and u.state>-2
+            ) userdepts
+            ON u.id = userdepts.uid
+            ) b
+            ON 1 = 1
+        </foreach>
+    </select>
+
+    <select id="custPie" resultType="map" parameterType="map">
+        select
+        sum(case when ccu.cust_type = 1 then 1 else 0 end) dxkh,
+        sum(case when ccu.cust_type = 2 then 1 else 0 end) zxkh,
+        sum(case when ccu.cust_type = 3 then 1 else 0 end) xxkh,
+        sum(case when cc.type = 1 then 1 else 0 end) qykh,
+        sum(case when cc.type = 0 then 1 else 0 end) grkh,
+        sum(case when cc.standardize = 1 then 1 else 0 end) bzkh,
+        sum(case when cc.standardize = 0 then 1 else 0 end) fbzkh,
+        sum(case when ccu.normalize = 1 then 1 else 0 end) gfkh,
+        sum(case when ccu.normalize = 0 then 1 else 0 end) fgfkh,
+        sum(case when ccu.protect_strong = 1 then 1 else 0 end) qbhkh,
+        sum(case when ccu.protect_strong = 0 then 1 else 0 end) rbhkh,
+        sum(case when ccu.protect_level = 3 then 1 else 0 end) albh,
+        sum(case when ccu.protect_level = 2 then 1 else 0 end) blbh,
+        sum(case when ccu.protect_level = 1 then 1 else 0 end) clbh,
+        sum(case when ccu.protect_level = 0 then 1 else 0 end) dlbh
+        from t_crm_company_user ccu
+        left join t_crm_company cc on ccu.company_id = cc.id
+        left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        where ccu.delete_flag = 0 and ccu.is_public = 0
+        and ccus.delete_flag = 0
+        <if test="custId != null">
+            and ccu.id = #{custId}
+        </if>
+        <if test="currentUserId != null and currentUserId != ''">
+            and ccus.user_id = #{currentUserId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND ccus.`dept_id` IN (${deptIds})
+        </if>
+        <include refid="selectDate">
+            <property name="timeField" value="ccu.create_time"/>
+        </include>
+    </select>
+
+
+    <!--新的统计修改-上面的不使用-->
+    <!--权限功能：currentUserId为指定人员，不选默认全部-->
+    <sql id="currentUserQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '' or (companyCode = 'JT'))">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--时间条件：最近时间-->
+    <sql id="recentTime">
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(${timeField}, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(${timeField}) = year(now())
+            and QUARTER(${timeField}) = QUARTER(now())
+        </if>
+        <!--本月-->
+        <if test="timeQuantum == 3">
+            and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+            and day(${timeField}) = day(now())
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND ${timeField} <![CDATA[>=]]> #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND ${timeField} <![CDATA[<=]]> #{issuedDateEnd}
+            </if>
+        </if>
+    </sql>
+    <!--统计基础表-->
+    <sql id="statisticsBasicTable">
+        SELECT
+        tba.id,
+        tba.order_id,
+        tba.media_id,
+        tba.supplier_id,
+        tba.supplier_name,
+        tba.supplier_contactor,
+        tba.media_user_id,
+        tba.media_user_name,
+        tba.title,
+        tba.sale_amount,
+        tba.income_amount,
+        IF(tba.income_states != 1,IFNULL(tba.sale_amount,0)-IFNULL(tba.income_amount,0),0) as noIncomeAmount,
+        (case when TIMESTAMPDIFF(DAY,promise_date,now()) &gt; 0 and tba.income_states != 1
+        then (IFNULL(tba.sale_amount,0) - IFNULL(tba.income_amount,0)) else 0 end
+        ) as dqysIncomeAmount,
+        tba.pay_amount,
+        tba.outgo_amount,
+        tba.income_total_amount,
+        tba.other_pay,
+        tba.refund_amount,
+        tba.issued_date,
+        tbo.company_id as custCompanyId,
+        tbo.company_name as custCompanyName,
+        tbo.cust_id AS custId,
+        tbo.cust_name as custName,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        tba.profit as profit
+        FROM t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '' or (companyCode = 'JT'))">
+            inner join sys_dept sd on tbo.depat_id = sd.id
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and tbo.user_id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND sd.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND tbo.depat_id IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+    </sql>
+    <!--客户统计-->
+    <select id="getCustStatisticsByParam"  resultType="java.util.Map">
+        SELECT
+        count(distinct t.custId) AS custNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        ifnull(sum(t.income_amount),0) AS incomeAmount
+        FROM (<include refid="statisticsBasicTable"/>) t
+    </select>
+    <!--获取客户数-->
+    <select id="getCustNumByParam" resultType="java.lang.Integer">
+        select count(*) as djkhs
+        from t_crm_company_user ccu
+        left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        where ccu.delete_flag = 0 and is_public = 0 and ccus.delete_flag = 0
+        <if test="currentUserId != null and currentUserId != ''">
+            and ccus.user_id = #{currentUserId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND ccus.`dept_id` IN (${deptIds})
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="ccu.create_time"/>
+        </include>
+    </select>
+    <!--客户列表-->
+    <select id="listCustByParam" resultType="java.util.Map">
+        SELECT
+        cc.id as companyId,
+        cc.name as companyName,
+        cc.type as type,
+        cc.standardize as standardize,
+        cc.audit_flag as auditFlag,
+        ccu.id as companyUserId,
+        ccu.name as companyUserName,
+        ccu.cust_Type as custType,
+        ccu.normalize as normalize,
+        ccu.protect_level as protectLevel,
+        ccu.protect_strong as protectStrong,
+        ccu.dev_state as devState,
+        ccus.user_id as ywUserId,
+        ccus.user_name as ywUserName,
+        ccus.start_time as startTime,
+        ccus.end_time as endTime,
+        ccu.create_time as createTime
+        FROM t_crm_company_user ccu
+        left join t_crm_company cc on cc.id = ccu.company_id
+        left join t_crm_company_user_salesman ccus on ccu.id = ccus.company_user_id and ccus.state = 1
+        left join sys_user su on ccus.user_id = su.id
+        where ccu.delete_flag = 0 and is_public = 0 and ccus.delete_flag = 0
+        <if test="custId != null">
+            and ccu.id = #{custId}
+        </if>
+        <if test="currentUserId != null and currentUserId != ''">
+            and su.id = #{currentUserId}
+        </if>
+        <if test="deptIds != null and deptIds != ''">
+            AND su.`dept_id` IN (${deptIds})
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="ccu.create_Time"/>
+        </include>
+        ORDER BY ccu.id DESC
+    </select>
+
+</mapper>

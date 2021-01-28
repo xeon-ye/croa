@@ -1,0 +1,68 @@
+version: "3.3"
+
+services:
+  qferp:
+    #找到当前目录下的java文件夹构建
+    build: ./
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp
+    restart: always
+    environment:
+       TZ: Asia/Shanghai
+       web.port: 810
+       db.host: 172.16.159.136
+       db.port: 3306
+       db.name: xh-oa
+       redis.host: 172.16.159.136
+       redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "810:810"
+    networks:
+      - xh-net
+  qferp811:
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp811
+    restart: always
+    environment:
+       TZ: Asia/Shanghai
+       web.port: 811
+       db.host: 172.16.159.136
+       db.port: 3306
+       db.name: xh-oa
+       redis.host: 172.16.159.136
+       redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "811:811"
+    networks:
+      - xh-net
+  qferp812:
+    #镜像名称
+    image: qferp:latest
+    container_name: qferp812
+    restart: always
+    environment:
+      web.port: 812
+      db.host: 172.16.159.136
+      db.port: 3306
+      db.name: xh-oa
+      redis.host: 172.16.159.136
+      redis.password: xhhw123
+    volumes:
+      - /home/qferp/upfiles:/upfiles
+      - /home/qferp/logs:/deploy/logs
+    ports:
+      - "812:812"
+    networks:
+      - xh-net
+
+networks:
+  xh-net:
+    external: false

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.schedule.UserScheduleMapper">
+    <sql id="selectColumn">
+       tus.id,
+       tus.name,
+       tus.is_all_day as isAllDay,
+       tus.start_date as startDate,
+       tus.end_date as endDate,
+       tus.repeat_flag as repeatFlag,
+       tus.remind_flag as remindFlag,
+       tus.create_date as createDate,
+       tus.create_id as createId,
+       tus.update_date as updateDate,
+       tus.update_id as updateId,
+       tus.state,
+       tus.schedule_type as scheduleType,
+       tus.other_replate_id as otherReplateId,
+       tus.jump_title as jumpTitle,
+       tus.jump_url as jumpUrl
+    </sql>
+   <sql id="selectRelateColumn">
+       tusr.id as relateId,
+       tusr.schedule_id as scheduleId,
+       tusr.remind_date as remindDate,
+       tusr.repeat_date as repeatDate,
+       tusr.create_id as relateCreateId,
+       tusr.update_date as relateUpdateDate,
+       tusr.update_id as relateUpdateId,
+       tusr.state as relateState
+    </sql>
+
+   <!--新增计划-->
+   <insert id="save" parameterType="com.qinfei.qferp.entity.schedule.UserSchedule" useGeneratedKeys="true" keyProperty="id">
+      insert into t_user_schedule
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+         <if test="name != null and name != ''">name,</if>
+         <if test="isAllDay != null">is_all_day,</if>
+         <if test="startDate != null">start_date,</if>
+         <if test="endDate != null">end_date,</if>
+         <if test="repeatFlag != null">repeat_flag,</if>
+         <if test="remindFlag != null">remind_flag,</if>
+         <if test="createDate != null">create_date,</if>
+         <if test="createId != null">create_id,</if>
+         <if test="updateDate != null">update_date,</if>
+         <if test="updateId != null">update_id,</if>
+         <if test="state!= null">state,</if>
+         <if test="scheduleType!= null">schedule_type,</if>
+         <if test="otherReplateId!= null">other_replate_id,</if>
+         <if test="jumpTitle!= null and jumpTitle != ''">jump_title,</if>
+         <if test="jumpUrl!= null and jumpUrl != ''">jump_url</if>
+      </trim>
+      <trim prefix="values (" suffix=")" suffixOverrides=",">
+         <if test="name != null and name != ''">#{name},</if>
+         <if test="isAllDay != null">#{isAllDay},</if>
+         <if test="startDate != null">#{startDate},</if>
+         <if test="endDate != null">#{endDate},</if>
+         <if test="repeatFlag != null">#{repeatFlag},</if>
+         <if test="remindFlag != null">#{remindFlag},</if>
+         <if test="createDate != null">#{createDate},</if>
+         <if test="createId != null">#{createId},</if>
+         <if test="updateDate != null">#{updateDate},</if>
+         <if test="updateId != null">#{updateId},</if>
+         <if test="state!= null">#{state},</if>
+         <if test="scheduleType!= null">#{scheduleType},</if>
+         <if test="otherReplateId!= null">#{otherReplateId},</if>
+         <if test="jumpTitle!= null and jumpTitle != ''">#{jumpTitle},</if>
+         <if test="jumpUrl!= null and jumpUrl != ''">#{jumpUrl}</if>
+      </trim>
+   </insert>
+
+   <!--新增计划-->
+   <insert id="batchSave" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+      insert into t_user_schedule (
+        name,
+        is_all_day,
+        start_date,
+        end_date,
+        repeat_flag,
+        remind_flag,
+        create_date,
+        create_id,
+        update_date,
+        update_id,
+        state,
+        schedule_type,
+        other_replate_id,
+        jump_title,
+        jump_url
+      )
+      VALUES
+      <foreach collection="list" item="schedule" index="index" separator=",">
+      (
+         #{schedule.name},
+         #{schedule.isAllDay},
+         #{schedule.startDate},
+         #{schedule.endDate},
+         #{schedule.repeatFlag},
+         #{schedule.remindFlag},
+         now(),
+         #{schedule.createId},
+         now(),
+         #{schedule.updateId},
+         0,
+         #{schedule.scheduleType},
+         #{schedule.otherReplateId},
+         #{schedule.jumpTitle},
+         #{schedule.jumpUrl}
+      )
+      </foreach>
+   </insert>
+   
+   <!--查询所有能提醒的日程-->
+   <select id="listScheduleByParam" resultType="com.qinfei.qferp.entity.schedule.UserSchedule">
+      SELECT
+        <include refid="selectColumn"/>, <include refid="selectRelateColumn"/>
+      FROM
+        t_user_schedule tus
+      INNER JOIN t_user_schedule_relate tusr ON tus.id = tusr.schedule_id
+        AND tusr.state = 0
+      WHERE
+      tus.state = 0
+      <if test="userId != null">
+         AND tus.create_id = #{userId}
+      </if>
+      <if test="startDate != null and startDate != ''">
+         AND tusr.remind_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+      </if>
+      <if test="endDate != null and endDate != ''">
+         AND tusr.remind_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+      </if>
+   </select>
+
+   <!--查询指定用户日程日历数据-->
+   <select id="listScheduleCalendarByParam" resultType="java.util.Map">
+      SELECT
+        DATE_FORMAT(tusr.remind_date,'%Y-%m-%d') as remindDate,count(*) as num
+      FROM
+      t_user_schedule tus
+      INNER JOIN t_user_schedule_relate tusr ON tus.id = tusr.schedule_id
+      AND tusr.state = 0
+      WHERE
+      tus.state = 0
+      <if test="userId != null">
+         AND tus.create_id = #{userId}
+      </if>
+      <if test="startDate != null and startDate != ''">
+         AND tusr.remind_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y-%m-%d %T')
+      </if>
+      <if test="endDate != null and endDate != ''">
+         AND tusr.remind_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y-%m-%d %T')
+      </if>
+      GROUP BY DATE_FORMAT(tusr.remind_date,'%Y-%m-%d')
+   </select>
+
+   <!--查询指定时间的日程列表-->
+   <select id="listScheduleByDate"  resultType="com.qinfei.qferp.entity.schedule.UserSchedule">
+      SELECT
+      <include refid="selectColumn"/>, <include refid="selectRelateColumn"/>,
+       su.`name` as userName ,su.image as userImage,su.dept_id as deptId, su.dept_name as deptName
+      FROM
+      t_user_schedule tus
+      INNER JOIN t_user_schedule_relate tusr ON tus.id = tusr.schedule_id
+      AND tusr.state = 0
+      INNER JOIN sys_user su on tus.create_id = su.id AND su.state = 1
+      WHERE
+      tus.state = 0
+      <choose>
+         <when test="userId != null">
+            AND tus.create_id = #{userId}
+         </when>
+          <otherwise>
+             AND tus.remind_flag <![CDATA[<>]]> 0
+          </otherwise>
+      </choose>
+      AND DATE_FORMAT(tusr.remind_date,'%Y-%m-%d') = #{date}
+   </select>
+    <!--更加会议id 更新日程状态-->
+    <update id="updateSchedule"  parameterType="java.lang.Integer" useGeneratedKeys="true" keyProperty="id"  >
+        UPDATE t_user_schedule
+        <set>
+            <if test="updateId !=null">update_id=#{updateId},</if>
+            <if test="updateDate !=null">update_date=#{updateDate},</if>
+            <if test="state !=null">state=#{state},</if>
+        </set>
+        where
+        other_replate_id = #{otherReplateId}
+    </update>
+
+    <!--根据会议id 查询日程id-->
+    <select id="selectSchedule" resultType="java.lang.Integer">
+        SELECT
+        tus.id
+        FROM
+        t_user_schedule tus
+        where
+        tus.other_replate_id=#{otherReplateId}
+
+    </select>
+</mapper>

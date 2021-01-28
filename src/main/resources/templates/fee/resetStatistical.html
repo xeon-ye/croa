@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title >抹零统计管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/fee/resetStatistical.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script type="text/javascript" src="/js/flowable/workupProcessCompont.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#querySearch").click();
+                }
+            });
+            $('#firstDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#supplierSearch").click();
+                }
+            });
+            $('#secondDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#articleSearch").click();
+                }
+            });
+            $('#accountDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#accountSearch").click();
+                }
+            });
+            $('#borrowDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#borrowSearch").click();
+                }
+            });
+            var payStartTimeQc = {
+                elem: '#payStartTimeQc',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // payEndTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // payEndTimeQc.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#payStartTimeQc").val();
+                    var endTime = $("#payEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#payStartTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var payEndTimeQc = {
+                elem: '#payEndTimeQc',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // payStartTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#payStartTimeQc").val();
+                    var endTime = $("#payEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#payEndTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var applyStartTimeQc = {
+                elem: '#applyStartTimeQc',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // applyEndTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // applyEndTimeQc.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#applyStartTimeQc").val();
+                    var endTime = $("#applyEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyStartTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var applyEndTimeQc = {
+                elem: '#applyEndTimeQc',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // applyStartTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#applyStartTimeQc").val();
+                    var endTime = $("#applyEndTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyEndTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+
+            laydate(payEndTimeQc);
+            laydate(payStartTimeQc);
+            laydate(applyStartTimeQc);
+            laydate(applyEndTimeQc);
+
+
+            var backfillTimeState = {
+                elem: '#backfillTimeState',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    endTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    endTime.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var backfillTimeEnd = {
+                elem: '#backfillTimeEnd',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    startTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+
+            laydate(backfillTimeState);
+            laydate(backfillTimeEnd);
+
+            loadMJByMediaType("#mediaNameIdQc");
+
+            $( "#editModal" ).draggable();
+//            $().ready(function () {
+//                layui.use('form', function () {
+//                    layui.form.on('select(outgoTax)', function (data) {
+//                        showInputTaxPoint(data.value);
+//                    });
+//                })
+//            });
+
+        });
+    </script>
+</head>
+<div>
+    <div class="row">
+        <div class="col-sm-12" id="queryDiv">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <form id="queryForm" >
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">申请日期:</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon " id="applyStartTimeQc" name="applyStartTimeQc" readonly="readonly">
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="applyEndTimeQc" name="applyEndTimeQc" readonly="readonly">
+                                </div>
+
+                                <label class="col-sm-1 control-label">实际出款时间:</label>
+                                <div class="col-sm-2" style="min-width: 240px;">
+                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon " id="payStartTimeQc" name="payStartTimeQc" readonly="readonly">
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="payEndTimeQc" name="payEndTimeQc" readonly="readonly">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="supplierNameQc" name="supplierNameQc" class="form-control" placeholder="供应商公司">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="applyNameQc1" name="applyNameQc" class="form-control" placeholder="申请人">
+                                </div>
+                                <div class="col-sm-1 ">
+                                    <input type="text" id="accountNameQc" name="accountNameQc" class="form-control" placeholder="收款人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="payAmountQc" name="payAmountQc" class="form-control" placeholder="实际请款金额">
+                                </div>
+                            </div>
+                            <label class="col-sm-1 control-label">回填日期:</label>
+                            <div class="col-sm-2" style="min-width:240px;">
+                                <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon " id="backfillTimeState" name="backfillTimeState" readonly="readonly">
+                                <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon" id="backfillTimeEnd" name="backfillTimeEnd" readonly="readonly">
+                            </div>
+
+                                <div class="col-sm-1">
+                                    <input type="text" id="codeQc" name="codeQc" class="form-control" placeholder="请款编号">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="invoiceRise" name="invoiceRise" class="form-control" placeholder="进票抬头">
+                                </div>
+
+                            <div class="col-sm-1">
+                                <input type="text" id="outgoTax" name="outgoTax" class="form-control" placeholder="税点">
+                            </div>
+
+                                <div class="col-sm-1">
+                                    <input type="text" id="invoiceCode" name="invoiceCode" class="form-control" placeholder="发票编号">
+                                </div>
+                                <div class="col-sm-1">
+                                    <select class="form-control" name="invoiceType">
+                                        <option value="">专/普票</option>
+                                        <option value="1">普票</option>
+                                        <option value="2">专票</option>
+                                    </select>
+                                </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="invoiceTax" name="invoiceTax" class="form-control" placeholder="票面税点">
+                            </div>
+                                <input type="hidden" id="companyCode1" name="companyCode"/>
+                                <div id ="deptDiv" style="display:none" >
+                                    <div class="col-sm-1" style="text-align:center">
+                                        <input type="hidden" id="deptId1" name="deptId" class="form-control">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly"
+                                               style="width:120%" placeholder="申请部门">
+                                    </div>
+                                    <div class="col-sm-1" style="text-align:center">
+                                        <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                                                id="selDept"></button>
+                                        <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"
+                                                id="cleanDept"></button>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-content">
+                        <div class="form-horizontal" id="tj">
+                            <div class="col-sm-2 col-sm-3">
+                                <label>合计成本: ￥ </label><label id="costCombined" class="text-danger">0</label>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>请款成本抹零合计: ￥ </label><label id="costEraseAmountSum" class="text-danger">0</label>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>实际请款抹零合计: ￥ </label><label id="outgoEraseAmountSum" class="text-danger">0</label>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>税金合计: ￥ </label><label id="taxesTotalSum" class="text-danger">0</label>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>发票金额合计: ￥ </label><label id="actualRequestSum" class="text-danger">0</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox ">
+                <div>
+                    <div class="jqGrid_wrapper">
+                        <table id="query_table_logs"></table>
+                        <div id="query_pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h5 class="modal-title">部门信息</h5>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

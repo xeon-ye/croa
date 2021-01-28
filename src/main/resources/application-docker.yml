@@ -1,0 +1,582 @@
+server:
+  port: ${web.port}
+  session-timeout: 30
+  tomcat:
+    max-threads: 1000 #最大线程数
+    uri-encoding: UTF-8
+    max-connections: 20000 #最大连接数
+    max-http-header-size: 4048576
+  compression:
+    enabled: true
+    min-response-size: 20480
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,image/jpeg,image/gif,image/png
+  environment: official #环境 是否开发环境 official 正式环境 develop开发环境
+
+jodconverter:
+  local:
+    enabled: true
+    max-tasks-per-process: 1000
+    port-numbers: 27100,27101,27102,27103,27104,27105,27106,27107,27108,27109
+    office-home: /opt/openoffice4
+    #working-dir: /opt/openoffice4/workingdir
+
+spring:
+  application:
+    name: QFERP
+  datasource:
+    url: jdbc:mysql://${db.host}:${db.port}/${db.name}?useUnicode=true&characterEncoding=utf8&useSSL=false&autoReconnect=true&serverTimezone=UTC
+#    url: jdbc:mysql://172.16.159.136:3306/xh-oa?useUnicode=true&characterEncoding=utf8&useSSL=false
+    driver-class-name: com.mysql.jdbc.Driver
+    username: crerp
+    password: AyY3xhUIiMGK2KfTwHmXwQFOQ/WvRg3WWHilxIWxDqpOUwf5bS7qHydJ9wAmnVbAE25redqykxhvU5R804BrpA==
+    publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIWUt+phSA9RCcagB4OxieiqqYivWI3LEvczUepu3z5YF5d/ecYZZKzoVvi1zY5VjsAj0SA607yOUbjjfY64JLECAwEAAQ==
+    type: com.alibaba.druid.pool.DruidDataSource
+    initialization-mode: always
+    name: druid
+    # 下面为连接池的补充设置，应用到上面所有数据源中
+    # 初始化大小，最小，最大
+    druid:
+      initialSize: 5
+      minIdle: 5
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 # from dual
+      testWhileIdle: true
+      testOnBorrow: true
+      testOnReturn: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: config,stat,wall
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000;config.decrypt=true;config.decrypt.key=${spring.datasource.publicKey}
+      # 合并多个DruidDataSource的监控数据
+      useGlobalDataSourceStat: true
+
+  security:
+    basic:
+      enabled: false
+
+  rule: 0LdyywSl1X3iBru456uBdA==
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+#  http:
+#    encoding:
+#      charset: utf-8
+#      force: true
+#      enabled: true
+  mail:
+    host: smtp.163.com
+    username: iqinfei@163.com
+    password: haoshi1996
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+    default-encoding: UTF-8
+    protocol: smtp
+  #配置静态资源映射
+  mvc:
+    static-path-pattern: /static/**
+  resources:
+    static-locations: classpath:/templates/,classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,/druid/ch
+    # 资源缓存时间，单位秒
+    cache:
+      period: 604800ms
+    chain:
+      # 开启gzip压缩
+      gzipped: true
+      # 启用缓存
+      cache: true
+      enabled: true
+      strategy:
+#        fixed:
+#          enabled: true
+#          paths: /css/*,/image/*,/img/*,/js/*,/fonts/*,/layui/*,/plugins/*
+        content:
+          enabled: true
+          #          paths: /**
+          paths: /css/*,/image/*,/img/*,/js/*,/fonts/*,/layui/*,/plugins/*
+  thymeleaf:
+    cache: true
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+  transaction:
+    rollback-on-commit-failure: true
+    cache:
+      type: redis
+      cache-names: redisCache
+      redis:
+        time-to-live: 60s;
+        use-key-prefix: true
+        key-prefix: cache
+  redis:
+    database: 0
+#    host: 172.16.159.136
+    host: ${redis.host}
+    password: ${redis.password}
+    port: 6379
+    timeout: 10000
+    #    cluster:
+    #      #nodes: 127.0.0.1:6379,192.168.211.134:7001,192.168.211.134:7002
+    #      maxRedirects: 6
+    lettuce:
+      pool:
+        max-idle: 10
+        min-idle: 5
+        max-wait: 10000ms
+        max-active: 500
+    jedis:
+      pool:
+        max-idle: 10
+        min-idle: 5
+        max-wait: 10000ms
+        max-active: 500
+
+
+#redis:
+#  #  host: 127.0.0.1
+#  host: 192.168.2.162
+#  port: 6379
+#  password: 123456
+#  pool:
+#    max-active: 500
+#    max-idle: 10
+#    max-wait: 100000
+#  timeout: 2000
+#  cluster:
+#    #    nodes: 127.0.0.1:6379,192.168.211.134:7001,192.168.211.134:7002
+#    nodes: 127.0.0.1:6379
+#    maxRedirects: 6
+#  jedis:
+#    pool:
+#      max-idle: 10
+#      min-idle: 5
+#      max-wait: 10000ms
+#      max-active: 500
+
+
+
+mybatis:
+  type-aliases-package: com.qinfei.qferp.entity,com.qinfei.core.entity
+  mapper-locations: classpath:mapping/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    multiple-result-sets-enabled: true
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    lazy-loading-enabled: true
+#
+####################  mybatis-plus配置  ###################
+mybatis-plus:
+  typeAliasesPackage: com.qinfei.qferp.entity,com.qinfei.core.entity
+  mapper-locations: classpath*:mapping/*.xml
+  global-config:
+    id-type: 1  #1:数据库ID自增   2:用户输入id   3:全局唯一id(IdWorker)   4:全局唯一ID(uuid)
+    #    db-column-underline: false
+    #    refresh-mapper: true
+    #  configuration:
+    #    map-underscore-to-camel-case: true
+    #    cache-enabled: true #配置的缓存的全局开关
+    #    lazyLoadingEnabled: true #延时加载的开关
+    #    multipleResultSetsEnabled: true #开启的话，延时加载一个属性时会加载该对象全部属性，否则按需加载属性
+    #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #打印sql语句,调试用
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 2
+    #驼峰下划线转换
+    db-column-underline: true
+    #刷新mapper 调试神器
+    refresh-mapper: true
+    #数据库大写下划线转换
+    #capital-mode: true
+    #序列接口实现类配置
+    #key-generator: com.baomidou.springboot.xxx
+    #逻辑删除配置
+    #logic-delete-value: 0
+    #logic-not-delete-value: 1
+    #自定义填充策略接口实现
+    meta-object-handler: com.jinhuatuo.edu.config.mybatis.MyMetaObjectHandler
+    #自定义SQL注入器
+    #sql-injector: com.baomidou.springboot.xxx
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    #MyBatis
+
+    #  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+#    id-type: 0
+
+
+#pagehelper??????
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+#  supportMethodsArguments: true
+  params: count=countSql
+
+logging:
+  level:
+    com:
+      qinfei:
+        qferp:
+          mapper: error
+          controller: error
+          service: error
+    org:
+      springframework: error
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss
+    level: error
+  file: /logs/qferp.log
+#    max-size: 10MB
+#    max-history: 100
+
+flowable:
+  #关闭定时任务JOB
+  async-executor-activate: false
+  #自动部署验证设置:true-开启（默认）、false-关闭
+  check-process-definitions: false
+
+
+swagger:
+  basePackage: com.qinfei.qferp.controller
+  #
+  #消息服务地址
+#rocketmq:   namesrvaddr: 127.0.0.1:9876
+
+
+const:
+  appName: 内部智能管理系统
+  #  开发环境
+  env: develop #official 正式环境 develop开发环境
+  #  上传文件保存
+  uploadDir: /upfiles/qferp/
+  #  上传文件浏览目录
+  webDir:  /statics/
+  #拦截需要登录的路径
+  urls: /**
+  #不需要拦截的路径 不登录也可以访问的路径
+  exUrls: /user/login/**,/static/**,/favicon.ico,/regist,/record,/search,/complete,/entry/*,/logout,/code/*,/403,/404,/500,/error,/api/ws/**,/statics/**,**/js/**,/css/**,/img/**,/fonts/**,/layui/**,/plugins/**,/codeLogin,/user/forceUpdatePwd,/dept/listJTAllCompany,/user/getUserByUsername,/user/getUserByUserId/**,/user/intranetAll/**,/role/nwlistRolePg/**,/user/intranetUserAll/**,/user/nw/login,/user/sendVerifyCode/**
+  staticPages:
+    /statics/**: file:/upfiles/qferp/
+    /statics/images/**: file:/upfiles/qferp/images
+    /statics/logs/**: file:/deploy/logs
+
+  pageUrls:
+    login: login
+    # 移动端页面
+    mobile-login: mobile/login
+    mobile-index: mobile/index
+    mobile-approve: mobile/approve
+    mobile-approved: mobile/approved
+    mobile-detail: mobile/detail
+
+    codeLogin: codeLogin
+    reg: reg
+    #    /: index
+    head: head
+    manage-top: manage/top
+    403: common/403
+    404: common/403
+    500: common/500
+    system-logger: system/logger
+    crm-statistics-custom_information: crm/statistics/custom_information #客户查询
+    crm-goal-goal_setting: crm/goal/goal_setting
+    crm-statistics-cust_statistics: crm/statistics/cust_statistics  #客户统计
+    crm-statistics-cust_manager_statistics: crm/statistics/cust_manager_statistics    #客户管理统计
+    workbench-workbench: workbench/workbench
+    workbench-items_list: workbench/items_list
+    workbench-users_list: workbench/users_list
+    workbench-message_list: workbench/message_list  #消息列表
+    biz-business_list: biz/business_list     #业务查询
+    biz-feedback_list: biz/feedback_list  #反馈列表
+    biz-article_list: biz/article_list     #稿件管理
+    biz-article_listCSY: biz/article_listCSY     #稿件管理（催收员）
+    biz-statistics-business_manager_statistics: biz/statistics/business_manager_statistics     #业务首页统计
+    biz-statistics-business_statistics: biz/statistics/business_statistics     #业务统计
+    #    biz-orders: biz/orders   #订单管理
+    mediauser-mediauser_list: mediauser/mediauser_list   #媒介查询
+    mediauser-statistics-media_user_statistics: mediauser/statistics/media_user_statistics    #媒介统计
+    mediauser-statistics-media_user_manager_statistics: mediauser/statistics/media_user_manager_statistics    #媒介首页统计
+    mediauser-statistics-supplier_statistics: mediauser/statistics/supplier_statistics     #供应商统计
+    media-medias: media/medias              #媒体管理页面
+    media-order: media/order              #媒体查询及下单页面
+    media-addMedia: media/addMedia          #媒体登记页面
+    media-reviewMedia: media/reviewMedia    #媒体审核页 面
+    media-modifyMedia: media/modifyMedia    #媒体修改页面
+    media-supplier_edit: media/supplier_edit    #媒体供应商编辑页面
+    media-supplier_manage: media/supplier_manage    #媒体供应商管理页面
+    media-audit: media/auditMedia           #媒体审核
+    media-audits: media/audits           #媒体审核
+    media-media_type_statistics: media/media_type_statistics #板块统计
+    media-media_statistics: media/media_statistics #媒体统计
+    system-queryRole: system/queryRole
+    system-queryGroup: system/queryGroup
+    system-queryResource: system/queryResource
+    system-queryUser: system/queryUser
+    system-queryDept: system/queryDept
+    fee-queryIncome: fee/queryIncome
+    fee-queryOutgo: fee/queryOutgo
+    fee-queryAssign: fee/queryAssign
+    fee-queryAccount: fee/queryAccount
+    fee-queryBorrow: fee/queryBorrow
+    fee-queryCommission: fee/queryCommission
+    fee-queryCommissionAdd: fee/queryCommissionAdd
+    fee-queryInvoice: fee/queryInvoice
+    fee-queryRefund: fee/queryRefund
+    fee-queryDrop: fee/queryDrop  #删稿流程
+    fee-queryReimburse: fee/queryReimburse  #费用报销页面
+    fee-queryReimburseD: fee/queryReimburseD
+    fee-expenseReimbursement: fee/expenseReimbursement
+    dsg-cust_statistics: dsg/cust_statistics
+    dsg-index: dsg/index
+    process-queryTask: process/queryTask #流程审核
+    media-queryImportMJ: media/queryImportMJ
+    media-queryImportYW: media/queryImportYW
+    fee-queryAssignCW: fee/queryAssignCW
+    administrative-administrative: administrative/administrative  #行政流程
+    announcementinform-Mediapass: announcementinform/Mediapass
+    #    propose-savePropose: propose/savePropose
+    propose-propose_list: propose/propose_list
+    propose-propose_manage: propose/propose_manage
+    performance-performanceSchemeAdd: performance/performanceSchemeAdd
+    performance-performanceSchemeEdit: performance/performanceSchemeEdit
+    performance-performanceSchemeList: performance/performanceSchemeList
+    performance-performanceProgramList: performance/performanceProgramList  #绩效计划
+    performance-performanceProgramAdd: performance/performanceProgramAdd  #绩效计划添加
+    mediauser-statistics-ranking_user_statistics: mediauser/statistics/ranking_user_statistics    #媒介统计
+    meetingmanagement-meetingManagement: meetingmanagement/meetingManagement
+    dictlist-dict_list: dictlist/dict_list
+
+    system-queryForum: system/queryForum
+    bbs-queryTopic: bbs/queryTopic
+    bbs-showTopic: bbs/showTopic
+    bbs-post_list: bbs/post_list
+    bbs-firstTopic: bbs/firstTopic
+    system-queryPost: system/queryPost
+    system-querySuggest: system/querySuggest
+    #批次管理
+    plan-batchList: plan/batchList
+    #计划查询(个人)
+    plan-planList: plan/planList
+    #新增计划
+    plan-planAdd: plan/planAdd
+    #计划管理
+    plan-planManage: plan/planManage
+    #计划统计
+    plan-planStatistics: plan/planStatistics
+    #计划统计
+    plan-planNotEnterList: plan/planNotEnterList
+
+    # 入职申请；
+    regist: regist
+    # 入职申请的信息档案查看；
+    record: record
+    # 查询入职申请进度、找回查询码；
+    search: search
+    # 入职申请完善资料
+    complete: complete
+    # 员工首页
+    # employ-employee_statistics: employ/employee/employee_statistics
+    # 入职申请管理；
+    employ-entryManage: employ/entry/entryManage
+    # 录用的信息审核；
+    employApprove: employ/approve/employApprove
+    # 员工录用记录；
+    employ-employeeHire: employ/employee/employeeHire
+    # 员工花名册；
+    employ-employeeManage: employ/employee/employeeManage
+    # 转正的信息审核
+    formalApprove: employ/approve/formalApprove
+    # 员工转正记录；
+    employ-employeeFormal: employ/employee/employeeFormal
+    # 离职的信息审核
+    leaveApprove: employ/approve/leaveApprove
+    # 员工离职记录；
+    employ-employeeLeave: employ/employee/employeeLeave
+    # 调岗的信息审核
+    transferApprove: employ/approve/transferApprove
+    # 员工调岗记录；
+    employ-employeeTransfer: employ/employee/employeeTransfer
+    # 员工交接记录；
+    employ-employeeConnect: employ/employee/employeeConnect
+    # 离职交接的信息审核
+    leaveConnectApprove: employ/approve/leaveConnectApprove
+    # 调岗交接的信息审核
+    transferConnectApprove: employ/approve/transferConnectApprove
+    # 员工轨迹记录；
+    employ-employeeTrajectory: employ/employee/employeeTrajectory
+    # 绩效考核细则；
+    performance-performancePlate: performance/performancePlate
+    # 绩效考核结果
+    performance-performanceScore: performance/performanceScore
+    # 绩效考核审核
+    performanceApprove: performance/performanceApprove
+
+    # 员工pk设置
+    employ-performance-performanceDetail: employ/performance/performanceDetail
+    # 员工pk设置列表
+    employ-performance-performanceList: employ/performance/performanceList
+    #员工pk页面
+    employ-performance-performancePKView: employ/performance/performancePKView
+
+    #政委媒介统计
+    mediauser-statistics-media_user_zw_statistics: mediauser/statistics/media_user_zw_statistics
+    #政委业务统计
+    biz-statistics-business_zw_statistics: biz/statistics/business_zw_statistics
+    #未到款统计(部门)
+    biz-statistics-business_manager_notIncome_dept: biz/statistics/business_manager_notIncome_dept
+    #未到款统计(业务员)
+    biz-statistics-business_manager_notIncome_user: biz/statistics/business_manager_notIncome_user
+    #未到款统计(客户)
+    biz-statistics-business_manager_notIncome_cust: biz/statistics/business_manager_notIncome_cust
+    #异动统计
+    biz-statistics-queryArticleChange: biz/statistics/queryArticleChange
+    #业绩统计
+    biz-statistics-querySaleStat: biz/statistics/querySaleStat
+    #项目管理
+    biz-project_list: biz/project_list
+
+    #媒体添加（电商平台迁移）
+    media1-mediaAdd: media1/mediaAdd
+    #媒体编辑（电商平台迁移）
+    media1-mediaEdit: media1/mediaEdit
+    #媒体审核（电商平台迁移）
+    media1-audits: media1/audits
+    #媒体管理（电商平台迁移）
+    media1-mediaList: media1/mediaList
+    #媒介查询（新媒体版本）
+    mediauser-mediauser_list1: mediauser/mediauser_list1
+    #媒体下单（新媒体版本）
+    media1-order: media1/order
+    #媒体扩展项管理（电商平台迁移）
+    media1-media_extend_manage: media1/media_extend_manage
+    #首页
+    homePage: homePage
+    #首页
+    homePage1: homePage1
+    #新闻管理
+    news-newsAdminList: news/newsAdminList
+    news-recommedResAdminList: news/recommedResAdminList
+    #媒体供应商关系相关
+    media1-mediaSupplierList: media1/mediaSupplierList
+    media1-mediaSupplierAuditList: media1/mediaSupplierAuditList
+    #媒体品牌查询
+    media1-mediaBrandList: media1/mediaBrandList
+    #流程部署列表
+    flow-flowManage: flow/flowManage
+    #关键字管理
+    word-keyword_list: word/keyword_list
+    #日期管理
+    system-workDateManage: system/workDateManage
+    #会议室功能
+    meeting-meetingRoomManage: meeting/meetingRoomManage
+    #会议管理
+    meeting-meetingManage: meeting/meetingManage
+    #抹零统计
+    fee-resetStatistical: fee/resetStatistical
+    #进销存--首页
+    inventory-inventory_home: inventory/inventory_home
+    #进销存--库存
+    inventory-inventory_stock: inventory/inventory_stock
+    #版本提示
+    system-versionHintManage: system/versionHintManage
+    #系统配置功能
+    system-configManage: system/configManage
+    #进销存--采购
+    inventory-purchase_list: inventory/purchase_list
+    #进销存 --领用
+    inventory-apply_list: inventory/apply_list
+    #进销存 -- 产品
+    inventory-goods_list: inventory/goods_list
+    #计划总结排名
+    plan-planRanking: plan/planRanking
+    #课程管理
+    study-courseManage: study/courseManage
+    #课程考试
+    study-courseExam: study/courseExam
+    #阅卷/查看详情
+    study-markExam: study/markExam
+    #培训设置
+    study-trainSetting: study/trainSetting
+    #培训计划
+    study-trainPlanManage: study/trainPlanManage
+    #讲师管理
+    study-trainTeacherManage: study/trainTeacherManage
+    #学员管理
+    study-trainStudentManage: study/trainStudentManage
+    #计划总结设置
+    plan-planSetting: plan/planSetting
+    #媒体下单
+    media1-businessOrder: media1/businessOrder
+    #未提交订单管理
+    biz-noOrderPlacedManage: biz/noOrderPlacedManage
+    #制度管理
+    document-documentLibrary: document/documentLibrary
+    #媒体板块
+    media1-mediaPlateManage: media1/mediaPlateManage
+    #烂账管理
+    accountsMess-accountsMess: accountsMess/accountsMess
+    #客户管理新
+    crm-company_user_list: crm/company_user_list
+    #公海客户
+    crm-company_public_list: crm/company_public_list
+    #客户查询
+    crm-company_inquire_list: crm/company_inquire_list
+    #客户参数设置
+    crm-company_param_setting: crm/company_param_setting
+<<<<<<< HEAD
+    #标准化公司申请
+    crm-queryStandardizedCompany: crm/queryStandardizedCompany
+=======
+>>>>>>> 6ff471c80 (1)
+
+  #自定义配置
+  custConfig:
+    # 审核流程的网关参数；
+    # 退款申请的流程中判断是否需要总经理审核的金额（含）；
+    refundMoney: 1000000
+    # 媒介请款的流程中新媒体媒介是否需要财务总监审核的金额（含）；
+    mediaRefundMoneyNew: 5000
+    # 媒介请款的流程中网络媒介是否需要财务总监审核的金额（含）；
+    mediaRefundMoneyOld: 1000
+    # 媒介请款是否需要主管审批
+    mediaRefundMoneySelf: 500
+    # 借款申请的流程中是否需要总经理审核的金额（含）；
+    borrowMoney: 1000000
+    # 报销流程中是否需要总经理审核金额
+    managerMoney: 5000
+
+#企查查接口密钥
+qichacha:
+  appkey: fb7dcff1f7c64d38b21140adcea7ffe4
+  seckey: 343CA3D0776E01F96018D5410F9DED38
+
+#媒体供应商标准化上线时间，用于逻辑分表历史数据，新数据含当前时间，请款static/js/fee/queryOutgo.js中new Date(data.data.entity["supplierCreateTime"]) >= new Date("2020-08-30")逻辑也需要加上这个时间
+media:
+  onlineTime: 2020-08-30
+  
+sms:
+  #众灿账号
+  accessKeyId: LTAI4GDZY8KnxzsPnTX1tqQZ
+  accessKeySecret: qTkIf6jMITumR2IBEWi4BqlSeIAjko
+  #发送短信开关--不发短信，从redis里面取值就可以登录
+  sendMsgSwitch: true
+  #是否验证短信开关--非true页面不用输入验证码也可以登录
+  needMsgSwitch: true
+  #签名名称
+  signName: 祥和ERP
+  #短信模板
+  verifyCodeTemplate: SMS_204190365

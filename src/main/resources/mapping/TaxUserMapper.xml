@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.fee.TaxUserMapper">
+    <sql id="selectColumn">
+        tad.id,
+        tad.assistant_user_id as assistantUserId,
+        tad.dict_id as dictId,
+        tad.create_user_id as createUserId,
+        tad.create_time as createTime,
+        tad.update_user_id as updateUserId,
+        tad.update_time as updateTime,
+        tad.state
+    </sql>
+    <select id="assistantUser" resultType="com.qinfei.qferp.entity.sys.User">
+         SELECT
+        su.id,
+        su.`name`,
+        su.dept_id,
+        su.dept_name,
+        su.company_code,
+        su.image
+        FROM
+            sys_user su
+        LEFT JOIN sys_user_role sur ON sur.user_id = su.id
+        LEFT JOIN sys_role sr ON sr.id = sur.role_id
+        WHERE
+          sr.type = 'CW'
+        AND sr.`code` = 'ZL'
+        AND su.company_code =#{companyCode}
+        and su.state >-2
+        <if test="name != null and name != ''">
+            AND su.name like CONCAT(#{name},'%')
+        </if>
+    </select>
+
+    <insert id="addTaxUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_assistant_dict (
+        assistant_user_id ,
+        dict_id,
+        create_user_id,
+        create_time,
+        state,
+        update_user_id,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="taxUser" index="index" separator=",">
+            (
+            #{taxUser.assistantUserId},
+            #{taxUser.dictId},
+            #{taxUser.createUserId},
+            #{taxUser.createTime},
+            0,
+            #{taxUser.updateUserId},
+            #{taxUser.updateTime}
+            )
+        </foreach>
+
+    </insert>
+
+    <select id="getTaxUser" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.fee.TaxUser">
+        select
+        su.name,
+        <include refid="selectColumn"/>
+            FROM t_assistant_dict tad
+         LEFT JOIN sys_user su  on su.id= tad.assistant_user_id
+         where tad.dict_id= #{dictId}
+          and tad.state>-2
+    </select>
+
+    <select id="taxAssistant" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.id,
+        su.name,
+        su.dept_id as deptId
+        FROM
+            sys_dict sd
+        LEFT JOIN t_assistant_dict tad ON sd.id = tad.dict_id
+        LEFT JOIN sys_user su ON tad.assistant_user_id = su.id
+        WHERE
+            sd.type_code = 'tax'
+        AND sd.NAME = #{taxType}
+        and tad.state >-2
+        and su.state>-2
+        and sd.state>-2
+        and su.company_code =#{companyCode}
+
+    </select>
+
+    <update id="editDictUser" parameterType="java.util.List">
+        UPDATE
+        t_assistant_dict SET  state =-9
+        where dict_id= #{dictId1}
+    </update>
+
+</mapper>

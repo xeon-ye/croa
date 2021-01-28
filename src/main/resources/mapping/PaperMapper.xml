@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.PaperMapper">
+    <sql id="selectColumn">
+      tp.id,
+      tp.course_id as courseId,
+      tp.course_plate as coursePlate,
+      tp.paper_title as paperTitle,
+      tp.paper_grade as paperGrade,
+      tp.paper_time as paperTime,
+      tp.paper_time_setting as paperTimeSetting,
+      tp.paper_way as paperWay,
+      tp.auto_mark_flag as autoMarkFlag,
+      tp.paper_desc as paperDesc,
+      tp.paper_start_time as paperStartTime,
+      tp.paper_end_time as paperEndTime,
+      tp.create_id as createId,
+      tp.create_date as createDate,
+      tp.update_id as updateId,
+      tp.update_date as updateDate,
+      tp.company_code as companyCode,
+      tp.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+    <sql id="answerCardColumn">
+      tac.id as answerCardId,
+      tac.paper_id as paperId,
+      tac.paper_grade as examGrade,
+      tac.exam_start_time as examStartTime,
+      tac.exam_end_time as examEndTime,
+      tac.remain_time as remainTime,
+      tac.create_id as studentId,
+      tac.create_date as createDate,
+      IFNULL(tac.state, 2) as answerCardState
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_paper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="coursePlate != null">course_plate,</if>
+            <if test="paperTitle != null and paperTitle != ''">paper_title,</if>
+            <if test="paperGrade != null">paper_grade,</if>
+            <if test="paperTime != null">paper_time,</if>
+            <if test="paperTimeSetting != null">paper_time_setting,</if>
+            <if test="paperWay != null">paper_way,</if>
+            <if test="autoMarkFlag != null">auto_mark_flag,</if>
+            <if test="paperDesc != null and paperDesc != ''">paper_desc,</if>
+            <if test="paperStartTime != null">paper_start_time,</if>
+            <if test="paperEndTime != null">paper_end_time,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="coursePlate != null">#{coursePlate},</if>
+            <if test="paperTitle != null and paperTitle != ''">#{paperTitle},</if>
+            <if test="paperGrade != null">#{paperGrade},</if>
+            <if test="paperTime != null">#{paperTime},</if>
+            <if test="paperTimeSetting != null">#{paperTimeSetting},</if>
+            <if test="paperWay != null">#{paperWay},</if>
+            <if test="autoMarkFlag != null">#{autoMarkFlag},</if>
+            <if test="paperDesc != null and paperDesc != ''">#{paperDesc},</if>
+            <if test="paperStartTime != null">#{paperStartTime},</if>
+            <if test="paperEndTime != null">#{paperEndTime},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--更新试卷状态-->
+    <update id="updateStateById">
+        UPDATE t_train_paper
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_paper
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="coursePlate != null">course_plate = #{coursePlate},</if>
+            <if test="paperTitle != null and paperTitle != ''">paper_title = #{paperTitle},</if>
+            <if test="paperGrade != null">paper_grade = #{paperGrade},</if>
+            <if test="paperTime != null">paper_time = #{paperTime},</if>
+            <if test="paperTimeSetting != null">paper_time_setting = #{paperTimeSetting},</if>
+            <if test="paperWay != null">paper_way = #{paperWay},</if>
+            <if test="autoMarkFlag != null">auto_mark_flag = #{autoMarkFlag},</if>
+            <if test="paperDesc != null">paper_desc = #{paperDesc},</if>
+            <if test="paperStartTime != null">paper_start_time = #{paperStartTime},</if>
+            <if test="paperEndTime != null">paper_end_time = #{paperEndTime},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--根据参数获取试卷总数-->
+    <select id="getCountByParam" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM
+        t_train_paper tp
+        WHERE tp.state <![CDATA[<>]]> -9
+        <if test="paperTitle != null">
+            AND tp.paper_title LIKE CONCAT(#{paperTitle}, '%')
+        </if>
+        <if test="courseId != null">
+            AND tp.course_id = #{courseId}
+        </if>
+        <if test="coursePlate != null">
+            AND tp.course_plate = #{coursePlate}
+        </if>
+        <if test="paperTime != null">
+            AND tp.paper_time = #{paperTime}
+        </if>
+        <if test="autoMarkFlag != null">
+            AND tp.auto_mark_flag = #{autoMarkFlag}
+        </if>
+        <if test="paperStartTime != null">
+            AND tp.paper_start_time <![CDATA[>]]> #{paperStartTime}
+        </if>
+        <if test="paperEndTime != null">
+            AND tp.paper_end_time <![CDATA[<]]> #{paperEndTime}
+        </if>
+        <if test="paperTimeSetting != null">
+            AND tp.paper_time_setting = #{paperTimeSetting}
+        </if>
+        <if test="paperWay != null">
+            AND tp.paper_way = #{paperWay}
+        </if>
+        <if test="companyCode != null and companyCode != '' and  companyCode != 'JT'">
+            AND tp.company_code = #{companyCode}
+        </if>
+        <if test="userId != null">
+            AND tp.create_id = #{userId}
+        </if>
+        <if test="state != null">
+            AND tp.state = #{state}
+        </if>
+    </select>
+
+    <!--根据参数获取试卷列表-->
+    <select id="listPaperByParam" resultType="com.qinfei.qferp.entity.study.Paper">
+        SELECT
+            <include refid="selectColumn"/>, tc.title AS courseTitle
+        FROM
+          t_train_paper tp
+        LEFT JOIN t_train_course tc ON tc.id = tp.course_id
+        WHERE tp.state <![CDATA[<>]]> -9
+          <if test="paperTitle != null">
+              AND tp.paper_title LIKE CONCAT(#{paperTitle}, '%')
+          </if>
+          <if test="courseId != null">
+              AND tp.course_id = #{courseId}
+          </if>
+          <if test="coursePlate != null">
+              AND tp.course_plate = #{coursePlate}
+          </if>
+          <if test="paperTime != null">
+              AND tp.paper_time = #{paperTime}
+          </if>
+          <if test="autoMarkFlag != null">
+              AND tp.auto_mark_flag = #{autoMarkFlag}
+          </if>
+          <if test="paperStartTime != null">
+              AND tp.paper_start_time <![CDATA[>]]> #{paperStartTime}
+          </if>
+          <if test="paperEndTime != null">
+              AND tp.paper_end_time <![CDATA[<]]> #{paperEndTime}
+          </if>
+          <if test="paperTimeSetting != null">
+              AND tp.paper_time_setting = #{paperTimeSetting}
+          </if>
+          <if test="paperWay != null">
+              AND tp.paper_way = #{paperWay}
+          </if>
+          <if test="companyCode != null and companyCode != '' and  companyCode != 'JT'">
+              AND tp.company_code = #{companyCode}
+          </if>
+          <if test="userId != null">
+              AND tp.create_id = #{userId}
+          </if>
+          <if test="state != null">
+              AND tp.state = #{state}
+          </if>
+    </select>
+
+    <!--查询自己测试的试卷列表-->
+    <select id="getUserExamTotal" resultType="java.lang.Integer">
+        SELECT
+            count(tp.id)
+        FROM
+        t_train_course_sign tcs
+        INNER JOIN t_train_paper tp ON tp.course_id = tcs.course_id
+        AND tp.state <![CDATA[<>]]> -9
+        LEFT JOIN t_train_answer_card tac ON tp.id = tac.paper_id
+        AND tac.state <![CDATA[<>]]> -9
+        AND tac.create_id = #{userId}
+        WHERE tcs.state <![CDATA[<>]]> -9
+        AND tcs.user_id = #{userId}
+        <if test="paperTitle != null and  paperTitle != ''">
+            AND tp.paper_title LIKE CONCAT(#{paperTitle}, '%')
+        </if>
+        <if test="coursePlate != null">
+            AND tp.course_plate = #{coursePlate}
+        </if>
+        <if test="paperWay != null">
+            AND tp.paper_way = #{paperWay}
+        </if>
+        <if test="state != null">
+            AND tp.state = #{state}
+        </if>
+        <if test="answerCardState != null">
+            <choose>
+                <!--查询未考试的试卷-->
+                <when test="answerCardState == 2">
+                    AND tac.state IS NULL
+                </when>
+                <otherwise>
+                    AND tac.state = #{answerCardState}
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!--查询自己测试的试卷列表-->
+    <select id="listUserExam" resultType="java.util.Map">
+        SELECT
+            <include refid="selectColumn"/>,
+            <include refid="answerCardColumn"/>,
+            tc.title AS courseTitle
+        FROM
+        t_train_course_sign tcs
+        INNER JOIN t_train_paper tp ON tp.course_id = tcs.course_id
+        AND tp.state <![CDATA[<>]]> -9
+        LEFT JOIN t_train_course tc ON tc.id = tp.course_id
+        LEFT JOIN t_train_answer_card tac ON tp.id = tac.paper_id
+        AND tac.state <![CDATA[<>]]> -9
+        AND tac.create_id = #{userId}
+        WHERE tcs.state <![CDATA[<>]]> -9
+        AND tcs.user_id = #{userId}
+        <if test="paperTitle != null">
+            AND tp.paper_title LIKE CONCAT(#{paperTitle}, '%')
+        </if>
+        <if test="coursePlate != null">
+            AND tp.course_plate = #{coursePlate}
+        </if>
+        <if test="paperWay != null">
+            AND tp.paper_way = #{paperWay}
+        </if>
+        <if test="state != null">
+            AND tp.state = #{state}
+        </if>
+        <if test="answerCardState != null">
+            <choose>
+                <!--查询未考试的试卷-->
+                <when test="answerCardState == 2">
+                    AND tac.state IS NULL
+                </when>
+                <otherwise>
+                    AND tac.state = #{answerCardState}
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+</mapper>

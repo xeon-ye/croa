@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工调岗记录； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeTransferMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeTransfer">
+        <id column="tran_id" jdbcType="INTEGER" property="tranId"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_dept_name" jdbcType="VARCHAR" property="empDeptName"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_profession_name" jdbcType="VARCHAR" property="empProfessionName"/>
+        <result column="emp_state" jdbcType="INTEGER" property="empState"/>
+        <result column="emp_date" jdbcType="DATE" property="empDate"/>
+        <result column="before_salary" jdbcType="REAL" property="beforeSalary"/>
+        <result column="before_post" jdbcType="REAL" property="beforePost"/>
+        <result column="before_performance" jdbcType="REAL" property="beforePerformance"/>
+        <result column="before_other" jdbcType="REAL" property="beforeOther"/>
+        <result column="after_salary" jdbcType="REAL" property="afterSalary"/>
+        <result column="after_post" jdbcType="REAL" property="afterPost"/>
+        <result column="after_performance" jdbcType="REAL" property="afterPerformance"/>
+        <result column="after_other" jdbcType="REAL" property="afterOther"/>
+        <result column="after_dept" jdbcType="INTEGER" property="afterDept"/>
+        <result column="after_dept_name" jdbcType="VARCHAR" property="afterDeptName"/>
+        <result column="after_profession" jdbcType="INTEGER" property="afterProfession"/>
+        <result column="after_profession_name" jdbcType="VARCHAR" property="afterProfessionName"/>
+        <result column="trans_date" jdbcType="DATE" property="transDate"/>
+        <result column="trans_reason" jdbcType="VARCHAR" property="transReason"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        tran_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_state,
+        emp_date,
+        before_salary,
+        before_post,
+        before_performance,
+        before_other,
+        after_salary,
+        after_post,
+        after_performance,
+        after_other,
+        after_dept,
+        after_dept_name,
+        after_profession,
+        after_profession_name,
+        role_id,
+        role_type,
+        role_name,
+        trans_date,
+        trans_reason,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from e_employee_transfer where tran_id = #{tranId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据员工的ID和状态查询调岗记录的主键； -->
+    <select id="selectIdByParentId" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select tran_id from e_employee_transfer where state &lt;&gt; -1 and state &lt;&gt; 3 and emp_id = #{empId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据父表ID查询调岗记录； -->
+    <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_transfer
+        where
+        emp_id = #{empId,jdbcType=INTEGER} and state &lt;&gt; -1 and state &lt;&gt; 3
+    </select>
+
+    <select id="listByEmpId" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_transfer
+        where state <![CDATA[<>]]> -1 and state <![CDATA[<>]]> 3
+        and emp_id in
+        <foreach collection="empIdList" item="empId" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </select>
+
+    <select id="listById" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_transfer
+        where state <![CDATA[<>]]> -1
+        and tran_id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 调岗记录列表； -->
+    <select id="selectPageTransfer" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_employee_transfer
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            tran_id desc
+        </if>
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empNum != null">
+            and emp_num like '%${empNum}%'
+        </if>
+        <if test="empName != null">
+            and emp_name like '%${empName}%'
+        </if>
+        <if test="empDept != null">
+            and emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null and companyCode !='' and companyCode !='XH'">
+            and emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="empDeptName != null">
+            and emp_dept_name like '%${empDeptName}%'
+        </if>
+        <if test="empProfession != null">
+            and emp_profession = #{empProfession}
+        </if>
+        <if test="empProfessionName != null">
+            and emp_profession_name like '%${empProfessionName}%'
+        </if>
+        <if test="afterDept != null">
+            and after_dept = #{afterDept}
+        </if>
+        <if test="afterDeptName != null">
+            and after_dept_name like '%${afterDeptName}%'
+        </if>
+        <if test="afterProfession != null">
+            and after_profession = #{afterProfession}
+        </if>
+        <if test="afterProfessionName != null">
+            and after_profession_name like '%${afterProfessionName}%'
+        </if>
+        <if test="empDateStart != null">
+            and emp_date &gt;= #{empDateStart}
+        </if>
+        <if test="empDateEnd != null">
+            and emp_date &lt;= STR_TO_DATE(concat(#{empDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="transReason != null">
+            and trans_reason like '%${transReason}%'
+        </if>
+        <if test="transDateStart != null">
+            and trans_date &gt;= #{transDateStart}
+        </if>
+        <if test="transDateEnd != null">
+            and trans_date &lt;= STR_TO_DATE(concat(#{transDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="createTimeStart != null">
+            and (create_time &gt;= #{createTimeStart} or update_time &gt;= #{createTimeStart})
+        </if>
+        <if test="createTimeEnd != null">
+            and (create_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T') or update_time &lt;= STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T'))
+        </if>
+        <if test="createName != null">
+            and create_name like '%${createName}%'
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="tranIds != null">
+            and tran_id in
+            <foreach item="tranId" collection="tranIds" index="index" open="(" close=")" separator=",">
+                #{tranId}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeTransfer" useGeneratedKeys="true"
+            keyProperty="tranId">
+        insert into e_employee_transfer (
+        tran_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_state,
+        emp_date,
+        before_salary,
+        before_post,
+        before_performance,
+        before_other,
+        after_salary,
+        after_post,
+        after_performance,
+        after_other,
+        after_dept,
+        after_dept_name,
+        after_profession,
+        after_profession_name,
+        trans_date,
+        trans_reason,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{tranId,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empDeptName,jdbcType=VARCHAR},
+        #{empProfession,jdbcType=INTEGER},
+        #{empProfessionName,jdbcType=VARCHAR},
+        #{empState,jdbcType=INTEGER},
+        #{empDate,jdbcType=DATE},
+        #{beforeSalary,jdbcType=REAL},
+        #{beforePost,jdbcType=REAL},
+        #{beforePerformance,jdbcType=REAL},
+        #{beforeOther,jdbcType=REAL},
+        #{afterSalary,jdbcType=REAL},
+        #{afterPost,jdbcType=REAL},
+        #{afterPerformance,jdbcType=REAL},
+        #{afterOther,jdbcType=REAL},
+        #{afterDept,jdbcType=INTEGER},
+        #{afterDeptName,jdbcType=VARCHAR},
+        #{afterProfession,jdbcType=INTEGER},
+        #{afterProfessionName,jdbcType=VARCHAR},
+        #{transDate,jdbcType=DATE},
+        #{transReason,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeTransfer" useGeneratedKeys="true"
+            keyProperty="tranId">
+        insert into e_employee_transfer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tranId != null">tran_id,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empDeptName != null">emp_dept_name,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empProfessionName != null">emp_profession_name,</if>
+            <if test="empState != null">emp_state,</if>
+            <if test="empDate != null">emp_date,</if>
+            <if test="beforeSalary != null">before_salary,</if>
+            <if test="beforePost != null">before_post,</if>
+            <if test="beforePerformance != null">before_performance,</if>
+            <if test="beforeOther != null">before_other,</if>
+            <if test="afterSalary != null">after_salary,</if>
+            <if test="afterPost != null">after_post,</if>
+            <if test="afterPerformance != null">after_performance,</if>
+            <if test="afterOther != null">after_other,</if>
+            <if test="afterDept != null">after_dept,</if>
+            <if test="afterDeptName != null">after_dept_name,</if>
+            <if test="afterProfession != null">after_profession,</if>
+            <if test="afterProfessionName != null">after_profession_name,</if>
+            <if test="roleId != null">role_id,</if>
+            <if test="roleType != null">role_type,</if>
+            <if test="roleName != null">role_name,</if>
+            <if test="transDate != null">trans_date,</if>
+            <if test="transReason != null">trans_reason,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tranId != null">#{tranId,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">#{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">#{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empState != null">#{empState,jdbcType=INTEGER},</if>
+            <if test="empDate != null">#{empDate,jdbcType=DATE},</if>
+            <if test="beforeSalary != null">#{beforeSalary,jdbcType=REAL},</if>
+            <if test="beforePost != null">#{beforePost,jdbcType=REAL},</if>
+            <if test="beforePerformance != null">#{beforePerformance,jdbcType=REAL},</if>
+            <if test="beforeOther != null">#{beforeOther,jdbcType=REAL},</if>
+            <if test="afterSalary != null">#{afterSalary,jdbcType=REAL},</if>
+            <if test="afterPost != null">#{afterPost,jdbcType=REAL},</if>
+            <if test="afterPerformance != null">#{afterPerformance,jdbcType=REAL},</if>
+            <if test="afterOther != null">#{afterOther,jdbcType=REAL},</if>
+            <if test="afterDept != null">#{afterDept,jdbcType=INTEGER},</if>
+            <if test="afterDeptName != null">#{afterDeptName,jdbcType=VARCHAR},</if>
+            <if test="afterProfession != null">#{afterProfession,jdbcType=INTEGER},</if>
+            <if test="afterProfessionName != null">#{afterProfessionName,jdbcType=VARCHAR},</if>
+            <if test="roleId != null">#{roleId,jdbcType=INTEGER},</if>
+            <if test="roleType != null">#{roleType,jdbcType=VARCHAR},</if>
+            <if test="roleName != null">#{roleName,jdbcType=VARCHAR},</if>
+            <if test="transDate != null">#{transDate,jdbcType=DATE},</if>
+            <if test="transReason != null">#{transReason,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeTransfer">
+        update e_employee_transfer
+        <include refid="EmployCommon.deleteInfo"/>
+        where tran_id = #{tranId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeTransfer">
+        update e_employee_transfer
+        <set>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">emp_dept_name = #{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empState != null">emp_state = #{empState,jdbcType=INTEGER},</if>
+            <if test="empDate != null">emp_date = #{empDate,jdbcType=DATE},</if>
+            <if test="beforeSalary != null">before_salary = #{beforeSalary,jdbcType=REAL},</if>
+            <if test="beforePost != null">before_post = #{beforePost,jdbcType=REAL},</if>
+            <if test="beforePerformance != null">before_performance = #{beforePerformance,jdbcType=REAL},</if>
+            <if test="beforeOther != null">before_other = #{beforeOther,jdbcType=REAL},</if>
+            <if test="afterSalary != null">after_salary = #{afterSalary,jdbcType=REAL},</if>
+            <if test="afterPost != null">after_post = #{afterPost,jdbcType=REAL},</if>
+            <if test="afterPerformance != null">after_performance = #{afterPerformance,jdbcType=REAL},</if>
+            <if test="afterOther != null">after_other = #{afterOther,jdbcType=REAL},</if>
+            <if test="afterDept != null">after_dept = #{afterDept,jdbcType=INTEGER},</if>
+            <if test="afterDeptName != null">after_dept_name = #{afterDeptName,jdbcType=VARCHAR},</if>
+            <if test="afterProfession != null">after_profession = #{afterProfession,jdbcType=INTEGER},</if>
+            <if test="afterProfessionName != null">
+                after_profession_name = #{afterProfessionName,jdbcType=VARCHAR},
+            </if>
+            <if test="roleId != null">role_id = #{roleId,jdbcType=INTEGER},</if>
+            <if test="roleType != null">role_type = #{roleType,jdbcType=VARCHAR},</if>
+            <if test="roleName != null">role_name = #{roleName,jdbcType=VARCHAR},</if>
+            <if test="transDate != null">trans_date = #{transDate,jdbcType=DATE},</if>
+            <if test="transReason != null">trans_reason = #{transReason,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where tran_id = #{tranId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeTransfer">
+        update
+        e_employee_transfer
+        set
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_dept_name = #{empDeptName,jdbcType=VARCHAR},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},
+        emp_state = #{empState,jdbcType=INTEGER},
+        emp_date = #{empDate,jdbcType=DATE},
+        before_salary = #{beforeSalary,jdbcType=REAL},
+        before_post = #{beforePost,jdbcType=REAL},
+        before_performance = #{beforePerformance,jdbcType=REAL},
+        before_other = #{beforeOther,jdbcType=REAL},
+        after_salary = #{afterSalary,jdbcType=REAL},
+        after_post = #{afterPost,jdbcType=REAL},
+        after_performance = #{afterPerformance,jdbcType=REAL},
+        after_other = #{afterOther,jdbcType=REAL},
+        after_dept = #{afterDept,jdbcType=INTEGER},
+        after_dept_name = #{afterDeptName,jdbcType=VARCHAR},
+        after_profession = #{afterProfession,jdbcType=INTEGER},
+        after_profession_name = #{afterProfessionName,jdbcType=VARCHAR},
+        trans_date = #{transDate,jdbcType=DATE},
+        trans_reason = #{transReason,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        tran_id = #{tranId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

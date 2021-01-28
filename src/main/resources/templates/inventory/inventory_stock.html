@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+
+    <title>进销存库存</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/js/plugins/laydate/theme/default/laydate.css" rel="stylesheet" >
+    <!--<link href="/css/inventory/inventory_stock.css" rel="stylesheet">-->
+    <link href="/css/inventory/purchase_list.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!--<script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>-->
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <!--二维码插件-->
+    <script src="/js/qrcode/qrcode.js"></script>
+    <!--文件压缩插件-->
+    <script src="/js/plugins/jszip/jszip.min.js"></script>
+    <script src="/js/plugins/jszip/jszip-utils.min.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <!--
+    Mandatory in IE 6, 7, 8 and 9.
+    -->
+    <!--[if IE]>
+    <script src="/js/plugins/jszip/jszip-utils-ie.min.js"></script>
+    <![endif]-->
+    <script src="/js/inventory/inventory_stock.js"></script>
+    <script th:inline="javascript">
+    </script>
+</head>
+<body>
+<form style="display: none" class="dropzone" id="word2htmlForm" enctype="multipart/form-data"></form>
+
+<!--顶部搜索-->
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">入库</li>
+        <li>出库</li>
+        <li>产品库存</li>
+        <li>库存盘点</li>
+        <li>库存预警</li>
+        <li>仓库管理</li>
+        <li style="display: none;">
+            <input type="text" placeholder="请输入关键字">
+            <div class="searchIcon"><i class="fa fa-search"></i></div>
+        </li>
+    </ul>
+</div>
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content">
+    <!--入库-->
+    <div id="putStock" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="putStockForm" autocomplete="off" method="post">
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            入库编号:
+                        </label>
+                        <input id="codeQc" name="codeQc" placeholder="入库编号" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            采购编号:
+                        </label>
+                        <input id="purchaseCodeQc" name="purchaseCodeQc" placeholder="采购编号" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            入库时间:
+                        </label>
+                        <input id="createTimeQc" name="createTimeQc" placeholder="入库时间" class="form-control"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            状态:
+                        </label>
+                        <select id="stateQc" name="stateQc" lay-filter="putStateQc" class="form-control">
+                            <option value="">--请选择--</option>
+                            <option value="-5">已失效</option>
+                            <option value="0">已保存</option>
+                            <option value="1">已入库</option>
+                        </select>
+                    </div>
+
+                    <div style="display: inline-block;position: absolute;">
+                        <button class="btn btn-primary" type="button" onclick="putStockObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+                    <div style="text-align: right;float: right;">
+                        <button class="btn btn-primary" type="button" onclick="putStockObj.putStockModalShow();">
+                            <i class="fa fa-sign-in"></i>&nbsp;采购入库
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed; margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="入库编号">
+                            <div class="ellipsisContent">
+                                入库编号
+                            </div>
+                        </th>
+                        <th title="仓库">
+                            <div class="ellipsisContent">
+                                仓库
+                            </div>
+                        </th>
+                        <th title="关联采购订单">
+                            <div class="ellipsisContent">
+                                关联采购订单
+                            </div>
+                        </th>
+                        <th title="总计金额">
+                            <div class="ellipsisContent">
+                                总计金额
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="入库时间">
+                            <div class="ellipsisContent">
+                                入库时间
+                            </div>
+                        </th>
+                        <th title="入库人">
+                            <div class="ellipsisContent">
+                                入库人
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div style="overflow:auto; width: 100%;flex: 1;">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed; margin-top: 0px">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                        </colgroup>
+                        <tbody class="putStockList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="putStockListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--出库-->
+    <div id="outStock" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="outStockForm" autocomplete="off" method="post">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            出库编号:
+                        </label>
+                        <input id="outCodeQc" name="outCodeQc" placeholder="出库编号" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            领用编号:
+                        </label>
+                        <input id="applyCodeQc" name="applyCodeQc" placeholder="领用编号" class="form-control"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            状态:
+                        </label>
+                        <select name="stateQc" class="form-control"  lay-filter="outStockState">
+                            <option value="">请选择</option>
+                            <option value="-1">已出库</option>
+                            <option value="0">待出库</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            出库时间:
+                        </label>
+                        <input id="outStockTimeQc" name="outStockTimeQc" placeholder="出库时间" class="form-control"/>
+                    </div>
+                    <div style="display: inline-block;position: absolute;">
+                        <button class="btn btn-primary" type="button" onclick="outStockObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+
+                    <div class="paramDiv" style="text-align: right;float: right;">
+                        <button class="btn btn-primary" type="button" onclick="outStockObj.outStockModalShow();">
+                            <i class="fa fa-sign-out"></i>&nbsp;领用出库
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="出库编号">
+                            <div class="ellipsisContent">
+                                出库编号
+                            </div>
+                        </th>
+                        <th title="关联领用订单">
+                            <div class="ellipsisContent">
+                                关联领用订单
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="出库人">
+                            <div class="ellipsisContent">
+                                出库人
+                            </div>
+                        </th>
+                        <th title="部门">
+                            <div class="ellipsisContent">
+                                部门
+                            </div>
+                        </th>
+                        <th title="出库时间">
+                            <div class="ellipsisContent">
+                                出库时间
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="outStockList">
+                    </tbody>
+                </table>
+            </div>
+
+            <!--分页插件-->
+            <div class="outStockListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--产品库存-->
+    <div id="productStock" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="productStockForm" autocomplete="off" method="get">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            产品分类:
+                        </label>
+                        <select id="typeQc" name="typeQc" lay-filter="typeQc" class="form-control" lay-search>
+
+                        </select>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            产品名称:
+                        </label>
+                        <input id="goodsNameQc" name="goodsNameQc" placeholder="产品名称" class="form-control">
+                        <input type="text" style="display:none" />
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            仓库:
+                        </label>
+                        <select id="wareIdQc" name="wareIdQc" lay-filter="wareIdQc" class="form-control" lay-search>
+
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            状态:
+                        </label>
+                        <select name="stateQc" class="form-control" lay-filter="stateQc">
+                            <option value="">--请选择--</option>
+                            <option value="0">库存</option>
+                            <option value="1">报修</option>
+                            <option value="2">报废</option>
+                            <option value="3">归还</option>
+                            <option value="-1">使用中</option>
+                        </select>
+                    </div>
+                    <div style="display: inline-block;position: absolute;">
+                        <button class="btn btn-primary" type="button" onclick="productStockObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!--tab内容列表上方按钮-->
+            <div class="buttonGroupOuter" style="margin: 12px 0px">
+                <button class="btn btn-primary" type="button" onclick="productStockObj.viewInventoryModal()">
+                    <i class="fa fa-plus"></i>&nbsp;新增库存
+                </button>
+                <button class="btn btn-primary" id="importInventory" type="button">
+                    <i class="fa fa-upload"></i>&nbsp;导入
+                </button>
+                <button id="exportProductTemplate" onclick="productStockObj.downTemplate()" class="btn btn-primary" type="button">
+                    <i class="fa fa-external-link"></i>&nbsp;导入模板
+                </button>
+                <button class="btn btn-primary" onclick="productStockObj.exportInventoryDetail()" type="button">
+                    <i class="fa fa-download"></i>&nbsp;导出
+                </button>
+                <button class="btn btn-primary" type="button" onclick="productStockObj.printQrCode()">
+                    <i class="fa fa-qrcode"></i>&nbsp;打印二维码
+                </button>
+                <!--<button class="btn btn-primary" type="button" onclick="productStockObj.productStockModalShow();">-->
+                    <!--<i class="fa fa-calendar-minus-o"></i>&nbsp;库存详情-->
+                <!--</button>-->
+            </div>
+            <!--内容列表-->
+            <div class="listContentOuter layui-form">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="8%">
+                        <col width="8%">
+                        <col width="8%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="16%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <!--<div class="ellipsisContent">-->
+                                <!--序号-->
+                            <!--</div>-->
+                            <div class="ellipsisContent">
+                                <input type="checkbox" lay-skin="primary" lay-filter="stockAllChoose">序号
+                            </div>
+                        </th>
+                        <th title="库存编号">
+                            <div class="ellipsisContent">
+                                库存编号
+                            </div>
+                        </th>
+                        <th title="产品分类">
+                            <div class="ellipsisContent">
+                                产品分类
+                            </div>
+                        </th>
+                        <th title="产品名称">
+                            <div class="ellipsisContent">
+                                产品名称
+                            </div>
+                        </th>
+                        <th title="规格">
+                            <div class="ellipsisContent">
+                                规格
+                            </div>
+                        </th>
+                        <th title="单位">
+                            <div class="ellipsisContent">
+                                单位
+                            </div>
+                        </th>
+                        <th title="数量">
+                            <div class="ellipsisContent">
+                                数量
+                            </div>
+                        </th>
+                        <th title="单价">
+                            <div class="ellipsisContent">
+                                单价
+                            </div>
+                        </th>
+                        <th title="使用人">
+                            <div class="ellipsisContent">
+                                使用人
+                            </div>
+                        </th>
+                        <th title="创建时间">
+                            <div class="ellipsisContent">
+                                创建时间
+                            </div>
+                        </th>
+                        <th title="仓库">
+                            <div class="ellipsisContent">
+                                仓库
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div style="width: 100%;overflow: auto;flex: 1;">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="8%">
+                            <col width="8%">
+                            <col width="8%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="16%">
+                        </colgroup>
+                        <tbody class="productStockList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!--分页插件-->
+            <div class="productStockListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--库存盘点-->
+    <div id="stockCheck" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <form id="stockCheckForm" autocomplete="off" method="post" class="layui-form">
+                <div class="searchParamOuter">
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            盘点编号:
+                        </label>
+                        <input id="checkCodeQc" name="checkCodeQc" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            创建时间:
+                        </label>
+                        <input id="checkTimeQc" name="checkTimeQc" placeholder="创建时间" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            仓库:
+                        </label>
+                        <select lay-filter="warehouseQc" id="warehouseQc" name="warehouseQc" class="form-control"
+                                lay-search>
+
+                        </select>
+                    </div>
+                    <!--<div class="paramDiv layui-form">-->
+                    <!--<label class="control-label">-->
+                    <!--状态:-->
+                    <!--</label>-->
+                    <!--<select lay-filter="checkStateQc" name="checkStateQc" class="form-control">-->
+                    <!--<option value="">&#45;&#45;请选择&#45;&#45;</option>-->
+                    <!--<option value="0">已保存</option>-->
+                    <!--<option value="1">已完成</option>-->
+                    <!--</select>-->
+                    <!--</div>-->
+                    <div style="display: inline-block;position: absolute;margin-right: 12px">
+                        <button class="btn btn-primary" type="button" onclick="stockCheckObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+                </div>
+                <!--tab内容列表上方按钮-->
+                <div class="buttonGroupOuter" style="margin: 12px 0px">
+                    <button class="btn btn-primary" type="button" onclick="stockCheckObj.addStockCheckShow()">
+                        <i class="fa fa-plus"></i>&nbsp;新增盘点
+                    </button>
+                    <button class="btn btn-primary" type="button" onclick="stockCheckObj.exportStockCheck()">
+                        <i class="fa fa-download"></i>&nbsp;导出
+                    </button>
+                </div>
+                <!--内容列表-->
+                <div class="listContentOuter">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </th>
+                            <th title="盘点编号">
+                                <div class="ellipsisContent">
+                                    盘点编号
+                                </div>
+                            </th>
+                            <th title="标题">
+                                <div class="ellipsisContent">
+                                    标题
+                                </div>
+                            </th>
+                            <th title="仓库">
+                                <div class="ellipsisContent">
+                                    仓库
+                                </div>
+                            </th>
+                            <th title="创建人">
+                                <div class="ellipsisContent">
+                                    创建人
+                                </div>
+                            </th>
+                            <th title="创建时间">
+                                <div class="ellipsisContent">
+                                    创建时间
+                                </div>
+                            </th>
+                            <th title="备注">
+                                <div class="ellipsisContent">
+                                    备注
+                                </div>
+                            </th>
+                            <th title="操作">
+                                <div class="ellipsisContent">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="stockCheckList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div class="stockCheckListPager" style="text-align: center;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!--库存预警-->
+    <div id="stockForeWarn" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <form id="stockForeWareForm" autocomplete="off" method="post" class="layui-form">
+                <div class="searchParamOuter">
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            产品分类:
+                        </label>
+                        <select lay-filter="foreTypeIdQc" id="foreTypeIdQc" name="foreTypeIdQc" class="form-control"
+                                lay-search>
+
+                        </select>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            产品名称:
+                        </label>
+                        <input id="foreGoodsNameQc" name="foreGoodsNameQc" class="form-control"/>
+                    </div>
+                    <div class="paramDiv">
+                        <label class="control-label">
+                            仓库:
+                        </label>
+                        <select lay-filter="foreWareIdQc" id="foreWareIdQc" name="foreWareIdQc" class="form-control"
+                                lay-search>
+
+                        </select>
+                    </div>
+                    <div style="display: inline-block;position: absolute;margin-right: 12px">
+                        <button class="btn btn-primary" type="button" onclick="stockForeWarnObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+                    <div class="paramDiv" style="text-align: right;float: right;">
+                        <button class="btn btn-primary" type="button" onclick="stockForeWarnObj.exportForeWarning()">
+                            <i class="fa fa-download"></i>&nbsp;导出
+                        </button>
+                    </div>
+
+                </div>
+                <div style="padding-top: 7px;clear: both">说明：不选择仓库则是对总仓库商品的预警，否则是对指定仓库商品的预警</div>
+                <!--内容列表-->
+                <div class="listContentOuter" style="margin-top: 12px">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="12%">
+                            <col width="12%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </th>
+                            <th title="产品编号">
+                                <div class="ellipsisContent">
+                                    产品编号
+                                </div>
+                            </th>
+                            <th title="产品分类">
+                                <div class="ellipsisContent">
+                                    产品分类
+                                </div>
+                            </th>
+                            <th title="产品名称">
+                                <div class="ellipsisContent">
+                                    产品名称
+                                </div>
+                            </th>
+                            <th title="规格">
+                                <div class="ellipsisContent">
+                                    规格
+                                </div>
+                            </th>
+                            <th title="单位">
+                                <div class="ellipsisContent">
+                                    单位
+                                </div>
+                            </th>
+                            <th title="库存数量">
+                                <div class="ellipsisContent">
+                                    库存数量
+                                </div>
+                            </th>
+                            <th title="状态">
+                                <div class="ellipsisContent">
+                                    状态
+                                </div>
+                            </th>
+                            <th title="库存最大值">
+                                <div class="ellipsisContent">
+                                    库存最大值
+                                </div>
+                            </th>
+                            <th title="库存最小值">
+                                <div class="ellipsisContent">
+                                    库存最小值
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="stockForeWarnList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div class="stockForeWarnPager" style="text-align: center;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!--仓库管理-->
+    <div id="warehouseStock" class="tabContent" style="height: 100%;width: 100%;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="wareForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            仓库编号:
+                        </label>
+                        <input name="wareCodeQc" class="form-control" placeholder="请输入仓库编号"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            仓库名称:
+                        </label>
+                        <input name="wareNameQc" class="form-control" placeholder="请输入仓库名称"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            仓库地址:
+                        </label>
+                        <input name="addressQc" class="form-control" placeholder="请输入仓库地址"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            创建时间:
+                        </label>
+                        <input id="wareTimeQc" name="wareTimeQc" class="form-control" placeholder="创建时间"/>
+                    </div>
+                    <div style="display: inline-block;position: absolute;">
+                        <button class="btn btn-primary" type="button" onclick="warehouseObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+                    </div>
+                    <div style="text-align: right;float: right;">
+                        <button class="btn btn-primary" type="button" onclick="warehouseObj.warehouseModalShow()">
+                            <i class="fa fa-plus"></i>&nbsp;新增仓库
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!--内容列表-->
+            <div class="listContentOuter" style="margin-top: 12px;">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                    <colgroup>
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="仓库编号">
+                            <div class="ellipsisContent">
+                                仓库编号
+                            </div>
+                        </th>
+                        <th title="仓库名称">
+                            <div class="ellipsisContent">
+                                仓库名称
+                            </div>
+                        </th>
+                        <th title="仓库负责人">
+                            <div class="ellipsisContent">
+                                仓库负责人
+                            </div>
+                        </th>
+                        <th title="仓库地址">
+                            <div class="ellipsisContent">
+                                仓库地址
+                            </div>
+                        </th>
+                        <th title="创建人">
+                            <div class="ellipsisContent">
+                                创建人
+                            </div>
+                        </th>
+                        <th title="创建时间">
+                            <div class="ellipsisContent">
+                                创建时间
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="warehouseList">
+                    </tbody>
+                </table>
+            </div>
+
+            <!--分页插件-->
+            <div class="wareListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+</div>
+
+<!--二维码-->
+<div id="qrcode" style="display: none;"></div>
+
+<!--新增仓库-->
+<div id="warehouseModal" style="display: none;">
+    <div class="warehouseModalContent">
+        <form id="warehouseForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+            <div class="col-md-12 form-group" style="margin-top: 30px">
+                <label class="col-sm-2 control-label">
+                    <span class="text-red">*</span>仓库编号:
+                </label>
+                <div class="col-sm-4">
+                    <input placeholder="仓库编号" name="code" class="form-control"/>
+                </div>
+                <label class="col-sm-2 control-label">
+                    <span class="text-red">*</span>仓库负责人:
+                </label>
+                <div class="col-sm-4 layui-form">
+                    <select id="wareUserId" name="userId" class="form-control" lay-search required>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-12 form-group">
+                <label class="col-sm-2 control-label">
+                    <span class="text-red">*</span>仓库名称:
+                </label>
+                <div class="col-sm-10">
+                    <input placeholder="仓库名称" name="name" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-12 form-group">
+                <label class="col-sm-2 control-label">
+                    <span class="text-red">*</span>仓库位置:
+                </label>
+                <div class="col-sm-10">
+                    <input placeholder="仓库位置" name="address" class="form-control" />
+                </div>
+            </div>
+            <div style="display:none;">
+                <input type="hidden" name="id"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增库存-->
+<div id="viewInventoryModal" style="display: none;">
+    <div class="stockModalCommon">
+        <!--顶部按钮-->
+        <div class="stockModalBtnOuter">
+            <div class="stockModalTitle">
+                新增库存
+            </div>
+            <div class="stockModalBtn">
+                <div onclick="productStockObj.closeModal();">
+                    <i class="fa fa-close"></i>
+                    关闭
+                </div>
+                <div id="submitButton" onclick="productStockObj.submitHander();">
+                    <i class="fa fa-arrow-circle-o-up"></i>
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="stockModalFormOuter">
+            <form id="viewInventoryForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        库存编号:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="code" class="form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>产品分类:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="typeId" lay-filter="goodsType" class="form-control" lay-search>
+
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>产品名称:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="goodsId" class="form-control" lay-search>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>数量:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="number" name="number" class="form-control" />
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>仓库:
+                    </label>
+                    <div class="col-sm-3">
+                        <select id="warehouseId" name="warehouseId" class="form-control">
+
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="createId" class="form-control" />
+                        <input name="createName" class="form-control" style="background-color: white;border: unset;"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="form-control" style="background-color: white;border: unset;"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!--列表内容-->
+        <div class="stockModalTableOuter">
+            <!--表格顶部汇总栏目，当栏目过多自动产生滚动条-->
+        </div>
+    </div>
+</div>
+
+<!--采购入库-->
+<div id="putStockModal" style="display: none;">
+    <div class="stockModalCommon">
+        <!--顶部按钮-->
+        <div class="stockModalBtnOuter">
+            <div class="stockModalTitle">
+                采购入库
+            </div>
+            <div class="stockModalBtn">
+                <div onclick="putStockObj.closeModal();">
+                    <i class="fa fa-close"></i>
+                    关闭
+                </div>
+                <div id="addPutBtn" class="save" onclick="putStockObj.submitOutbound('/inventoryStock/addOutBound',1);" >
+                    <i class="fa fa-arrow-circle-o-up"></i>
+                    提交
+                </div>
+                <div id="saveBtn" class="save" onclick="putStockObj.submitOutbound('/inventoryStock/addOutBound',0)">
+                    <i class="fa fa-save"></i>
+                    暂存
+                </div>
+                <div id="updateBtn" class="edit" onclick="putStockObj.submitOutbound('/inventoryStock/editOutBound',1);" >
+                    <i class="fa fa-arrow-circle-o-up"></i>
+                    提交
+                </div>
+                <div id="editBtn" class="edit" onclick="putStockObj.submitOutbound('/inventoryStock/editOutBound',0)">
+                    <i class="fa fa-save"></i>
+                    暂存
+                </div>
+                <div class="lossEffect" id="lossEffect" onclick="putStockObj.lossEffect()">
+                    <i class="fa fa-ban"></i>
+                    失效
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="stockModalFormOuter">
+            <form id="putStockModalFrom" autocomplete="off" class="form-horizontal" method="post">
+                <div class="col-md-12">
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            入库编号:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="code" name="code" class="form-control" style="background-color: white;border: unset;" readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>采购订单:
+                        </label>
+                        <div class="col-sm-8">
+                            <select name="foreignId" id="outBoundCode" required class="form-control" style="width: 75%;display: inline-block">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>选择仓库:
+                        </label>
+                        <div class="col-sm-8 layui-form" >
+                            <select name="wareId" id="warehouse" class="form-control" lay-verify="" lay-search>
+                                <option value="">请选择</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="padding-top: 10px">
+                    <div class="col-sm-4 layui-form">
+                        <label class="col-sm-4 control-label">
+                            创建人:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="createId" name="createId" type="hidden" class="form-control"/>
+                            <input id="createName" name="createName" class="form-control" style="background-color: white;border: unset;" readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            创建部门:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="deptId" name="deptId" type="hidden" class="form-control"/>
+                            <input id="deptName" name="deptName" class="form-control" style="background-color: white;border: unset;" readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            创建时间:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="createTime" name="createTime" class="form-control" style="background-color: white;border: unset;" readonly/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="padding-top: 10px">
+                    <div class="col-sm-4 layui-form">
+                        <label class="col-sm-4 control-label">
+                            合计金额:
+                        </label>
+                        <div class="col-sm-8" style="margin-top: 7px;">
+                            <span id="applyAmount" name="applyAmount" class="text-danger">0</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            失效原因:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="rejectReason" name="rejectReason" class="form-control"/>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: none">
+                    <!--type:1入库类型-->
+                    <input type="hidden" name="type" value="1">
+                    <input type="hidden" name="id">
+                </div>
+            </form>
+        </div>
+
+        <!--列表内容-->
+        <div class="stockModalTableOuter">
+            <div class="modalTableTitle" style="padding-left: 50px;">
+                入库明细
+            </div>
+            <div class="modalTableContent" style="padding: 10px 50px 0;">
+                <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px" style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="14%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="14%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="供应商">
+                            <div class="ellipsisContent">
+                                供应商
+                            </div>
+                        </th>
+                        <th title="产品分类">
+                            <div class="ellipsisContent">
+                                产品分类
+                            </div>
+                        </th>
+                        <th title="产品名称">
+                            <div class="ellipsisContent">
+                                产品名称
+                            </div>
+                        </th>
+                        <th title="单位">
+                            <div class="ellipsisContent">
+                                单位
+                            </div>
+                        </th>
+                        <th title="数量">
+                            <div class="ellipsisContent">
+                                数量
+                            </div>
+                        </th>
+                        <th title="单价">
+                            <div class="ellipsisContent">
+                                单价
+                            </div>
+                        </th>
+                        <th title="总额">
+                            <div class="ellipsisContent">
+                                总额
+                            </div>
+                        </th>
+                        <th title="仓库">
+                            <div class="ellipsisContent">
+                                仓库
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <div style="border: 1px;;height: auto;width: 100%;overflow: auto">
+                        <tbody class="stockCheckList" id="warehousingDetailTable">
+                        </tbody>
+                    </div>
+                </table>
+                <!--TODO 表格底部内容：当表格行数据过多产生滚动条时，使用js控制下面底部内容展示金额，否则使用此处-->
+                <div class="modalTableBottomContent" style="margin-top: 12px">
+                    <div class="col-sm-12">
+                        <label>失效:</label>
+                        <span>使采购单失效，并且不能恢复，编辑更换采购单时，只会使原来的采购单失效</span>
+                    </div>
+                    <div class="col-sm-12">
+                        <label>失效原因:</label>
+                        <span>只有点击失效才会存储失效原因</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--底部内容-->
+        <!--<div class="stockModalBottomOuter">-->
+            <!--<div class="col-sm-offset-3 col-sm-3">-->
+                <!--<label style="margin-left: 52px">合计金额:￥</label>-->
+                <!--<span id="applyAmount"  class="text-danger">0</span>-->
+            <!--</div>-->
+        <!--</div>-->
+    </div>
+</div>
+
+<!--领用出库-->
+<div id="outStockModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="outStockModalFrom" autocomplete="off" class="form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    领用出库
+                </div>
+                <div class="stockModalBtn">
+                    <div id="closeBtn" onclick="outStockObj.outStockModalClose();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="addApplyBtn" class="save"
+                         onclick="outStockObj.submitOutStock('/inventoryStock/addOutStock')">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editApplyBtn" class="edit"
+                         onclick="outStockObj.submitOutStock('/inventoryStock/editOutStock')">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                </div>
+            </div>
+
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12">
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            入库编号:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="code2" name="code" class="form-control"
+                                   style="background-color: white;border: unset;" readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            选择领用单:
+                        </label>
+                        <div class="col-sm-6">
+                            <select id="applyId" name="foreignId" class="form-control">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            领用人:
+                        </label>
+                        <div class="col-sm-8">
+                            <input name="applyName" class="form-control" style="background-color: white;border: unset;"
+                                   readonly/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="padding-top: 10px">
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            创建人:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="hidden" name="createId" class="form-control"/>
+                            <input name="createName" class="form-control" style="background-color: white;border: unset;"
+                                   readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            创建部门:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="hidden" name="deptId" class="form-control"/>
+                            <input name="deptName" class="form-control" style="background-color: white;border: unset;"
+                                   readonly/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            领用时间:
+                        </label>
+                        <div class="col-sm-8">
+                            <input name="createTime" class="form-control" style="background-color: white;border: unset;"
+                                   readonly/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="padding-top: 10px">
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            备注:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" name="remark" class="remark form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="col-sm-4 control-label">
+                            仓库:
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="hidden" name="wareId" class="form-control"/>
+                            <input name="wareName" class="form-control" style="background-color: white;border: unset;"
+                                   readonly/>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: none">
+                    <input type="hidden" name="type" value="2"/>
+                    <input type="hidden" name="id">
+                </div>
+            </div>
+
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="modalTableTitle" style="padding-left: 50px;">
+                    领用明细
+                </div>
+                <div class="modalTableContent" style="padding: 10px 50px 0;">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="14%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="14%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <td title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </td>
+                            <td title="产品分类">
+                                <div class="ellipsisContent">
+                                    产品分类
+                                </div>
+                            </td>
+                            <td title="产品名称">
+                                <div class="ellipsisContent">
+                                    产品名称
+                                </div>
+                            </td>
+                            <th title="规格">
+                                <div class="ellipsisContent">
+                                    规格
+                                </div>
+                            </th>
+                            <td title="单位">
+                                <div class="ellipsisContent">
+                                    单位
+                                </div>
+                            </td>
+                            <td title="申请数量">
+                                <div class="ellipsisContent">
+                                    申请数量
+                                </div>
+                            </td>
+                            <td title="出库数量">
+                                <div class="ellipsisContent">
+                                    出库数量<span class="text-red">*</span>
+                                </div>
+                            </td>
+                            <td title="可用/总库存">
+                                <div class="ellipsisContent">
+                                    可用/总库存
+                                </div>
+                            </td>
+                            <td title="使用人">
+                                <div class="ellipsisContent">
+                                    使用人
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody class="stockCheckList2" id="applyDetailsTable">
+                        </tbody>
+                    </table>
+                    <!--<div class="modalTableBottomContent" style="margin-top: 20px">-->
+                        <!--<div class="col-sm-4">-->
+                            <!--<label class="col-sm-4 control-label" style="display: inline-block;margin-left: -36px;">-->
+                                <!--备注:-->
+                            <!--</label>-->
+                            <!--<div class="col-sm-8" style="padding: 10px 0 0 24px;">-->
+                                <!--<textarea name="remark" class="remark form-control"></textarea>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增盘点-->
+<div id="stockCheckModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="stockCheckFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span class="save">新增盘点单</span>
+                    <span class="edit">编辑盘点单</span>
+                    <span class="view">查看盘点单</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div id="closeStockBtn" onclick="stockCheckObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <!--<div id="saveCheckBtn" class="save"-->
+                         <!--onclick="stockCheckObj.submitStockCheck(this,'/inventoryCheck/saveInventoryCheck',1)">-->
+                        <!--<i class="fa fa-arrow-circle-o-up"></i>-->
+                        <!--提交-->
+                    <!--</div>-->
+                    <div id="addCheckBtn" class="save"
+                         onclick="stockCheckObj.submitStockCheck(this,'/inventoryCheck/saveInventoryCheck')">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <!--<div id="updateCheckBtn" class="edit"-->
+                         <!--onclick="stockCheckObj.submitStockCheck(this,'/inventoryCheck/updateInventoryCheck',1)">-->
+                        <!--<i class="fa fa-arrow-circle-o-up"></i>-->
+                        <!--提交-->
+                    <!--</div>-->
+                    <!--<div id="editCheckBtn" class="edit"-->
+                         <!--onclick="stockCheckObj.submitStockCheck(this,'/inventoryCheck/updateInventoryCheck',0)">-->
+                        <!--<i class="fa fa-arrow-circle-o-up"></i>-->
+                        <!--保存-->
+                    <!--</div>-->
+                </div>
+            </div>
+
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <input type="hidden" name="id">
+                    <label class="col-sm-2 control-label">
+                        标题<span class="text-red">*</span>:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="title" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        盘点编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" class="form-control" style="background-color: white;border: unset;"
+                               readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        仓库:
+                    </label>
+                    <div class="col-sm-3 layui-form">
+                        <select lay-filter="wareIdFilter" id="wareId" name="wareId" class="checkWareId form-control">
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="createId" class="form-control"/>
+                        <input name="createName" class="form-control" style="background-color: white;border: unset;"
+                               readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="form-control" style="background-color: white;border: unset;"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        附件:
+                    </label>
+                    <div class="col-sm-3">
+                        <a class="affixDiv" target="_blank"></a>
+                        <input name="file" type="file" class="form-control">
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        备注:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="remark" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+            </div>
+
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="modalTableTitle" style="padding-left: 50px;">
+                    <button class="selectProduct btn btn-primary" type="button" onclick="stockCheckObj.addProductModalShow();">
+                        选择产品
+                    </button>
+                </div>
+                <!--table选择产品盘点列表-->
+                <div class="modalTableContent" style="padding: 10px 50px 0;">
+                    <table id="selectProductTable" class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="8%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="12%">
+                            <col width="6%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <td title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </td>
+                            <td title="产品编号">
+                                <div class="ellipsisContent">
+                                    产品编号
+                                </div>
+                            </td>
+                            <td title="产品名称">
+                                <div class="ellipsisContent">
+                                    产品名称
+                                </div>
+                            </td>
+                            <th title="规格">
+                                <div class="ellipsisContent">
+                                    规格
+                                </div>
+                            </th>
+                            <th title="单价">
+                                <div class="ellipsisContent">
+                                    单价
+                                </div>
+                            </th>
+                            <td title="库存数量">
+                                <div class="ellipsisContent">
+                                    库存数量
+                                </div>
+                            </td>
+                            <td title="盘点数量">
+                                <div class="ellipsisContent">
+                                    盘点数量<span class="text-red">*</span>
+                                </div>
+                            </td>
+                            <td title="盘盈数量">
+                                <div class="ellipsisContent">
+                                    盘盈数量
+                                </div>
+                            </td>
+                            <td title="盘亏数量">
+                                <div class="ellipsisContent">
+                                    盘亏数量
+                                </div>
+                            </td>
+                            <td title="备注">
+                                <div class="ellipsisContent">
+                                    备注
+                                </div>
+                            </td>
+                            <td title="操作">
+                                <div class="ellipsisContent">
+                                    操作
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody class="stockCheckList3">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <!--<div class="selectProductPager" style="text-align: center;"></div>-->
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--选择产品-->
+<div id="selectProductModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="selectProductFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    选择产品
+                </div>
+                <div class="stockModalBtn">
+                    <div id="closeProductBtn" onclick="stockCheckObj.closeProductModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="selectProductBtn" onclick="stockCheckObj.selectProduct();">
+                        <i class="fa fa-close"></i>
+                        保存
+                    </div>
+                </div>
+            </div>
+
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        产品分类:
+                    </label>
+                    <div class="col-sm-3 layui-form">
+                        <select lay-filter="typeIdQc" id="typeIdQc" name="typeIdQc" class="form-control">
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        仓库:
+                    </label>
+                    <div class="col-sm-3 layui-form">
+                        <input name="warehouseName" class="form-control" style="background-color: white;border: unset;"/>
+                        <input name="warehouseId" type="hidden" class="form-control"/>
+                    </div>
+                </div>
+            </div>
+
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="modalTableTitle" style="padding-left: 50px;">
+                   产品信息
+                </div>
+                <!--产品信息列表-->
+                <div class="modalTableContent layui-form" style="padding: 10px 50px 0;">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;">
+                        <colgroup>
+                            <col width="4%">
+                            <col width="6%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <td style="text-align: center">
+                                <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose">
+                            </td>
+
+                            <td title="序号">
+                                <div class="ellipsisContent">
+                                    序号
+                                </div>
+                            </td>
+                            <td title="产品编号">
+                                <div class="ellipsisContent">
+                                    产品编号
+                                </div>
+                            </td>
+                            <td title="产品名称">
+                                <div class="ellipsisContent">
+                                    产品名称
+                                </div>
+                            </td>
+                            <th title="规格">
+                                <div class="ellipsisContent">
+                                    规格
+                                </div>
+                            </th>
+                            <th title="单位">
+                                <div class="ellipsisContent">
+                                    单位
+                                </div>
+                            </th>
+                            <th title="单价">
+                                <div class="ellipsisContent">
+                                    单价
+                                </div>
+                            </th>
+                            <td title="库存数量">
+                                <div class="ellipsisContent">
+                                    库存数量
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody class="productList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div class="productListPager" style="text-align: center;"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--库存详情-->
+<div id="productStockModal" style="display: none;">
+    <div class="stockModalCommon">
+        <!--顶部按钮-->
+        <div class="stockModalBtnOuter">
+            <div class="stockModalTitle">
+                库存详情
+            </div>
+            <div class="stockModalBtn">
+                <div onclick="productStockObj.closeModal();">
+                    <i class="fa fa-close"></i>
+                    关闭
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="stockModalFormOuter">
+            <form id="productStockModalFrom" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        库存编号:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="code" class="overFlowDiv input-readonly form-control" readonly/>
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        当前归属:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="warehouseId" class="input-readonly form-control" readonly/>
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        归属人:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        归属时间:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!--列表内容-->
+        <div class="stockModalTableOuter">
+            <div class="modalTableTotal">
+                <div class="col-sm-1"></div>
+                <div  style="margin-left: 40px;font-weight: bold" class="control-label">
+                    库存日志
+                </div>
+            </div>
+            <!--表格顶部汇总栏目，当栏目过多自动产生滚动条-->
+            <div class="modalTableTotal">
+                <div class="col-sm-1"></div>
+                <div style="margin-right: 24px;margin-left: 40px;">
+                    <span class="spanBox">产品分类：</span>
+                    <span name="typeName"></span>
+                </div>
+                <div style="margin-right: 24px">
+                    <span class="spanBox">产品名称：</span>
+                    <span name="goodsName"></span>
+                </div>
+                <div style="margin-right: 24px">
+                    <span class="spanBox">规格：</span>
+                    <span name="specs"></span>
+                </div>
+                <div style="margin-right: 24px">
+                    <span class="spanBox">单位：</span>
+                    <span name="unit"></span>
+                </div>
+                <div style="margin-right: 24px">
+                    <span class="spanBox">数量：</span>
+                    <span name="number">100</span>
+                </div>
+                <div>
+                    <span class="spanBox">金额：</span>
+                    ￥<span name="price"></span>元
+                </div>
+            </div>
+            <div class="modalTableContent">
+                <div class="col-md-1"></div>
+                <div class="col-md-10 form-group">
+                    <div class="col-sm-12">
+                        <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                               style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                            <colgroup>
+                                <col width="10%">
+                                <col width="20%">
+                                <col width="20%">
+                                <col width="20%">
+                                <col width="20%">
+                            </colgroup>
+                            <thead>
+                            <tr class="active">
+                                <td style="text-align: center;">序号</td>
+                                <td style="text-align: center;">库存编号</td>
+                                <td style="text-align: center;">操作人</td>
+                                <td style="text-align: center;">操作时间</td>
+                                <td style="text-align: center;">流程状态</td>
+                            </tr>
+                            </thead>
+                        </table>
+                        <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                            <table class="layui-table" lay-skin="line" id="stockCheckList"
+                                   style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                <colgroup>
+                                    <col width="10%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                </colgroup>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!--TODO 表格底部内容-->
+                <div class="modalTableBottomContent">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--审核详情模态框-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--物品领用审核流程详情弹出框-->
+<div id="showHistoryModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="showHistoryForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>审批流程</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="productStockObj.closeApproveDiv();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group" style="margin-left: 0px;">
+                    <div id="showHistoryDiv" class="col-sm-12">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--物品使用审核流程详情弹出框-->
+<div id="showHistoryModal2" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="showHistoryForm2" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>审批流程</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="productStockObj.closeApproveModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group" style="margin-left: 0px;">
+                    <div id="showHistoryDiv2" class="col-sm-12">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增报修单-->
+<div id="saveRepairModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addRepairForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-报修</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateOperateBtn" class="save" onclick="productStockObj.submitRepair(this,'/repair/saveRepair',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editOperateBtn" class="save" onclick="productStockObj.submitRepair(this,'/repair/saveRepair',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveOperateBtn" class="edit" onclick="productStockObj.submitRepair(this,'/repair/editRepair',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addOperateBtn" class="edit" onclick="productStockObj.submitRepair(this,'/repair/editRepair',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject" class="approve" onclick="productStockObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass" class="approve" onclick="productStockObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory" class="approve" onclick="productStockObj.showHistory2(29)">
+                        <!--29为报修流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        报修编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 12px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                报修原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入报修原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增报废单-->
+<div id="saveScrapModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addScrapForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-报废</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateScrapBtn" class="save" onclick="productStockObj.submitScrap(this,'/scrap/saveScrap',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editScrapBtn" class="save" onclick="productStockObj.submitScrap(this,'/scrap/saveScrap',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveScrapBtn" class="edit" onclick="productStockObj.submitScrap(this,'/scrap/editScrap',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addScrapBtn" class="edit" onclick="productStockObj.submitScrap(this,'/scrap/editScrap',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject2" class="approve" onclick="productStockObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass2" class="approve" onclick="productStockObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory2" class="approve" onclick="productStockObj.showHistory2(30)">
+                        <!--30为报废流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        报废编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable2"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 12px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                报废原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入报废原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description2" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增归还单-->
+<div id="saveReturnModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addReturnForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-归还</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateReturnBtn" class="save" onclick="productStockObj.submitReturn(this,'/return/saveReturn',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editReturnBtn" class="save" onclick="productStockObj.submitReturn(this,'/return/saveReturn',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveReturnBtn" class="edit" onclick="productStockObj.submitReturn(this,'/return/editReturn',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addReturnBtn" class="edit" onclick="productStockObj.submitReturn(this,'/return/editReturn',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productStockObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject3" class="approve" onclick="productStockObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass3" class="approve" onclick="productStockObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory3" class="approve" onclick="productStockObj.showHistory2(31)">
+                        <!--31为归还流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        归还编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable3"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 12px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                归还原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入归还原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description3" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>系统配置管理</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/plan/planSetting.js"></script>
+    <style type="text/css">
+        .layui-table{
+            margin: unset !important;
+        }
+        .layui-table td, .layui-table th{
+            padding: unset !important;
+            text-align: center;
+        }
+        .layui-table td input{
+            text-align: center;
+        }
+
+        .planSettingOuterWrap{
+            border: 0px solid red;width: 100%;height: 100%;
+        }
+        .planSettingWrap{
+            border: 0px solid red;width: 50%;height: 100%;float: left;display: flex;flex-direction: column;
+        }
+        .planSettingTitle{
+            border-bottom: 1px solid #c9c9c9;
+            width: 100%;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .searchWrap{
+            border-bottom: 1px solid #c9c9c9;
+            width: 100%;
+            height: 50px;
+            padding: 8px 15px;
+        }
+        .tableWrap{
+            border-bottom: 1px solid #c9c9c9;
+            width: 100%;
+            flex: 1;
+            padding: 5px 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tbodyWrap{
+            border: 0px solid red;
+            width: 100%;
+            flex:1;
+            overflow: auto;
+        }
+        .btnWrap{
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            padding: 0 15px;
+            text-align: right;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //表格复选框事件
+                form.on('checkbox(valueAllChoose)', function(data){
+                    var child = $(data.elem).closest(".tableWrap").find('.tbodyWrap input[type="checkbox"]');
+                    var chooseKey = $(data.elem).attr("data-chooseKey");
+                    child.each(function(index, item){
+                        item.checked = data.elem.checked;
+                        //如果全选，则保存
+                        if(data.elem.checked){
+                            if(!planConfigObj.chooseData[chooseKey].contains($(item).val())){
+                                planConfigObj.chooseData[chooseKey].push($(item).val());
+                            }
+                        }else {
+                            planConfigObj.chooseData[chooseKey].remove($(item).val());
+                        }
+                    });
+                    form.render('checkbox');
+                });
+
+                //表格复选框事件
+                form.on('checkbox(itemCheckBox)', function(data){
+                    var chooseKey = $(data.elem).attr("data-chooseKey");
+                    //如果选中，则保存，否则取消
+                    if(data.elem.checked){
+                        if(!planConfigObj.chooseData[chooseKey].contains($(data.elem).val())){
+                            planConfigObj.chooseData[chooseKey].push($(data.elem).val());
+                        }
+                    }else {
+                        planConfigObj.chooseData[chooseKey].remove($(data.elem).val());
+                    }
+                    form.render('checkbox');
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="planSettingOuterWrap">
+    <!--排除人员筛选-->
+    <div class="planSettingWrap" style="border-right: 1px solid #c9c9c9;">
+        <!--标题栏目-->
+        <div class="planSettingTitle">
+            排除用户设置-
+            <span id="userConfigState"></span>
+        </div>
+        <!--筛选栏目-->
+        <div class="searchWrap">
+            <div class="input-group m-b">
+                <input type="text" class="form-control" placeholder="请输入用户名称搜索" oninput="planConfigObj.searchConfig(this, 'user_id');">
+                <span class="input-group-addon" style="cursor: pointer;" onclick="planConfigObj.searchConfig(this, 'user_id');">
+                    <i class="fa fa-search"></i>
+                </span>
+            </div>
+        </div>
+        <!--表格栏目-->
+        <div class="tableWrap">
+            <table class="layui-table layui-form" style="table-layout:fixed;">
+                <colgroup>
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="40%">
+                    <col width="40%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>
+                        <input data-chooseKey="userId" type="checkbox" lay-skin="primary" lay-filter="valueAllChoose">
+                    </th>
+                    <th title="序号">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            序号
+                        </div>
+                    </th>
+                    <th title="用户ID">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            用户ID
+                        </div>
+                    </th>
+                    <th title="用户名称">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            用户名称
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <div class="tbodyWrap">
+                <table class="layui-table layui-form" style="table-layout:fixed;">
+                    <colgroup>
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="40%">
+                        <col width="40%">
+                    </colgroup>
+                    <tbody id="userListBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!--按钮栏目-->
+        <div class="btnWrap">
+            <button type="button" id="userDelBtn" class="btn btn-default" onclick="planConfigObj.del(this, 'userJson');">
+                <i class="fa fa-trash"></i>&nbsp;删除
+            </button>
+            <button type="button" id="userEnableBtn" class="btn btn-primary" onclick="planConfigObj.enable(this, 'userJson');">
+                <i class="fa fa-play"></i>&nbsp;启用
+            </button>
+            <button type="button" id="userDisableBtn" class="btn btn-danger" onclick="planConfigObj.disable(this, 'userJson');">
+                <i class="fa fa-stop"></i>&nbsp;禁用
+            </button>
+            <button type="button" id="userAddBtn"  class="btn btn-primary" onclick="planConfigObj.save(this, '/sysConfig/save', 'userJson', 'userId');">
+                <i class="fa fa-save"></i>&nbsp;保存
+            </button>
+            <button type="button" id="userUpdateBtn" class="btn btn-primary" onclick="planConfigObj.save(this, '/sysConfig/update', 'userJson', 'userId');">
+                <i class="fa fa-save"></i>&nbsp;修改
+            </button>
+        </div>
+    </div>
+    <!--排除部门筛选-->
+    <div class="planSettingWrap">
+        <!--标题栏目-->
+        <div class="planSettingTitle">
+            排除部门设置-
+            <span id="deptConfigState"></span>
+        </div>
+        <!--筛选栏目-->
+        <div class="searchWrap">
+            <div class="input-group m-b">
+                <input type="text" class="form-control" placeholder="请输入部门名称搜索" oninput="planConfigObj.searchConfig(this, 'dept_id');">
+                <span class="input-group-addon" style="cursor: pointer;" onclick="planConfigObj.searchConfig(this, 'dept_id');">
+                    <i class="fa fa-search"></i>
+                </span>
+            </div>
+        </div>
+        <!--表格栏目-->
+        <div class="tableWrap">
+            <table class="layui-table layui-form" style="table-layout:fixed;">
+                <colgroup>
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="40%">
+                    <col width="40%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>
+                        <input data-chooseKey="deptId" type="checkbox" lay-skin="primary" lay-filter="valueAllChoose">
+                    </th>
+                    <th title="序号">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            序号
+                        </div>
+                    </th>
+                    <th title="部门ID">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            部门ID
+                        </div>
+                    </th>
+                    <th title="部门名称">
+                        <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                            部门名称
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <div class="tbodyWrap">
+                <table class="layui-table layui-form" style="table-layout:fixed;">
+                    <colgroup>
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="40%">
+                        <col width="40%">
+                    </colgroup>
+                    <tbody id="deptListBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!--按钮栏目-->
+        <div class="btnWrap">
+            <button type="button" id="deptDelBtn" class="btn btn-default" onclick="planConfigObj.del(this, 'deptJson');">
+                <i class="fa fa-trash"></i>&nbsp;删除
+            </button>
+            <button type="button" id="deptEnableBtn" class="btn btn-primary" onclick="planConfigObj.enable(this, 'deptJson');">
+                <i class="fa fa-play"></i>&nbsp;启用
+            </button>
+            <button type="button" id="deptDisableBtn" class="btn btn-danger" onclick="planConfigObj.disable(this, 'deptJson');">
+                <i class="fa fa-stop"></i>&nbsp;禁用
+            </button>
+            <button type="button" id="deptAddBtn" class="btn btn-primary" onclick="planConfigObj.save(this, '/sysConfig/save', 'deptJson', 'deptId');">
+                <i class="fa fa-save"></i>&nbsp;保存
+            </button>
+            <button type="button" id="deptUpdateBtn" class="btn btn-primary" onclick="planConfigObj.save(this, '/sysConfig/update', 'deptJson', 'deptId');">
+                <i class="fa fa-save"></i>&nbsp;修改
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

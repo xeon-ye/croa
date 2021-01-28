@@ -1,0 +1,83 @@
+<div class="modal inmodal" id="statisticsFTModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div id="modalDialog" class="modal-dialog">
+        <!--模态框整个可编辑区间-->
+        <div class="modal-content" id="modalContent">
+            <!--模态框头部-->
+            <div class="modal-header" id="modalHeader">
+                <!--标题-->
+                <div class="titleStyle">
+                    <div id="dialogTitle" class="dialogTitle"></div>
+                    <div class="dialogBtn">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                </div>
+
+                <!--查询条件区域-->
+                <div id="selectCondition">
+                    <form id="paramForm" role="form" style="height: 100%;width: 100%;">
+                        <!--隐藏域：Js动态加载-->
+                        <!--<input type="hidden" id="paramId" name="paramId" value="56"> &lt;!&ndash;客户&ndash;&gt;-->
+                        <!--查询条件通用样式，需要添加其他条件时，拷贝修改名称即可-->
+                        <div class="paramDiv">
+                            <div class="labelName">时间范围：</div>
+                            <div class="paramInputDiv">
+                                <select id="modalTimeQuantum" name="timeQuantum" class="form-param">
+                                    <option value="1" selected="selected">近三月</option>
+                                    <option value="2">近半年</option>
+                                    <option value="3">近一年</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!--时间区间：含自定义样式-->
+                        <div class="paramDiv modalIssuedDate">
+                            <div class="labelName">发布时间：</div>
+                            <div class="paramInputDiv">
+                                <input placeholder="开始日期" id="modalIssuedDateStart" name="issuedDateStart" class="form-param">
+                            </div>
+                        </div>
+                        <div class="paramDiv modalIssuedDate">
+                            <div class="labelName" style="width: 40px !important;text-align: center !important;">至</div> <!--此处需要内部样式处理，不然会格的太开-->
+                            <div class="paramInputDiv">
+                                <input placeholder="结束日期" id="modalIssuedDateEnd" name="issuedDateEnd" class="form-param">
+                            </div>
+                        </div>
+
+                        <!--查询按钮：条件区最后面-->
+                        <div class="paramDiv">
+                            <div class="labelName">
+                                <button type="button" id="modalSearchButton" class="btn btn-primary" onclick="statisticsFTModal.queryDispatch();">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!--模态内容区-->
+            <div id="modalBody" class="modal-body">
+                <!--实际内容区：实现滑动效果-->
+                <div id="main">
+                    <div id="scrollContent">
+                        <div class="statisticsContent">
+                            <div class="middle">
+                                <!--折线图-->
+                                <div id="modalChartByDate">
+                                </div>
+                            </div>
+                            <!--<div class="bottom">
+                                <button id="modalExportBtn" class="btn btn-info" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                </button>
+                                <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                    <table id="modalDetailTable"></table>
+                                    <div id="modalDetailPager"></div>
+                                </div>
+                            </div>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

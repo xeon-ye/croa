@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 考核方案关联的考核细则； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformanceHistoryMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformanceHistory">
+        <id column="history_id" jdbcType="INTEGER" property="historyId"/>
+        <result column="plate_id" jdbcType="INTEGER" property="plateId"/>
+        <result column="plate_level" jdbcType="INTEGER" property="plateLevel"/>
+        <result column="plate_proportion" jdbcType="REAL" property="plateProportion"/>
+        <result column="plate_parent" jdbcType="INTEGER" property="plateParent"/>
+        <result column="plate_content" jdbcType="VARCHAR" property="plateContent"/>
+        <result column="plate_target" jdbcType="VARCHAR" property="plateTarget"/>
+        <result column="plate_demand" jdbcType="VARCHAR" property="plateDemand"/>
+        <result column="plate_order" jdbcType="INTEGER" property="plateOrder"/>
+        <result column="sch_id" jdbcType="INTEGER" property="schId"/>
+        <result column="dept_id" jdbcType="INTEGER" property="deptId"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        history_id, plate_id, plate_level, plate_proportion, plate_parent, plate_content,plate_target,plate_demand, plate_order, sch_id, dept_id,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <insert id="insertAll" parameterType="java.util.List">
+        INSERT INTO e_performance_history (
+        history_id,
+        plate_id,
+        plate_level,
+        plate_proportion,
+        plate_parent,
+        plate_content,
+        plate_target,
+        plate_demand,
+        plate_order,
+        sch_id,
+        create_id,
+        create_name,
+        create_time,
+        update_id,
+        update_name,
+        update_time,
+        state,
+        version,
+        )
+        VALUES
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.historyId,jdbcType=INTEGER},
+            #{element.plateId,jdbcType=INTEGER},
+            #{element.plateLevel,jdbcType=INTEGER},
+            #{element.plateProportion,jdbcType=INTEGER},
+            #{element.plateParent,jdbcType=INTEGER},
+            #{element.plateContent,jdbcType=INTEGER},
+            #{element.plateTarget,jdbcType=INTEGER},
+            #{element.plateDemand,jdbcType=INTEGER},
+            #{element.plateOrder,jdbcType=INTEGER},
+            #{element.schId,jdbcType=INTEGER},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.state,jdbcType=INTEGER},
+            #{element.version,jdbcType=INTEGER}
+        </foreach>
+    </insert>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_history
+        where history_id = #{historyId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformanceHistory" useGeneratedKeys="true"
+            keyProperty="historyId">
+        insert into e_performance_history (history_id, plate_id, plate_level, plate_proportion,
+        plate_parent, plate_content,plate_target,plate_demand, plate_order, sch_id, dept_id,
+        <include refid="EmployCommon.commonColumn"/>)
+        values (#{historyId,jdbcType=INTEGER}, #{plateLevel,jdbcType=INTEGER}, #{plateProportion,jdbcType=REAL},
+        #{plateParent,jdbcType=INTEGER}, #{plateContent,jdbcType=VARCHAR},#{plateTarget,jdbcType=VARCHAR},#{plateDemand,jdbcType=VARCHAR},
+        #{plateOrder,jdbcType=INTEGER},#{schId,jdbcType=INTEGER},#{deptId,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnInsert"/>)
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceHistory"
+            useGeneratedKeys="true" keyProperty="historyId">
+        insert into e_performance_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="historyId != null">
+                history_id,
+            </if>
+            <if test="plateId != null">
+                plate_id,
+            </if>
+            <if test="plateLevel != null">
+                plate_level,
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion,
+            </if>
+            <if test="plateParent != null">
+                plate_parent,
+            </if>
+            <if test="plateContent != null">
+                plate_content,
+            </if>
+            <if test="plateTarget != null">
+                plate_target,
+            </if>
+            <if test="plateDemand != null">
+                plate_demand,
+            </if>
+            <if test="plateOrder != null">
+                plate_order,
+            </if>
+            <if test="schId != null">
+                sch_id,
+            </if>
+            <if test="deptId != null">
+                dept_id,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="historyId != null">
+                #{historyId,jdbcType=INTEGER},
+            </if>
+            <if test="plateId != null">
+                #{plateId,jdbcType=INTEGER},
+            </if>
+            <if test="plateLevel != null">
+                #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateTarget != null">
+                #{plateTarget,jdbcType=VARCHAR},
+            </if>
+            <if test="plateDemand != null">
+                #{plateDemand,jdbcType=VARCHAR},
+            </if>
+            <if test="plateOrder != null">
+                #{plateOrder,jdbcType=INTEGER},
+            </if>
+            <if test="schId != null">
+                #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                #{deptId,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceHistory">
+        update e_performance_history
+        <include refid="EmployCommon.deleteInfo"/>
+        where history_id = #{historyId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceHistory">
+        update e_performance_history
+        <set>
+            <if test="historyId != null">
+                plate_id = #{historyId,jdbcType=INTEGER},
+            </if>
+            <if test="plateLevel != null">
+                plate_level = #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion = #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                plate_parent = #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                plate_content = #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateTarget != null">
+                plate_target = #{plateTarget,jdbcType=VARCHAR},
+            </if>
+            <if test="plateDemand != null">
+                plate_demand = #{plateDemand,jdbcType=VARCHAR},
+            </if>
+            <if test="plateOrder != null">
+                plate_order = #{plateOrder,jdbcType=INTEGER},
+            </if>
+            <if test="schId != null">
+                sch_id = #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where history_id = #{historyId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceHistory">
+        update e_performance_history
+        set plate_id = #{historyId,jdbcType=INTEGER},
+        plate_level = #{plateLevel,jdbcType=INTEGER},
+        plate_proportion = #{plateProportion,jdbcType=REAL},
+        plate_parent = #{plateParent,jdbcType=INTEGER},
+        plate_content = #{plateContent,jdbcType=VARCHAR},
+        plate_demand = #{plateDemand,jdbcType=VARCHAR},
+        plate_target = #{plateTarget,jdbcType=VARCHAR},
+        plate_order = #{plateOrder,jdbcType=INTEGER},
+        sch_id = #{schId,jdbcType=INTEGER},
+        dept_id = #{deptId,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where history_id = #{historyId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

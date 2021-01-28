@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.propose.ProposeTipsMapper">
+    <sql id="selectColumn">
+    t.id,
+    t.`type`,
+    t.state,
+    t.content,
+    t.document_id documentId,
+    t.create_id as createId,
+    t.create_name as createName,
+    t.create_time as createTime,
+    t.update_user_id as updateUserId,
+    t.update_time as updateTime,
+    t.remark,
+    t.company_code as companyCode
+  </sql>
+
+    <select id="getById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.propose.ProposeTips">
+        select
+        <include refid="selectColumn"/>
+        from t_propose_tips t where t.id=#{id} and t.state>-2
+    </select>
+
+    <insert id="saveProposeTips" keyProperty="id" useGeneratedKeys="true" parameterType="com.qinfei.qferp.entity.propose.ProposeTips">
+        insert into t_propose_tips
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="type != null">`type`,</if>
+            <if test="state != null">state,</if>
+            <if test="content != null and content!=''">content,</if>
+            <if test="documentId != null">document_id,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createName != null and createName!=null">create_name,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark!=''">remark,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="type != null">#{type},</if>
+            <if test="state != null">#{state},</if>
+            <if test="content != null and content!=''">#{content},</if>
+            <if test="documentId != null">#{documentId},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createName != null and createName!=null">#{createName},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark!=''">#{remark},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="editProposeTips" parameterType="com.qinfei.qferp.entity.propose.ProposeTips">
+        update t_propose_tips
+        <set>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="documentId != null">
+                document_id = #{documentId},
+            </if>
+            <if test="createId != null">
+                create_id = #{createId},
+            </if>
+            <if test="createName != null and createName != ''">
+                create_name = #{createName},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                company_code = #{companyCode},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--启用时，还原其他启用的状态成保存状态（建议提示）-->
+    <update id="editTipsState" parameterType="java.lang.String">
+        update t_propose_tips set state=0 where state = 1 and type=1 and company_code=#{companyCode}
+    </update>
+
+    <!--启用时，还原其他启用的状态成保存状态（建议制度跳转）-->
+    <update id="editDocumentState" parameterType="java.lang.String">
+        update t_propose_tips set state=0 where state = 1 and type=2 and company_code=#{companyCode}
+    </update>
+
+    <!--查询已启用的制度跳转链接-->
+    <select id="getDocumentUrl" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select document_id from t_propose_tips where type=2 and state=1 and company_code=#{companyCode}
+    </select>
+
+    <!--查询已启用的建议提示内容-->
+    <select id="getSuggestContent" parameterType="java.lang.String" resultType="java.lang.String">
+        select content from t_propose_tips where type=1 and state=1 and company_code=#{companyCode}
+    </select>
+
+    <!--建议提示列表-->
+    <select id="queryProposeTips" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.propose.ProposeTips">
+          select
+           d.library_name documentName,
+           <include refid="selectColumn"/>
+           from t_propose_tips t
+           left join t_document_library d on d.id=t.document_id
+           where t.state>-2 and t.type!=3 and t.company_code=#{companyCode}
+           <if test="typeQc!=null and typeQc!=''">
+               and t.type=#{typeQc}
+           </if>
+           <if test="stateQc!=null and stateQc!=''">
+               and t.state=#{stateQc}
+           </if>
+    </select>
+
+    <!--建议管理是否设置建议时间统计区间-->
+    <select id="queryTipsByType" parameterType="java.lang.String" resultType="com.qinfei.qferp.entity.propose.ProposeTips">
+        select
+        <include refid="selectColumn"/>
+        from t_propose_tips t
+        where t.state>-2 and t.type=3 and t.company_code=#{companyCode}
+    </select>
+
+    <!--修改建议时间统计-->
+    <update id="updateTimeSection" parameterType="com.qinfei.qferp.entity.propose.ProposeTips">
+        update t_propose_tips
+        <set>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="documentId != null">
+                document_id = #{documentId},
+            </if>
+            <if test="createId != null">
+                create_id = #{createId},
+            </if>
+            <if test="createName != null and createName != ''">
+                create_name = #{createName},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where company_code = #{companyCode} and type=3
+    </update>
+</mapper>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>业务pk设置</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/performance/performanceDetail.js"></script>
+</head>
+<style type="text/css">
+    .back-set-div-little {
+        height: 185px;
+        border: 1px solid #f0f0f0;
+        width: 555px;
+    }
+
+    div[data-id='large-back-image'] {
+        background-image: url('/img/performance/background_default.png');
+    }
+
+    .top7 {
+        margin-top: 7px;
+    }
+
+    .left-10 {
+        margin-left: 10px;
+    }
+</style>
+<body>
+<div id="content">
+    <form id="performanceForm" class="form-horizontal" action="" type="post">
+        <input type="hidden" name="backgroundImg"/>
+        <input type="hidden" name="id"/>
+        <div class="ibox-title">
+            <div class="col-sm-8">
+                <h5 style="font-weight: bold">pk设置</h5>
+            </div>
+            <div class="col-sm-4">
+                <button type="button" class="btn btn-success savePerformance">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button type="button" class="btn btn-danger cancelPerformance">
+                    取消
+                </button>
+            </div>
+        </div>
+
+        <div class="ibox-content">
+            <div class="col-sm-12">
+                <div class="col-sm-3">
+                    <label class="control-label col-sm-2">pk名称&nbsp;<span style="color:red">*</span></label>
+                    <div class="col-sm-8" style="margin-left: 12px">
+                        <input name="name" class="form-control" required/>
+                    </div>
+                </div>
+                <div class="col-sm-9">
+                    <label class="control-label col-sm-2">pk时间&nbsp;<span style="color:red">*</span></label>
+                    <div class="col-sm-10">
+                        <div class="col-sm-6">
+                            <input class="input-sm form-control layer-date laydate-icon"
+                                   name="startDate" placeholder="开始时间" id="startDate" required
+                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                   readonly/>
+                        </div>
+                        <div class="col-sm-6">
+                            <input class="input-sm form-control layer-date laydate-icon"
+                                   name="endDate" placeholder="结束时间" id="endDate" required
+                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                   readonly/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="layui-bg-gray">
+        <div class="ibox-title">
+            <div class="col-sm-1">
+                <h5 style="font-weight: bold">pk组合设定</h5>
+            </div>
+            <div class="col-sm-2">
+                <span class="i-checks">
+                    <input type="radio" value="0" name="pkType" checked/>
+                    <span>员工pk</span>
+                </span>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="i-checks">
+                    <input type="radio" value="1" name="pkType"/>
+                    <span>部门pk</span>
+                </span>
+            </div>
+            <div class="col-sm-2">
+                <button type="button" id="peoplePK" data-toggle="modal" style="padding:0 15%"
+                        data-target="#peoplePKModal" class="btn btn-primary">
+                    <i class="fa fa-plus"></i>添加组合
+                </button>
+            </div>
+        </div>
+        <div class="ibox-content">
+            <div class="col-sm-6" id="leftContent">
+
+            </div>
+            <div class="col-sm-6" id="rightContent">
+            </div>
+        </div>
+
+        <hr class="layui-bg-gray">
+        <div class="ibox-title">
+            <h5 style="font-weight: bold">背景设置</h5>
+        </div>
+        <div class="ibox-content" id="backCustom">
+            <div>
+                <div class="col-sm-12" style="margin-top: 20px">
+                    <label class="control-label col-sm-2">背景图</label>
+                    <div class="col-sm-10">
+                        <div class="col-sm-6 text-center">
+                            <div class="back-set-div-little" data-id='large-back-image'>
+                            </div>
+                            <span class="i-checks">
+                                <input type="radio" value="0" name="backgroundImgRadio" checked/>
+                                <span>默认设置</span>
+                            </span>
+                        </div>
+                        <div class="col-sm-6 text-center">
+                            <div class="back-set-div-little" data-name="uploadImage" id="largeBackImg">
+
+                            </div>
+                            <span class="i-checks">
+                                <input type="radio" value="1" name="backgroundImgRadio"/>
+                                <span>自定义设置</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<form id="fileForm" style="display: none;" enctype="multipart/form-data">
+    <input type="file" name="file" id="inputUploadFile">
+</form>
+
+<div class="modal fade" id="peoplePKModal" tabindex="-1" role="dialog" aria-labelledby="peoplePKModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="peoplePKModalLabel">业务人员列表</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label right0">员工姓名:</label>
+                        <div class="col-sm-5">
+                            <input type="text" id="nameQc" name="name" class="form-control">
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" id="PKSearch" class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                        <div class="col-sm-5"></div>
+                    </div>
+                    <br>
+                    <div style="margin-top: 20px;">
+                        <div class="col-md-12" data-id="people">
+                        </div>
+                        <div class="col-md-12" data-id="dept">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitPeoplePK">选择下一位业务员</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--{{each data value index}}
+<div class="col-sm-3">
+        <span class="i-checks">
+            <input type="radio" data-id="{{value.id}}" name="peoplePK"/>
+            <span>{{value.name}}</span>
+        </span>
+</div>
+{{/each}}-->
+<script id="peoplePKHtml" type="text/html">
+    {{each data value index}}
+    <hr>
+    <div class="col-sm-12">
+        <div class="col-md-2">
+            <span class="i-checks">
+                    <span>{{value[0].deptName}}</span>
+            </span>
+        </div>
+        <div class="col-sm-10">
+            {{each value v i}}
+            <div class="col-sm-3">
+                <span class="i-checks">
+                    <input type="radio" data-id="{{v.id}}" name="peoplePK"/>
+                    <span>{{v.name}}</span>
+                </span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    <hr>
+    {{/each}}
+</script>
+
+<script id="peoplePKShow" type="text/html">
+    <div class="form-group">
+        <div class="col-sm-2 text-right top7">
+            <span class="height18">{{left.name}}</span>
+            <input type="hidden" name="leftPeopleIds" value="{{left.id}}"/>
+            <input type="hidden" name="leftPeopleNames" value="{{left.name}}"/>
+        </div>
+        <div class="col-sm-1 text-center">
+            <span><img src="/img/performance/pk.png"/></span>
+        </div>
+        <div class="col-sm-2 text-left top7">
+            <span class="height18">{{right.name}}</span>
+            <input type="hidden" name="rightPeopleIds" value="{{right.id}}"/>
+            <input type="hidden" name="rightPeopleNames" value="{{right.name}}"/>
+        </div>
+        <button type="button" class="btn btn-error height18 top7"
+                left-id="{{left.id}}" style="padding:0 5%"
+                onclick="removePK(this)" right-id="{{right.id}}">
+            <i class="fa fa-times"></i> 移除
+        </button>
+    </div>
+</script>
+<script>
+    function removePK(t) {
+        var ids = [$(t).attr("left-id"), $(t).attr("right-id")];
+
+        pageObj.selectedPeopleId = pageObj.selectedPeopleId.filter(function (item) {
+            return !ids.contains(item);
+        });
+        var contentDomId = $(t).parent().parent().attr("id");
+        $(t).parent().remove();
+        pageObj.searchPKPeople();
+        if (contentDomId === "leftContent") pageObj.leftNum--;
+        else pageObj.rightNum--;
+    }
+</script>
+
+</body>
+</html>

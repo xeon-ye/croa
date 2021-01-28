@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>分款管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css"/>
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script th:src="@{/js/crm/commonDatagrid.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/fee/commonFee.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/fee/queryAssign.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#assignDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#assignSearch").click();
+                }
+            });
+            $('#selectArticleDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#selectArticleSearch").click();
+                }
+            });
+
+            var startTimeQc = {
+                elem: '#startTimeQc',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // endTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // endTimeQc.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#startTimeQc").val();
+                    var endTime = $("#endTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var endTimeQc = {
+                elem: '#endTimeQc',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // startTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#startTimeQc").val();
+                    var endTime = $("#endTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#endTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+
+            var startTime = {
+                elem: '#startTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // endTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    // endTime.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#startTime").val();
+                    var endTime = $("#endTime").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startTime").val("")
+                        return;
+                    }
+                }
+            };
+            var endTime = {
+                elem: '#endTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // startTime.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#startTime").val();
+                    var endTime = $("#endTime").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#endTime").val("")
+                        return;
+                    }
+                }
+            };
+
+            laydate(startTimeQc);
+            laydate(endTimeQc);
+            laydate(startTime);
+            laydate(endTime);
+        });
+    </script>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="margin-bottom: 0px">
+            <div class="ibox-title" style="padding-left: 20px">
+                <h5 style="font-weight: bold">查询条件</h5>
+            </div>
+            <div class="ibox-content" style="padding: 15px 20px 0px 20px">
+                <div class="form-horizontal" id="assignDiv">
+                    <form id="assignForm">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">进款日期:</label>
+                            <div class="col-sm-2" style="min-width:240px;">
+                                <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon " id="startTimeQc"
+                                       name="startTimeQc" readonly="readonly">
+                                <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                       class="form-control layer-date laydate-icon " id="endTimeQc"
+                                       name="endTimeQc"  readonly="readonly">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="codeQc" name="codeQc" class="form-control" placeholder="进款编号" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="accountNameQc" name="accountNameQc" class="form-control" placeholder="账号名称" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="tradeManQc" name="tradeManQc" class="form-control" placeholder="进款人" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1">
+                                <input type="text" id="incomeQc" name="incomeQc" class="form-control" placeholder="进款金额" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1">
+                                <button type="button" id="assignSearch" onclick="gridObj.reloadAssign();" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-title" style="padding-left: 10px">
+                <div class="form-horizontal" id="tj">
+                    <div class=" col-sm-3">
+                        <label>进账金额合计: ￥ </label><label id="tradeAmount2" class="text-danger">0</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>已领金额合计: ￥ </label><label id="receiveAmount2" class="text-danger">0</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>已分款金额合计: ￥ </label><label id="assignAmount2" class="text-danger">0</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>可用金额合计: ￥ </label><label id="remainAmount2" class="text-danger">0</label>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox-content" style="margin-left:10px; padding: 5px">
+                <div class="jqGrid_wrapper">
+                    <table id="assign_table_logs"></table>
+                    <div id="assign_pager_logs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--查看页面-->
+<div class="modal fade" id="viewModal" tabindex="-1" role="dialog"  aria-labelledby="addModalLabel">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content animated bounceInRight">
+            <div class="fa fa-refresh" id="refresh" style="margin-left: 20px; margin-top: 20px;cursor: pointer" title="刷新"></div>
+            <div class="modal-header" style="padding-top: 0px; padding-bottom: 5px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">查看进账流水信息</h1>
+            </div>
+            <div class="modal-body" style="padding: 0">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: -20px">
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">进账详情</h3></div>
+                            <div class="ibox-content" style="padding-left: 10px;padding-right: 10px;">
+                                <form id="viewForm" class="form-horizontal">
+                                    <div class="form-group">
+                                        <input type="hidden" id="id1" name="id1" value="" class="form-control">
+                                        <input type="hidden" id="refreshId" name="refreshId" value="" class="form-control">
+                                        <label class="col-sm-1 control-label">已领金额:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" id="receiveAmount1" name="receiveAmount1"
+                                                   class="form-control" style="border:0;">
+                                        </div>
+                                        <label class="col-sm-1 control-label">已分款金额:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" id="assignAmount1" name="assignAmount1" class="form-control"
+                                                   style="border:0;">
+                                        </div>
+                                        <label class="col-sm-1 control-label">可用金额<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" id="remainAmount1" name="remainAmount1" class="form-control"
+                                                   style="border:0;">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="ibox" style="margin-bottom: 0" >
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">分款稿件列表</h3></div>
+                            <div class="ibox-content" style="padding-left: 10px;padding-right: 10px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="selectedArticle_table_logs"></table>
+                                    <div id="selectedArticle_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 10px 15px 10px 15px">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--分款model-->
+<div class="modal fade" id="selectArticleModel" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content animated bounceInRight">
+            <div class="fa fa-refresh" id="refreshArticle" style="margin-left: 20px; margin-top: 20px;cursor: pointer" title="刷新"></div>
+            <div class="modal-header" style="padding-top: 0px; padding-bottom: 5px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">分款</h1>
+            </div>
+            <div class="modal-body" style="padding: 0">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: -20px">
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">进账详情</h3></div>
+                            <div class="ibox-content" style="padding-left: 10px;padding-right: 10px;">
+                                <form id="viewAssignForm" class="form-horizontal">
+                                    <div class="form-group">
+                                        <input type="hidden" id="id" name="id" class="form-control">
+                                        <input type="hidden" id="refreshArticleId" name="refreshArticleId" class="form-control">
+                                        <label class="col-sm-1 control-label">已领金额:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="receiveAmount" name="receiveAmount" class="form-control"
+                                                   style="border:0;">
+                                        </div>
+                                        <label class="col-sm-1 control-label">已分款金额:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="assignAmount" name="assignAmount" class="form-control"
+                                                   style="border:0;">
+                                        </div>
+                                        <label class="col-sm-1 control-label">可用金额:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="remainAmount" name="remainAmount" class="form-control"
+                                                   style="border:0;">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="ibox" style="margin-bottom: -20px">
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">筛选条件</h3></div>
+                            <div class="ibox-content" id="selectArticleDiv" style="padding-left: 10px;padding-right: 10px;">
+                                <form id="selectArticleForm" class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">发布日期:</label>
+                                        <div class="col-sm-3" style="min-width:240px;">
+                                            <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                                   class="form-control layer-date laydate-icon " id="startTime"
+                                                   name="startTime"  readonly="readonly">
+                                            <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                                   class="form-control layer-date laydate-icon " id="endTime"
+                                                   name="endTime"  readonly="readonly">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="titleQc" name="titleQc" class="form-control"
+                                                   placeholder="稿件标题" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="mediaName" name="mediaName"
+                                                   class="form-control" placeholder="媒体" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="mediaUserName" name="mediaUserName" class="form-control"
+                                                   placeholder="媒介" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="saleAmount" name="saleAmount" class="form-control"
+                                                   placeholder="报价"  autocomplete="off" onkeyup="this.value=this.value.toString().match(/^\d+(?:\.\d{0,2})?/)">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">客户信息:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="custCompanyNameQc" name="custCompanyNameQc"
+                                                   class="form-control" placeholder="客户公司" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="custNameQc" name="custNameQc"
+                                                   class="form-control" placeholder="对接人" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="brandQc" name="brandQc"
+                                                   class="form-control" placeholder="品牌" autocomplete="off">
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <select name="invoiceStates" id="invoiceStates" class="form-control">
+                                                <option value="">开票状态</option>
+                                                <option value="0">未开票</option>
+                                                <option value="1">已开票</option>
+                                                <option value="2">开票中</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <button type="button" id="selectArticleSearch" onclick="gridObj.reloadSelect();" class="btn btn-primary">
+                                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="ibox" style="margin-bottom: 0" >
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">未分款稿件列表</h3></div>
+                            <div class="ibox-content" style="padding-left: 10px;padding-right: 10px;">
+                                <div class="jqGrid_wrapper">
+                                    <table id="selectArticle_table_logs"></table>
+                                    <div id="selectArticle_pager_logs"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ibox" style="margin-bottom: 0" >
+                            <div style="background-color: aliceblue"><h3 style="font-weight: bold; padding: 14px 15px 7px 20px; margin-bottom: 0px;margin-top: 0px;">分款稿件</h3></div>
+                            <div class="ibox-content" style="padding: 10px 10px 0 10px;">
+                                <form id="selectedForm" class="form-horizontal">
+                                    <div>
+                                        <div class="text-right">
+                                            <label>已领金额:</label>
+                                            <input type="text" name="receiveAmount" style="width:60px;border:0;">
+                                            <label>已分款金额:</label>
+                                            <input type="text" name="assignAmount" style="width:60px;border:0;">
+                                            <label>可用金额:</label>
+                                            <input type="text" name="remainAmount" style="width:60px;border:0;">
+                                            <label>报价合计:￥</label>
+                                            <span id="sumAmount" class="text-danger">0</span>
+                                            <label>分款合计:￥</label>
+                                            <span id="sumPoints" class="text-danger">0</span>
+                                        </div>
+                                    </div>
+                                    <table class="table table-bordered "
+                                           style="text-align: center;table-layout:fixed;word-wrap:break-word;word-break:break-all;">
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align:center;vertical-align:middle;" class="hide">ID
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">发布日期
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">客户公司名称
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="6%">对接人</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">品牌</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">媒体板块
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">媒体名称
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">标题</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">链接</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="6%">数量</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="6%">媒介</th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">报价/应收
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">已分款金额
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">分款金额
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="order">
+
+                                        </tbody>
+                                    </table>
+                                    <input type="hidden" name="incomeId" id="incomeId">
+                                    <input type="hidden" name="ids" id="ids">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 10px 15px 10px 15px">
+                <button type="button" class="btn btn-primary" onclick="businessObj.assignConfirm();"
+                        id="selectAssign"><i class="fa fa-link "></i>&nbsp;确认分款
+                </button>
+                <button type="button" class="btn btn-white"
+                        data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

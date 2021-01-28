@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <meta charset="UTF-8">
+    <title>期号管理</title>
+    <script type="text/javascript" src="/js/plan/batchList.js"></script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <style type="text/css">
+        .userDivClass{
+            border: 1px solid #C7C7CD;
+            height: 100%;
+            width: 12%;
+            float: left;
+            height: 30px;
+            margin-top: 5px;
+            margin-left: 5px;
+            padding-right: 10px;
+            padding-left: 10px;
+            background-color: #f2f5ee;
+        }
+        .userClass{
+            width: 75%;
+            text-align: center;
+            float: left;
+            font-weight:bold;
+            height: 30px;
+            line-height: 30px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .deleteClass{
+            margin-left: 3%;
+            width: 17%;
+            float:right;
+            height: 30px;
+            line-height: 30px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .deleteClass:hover{
+            color: red;
+        }
+        .layui-layer-content{
+            overflow: hidden !important;
+            background-color: #f7f7f7 !important;
+        }
+    </style>
+    <script id="excludePeopleHtml" type="text/html">
+        {{each data value index}}
+        <hr>
+        <div class="col-sm-12">
+            <div class="col-md-2">
+                <input type="hidden" name="deptId" class="form-control" value="{{value[0].deptId}}">
+                <span class="i-checks">
+                    <input class="deptSpan" sign="dept{{value[0].deptId}}" type="checkbox" deptId="{{value[0].deptId}}"><i></i>
+                    <span>{{value[0].deptName}}</span>
+                </span>
+            </div>
+            <div id="all" class="col-sm-10">
+                {{each value v i}}
+                <div class="col-sm-3">
+                    <span class="i-checks">
+                        <input class="userSpan" type="checkbox" userId="{{v.id}}" userName="{{v.name}}" deptId="{{v.deptId}}"><i></i>
+                        <span>{{v.name}}</span>
+                    </span>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        <hr>
+        {{/each}}
+    </script>
+    <script type="text/javascript">
+        //回车键搜索
+        function keyup_submit(evt){
+            evt = (evt) ? evt : ((window.event) ? window.event : "");
+            var curKey = evt.keyCode ? evt.keyCode : evt.which;
+            if (curKey == 13) {//keyCode=13是回车键
+                reflushTable();
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="row" style="padding: 10px 15px">
+    <div class="ibox">
+        <div class="ibox-title">
+            <h5 class="col-md-2">群组管理 &nbsp;
+                <i class="fa fa-angle-double-right"></i>&nbsp;
+                <span class="text-danger " id="groupTypeText"></span>
+            </h5>
+            <div class="col-md-10 form-inline" style="position: relative;top: -7px" title="敲回车键可以进行搜索">
+                <div class="form-group">
+                    <input class="form-control" style="width: 70%" id="groupName" onkeydown="keyup_submit(event)" placeholder="请输入群组名称进行搜索"/>
+                    <button id="mediaListSearchBtn" class="btn btn-warning" onclick="reflushTable()"><i class="fa fa-search"></i>&nbsp;搜索</button>
+                </div>
+            </div>
+        </div>
+        <!--查询条件，所有条件动态添加到这里-->
+        <form id="queryForm" style="display: none">
+            <input id="name1" name="name" value="" type="hidden"/> <!--群组名称-->
+            <input id="groupTypeId" name="groupTypeId" type="hidden" value="1"/>
+        </form>
+
+        <div class="ibox">
+            <ul id="groupTypeUL" class="ibox-title col-md-12">
+                <li class="col-md-12 ibox-tools" style="position: relative">
+                    <label style="float:left;">群组类型：</label>
+                    <div class="col-md-11" id="groupType">
+
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="ibox-content" style="padding: 5px 10px">
+            <div class="ibox-title">
+                <button id="addBtn" class="btn btn-danger" type="button">
+                    <i class="fa fa-plus"></i>&nbsp;新增<span id="addGroupTypeName">期号</span>群组
+                </button>
+            </div>
+        </div>
+
+        <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+            <div class="jqGrid_wrapper">
+                <table id="table_batch_list"></table>
+                <div id="pager_batch_list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--增加期号model框-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true"  data-backdrop="static">
+    <div class="modal-dialog" style="width:70%">
+        <form id="editForm" class="form-horizontal" action=""  type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header" style="height: 50px; padding: 0px; margin-top: 15px;">
+                    <button type="button" class="close" data-dismiss="modal" style="margin-top: -10px;margin-right: 10px;"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title save">新增<span id="saveGroupTitle">期号</span>群组</h4>
+                    <h4 class="modal-title update">更改<span id="updateGroupTitle">期号</span>群组</h4>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <input type="hidden" id="id" name="id" class="form-control">
+                            <input type="hidden" id="modalGroupTypeId" name="groupTypeId" class="form-control">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label"><span class="text-red">*</span>群组名称:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="name" name="name" class="form-control" required="">
+                                </div>
+                                <label class="col-sm-1 control-label"><span class="text-red">*</span>创建人:</label>
+                                <div class="col-sm-2">
+                                    <input type="hidden" id="creatorId" name="createId">
+                                    <input type="text" id="createName" name="createId" class="form-control" readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label"><span class="text-red">*</span>创建时间:</label>
+                                <div class="col-sm-2">
+                                    <input type="hidden" id="createDate" name="createDate" >
+                                    <input type="text" id="createTime" name="createDate" class="form-control" readonly="readonly">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">群组描述：</label>
+                                <div class="col-sm-10 height64">
+                                    <textarea id="remarks" name="remarks" class="form-control" style="height: 100px"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-group licence">
+                                    <label class="col-sm-2 control-label">群组人员设定:</label>
+                                    <div class="col-sm-2">
+                                        <button type="button" id="addUserBtn" onclick="addUser();"  class="btn btn-primary">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12" style="height: 300px;overflow-y: auto;">
+                                    <div id="evaluation-people-btn" class="col-md-12" style="border:1px solid #C7C7CD;padding-bottom: 5px;min-height: 40px;">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success save" id ="baocun" onclick="submitHander(this,'/userGroupRelate/add',0)" >保存
+                    </button>
+                    <button type="button" class="btn btn-success update" id="baocun2" onclick="submitHander(this,'/userGroupRelate/edit',0)" >保存
+                    </button>
+                    <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增群组类型-->
+<div id="addGroupTypeDiv" style="display: none;">
+    <div style="margin-top: 20px;margin-left: 20px;">
+        <form id="addGroupTypeForm" class="form-horizontal" action=""  type="post">
+            <label class="control-label"><span class="text-red">*</span>群组类型名称:</label>
+            <input type="text" name="name" class="form-control" required style="width: 200px;display: inline-block;">
+        </form>
+    </div>
+</div>
+<!--修改群组类型-->
+<div id="updateGroupTypeDiv" style="display: none;">
+    <div style="margin-top: 20px;margin-left: 20px;">
+        <form id="updateGroupTypeForm" class="form-horizontal" action=""  type="post">
+            <input type="hidden" name="id" id="typeId">
+            <label class="control-label"><span class="text-red">*</span>群组类型名称:</label>
+            <input id="updateGroupTypeName" type="text" name="name" class="form-control" required style="width: 200px;display: inline-block;">
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="evaluationModal" tabindex="-1" role="dialog" aria-labelledby="evaluationModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" style="width:70%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="evaluationModalLabel">公司人员</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label right0">员工姓名:</label>
+                        <div class="col-sm-5">
+                            <input type="text" data-id="meetingRoomId" id="nameQc" name="meetingRoomUser" class="form-control">
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="button" data-id="search" class="btn btn-primary" id="userSearch">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                        <span class="i-checks">
+                            <input data-id="all" type="checkbox" class=" level1"><i></i>
+                            <span style="font-size: 20px;">全选</span>
+                        </span>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 20px;">
+                        <div data-id="groups">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="submitEvaluationPeople">提交更改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+</html>

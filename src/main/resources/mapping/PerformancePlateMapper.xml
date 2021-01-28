@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 考核细则； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformancePlateMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformancePlate">
+        <id column="plate_id" jdbcType="INTEGER" property="plateId"/>
+        <result column="plate_level" jdbcType="INTEGER" property="plateLevel"/>
+        <result column="plate_proportion" jdbcType="REAL" property="plateProportion"/>
+        <result column="plate_parent" jdbcType="INTEGER" property="plateParent"/>
+        <result column="plate_content" jdbcType="VARCHAR" property="plateContent"/>
+        <result column="plate_order" jdbcType="INTEGER" property="plateOrder"/>
+        <result column="dept_id" jdbcType="INTEGER" property="deptId"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        plate_id, plate_level, plate_proportion, plate_parent, plate_content, plate_order, dept_id,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_plate
+        where plate_id = #{plateId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 查询细则集合； -->
+    <select id="listPlateByParentId" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate"
+            resultMap="BaseResultMap" useCache="true">
+        select
+        plate_id, plate_level, plate_proportion, plate_parent, plate_content, plate_order
+        from
+        e_performance_plate
+        where
+        state &lt;&gt; -1
+        <if test="plateId != null">
+            and plate_id &lt;&gt; #{plateId} and plate_parent &lt;&gt; #{plateId}
+        </if>
+        <if test="plateLevel != null">
+            and plate_level = #{plateLevel}
+        </if>
+        <if test="plateParent != null">
+            and plate_parent = #{plateParent}
+        </if>
+        <if test="plateContent != null">
+            and plate_content like '%${plateContent}%'
+        </if>
+        <if test="createName != null">
+            and dept_id in (select id from sys_dept where company_code = #{createName} and state &gt; -2)
+        </if>
+        order by plate_order asc
+    </select>
+
+    <!-- 查询权重分数； -->
+    <select id="selectScoreById" parameterType="java.lang.Integer" resultType="java.lang.Float" useCache="true">
+        select
+        ifnull(plate_proportion, 0)
+        from
+        e_performance_plate
+        where
+        plate_id = #{plateId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 查询权重分数统计； -->
+    <select id="selectTotalByParentId" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate"
+            resultType="java.lang.Float" useCache="true">
+        select
+        ifnull(sum(plate_proportion), 0)
+        from
+        e_performance_plate
+        where
+        plate_parent = #{plateParent,jdbcType=INTEGER} and plate_level = 1 and state &lt;&gt; -1
+        <if test="plateId != null">
+            and plate_id &lt;&gt; #{plateId}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate" useGeneratedKeys="true"
+            keyProperty="plateId">
+        insert into e_performance_plate (plate_id, plate_level, plate_proportion,
+        plate_parent, plate_content, plate_order, dept_id,<include refid="EmployCommon.commonColumn"/>)
+        values (#{plateId,jdbcType=INTEGER}, #{plateLevel,jdbcType=INTEGER}, #{plateProportion,jdbcType=REAL},
+        #{plateParent,jdbcType=INTEGER}, #{plateContent,jdbcType=VARCHAR}, #{plateOrder,jdbcType=INTEGER},
+        #{deptId,jdbcType=INTEGER},<include refid="EmployCommon.commonColumnInsert"/>)
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate"
+            useGeneratedKeys="true" keyProperty="plateId">
+        insert into e_performance_plate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="plateId != null">
+                plate_id,
+            </if>
+            <if test="plateLevel != null">
+                plate_level,
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion,
+            </if>
+            <if test="plateParent != null">
+                plate_parent,
+            </if>
+            <if test="plateContent != null">
+                plate_content,
+            </if>
+            <if test="plateOrder != null">
+                plate_order,
+            </if>
+            <if test="deptId != null">
+                dept_id,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="plateId != null">
+                #{plateId,jdbcType=INTEGER},
+            </if>
+            <if test="plateLevel != null">
+                #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateOrder != null">
+                #{plateOrder,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                #{deptId,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate">
+        update e_performance_plate
+        <include refid="EmployCommon.deleteInfo"/>
+        where plate_id = #{plateId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新子节点的级别； -->
+    <update id="updateByParentId" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate">
+        update
+        e_performance_plate
+        set
+        <if test="plateLevel != null">
+            plate_level = #{plateLevel,jdbcType=INTEGER},
+        </if>
+        <if test="plateProportion != null">
+            plate_proportion = #{plateProportion,jdbcType=REAL},
+        </if>
+        <if test="plateParent != null">
+            plate_parent = #{plateParent,jdbcType=INTEGER},
+        </if>
+        <include refid="EmployCommon.updateInfo"/>
+        where plate_parent = #{plateId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate">
+        update e_performance_plate
+        <set>
+            <if test="plateLevel != null">
+                plate_level = #{plateLevel,jdbcType=INTEGER},
+            </if>
+            <if test="plateProportion != null">
+                plate_proportion = #{plateProportion,jdbcType=REAL},
+            </if>
+            <if test="plateParent != null">
+                plate_parent = #{plateParent,jdbcType=INTEGER},
+            </if>
+            <if test="plateContent != null">
+                plate_content = #{plateContent,jdbcType=VARCHAR},
+            </if>
+            <if test="plateOrder != null">
+                plate_order = #{plateOrder,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where plate_id = #{plateId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformancePlate">
+        update e_performance_plate
+        set plate_level = #{plateLevel,jdbcType=INTEGER},
+        plate_proportion = #{plateProportion,jdbcType=REAL},
+        plate_parent = #{plateParent,jdbcType=INTEGER},
+        plate_content = #{plateContent,jdbcType=VARCHAR},
+        plate_order = #{plateOrder,jdbcType=INTEGER},
+        dept_id = #{deptId,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where plate_id = #{plateId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

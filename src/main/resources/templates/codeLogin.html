@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{::style})">
+    <title data-th-text="'扫码登录'+${AppName}">扫码登录</title>
+
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        #login-box {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            opacity: 0.1;
+            /*兼容IE8及以下版本浏览器*/
+            filter: alpha(opacity=30);
+            display: none;
+        }
+
+        #log_window {
+            margin: auto;
+            position: absolute;
+            top: 120px;
+            left: 130px;
+            display: none;
+            border-radius: 50%;
+            height: 90px;
+            width: 90px;
+            background-color: white;
+            cursor: pointer;
+            padding: 20px;
+            z-index: 100;
+            box-shadow:4px 4px 15px #666;
+        }
+
+        .qc_expired {
+            opacity: 0.1;
+        }
+    </style>
+    <script>
+        var time = 2000;
+        $(function () {
+            setTimeout(function () {
+                shield();
+            }, time);
+        });
+
+        function shield() {
+            $("#login-box").show();
+            $("#log_window").show();
+            $("#code").addClass("qc_expired");
+            // $("#code").css("opacity", "0.1");
+            $("#msg").text("二维码失效，点击刷新");
+        }
+
+        function cancel_shield() {
+            $("#code").attr("src", $("#code").attr("src"));
+            $("#code").removeClass("qc_expired");
+            $("#login-box").hide();
+            $("#log_window").hide();
+            $("#msg").text("请使用手机客户端扫码登录");
+            setTimeout(function () {
+                shield();
+            }, time);
+        }
+    </script>
+
+</head>
+
+<body style="background-color: #16A085">
+
+<div style="margin:100px auto;display: table;text-align: center">
+    <div style="background: white;height: 500px;padding: 20px 30px;display: table;border-radius: 5px;position: relative">
+        <IMG id="code" src="/code/login" style="font-weight: inherit">
+        <div id="log_window" onclick="cancel_shield()">
+            <i class="fa fa-refresh" style="font-size: 50px;" title="点击刷新二维码"></i>
+        </div>
+        <h3 id="msg">请使用手机客户端扫码登录</h3>
+        <div id="login-box"></div>
+    </div>
+</div>
+
+</body>
+
+</html>

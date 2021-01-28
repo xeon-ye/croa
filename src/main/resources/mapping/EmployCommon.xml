@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 公用的一些语句； -->
+<mapper namespace="EmployCommon">
+    <!-- 数据新增时，需要处理的增加人信息； -->
+    <sql id="createInfo">
+        <if test="createId != null">create_id,</if>
+        <if test="createName != null">create_name,</if>
+        <if test="createTime != null">create_time,</if>
+        <if test="updateId != null">update_id,</if>
+        <if test="updateName != null">update_name,</if>
+        <if test="updateTime != null">update_time,</if>
+        <if test="state != null">state,</if>
+        <if test="version != null">version,</if>
+    </sql>
+
+    <!-- 数据新增时，增加人的数据； -->
+    <sql id="createInfoValue">
+        <if test="createId != null">#{createId,jdbcType=INTEGER},</if>
+        <if test="createName != null">#{createName,jdbcType=VARCHAR},</if>
+        <if test="createTime != null">#{createTime,jdbcType=TIMESTAMP},</if>
+        <if test="updateId != null">#{updateId,jdbcType=INTEGER},</if>
+        <if test="updateName != null">#{updateName,jdbcType=VARCHAR},</if>
+        <if test="updateTime != null">#{updateTime,jdbcType=TIMESTAMP},</if>
+        <if test="state != null">#{state,jdbcType=INTEGER},</if>
+        <if test="version != null">#{version,jdbcType=INTEGER},</if>
+    </sql>
+
+    <!-- 数据更新时，需要处理的更新人信息； -->
+    <sql id="updateInfo">
+        <if test="createId != null">create_id = #{createId,jdbcType=INTEGER},</if>
+        <if test="createName != null">create_name = #{createName,jdbcType=VARCHAR},</if>
+        <if test="createTime != null">create_time = #{createTime,jdbcType=TIMESTAMP},</if>
+        <if test="updateId != null">update_id = #{updateId,jdbcType=INTEGER},</if>
+        <if test="updateName != null">update_name = #{updateName,jdbcType=VARCHAR},</if>
+        <if test="updateTime != null">update_time = #{updateTime,jdbcType=TIMESTAMP},</if>
+        <if test="state != null">state = #{state,jdbcType=INTEGER},</if>
+        version = version + 1
+    </sql>
+
+    <!-- 数据删除时，需要处理的更新人信息； -->
+    <sql id="deleteInfo">
+        <set>
+            <if test="createId != null">create_id = #{createId,jdbcType=INTEGER},</if>
+            <if test="createName != null">create_name = #{createName,jdbcType=VARCHAR},</if>
+            <if test="createTime != null">create_time = #{createTime,jdbcType=TIMESTAMP},</if>
+            <if test="updateId != null">update_id = #{updateId,jdbcType=INTEGER},</if>
+            <if test="updateName != null">update_name = #{updateName,jdbcType=VARCHAR},</if>
+            <if test="updateTime != null">update_time = #{updateTime,jdbcType=TIMESTAMP},</if>
+            state = -1, version = version + 1
+        </set>
+    </sql>
+
+    <!-- 公用字段； -->
+    <sql id="commonColumn">
+        create_id,
+        create_name,
+        create_time,
+        update_id,
+        update_name,
+        update_time,
+        state,
+        version
+    </sql>
+
+    <!-- 公用字段的新增存储数据； -->
+    <sql id="commonColumnInsert">
+        #{createId,jdbcType=INTEGER},
+        #{createName,jdbcType=VARCHAR},
+        #{createTime,jdbcType=TIMESTAMP},
+        #{updateId,jdbcType=INTEGER},
+        #{updateName,jdbcType=VARCHAR},
+        #{updateTime,jdbcType=TIMESTAMP},
+        #{state,jdbcType=INTEGER},
+        #{version,jdbcType=INTEGER}
+    </sql>
+
+    <!-- 公用字段的更新存储数据； -->
+    <sql id="commonColumnUpdate">
+        create_id = #{createId,jdbcType=INTEGER},
+        create_name = #{createName,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_id = #{updateId,jdbcType=INTEGER},
+        update_name = #{updateName,jdbcType=VARCHAR},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        state = #{state,jdbcType=INTEGER},
+        version = version + 1
+    </sql>
+</mapper>

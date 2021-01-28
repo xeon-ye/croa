@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'媒体关系审核-我的媒体-'+${AppName}"></title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/css/media/media.css" rel="stylesheet">
+    <link href="/css/media/mediaChange.css" rel="stylesheet">
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/need/laydate.css"/>
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css" id="LayDateSkin"/>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <!--<script src="/js/media/media.js"></script>-->
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <!--<script src="/js/media/common.js"></script>-->
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script th:src="@{//js/media1/mediaSupplierAuditList.js(v=${version})}"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        user = [[${session.user}]]
+        /*]]>*/
+    </script>
+
+    <style type="text/css">
+        .layui-layer-content{
+            overflow: hidden !important;
+            /*background-color: #f7f7f7 !important;*/
+        }
+    </style>
+    <script th:inline="javascript">
+        /**
+         * 查询媒体
+         */
+        function queryMedia (){
+            reflushTable();
+        }
+
+        function keyup_submit(evt){
+            evt = (evt) ? evt : ((window.event) ? window.event : "");
+            var curKey = evt.keyCode ? evt.keyCode : evt.which;
+            if (curKey == 13) {//keyCode=13是回车键
+                queryMedia();
+            }
+        }
+
+        //使用layui表单，下拉列表改变事件
+        layui.use('form', function(){
+            var form = layui.form;
+            //时间改变事件
+            form.on('select(userName)', function(data){
+                $("#userId").val(data.value);  //初始化责任人
+                reflushTable();
+            });
+        });
+    </script>
+
+</head>
+<body>
+<div class="row" style="padding: 10px 15px">
+    <input type="hidden" id="standarPlatformFlag"/>
+    <div class="ibox">
+        <div class="ibox-title">
+            <h5 class="col-md-2">媒体关系审核 &nbsp;
+                <i class="fa fa-angle-double-right"></i>&nbsp;
+                <span class="text-danger " id="mediaTypeText"></span>
+            </h5>
+            <div class="col-md-10 form-inline" style="position: relative;top: -7px" title="敲回车键可以进行搜索">
+                <div class="form-group" style="width: 100%;">
+                    <input class="form-control" style="width: 20%" id="standarPlatformId" onkeydown="keyup_submit(event)" placeholder="请输入唯一标识搜索"/>
+                    <input class="form-control" style="width: 20%" id="mName" name="name" onkeydown="keyup_submit(event)" placeholder="请输入媒体名称搜索"/>
+                    <input class="form-control" style="width: 20%" id="contactName" name="contact" onkeydown="keyup_submit(event)" placeholder="请输入供应商联系人搜索"/>
+                    <!--解决triggerPageBtnClick触发按钮点击事件后，360浏览器不兼容问题，定义一个隐藏按钮-->
+                    <button id="mediaListSearchBtn" class="btn btn-warning" onclick="queryMedia()"
+                            style="display: none;"><i class="fa fa-search"></i>&nbsp;搜索
+                    </button>
+                    <button id="mediaListSearchBtn1" class="btn btn-warning" onclick="queryMedia()"><i
+                            class="fa fa-search"></i>&nbsp;搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!--查询条件，所有条件动态添加到这里-->
+        <form id="termForm" style="display: none">
+            <input name="mediaContentId" value="" type="hidden" id="mediaContentId"/>
+            <input name="mediaName" value="" type="hidden" id="mediaName"/>
+            <input name="supplierName" value="" type="hidden" id="supplierName"/>
+            <input name="userId" value="" type="hidden" id="userId"/>
+            <input name="enabled" value="" type="hidden" id="enabled"/>
+            <input name="isCopy" value="" type="hidden" id="isCopy"/>
+            <input name="companyCode" value="" type="hidden" id="companyCode"/>
+            <input id="plateId" name="plateId" type="hidden" value="1"/>
+
+            <!--下面为动态加载的查询条件-->
+        </form>
+        <div class="ibox">
+            <ul id="mediaTypeUL" class="ibox-title col-md-12">
+                <li class="col-md-12 ibox-tools" style="position: relative">
+                    <div class="col-md-12">
+                        <label class="col-md-1">板块类型:</label>
+                    </div>
+                    <div class="col-md-11 plateWrap" id="mediaPlate">
+                        <!--标准板块-->
+                        <div id="extendFormStandardPlateWrap"
+                             style="border:0px solid red;width: 100%;min-height: 30px;display: flex;align-items: center;">
+                            <div style="border: 0px solid red;height: 17px;width: 60px;">
+                                <img src="/img/standard.png" width="60" height="17"
+                                     style="vertical-align:unset !important;"/>
+                            </div>
+                            <div id="extendFormStandardPlate"
+                                 style="border: 0px solid red;flex: 1px;min-height: 30px;padding-left: 15px;"></div>
+                        </div>
+                        <!--非标准板块-->
+                        <div id="extendFormNotStandardPlateWrap"
+                             style="border:0px solid red;width: 100%;min-height: 30px;display: flex;align-items: center;">
+                            <div style="border: 0px solid red;height: 17px;width: 60px;">
+                                <img src="/img/notStandard.png" width="60" height="17"
+                                     style="vertical-align:unset !important;"/>
+                            </div>
+                            <div id="extendFormNotStandardPlate"
+                                 style="border: 0px solid red;flex: 1px;min-height: 30px;padding-left: 15px;"></div>
+                        </div>
+                    </div>
+                    <a id="more" class="collapse-link" style="position: absolute;right: 0px;">
+                        <i class="text-danger" style="font-size: 10px">更多</i>
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </li>
+            </ul>
+            <!--其他条件，后期动态更新-->
+            <div id="otherCondition" class="ibox-content col-md-12" style="padding-top: 2px;display: none;">
+                <ul id="mediaTermUL" class="col-md-12">
+                    <li class='col-md-12 layui-form'>
+                        <label class="col-md-1" style='float:left;'>责任人：</label>
+                        <div class="col-sm-2">
+                            <select class="form-control" id="userName" lay-search lay-filter="userName">
+                                <option value="">请选择责任人</option>
+                            </select>
+                        </div>
+                    </li>
+                    <li class='col-md-12'>
+                        <label class="col-md-1" style='float:left;'>是否启用：</label>
+                        <div class="col-md-11 " style="padding-left: 15px;" id="enabledDiv">
+                            <!--<span class="radio-inline col-md-1 i-checks" title="不限"><input type="radio" name="enabled" value=""/>不限</span>
+                            <span class="radio-inline col-md-1 i-checks" title="启用"><input type="radio" name="enabled" value="0"/>启用</span>
+                            <span class="radio-inline col-md-1 i-checks" title="停用"><input type="radio" name="enabled" value="1"/>停用</span>-->
+                        </div>
+                    </li>
+                    <li class='col-md-12' style="display: none;" id="copyDiv">
+                        <label class="col-md-1" style='float:left;'>是否拷贝：</label>
+                        <div class="col-md-11" style="padding-left: 15px;" id="isCopyDiv">
+                            <!--<span class="radio-inline col-md-1 i-checks" title="不限"><input type="radio" name="isCopy" value=""/>不限</span>
+                            <span class="radio-inline col-md-1 i-checks" title="启用"><input type="radio" name="isCopy" value="0"/>自建</span>
+                            <span class="radio-inline col-md-1 i-checks" title="停用"><input type="radio" name="isCopy" value="1"/>拷贝</span>-->
+                        </div>
+                    </li>
+                    <!--<li class='col-md-12'>-->
+                        <!--<label class="col-md-1" style='float:left;'>所属公司：</label>-->
+                        <!--<div class="col-md-11" id="companyType" style="padding: 0"></div>-->
+                    <!--</li>-->
+                    <!--下面为动态加载的查询条件-->
+                </ul>
+            </div>
+
+        </div>
+        <div class="ibox-content" style="padding: 5px 10px">
+            <div class="ibox-title">
+                <button id="auditAgree" class="btn btn-success" type="button" onclick="auditOprate(this,0)"
+                        style="margin-left: -15px;">
+                    <i class="fa fa-check"></i>&nbsp;&nbsp;批量通过
+                </button>
+                <button id="auditReject" class="btn btn-danger" type="button" onclick="auditOprate(this,1)">
+                    <i class="fa fa-exchange"></i>&nbsp;&nbsp;批量驳回
+                </button>
+               <!-- <button id="auditDelete" class="btn btn-default" type="button" onclick="auditOprate(this,2)">
+                    <i class="fa fa-close"></i>&nbsp;&nbsp;批量删除
+                </button>-->
+            </div>
+        </div>
+
+        <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+            <div class="jqGrid_wrapper">
+                <table id="table_medias">
+                </table>
+                <div id="pager_medias"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--异动详情-->
+<div id="mediaChange" style="display: none;">
+    <div class="modalContentWrap">
+        <!--总字段-->
+        <div class="allFieldWrap">
+            <!--标签-->
+            <div class="fieldLabel">供应商全部字段</div>
+            <!--字段列表-->
+            <div class="fieldItemWrap">
+                <!-- <div class="fieldItem fieldItemActive" title="媒体名称媒体名称媒体">
+                     <div class="ellipsisContent">媒体名称媒体名称媒体名称媒体名称媒体名称</div>
+                 </div>-->
+            </div>
+        </div>
+        <!--内容-->
+        <div class="changContentWrap">
+            <ul class="layui-timeline" id="announcements">
+                <!--<li class="layui-timeline-item timeLineCss">
+                    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                    <div class="layui-timeline-content layui-text timeCss">
+                        <div class="layui-timeline-title" style="display: flex;justify-content: space-between;padding-right: 20px;">
+                            <div>媒体名称(2019.08.26)</div>
+                            <div>异动人：邹丽&nbsp;&nbsp;审核人：邹丽</div>
+                        </div>
+                        <div class="timeContent">
+                            <div class="firstRowContentWrap">
+                                <div class="firstRowItemWrap">
+                                    <div class="fieldName">媒体名称：</div>
+                                    <div class="fieldChangeVal">
+                                        <span class="oldValue">无</span>
+                                        <span>-></span>
+                                        <span class="newValue">tetesttesttesttestetesttesttesttesttesttesttesttesttesttesttestteststttesttesttesttesttesttesttesttestst</span>
+                                    </div>
+                                </div>
+                                <div class="moreChangeBtn" onclick="mediaChangeObj.moreBtnClick(this);">
+                                    <i class="text-danger">更多&nbsp;</i>
+                                    <i class="fa fa-chevron-up"></i>
+                                </div>
+                            </div>
+                            <div class="otherRowContentWrap">
+                                <div class="otherRowItem">
+                                    <div class="fieldName">媒体名称：</div>
+                                    <div class="fieldChangeVal">
+                                        <span class="oldValue">无</span>
+                                        <span>-></span>
+                                        <span class="newValue">tetesttesttesttestetesttesttesttesttesttesttesttesttesttesttestteststttesttesttesttesttesttesttesttestst</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>-->
+            </ul>
+        </div>
+    </div>
+</div>
+</html>

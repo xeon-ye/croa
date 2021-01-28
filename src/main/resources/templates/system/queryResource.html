@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'资源管理-'+${AppName}"></title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/system/queryResource.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <style>
+        .iconWrap{
+            border: 1px solid #eeeeee;
+            width: 48%;
+            height: 260px;
+            margin-left: 18.6%;
+            position: absolute;
+            top: -260px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+        }
+        .iconContentWrap{
+            width:100%;
+            flex: 1;
+            overflow: auto;
+        }
+        .iconItemWrap{
+            border: 0px solid red;
+            width: 33.33%;
+            height: 32px;
+            float: left;
+            padding: 0 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .iconItemWrap > span{
+            display: inline-block;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            flex: 1;
+            text-align: left;
+            padding-left: 5px;
+        }
+        .iconItemWrap:hover i{
+            font-size: 20px;
+        }
+        .iconPanelCancel{
+            display: none;
+        }
+        #parentDiv::-webkit-scrollbar {
+            width: 2px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $('body').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#search").click();
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label right0">资源名称:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="name" class="form-control ">
+                                </div>
+                                <label class="col-sm-1 control-label right0">链接:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="url" class="form-control ">
+                                </div>
+                                <label class="col-sm-1 control-label right0">父级菜单:</label>
+                                <div class="col-sm-2">
+                                    <input type="hidden" name="parentId"/>
+                                    <select id="parentId" class="form-control" onchange="selectChange(this);"></select>
+                                </div>
+                                <label class="col-sm-1 control-label right0">是否菜单:</label>
+                                <div class="col-sm-1">
+                                    <select name="isMenu" class="form-control">
+                                        <option value="" ></option>
+                                        <option value="0">是</option>
+                                        <option value="1">否</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="search" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="addRole" class="btn btn-danger" type="button" onclick="add()">
+                        <i class="fa fa-plus"></i>&nbsp;新增资源/菜单
+                    </button>
+                </div>
+                <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                    <div class="jqGrid_wrapper">
+                        <table id="table_logs"></table>
+                        <div id="pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal inmodal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:800px;">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title add">新增资源信息</h4>
+                    <h4 class="modal-title update">修改资源信息</h4>
+                    <h4 class="modal-title view">查看资源信息</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <form id="editForm" class="form-horizontal">
+                            <input type="hidden" id="id" name="id" class="form-control">
+                            <input type="hidden" name="parentId" class="form-control">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        <span class="text-red">*</span>是否一级目录:
+                                    </label>
+                                    <div class="col-sm-2 control-label" style="text-align: left">
+                                        <input type="radio" name="isParent" id="isParentYes" value="0"
+                                               class="i-checks"/>是
+                                        <input type="radio" name="isParent" id="isParentNo" value="1" class="i-checks"/>否
+                                    </div>
+                                    <label class="col-sm-2 control-label">排序:</label>
+                                    <div class="col-sm-1 control-label">
+                                        <button type="button" id="iconDel" class="form-control" style="margin-top: -5px;"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                    <div class="col-sm-2 control-label">
+                                        <input type="text" name="sort" id="sort" class="form-control" style="margin-top: -5px;margin-left: -22px" onkeyup="value=value.replace(/[^\d]/g,'')"/>
+                                    </div>
+                                    <div class="col-sm-1 control-label">
+                                        <button type="button" id="iconAdd" class="form-control" style="margin-top: -5px;margin-left: -44px"><i class="fa fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        <span class="text-red">*</span>所属父级菜单:
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <div id="parentDiv" style="width: 100%;max-height: 135px;overflow-y: auto;">
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        <span class="text-red">*</span>菜单/资源名称:</label>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="name" name="name"  class="form-control" required
+                                               th:placeholder="请输入菜单或资源的名称">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        菜单/资源链接:
+                                    </label>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="url" name="url" class="form-control" th:placeholder="请输入菜单或资源的链接">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        <span class="text-red">*</span>是否菜单:
+                                    </label>
+                                    <div class="col-sm-2 control-label" style="text-align: left">
+                                        <input type="radio" name="isMenu" id="isMenuYes" value="0" class="i-checks"/>是
+                                        <input type="radio" name="isMenu" id="isMenuNo" value="1" class="i-checks"
+                                               checked="checked"/>否
+                                    </div>
+                                    <label class="col-sm-2 control-label">
+                                        <span class="text-red">*</span>是否有效:
+                                    </label>
+                                    <div class="col-sm-2 control-label" style="text-align: left">
+                                        <input type="radio" name="state" id="stateYes" value="0" class="i-checks"
+                                               checked="checked"/>有效
+                                        <input type="radio" name="state" id="stateNo" value="1" class="i-checks"/>无效
+                                    </div>
+                                </div>
+                                <div class="form-group" id="iconDiv" style="position: relative;">
+                                    <label class="col-sm-2 control-label">菜单图标:</label>
+                                    <div class="col-sm-6 input-group m-b" style="padding-left: 15px;cursor: pointer;">
+                                        <span class="input-group-addon">
+                                            <i id="faShow" class="fa fa-user"></i>
+                                        </span>
+                                        <input type="text" name="icon" class="form-control" onclick="iconObj.inputClick(this);" readonly style="background-color: white;"
+                                               th:placeholder="请输入菜单或资源的图片名称">
+                                    </div>
+                                    <div id="iconPanel" class="iconWrap iconPanelCancel">
+                                        <div class="col-sm-12 input-group m-b" style="margin-bottom: 0px;">
+                                            <input type="text" class="form-control" placeholder="请输入图标名称搜索" oninput="iconObj.search(this);">
+                                            <span class="input-group-addon" style="cursor: pointer;" onclick="iconObj.search(this);">
+                                                <i class="fa fa-search"></i>
+                                            </span>
+                                        </div>
+                                        <div class="iconContentWrap">
+                                            <!--<div class="iconItemWrap">
+                                                <i class="fa fa-search"></i>
+                                                <span title="fa-search">fa-search</span>
+                                            </div>-->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-sm-offset-5">
+                                        <button class="btn btn-success add" type="button" id="save"
+                                                onclick="submitHander(this,'/resource/add')"><i class="fa fa-save"></i>&nbsp;保存
+                                        </button>
+                                        <button class="btn btn-success update" type="button" id="update"
+                                                onclick="submitHander(this,'/resource/update')"><i
+                                                class="fa fa-save"></i>&nbsp;保存
+                                        </button>
+                                        <button class="btn btn-danger backButton" type="button" data-dismiss="modal"
+                                                id="clo"><i class="fa fa-close"></i>&nbsp;关闭
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--赋权页面-->
+<div class="modal inmodal" id="groupModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">资源分组</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <form id="form" class="form-horizontal">
+                            <div class="row">
+                                <div class="form-group">
+                                    <div class="col-sm-12 f_line"
+                                         style=" border-bottom: 1px dashed #eee;padding: 8px; width: 1200px; margin-left:30px ">
+                                        <div class="col-sm-2">
+                                            <span style="font-size: 20px;">当前资源：</span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <select id="changeResource" class="form-control m-b">
+                                            </select>
+                                            <input type="hidden" id="resourceId" name="resourceId" class="form-control">
+                                        </div>
+                                        <input id="all" type="checkbox" class="i-checks level1"><i></i><span
+                                            style="font-size: 20px;">全选</span>
+                                    </div>
+                                    <div id="groups" class="col-md-12" style="margin-top: 20px;">
+
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button class="btn btn-success" id="saveResourceGroup" onclick="save()"
+                                                    type="button">
+                                                <i class="fa fa-save"></i>&nbsp;保存
+                                            </button>
+                                            <button class="btn btn-danger backButton"  data-dismiss="modal" type="button">
+                                                <i class="fa fa-close"></i>&nbsp;关闭
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

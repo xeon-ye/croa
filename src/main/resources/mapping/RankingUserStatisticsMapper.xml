@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.mediauser.RankingUserStatisticsMapper">
+
+    <sql id="date">
+        <!--本月-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(art.issued_date, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+        <!--本年-->
+        <if test="timeQuantum == 2">
+            and DATE_FORMAT(art.issued_date, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--本周-->
+        <if test="timeQuantum == 4">
+            and YEARWEEK(art.issued_date - INTERVAL 1 DAY) = YEARWEEK(date_format(NOW(),'%Y-%m-%d') - INTERVAL 1 DAY)
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 3">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND art.issued_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{issuedDateStart},' 00:00:00'),'%Y/%m/%d %T')
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND art.issued_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+        </if>
+    </sql>
+
+    <!--按公司获取排名前30名业务人员信息-->
+    <select id="getRanking" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+          SUM(art.profit) profit,
+          ord.user_id,
+          ord.user_name
+        FROM
+          t_biz_article art
+        LEFT JOIN t_biz_order ord ON ord.id = art.order_id
+          AND art.state = 1 and art.issue_states = 4
+        LEFT JOIN sys_dept dept ON ord.depat_id = dept.id
+        WHERE 1=1
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND dept.company_code = #{companyCode}
+          </if>
+          <include refid="date"/>
+        GROUP BY
+          ord.user_id,
+          ord.user_name
+        ORDER BY
+          profit DESC
+    </select>
+
+    <!--按公司获取部门排名信息-->
+    <select id="getDeptRanking" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+          t.id AS deptId,
+          t.`name` AS deptName,
+          IFNULL(tt.artNum, 0) AS artNum,
+          IFNULL(tt.profit, 0) AS profit,
+          t.company_code AS companyCode,
+          t.company_code_name AS companyCodeName,
+          t.`level` AS grade,
+          t.parent_id AS parentId
+        FROM
+        sys_dept t
+        LEFT JOIN (
+          SELECT
+            SUM(art.profit) AS profit,
+            COUNT(ord.depat_id) AS artNum,
+            dept.parent_id AS parentId,
+            ord.depat_id AS deptId,
+            dept.name AS deptName,
+            dept.company_code AS companyCode
+          FROM
+            t_biz_article art
+          LEFT JOIN t_biz_order ord ON ord.id = art.order_id
+            AND art.state = 1 and art.issue_states = 4
+          LEFT JOIN sys_dept dept ON ord.depat_id = dept.id
+            AND dept.`level` <![CDATA[>=]]> #{level}
+            AND dept.code = 'YW'
+            AND dept.state > -2
+            <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                AND dept.company_code = #{companyCode}
+            </if>
+          WHERE 1=1
+            <include refid="date"/>
+          GROUP BY
+            ord.depat_id,
+            dept.name,
+            dept.company_code
+        ) tt ON t.id = tt.deptId
+        WHERE
+          CODE = 'YW'
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND company_code = #{companyCode}
+          </if>
+          AND t.`level` <![CDATA[>=]]> #{level}
+          AND state > -2
+        ORDER BY
+          t.`level` DESC,
+          t.id DESC
+    </select>
+
+
+    <!--按公司获取业务部门信息-->
+    <select id="getDeptByCompany" resultType="java.util.Map">
+        SELECT
+            id,name,company_code as companyCode
+        FROM
+            sys_dept t
+        WHERE
+            CODE = 'YW'
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND company_code = #{companyCode}
+        </if>
+        AND LEVEL = #{level}
+        AND state > -2
+    </select>
+
+</mapper>

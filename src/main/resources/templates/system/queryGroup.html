@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title data-th-text="'资源组管理-'+${AppName}"></title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/iCheck/icheck.min.js"></script>
+    <!--部门树-->
+    <link rel="stylesheet" href="/css/ztree/bootstrapStyle.css"/>
+    <script type="text/javascript" src="/js/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript" src="/js/system/queryGroup.js"></script>
+    <script>
+        $(function () {
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#search").click();
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <form id="queryForm" onsubmit="return false;">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal" id="queryDiv">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label right0">资源组名称:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="name" class="form-control ">
+                                </div>
+                                <label class="col-sm-1 control-label right0">上级组:</label>
+                                <div class="col-sm-2">
+                                    <select id="parentId" name="parentId" class="form-control "></select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="search" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="addRole" class="btn btn-danger" type="button" onclick="add()">
+                        <i class="fa fa-plus"></i>&nbsp;新增资源组
+                    </button>
+                </div>
+                <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                    <div class="jqGrid_wrapper">
+                        <table id="table_logs"></table>
+                        <div id="pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal inmodal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px;">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title" style="text-align: center;padding: 10px;">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title add">新增资源组</h4>
+                    <h4 class="modal-title update">修改资源组</h4>
+                    <h4 class="modal-title view">查看资源组</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <form id="editForm" class="form-horizontal">
+                            <input type="hidden" id="id" name="id" class="form-control">
+                            <input type="hidden" name="parentId" class="form-control">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">是否一级目录<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-2 control-label" style="text-align: left">
+                                        <input type="radio" name="isParent" id="isParentYes" value="0"
+                                               class="i-checks"/>是
+                                        <input type="radio" name="isParent" id="isParentNo" value="1" class="i-checks"
+                                               />否
+                                    </div>
+                                    <label class="col-sm-1 control-label">排序:</label>
+                                    <div class="col-sm-1 control-label">
+                                        <button type="button" id="iconDel" class="form-control" style="margin-top: -5px;"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                    <div class="col-sm-2 control-label">
+                                        <input type="text" name="sort" id="sort" class="form-control" style="margin-top: -5px;margin-left: -22px" onkeyup="value=value.replace(/[^\d]/g,'')"/>
+                                    </div>
+                                    <div class="col-sm-1 control-label">
+                                        <button type="button" id="iconAdd" class="form-control" style="margin-top: -5px;margin-left: -44px"><i class="fa fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">所属父级菜单<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-10" id="parentDiv">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">资源组名称<span
+                                            class="text-red">*</span>:</label>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="name" name="name"  class="form-control" required=""
+                                               th:placeholder="请输入资源组的名称">
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-sm-offset-5">
+                                        <button class="btn btn-success add" type="button" id="save"
+                                                onclick="submitHander(this,'/group/add')"><i class="fa fa-save"></i>&nbsp;保存
+                                        </button>
+                                        <button class="btn btn-success update" type="button" id="update"
+                                                onclick="submitHander(this,'/group/update')"><i
+                                                class="fa fa-save"></i>&nbsp;保存
+                                        </button>
+                                        <button class="btn btn-danger backButton" type="button" data-dismiss="modal"
+                                                id="clo"><i class="fa fa-close"></i>&nbsp;关闭
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+<!--添加资源-->
+<!--<div class="modal inmodal" id="resourceModal" tabindex="-1" role="dialog" aria-hidden="true">-->
+    <!--<div class="modal-dialog" style="width:1300px">-->
+        <!--<div class="modal-content animated bounceInRight" style="height:800px">-->
+            <!--<div class="modal-header" style="padding: 15px;">-->
+                <!--<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span-->
+                <!--class="sr-only">关闭</span>-->
+                <!--</button>-->
+                <!--<h4 class="modal-title">资源组关联资源</h4>-->
+            <!--</div>-->
+            <!--<div class="ibox-content">-->
+                <!--<div>-->
+                    <!--<div class="row">-->
+                        <!--<form id="form" class="form-horizontal">-->
+                            <!--<div class="row">-->
+                                <!--<div class="form-group">-->
+                                    <!--<div class="col-sm-12">-->
+                                        <!--<label class="col-sm-2 control-label">-->
+                                            <!--当前资源组:-->
+                                        <!--</label>-->
+                                        <!--<div class="col-sm-9">-->
+                                            <!--<select id="changeGroup" class="form-control m-b" name="account">-->
+                                            <!--</select>-->
+                                            <!--<input type="hidden" id="groupId" name="groupId" class="form-control">-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                    <!--<div id="groups" class="col-md-12" style="margin-top: 20px;">-->
+
+                                    <!--</div>-->
+                                    <!--<div class="form-group">-->
+                                        <!--<div class="col-sm-12" style="text-align: center;">-->
+                                            <!--<button class="btn btn-success" id="saveGroupResource" onclick="saveResource()"-->
+                                                    <!--type="button">-->
+                                                <!--<i class="fa fa-save"></i>&nbsp;保存-->
+                                            <!--</button>-->
+                                            <!--<button class="btn btn-danger backButton"  data-dismiss="modal" type="button">-->
+                                                <!--<i class="fa fa-close"></i>&nbsp;关闭-->
+                                            <!--</button>-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</form>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+
+        <!--</div>-->
+    <!--</div>-->
+<!--</div>-->
+
+<!--添加资源-->
+<div class="modal inmodal fade" id="resourceModal"  role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px;">
+                <h6 id="modalTitle" class="modal-title">资源组关联资源</h6>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 540px;">
+                <form id="form" autocomplete="off" class="form-horizontal" style="height: 100%;width: 100%;display: flex;flex-direction: column;">
+                    <div class="col-md-12">
+                        <label class="col-sm-2 control-label">
+                            当前资源组:
+                        </label>
+                        <div class="col-sm-4">
+                            <select id="changeGroup" class="form-control m-b" name="account">
+                            </select>
+                            <input type="hidden" id="groupId" name="groupId" class="form-control">
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" style="display: none;" class="form-control">
+                            <input type="text" name="keyword" oninput="searchResource();" placeholder="请输入菜单名称搜索" class="form-control">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-primary" onclick="searchResource();">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="flex: 1;">
+                        <label class="col-sm-2 control-label">
+                            <i style="color: #0a6aa1;font-size: 10px;" title="说明：灰色字体表示资源不是菜单，黑色字体表示资源是菜单。" class="glyphicon glyphicon-question-sign"></i>资源菜单:
+                        </label>
+                        <div class="col-sm-4" style="height: 100%;">
+                            <div style="width: 100%;height: 100%;overflow-y: auto;border: 1px solid #cecece;">
+                                <ul id="treeDemo" class="ztree"></ul>
+                            </div>
+                        </div>
+                        <div class="col-md-5" style="height: 100%;">
+                            <div id="hasResource" style="width: 100%;height: 100%;overflow-y: auto;border: 1px solid #cecece;">
+                                <!--<div style="border-bottom: 1px solid #cecece;width: 100%;padding: 6px 12px; white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                    移动端 -> 首页
+                                </div>-->
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" id="saveGroupResource" class="btn btn-primary" onclick="saveResource();"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--绑定角色页面-->
+<div class="modal inmodal" id="roleModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">资源组关联角色</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <form id="roleForm" class="form-horizontal">
+                            <div class="row">
+                                <div class="form-group">
+                                    <div class="col-sm-12 f_line"
+                                         style=" border-bottom: 1px dashed #eee;padding: 8px; width: 1200px; margin-left:30px ">
+                                        <div class="col-sm-2">
+                                            <span style="font-size: 20px;">当前资源组：</span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <select id="changeGroup2" class="form-control m-b" name="changeGroup2">
+                                            </select>
+                                            <input type="hidden" id="groupId2" name="groupId" class="form-control">
+                                        </div>
+                                        <input id="all2" type="checkbox" class="i-checks"><i></i><span
+                                            style="font-size: 20px;">全选</span>
+                                    </div>
+                                    <div id="groupsDiv" class="col-md-12" style="margin-top: 20px;">
+
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button class="btn btn-success" id="saveGroupRole" onclick="saveRole()"
+                                                    type="button">
+                                                <i class="fa fa-save"></i>&nbsp;保存
+                                            </button>
+                                            <button class="btn btn-danger backButton" type="button"  data-dismiss="modal">
+                                                <i class="fa fa-close"></i>&nbsp;关闭
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

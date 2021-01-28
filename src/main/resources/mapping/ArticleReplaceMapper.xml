@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.biz.ArticleReplaceMapper">
+    <sql id="selectColumn">
+    tbar.id as id,
+    tbar.plate_id as plateId,
+    tbar.old_media_id as oldMediaId,
+    tbar.old_media_name as oldMediaName,
+    tbar.old_supplier_id as oldSupplierId,
+    tbar.old_supplier_name as oldSupplierName,
+    tbar.old_supplier_contactor as oldSupplierContactor,
+    tbar.new_media_id as newMediaId,
+    tbar.new_supplier_id as newSupplierId,
+    tbar.article_id_list as articleIdList,
+    tbar.outgo_id_list as outgoIdList,
+    tbar.drop_id_list as dropIdList,
+    tbar.user_id as userId,
+    tbar.user_name as userName,
+    tbar.create_date as createDate,
+    tbar.state as state
+  </sql>
+
+    <!--批量插入替换记录表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_biz_article_replace
+        (
+        plate_id,
+        old_media_id,
+        old_media_name,
+        old_supplier_id,
+        old_supplier_name,
+        old_supplier_contactor,
+        new_media_id,
+        new_supplier_id,
+        article_id_list,
+        outgo_id_list,
+        drop_id_list,
+        user_id,
+        user_name,
+        create_date,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="articleReplace" index="index" separator=",">
+            (
+            #{articleReplace.plateId},
+            #{articleReplace.oldMediaId},
+            #{articleReplace.oldMediaName},
+            #{articleReplace.oldSupplierId},
+            #{articleReplace.oldSupplierName},
+            #{articleReplace.oldSupplierContactor},
+            #{articleReplace.newMediaId},
+            #{articleReplace.newSupplierId},
+            #{articleReplace.articleIdList},
+            #{articleReplace.outgoIdList},
+            #{articleReplace.dropIdList},
+            #{articleReplace.userId},
+            #{articleReplace.userName},
+            now(),
+            0
+            )
+        </foreach>
+    </insert>
+
+</mapper>

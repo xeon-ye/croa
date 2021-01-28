@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="administrative2" name="请假申请（2个工作日内）" isExecutable="true">
+    <documentation>请假申请（2个工作日内）</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <exclusiveGateway id="zwGateway" name="是否需要政委审核"></exclusiveGateway>
+    <userTask id="zwApprove" name="政委审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.administrative.ZwTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="leaderApprove" name="部门审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.administrative.LeaderTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="bursarApprove" name="行政总监">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.administrative.ExecDirectorTaskHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.administrative.ProcessFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <endEvent id="endEvent" name="结束流程"></endEvent>
+
+    <sequenceFlow id="sid-32628426-7D80-44CB-BA91-EDF524E8BAE3" sourceRef="startEvent" targetRef="zwGateway"></sequenceFlow>
+    <sequenceFlow id="sid-23B0F8F5-84FD-4894-A884-811F020DAE23" name="是" sourceRef="zwGateway" targetRef="zwApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-ADCBA664-7CE6-453F-8BD2-8FA94A1E9705" name="否" sourceRef="zwGateway" targetRef="leaderApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-E97362B9-A62D-44BE-83EF-727263C9337C" name="通过" sourceRef="zwApprove" targetRef="leaderApprove"></sequenceFlow>
+    <sequenceFlow id="sid-D4ABB595-B48E-485A-A858-E3703D91BBC0" name="通过" sourceRef="leaderApprove" targetRef="bursarApprove"></sequenceFlow>
+    <sequenceFlow id="sid-9D292241-6E00-44C0-828E-1337A50CF1E1" name="通过" sourceRef="bursarApprove" targetRef="endEvent"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_administrative2">
+    <bpmndi:BPMNPlane bpmnElement="administrative2" id="BPMNPlane_administrative2">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="150.0" y="345.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="432.0" y="320.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="bursarApprove" id="BPMNShape_bursarApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="627.0" y="320.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="812.0" y="346.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="zwGateway" id="BPMNShape_zwGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="265.0" y="340.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="zwApprove" id="BPMNShape_zwApprove">
+        <omgdc:Bounds height="79.99999999999997" width="99.99999999999997" x="235.00000000000003" y="195.00000000000003"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-32628426-7D80-44CB-BA91-EDF524E8BAE3" id="BPMNEdge_sid-32628426-7D80-44CB-BA91-EDF524E8BAE3">
+        <omgdi:waypoint x="179.94984768985907" y="360.06203271041244"></omgdi:waypoint>
+        <omgdi:waypoint x="265.4166666666667" y="360.4166666666667"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-ADCBA664-7CE6-453F-8BD2-8FA94A1E9705" id="BPMNEdge_sid-ADCBA664-7CE6-453F-8BD2-8FA94A1E9705">
+        <omgdi:waypoint x="304.4934854665963" y="360.4515306122449"></omgdi:waypoint>
+        <omgdi:waypoint x="432.0" y="360.1270992366412"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-E97362B9-A62D-44BE-83EF-727263C9337C" id="BPMNEdge_sid-E97362B9-A62D-44BE-83EF-727263C9337C">
+        <omgdi:waypoint x="334.95000000000005" y="235.00000000000003"></omgdi:waypoint>
+        <omgdi:waypoint x="480.00000000000006" y="235.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.00000000000006" y="320.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-23B0F8F5-84FD-4894-A884-811F020DAE23" id="BPMNEdge_sid-23B0F8F5-84FD-4894-A884-811F020DAE23">
+        <omgdi:waypoint x="285.42" y="340.42"></omgdi:waypoint>
+        <omgdi:waypoint x="285.1591633466135" y="274.95000000000005"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-D4ABB595-B48E-485A-A858-E3703D91BBC0" id="BPMNEdge_sid-D4ABB595-B48E-485A-A858-E3703D91BBC0">
+        <omgdi:waypoint x="531.95" y="360.0"></omgdi:waypoint>
+        <omgdi:waypoint x="627.0" y="360.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-9D292241-6E00-44C0-828E-1337A50CF1E1" id="BPMNEdge_sid-9D292241-6E00-44C0-828E-1337A50CF1E1">
+        <omgdi:waypoint x="726.9499999999999" y="360.0"></omgdi:waypoint>
+        <omgdi:waypoint x="812.0" y="360.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

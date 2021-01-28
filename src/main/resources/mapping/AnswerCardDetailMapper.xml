@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.AnswerCardDetailMapper">
+    <sql id="selectColumn">
+      tacd.id,
+      tacd.answer_card_id as answerCardId,
+      tacd.question_id as questionId,
+      tacd.student_answer as studentAnswer,
+      tacd.teacher_grade as teacherGrade,
+      tacd.teacher_remark as teacherRemark,
+      tacd.create_id as createId,
+      tacd.create_date as createDate,
+      tacd.update_id as updateId,
+      tacd.update_date as updateDate,
+      tacd.state
+    </sql>
+    <sql id="questionColumn">
+      tq.course_plate as coursePlate,
+      tq.question_type as questionType,
+      tq.question_level as questionLevel,
+      tq.question_title as questionTitle,
+      tq.question_answer_num as questionAnswerNum,
+      tq.question_answer as questionAnswer,
+      tq.question_answer_desc as questionAnswerDesc
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as companyCode
+    </sql>
+
+    <!--答题卡详情结果-->
+    <resultMap id="answerCardDetailResultMap" type="com.qinfei.qferp.entity.study.AnswerCardDetail">
+        <id column="id" property="id"/>
+        <result column="answerCardId" property="answerCardId"/>
+        <result column="questionId" property="questionId"/>
+        <result column="studentAnswer" property="studentAnswer"/>
+        <result column="teacherGrade" property="teacherGrade"/>
+        <result column="teacherRemark" property="teacherRemark"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <association property="question" javaType="com.qinfei.qferp.entity.study.Question">
+            <result column="coursePlate" property="coursePlate"/>
+            <result column="questionType" property="questionType"/>
+            <result column="questionLevel" property="questionLevel"/>
+            <result column="questionTitle" property="questionTitle"/>
+            <result column="questionAnswerNum" property="questionAnswerNum"/>
+            <result column="questionAnswer" property="questionAnswer"/>
+            <result column="questionAnswerDesc" property="questionAnswerDesc"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_answer_card_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="answerCardId != null">answer_card_id,</if>
+            <if test="questionId != null">question_id,</if>
+            <if test="studentAnswer != null and studentAnswer != ''">student_answer,</if>
+            <if test="teacherGrade != null">teacher_grade,</if>
+            <if test="teacherRemark != null and teacherRemark != ''">teacher_remark,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="answerCardId != null">#{answerCardId},</if>
+            <if test="questionId != null">#{questionId},</if>
+            <if test="studentAnswer != null and studentAnswer != ''">#{studentAnswer},</if>
+            <if test="teacherGrade != null">#{teacherGrade},</if>
+            <if test="teacherRemark != null and teacherRemark != ''">#{teacherRemark},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_train_answer_card_detail (
+        answer_card_id,
+        question_id,
+        student_answer,
+        teacher_grade,
+        teacher_remark,
+        create_id,
+        create_date,
+        update_id,
+        update_date,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="answerCardDetail" index="index" separator=",">
+            (
+            #{answerCardDetail.answerCardId},
+            #{answerCardDetail.questionId},
+            #{answerCardDetail.studentAnswer},
+            #{answerCardDetail.teacherGrade},
+            #{answerCardDetail.teacherRemark},
+            #{answerCardDetail.createId},
+            now(),
+            #{answerCardDetail.updateId},
+            now(),
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_answer_card_detail
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="studentAnswer != null">student_answer = #{studentAnswer},</if>
+            <if test="teacherGrade != null">teacher_grade = #{teacherGrade},</if>
+            <if test="teacherRemark != null and teacherRemark != ''">teacher_remark = #{teacherRemark},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新答题卡详情信息-->
+    <update id="batchUpdateAnswerCardDetail">
+        UPDATE t_train_answer_card_detail
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            update_id = #{updateId},
+            <trim prefix="student_answer = case " suffix="else student_answer end,">
+                <foreach collection="answerCardDetailList" item="answerCardDetail" index="index">
+                    <if test="answerCardDetail.studentAnswer != null">
+                        when id = #{answerCardDetail.id} then #{answerCardDetail.studentAnswer}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="teacher_grade = case " suffix="else teacher_grade end,">
+                <foreach collection="answerCardDetailList" item="answerCardDetail" index="index">
+                    <if test="answerCardDetail.teacherGrade != null">
+                        when id = #{answerCardDetail.id} then #{answerCardDetail.teacherGrade}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="teacher_remark = case " suffix="else teacher_remark end,">
+                <foreach collection="answerCardDetailList" item="answerCardDetail" index="index">
+                    <if test="answerCardDetail.teacherRemark != null">
+                        when id = #{answerCardDetail.id} then #{answerCardDetail.teacherRemark}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="state = case " suffix="else state end,">
+                <foreach collection="answerCardDetailList" item="answerCardDetail" index="index">
+                    <if test="answerCardDetail.state != null">
+                        when id = #{answerCardDetail.id} then #{answerCardDetail.state}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        id in
+        <foreach item="answerCardDetail" collection="answerCardDetailList" index="index" open="(" close=")" separator=",">
+            #{answerCardDetail.id}
+        </foreach>
+    </update>
+
+    <!--根据答题卡ID获取答题详情-->
+    <select id="listAnswerCardDetailByCardId" resultMap="answerCardDetailResultMap">
+        SELECT
+            <include refid="selectColumn"/>,<include refid="questionColumn"/>
+        FROM
+        t_train_answer_card_detail tacd
+        INNER JOIN t_train_question tq ON tacd.question_id = tq.id
+        WHERE
+        tacd.state <![CDATA[<>]]> -9
+        AND tacd.answer_card_id = #{answerCardId}
+    </select>
+
+</mapper>

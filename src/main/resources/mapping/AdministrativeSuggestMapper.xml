@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.administrative.AdministrativeSuggestMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.administrative.AdministrativeSuggest">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="emp_id" jdbcType="INTEGER" property="empId" />
+    <result column="emp_name" jdbcType="VARCHAR" property="empName" />
+    <result column="create_month" jdbcType="INTEGER" property="createMonth" />
+    <result column="create_day" jdbcType="INTEGER" property="createDay" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="solution" jdbcType="VARCHAR" property="solution" />
+    <result column="conductor_id" jdbcType="INTEGER" property="conductorId" />
+    <result column="conductor_name" jdbcType="VARCHAR" property="conductorName" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <!--<result column="solve_id" jdbcType="INTEGER" property="solveId" />-->
+    <!--<result column="solve_name" jdbcType="VARCHAR" property="solveName" />-->
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, emp_id, emp_name, create_month, create_day, description, solution, conductor_id, 
+    conductor_name, create_id, create_time, update_id, update_time, state, version, solve_id, 
+    solve_name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_administrative_suggest
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_administrative_suggest
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeSuggest">
+    insert into t_administrative_suggest (id, emp_id, emp_name, 
+      create_month, create_day, description, 
+      solution, conductor_id, conductor_name, 
+      create_id, create_time, update_id, 
+      update_time, state, version, 
+      solve_id, solve_name)
+    values (#{id,jdbcType=INTEGER}, #{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, 
+      #{createMonth,jdbcType=INTEGER}, #{createDay,jdbcType=INTEGER}, #{description,jdbcType=VARCHAR}, 
+      #{solution,jdbcType=VARCHAR}, #{conductorId,jdbcType=INTEGER}, #{conductorName,jdbcType=VARCHAR}, 
+      #{createId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateId,jdbcType=INTEGER}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{state,jdbcType=INTEGER}, #{version,jdbcType=INTEGER}, 
+      #{solveId,jdbcType=INTEGER}, #{solveName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeSuggest">
+    insert into t_administrative_suggest
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="empId != null">
+        emp_id,
+      </if>
+      <if test="empName != null">
+        emp_name,
+      </if>
+      <if test="createMonth != null">
+        create_month,
+      </if>
+      <if test="createDay != null">
+        create_day,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="solution != null">
+        solution,
+      </if>
+      <if test="conductorId != null">
+        conductor_id,
+      </if>
+      <if test="conductorName != null">
+        conductor_name,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="solveId != null">
+        solve_id,
+      </if>
+      <if test="solveName != null">
+        solve_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="createMonth != null">
+        #{createMonth,jdbcType=INTEGER},
+      </if>
+      <if test="createDay != null">
+        #{createDay,jdbcType=INTEGER},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="solution != null">
+        #{solution,jdbcType=VARCHAR},
+      </if>
+      <if test="conductorId != null">
+        #{conductorId,jdbcType=INTEGER},
+      </if>
+      <if test="conductorName != null">
+        #{conductorName,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="solveId != null">
+        #{solveId,jdbcType=INTEGER},
+      </if>
+      <if test="solveName != null">
+        #{solveName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeSuggest">
+    update t_administrative_suggest
+    <set>
+      <if test="empId != null">
+        emp_id = #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        emp_name = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="createMonth != null">
+        create_month = #{createMonth,jdbcType=INTEGER},
+      </if>
+      <if test="createDay != null">
+        create_day = #{createDay,jdbcType=INTEGER},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="solution != null">
+        solution = #{solution,jdbcType=VARCHAR},
+      </if>
+      <if test="conductorId != null">
+        conductor_id = #{conductorId,jdbcType=INTEGER},
+      </if>
+      <if test="conductorName != null">
+        conductor_name = #{conductorName,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="solveId != null">
+        solve_id = #{solveId,jdbcType=INTEGER},
+      </if>
+      <if test="solveName != null">
+        solve_name = #{solveName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeSuggest">
+    update t_administrative_suggest
+    set emp_id = #{empId,jdbcType=INTEGER},
+      emp_name = #{empName,jdbcType=VARCHAR},
+      create_month = #{createMonth,jdbcType=INTEGER},
+      create_day = #{createDay,jdbcType=INTEGER},
+      description = #{description,jdbcType=VARCHAR},
+      solution = #{solution,jdbcType=VARCHAR},
+      conductor_id = #{conductorId,jdbcType=INTEGER},
+      conductor_name = #{conductorName,jdbcType=VARCHAR},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER},
+      version = #{version,jdbcType=INTEGER},
+      solve_id = #{solveId,jdbcType=INTEGER},
+      solve_name = #{solveName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

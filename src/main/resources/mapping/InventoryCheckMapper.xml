@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.inventory.InventoryCheckMapper">
+    <sql id="selectColumn">
+        c.id as id,
+        c.code as code,
+        c.state as state,
+        c.title as title,
+        c.ware_id as wareId,
+        c.create_id as createId,
+        c.create_name as createName,
+        c.create_time as createTime,
+        c.remark as remark,
+        c.update_user_id as updateUserId,
+        c.update_time as updateTime,
+        c.affix_name as affixName,
+        c.affix_link as affixLink,
+        c.company_code as companyCode
+    </sql>
+
+    <!--获取库存盘点数量-->
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*) from t_saves_check c
+        where c.state>-2 and c.company_code=#{companyCode}
+        <if test="checkCodeQc!=null and checkCodeQc!=''">
+            and c.code like concat('%',#{checkCodeQc},'%')
+        </if>
+        <if test="checkTimeQc!=null and checkTimeQc!=''">
+            and c.create_time &gt;=#{checkTimeQc}
+        </if>
+        <if test="warehouseQc!=null and warehouseQc!=''">
+            and c.ware_id =#{warehouseQc}
+        </if>
+        <if test="checkStateQc!=null and checkStateQc!=''">
+            and c.state =#{checkStateQc}
+        </if>
+    </select>
+
+    <!--获取库存盘点数据-->
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        select <include refid="selectColumn"/>
+        from t_saves_check c
+        where c.state>-2 and c.company_code=#{companyCode}
+        <if test="checkCodeQc!=null and checkCodeQc!=''">
+            and c.code like concat('%',#{checkCodeQc},'%')
+        </if>
+        <if test="checkTimeQc!=null and checkTimeQc!=''">
+            and c.create_time &gt;=#{checkTimeQc}
+        </if>
+        <if test="warehouseQc!=null and warehouseQc!=''">
+            and c.ware_id =#{warehouseQc}
+        </if>
+        <if test="checkStateQc!=null and checkStateQc!=''">
+            and c.state =#{checkStateQc}
+        </if>
+        order by c.create_time desc
+    </select>
+
+    <select id="editAjax" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventoryStock.InventoryCheck">
+        select <include refid="selectColumn"/>
+        from t_saves_check c where c.state>-2 and c.id=#{id}
+    </select>
+
+    <insert id="saveInventoryCheck" parameterType="com.qinfei.qferp.entity.inventoryStock.InventoryCheck" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_saves_check(
+          code,
+          state,
+          title,
+          ware_id,
+          create_id,
+          create_name,
+          create_time,
+          remark,
+          update_user_id,
+          update_time,
+          affix_name,
+          affix_link,
+          company_code
+        )
+        values
+        (
+         #{code},
+         #{state},
+         #{title},
+         #{wareId},
+         #{createId},
+         #{createName},
+         #{createTime},
+         #{remark},
+         #{updateUserId},
+         #{updateTime},
+         #{affixName},
+         #{affixLink},
+         #{companyCode}
+        )
+    </insert>
+
+    <!--修改库存盘点数据-->
+    <update id="updateInventoryCheck" parameterType="com.qinfei.qferp.entity.inventoryStock.InventoryCheck">
+        update t_saves_check
+        <set>
+            <if test="code != null and code != ''">
+                code = #{code},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="wareId != null">
+                ware_id = #{wareId},
+            </if>
+            <if test="createId != null">
+                create_id = #{createId},
+            </if>
+            <if test="createName != null and createName != ''">
+                create_name = #{createName},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="updateUserId != null">
+                update_user_id = #{updateUserId},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="affixName != null and affixName != ''">
+                affix_name = #{affixName},
+            </if>
+            <if test="affixLink != null and affixLink != ''">
+                affix_link = #{affixLink},
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                company_code = #{companyCode},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="delInventoryCheck">
+        update t_saves_check set state=#{state} where id=#{id}
+    </update>
+</mapper>

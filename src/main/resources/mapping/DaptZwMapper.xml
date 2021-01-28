@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.DeptZwMapper">
+    <sql id="selectColumn">
+        tdz.id,
+        tdz.dept_id as deptId,
+        tdz.user_id as userId,
+        tdz.create_date as createDate,
+        tdz.create_id as createId,
+        tdz.update_date as updateDate,
+        tdz.update_id as updateId,
+        tdz.state
+    </sql>
+    <sql id="userColumn">
+        su.id,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as companyCode
+    </sql>
+    <sql id="deptColumn">
+        sd.id,
+        sd.type,
+        sd.code,
+        sd.name as `text`,
+        sd.parent_id as parentId,
+        sd.level,
+        sd.company_code as companyCode
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_dept_zw
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deptId != null">dept_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deptId != null">#{deptId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_dept_zw (
+        dept_id,
+        user_id,
+        create_date,
+        create_id,
+        update_date,
+        update_id,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="deptZw" index="index" separator=",">
+          (
+            #{deptZw.deptId},
+            #{deptZw.userId},
+            now(),
+            #{deptZw.createId},
+            now(),
+            #{deptZw.updateId},
+            0
+          )
+        </foreach>
+    </insert>
+
+
+    <!--根据部门ID修改绑定状态-->
+    <update id="updateStateByDeptId">
+        update t_dept_zw
+        SET
+          state = #{state},
+          update_id = #{updateId},
+          update_date = now()
+        where dept_id = #{deptId}
+         AND user_id = #{userId}
+    </update>
+
+    <!--根据部门ID和用户ID集合修改绑定状态-->
+    <update id="batchUpdateState">
+        update t_dept_zw
+        SET
+          state = #{state},
+          update_id = #{updateId},
+          update_date = now()
+        where dept_id = #{deptId}
+        AND user_id in
+        <foreach collection="userIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据部门ID集合修改绑定状态-->
+    <update id="batchUpdateStateByDeptId">
+        update t_dept_zw
+        SET
+        state = #{state},
+        update_id = #{updateId},
+        update_date = now()
+        where dept_id in (${deptIds})
+    </update>
+
+    <!--获取绑定政委数据-->
+    <select id="listDeptZwByParam" resultType="com.qinfei.qferp.entity.sys.DeptZw">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_dept_zw tdz
+        WHERE
+        tdz.state = 0
+        <if test="deptId != null">
+            AND tdz.dept_id = #{deptId}
+        </if>
+        <if test="userId != null">
+            AND tdz.user_id = #{userId}
+        </if>
+    </select>
+
+    <!--获取绑定政委数据-->
+    <select id="listUserByParam" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        <include refid="userColumn"/>
+        FROM
+        t_dept_zw tdz
+        INNER JOIN sys_user su ON tdz.user_id = su.id
+        WHERE tdz.state = 0 and su.handover_state = 0 and su.state > -2
+        <if test="deptId != null">
+            AND tdz.dept_id = #{deptId}
+        </if>
+        <if test="userId != null">
+            AND tdz.user_id = #{userId}
+        </if>
+    </select>
+
+    <!--获取绑定的政委对应部门信息-->
+    <select id="listDeptInfoByParam" resultType="java.util.Map">
+        SELECT
+        	<include refid="deptColumn"/>
+        FROM
+        	t_dept_zw tdz
+        INNER JOIN sys_dept sd ON tdz.dept_id = sd.id
+        AND sd.state > -2
+        WHERE
+        	tdz.state = 0
+        <if test="deptIds != null and deptIds.size() > 0">
+            AND tdz.dept_id IN
+            <foreach collection="deptIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="userId != null">
+            AND tdz.user_id = #{userId}
+        </if>
+        <if test="deptCode != null and deptCode != ''">
+            AND sd.code = #{deptCode}
+        </if>
+        order by sd.id asc
+    </select>
+
+    <!--根据部门ID集合获取部门信息-->
+    <select id="listDeptInfoByDeptIds" resultType="java.util.Map">
+        SELECT
+          <include refid="deptColumn"/>
+        FROM
+          sys_dept sd
+        WHERE sd.state > -2 and sd.id in (${deptIds});
+    </select>
+
+    <!--根据部门类型和角色类型获取所有用户-->
+    <select id="listUserByDeptAndRole" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT DISTINCT
+        	su.id,
+        	su.`name`,
+        	su.dept_id,
+        	su.dept_name,
+        	su.company_code
+        FROM
+        	sys_user su
+        INNER JOIN sys_dept sd ON sd.id = su.dept_id
+        AND sd.state > -2
+        INNER JOIN sys_user_role sur ON sur.user_id = su.id
+        INNER JOIN sys_role sr ON sr.id = sur.role_id
+        WHERE
+        	su.handover_state = 0
+        AND su.state > -2
+        <if test="deptCode != null and deptCode != ''">
+            AND sd.`code` = #{deptCode}
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            AND sr.`code` = #{roleCode}
+        </if>
+        <if test="roleType != null and roleType != ''">
+            AND sr.type = #{roleType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND su.company_code = #{companyCode}
+        </if>
+        <if test="name != null and name != ''">
+            AND su.`name` LIKE CONCAT(#{name}, '%')
+        </if>
+    </select>
+
+    <!--政委管理部门用户列表-->
+    <select id="listZwUserByDeptAndRole" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+        su.id,
+        su.`name`,
+        su.dept_id,
+        su.dept_name,
+        su.company_code
+        FROM
+        sys_user su
+        INNER JOIN sys_dept sd ON sd.id = su.dept_id
+        AND sd.state > -2
+        INNER JOIN sys_user_role sur ON sur.user_id = su.id
+        INNER JOIN sys_role sr ON sr.id = sur.role_id
+        WHERE su.state > -2
+        <if test="handoverState != null">
+            AND su.handover_state = #{handoverState}
+        </if>
+        <if test="deptCode != null and deptCode != ''">
+            AND sd.`code` = #{deptCode}
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            AND sr.`code` = #{roleCode}
+        </if>
+        <if test="roleType != null and roleType != ''">
+            AND sr.type = #{roleType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND su.company_code = #{companyCode}
+        </if>
+        <if test="name != null and name != ''">
+            AND su.`name` LIKE CONCAT(#{name}, '%')
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND su.dept_id = #{deptId}
+        </if>
+        <if test="deptIds != null and deptIds.size() > 0">
+            AND su.dept_id IN
+            <foreach collection="deptIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <!--根据指定部门ID获取政委管理的其下级子部门列表-->
+    <select id="listChildDeptIdByUserId" resultType="java.lang.Integer">
+        SELECT
+        	tdz.dept_id
+        FROM
+        	t_dept_zw tdz
+        INNER JOIN sys_dept sd ON tdz.dept_id = sd.id
+        AND sd.state > -2
+        WHERE
+        	tdz.state = 0
+        AND tdz.dept_id IN (${deptIds})
+        AND tdz.user_id = #{userId}
+    </select>
+</mapper>

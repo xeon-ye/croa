@@ -1,0 +1,117 @@
+.rootDiv{
+    border: 1px solid #c1c1c1;width: 645px;height: 580px;color: #474747;
+}
+.btnDiv{
+    border: 0px solid red;width: 100%;height: 60px;line-height: 60px;
+}
+.notCloseBtn{
+    width: 80%;float: left;
+}
+.btnDiv  button{
+    width: 80px;
+    height: 30px;
+    line-height: 18px;
+    margin-left: 10px;
+    border: unset;
+    border-radius: unset !important;
+}
+.btnCloseDiv{
+    width: 20%;text-align: right;float: right;height: 60px;line-height: 60px;
+}
+.btnCloseDiv > button{
+    width: 40px;height: 60px;line-height: 60px;
+}
+.btnCls{
+    background-color: #F8FAFB !important;
+    border: 1px solid #E8E8E8  !important;
+}
+
+.itemDiv{
+    border: 0px solid red;width: 100%;height: 40px;line-height: 40px;
+}
+.itemIconDiv{
+    border: 0px solid red;width: 40px;height: 40px;line-height: 40px;float: left;text-align: center;
+}
+.itemContentDiv{
+    border: 0px solid red;
+    width: 600px;
+    height: 40px;
+    line-height: 40px;
+    float: left;
+    padding-left: 10px;
+    padding-top: 3px;
+}
+.itemContentEllipsis{
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding-right: 10px;
+}
+.meetType{
+    font-size: 18px;
+    padding-top: 1px;
+}
+.itemContentTitle{
+    width: 70%;height: 40px;line-height: 40px;float: left;
+}
+.itemContentLink{
+    width: 30%;height: 40px;line-height: 40px;float: right;text-align: right;padding-right: 10px;color: #337ab7;cursor: pointer;
+}
+.meetingUser{
+    border:0px solid red;width: 100%;height: 30px;line-height: 30px;float: left;margin-top: 2px;
+}
+.meetingUser > ul{
+    border:0px solid red;width: 100%;height: 30px;list-style: none;
+}
+.meetingUser > ul > li{
+    font-size: 12px;
+    float: left;
+    padding-right: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 11%;
+}
+.liFontActiveCls{
+    color: #474747 !important;
+}
+.liFontCls{
+    color: #b7b7b7;
+}
+.meetingUserName{
+    border:0px solid red;
+    width: 100%;
+    height: 70px;
+    float: left;
+    font-size: 12px;
+    padding-right: 10px;
+    letter-spacing: 1px;
+    line-height: 20px;
+    overflow-y: auto;
+}
+
+.attachmentTitle{
+    display: block;
+    width: 36px;
+    text-align: left;
+    float: left;
+    height: 100%;
+}
+
+.attachmentContent{
+    display: block;
+    width: 92%;
+    float: left;
+    height: 100%;
+    overflow-y: auto;
+}
+.attachmentOp{
+    display: block;
+    margin-left: 2px;
+    background-color: #f9ecec;
+    width: 65px;
+    float: left;
+    height: 100%;
+    padding-left: 2px;
+}

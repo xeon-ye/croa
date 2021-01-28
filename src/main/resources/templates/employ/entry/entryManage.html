@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>入职申请管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link rel="stylesheet" href="/js/employ/rating/css/star-rating.min.css">
+    <link rel="stylesheet" href="/js/employ/rating/themes/krajee-fa/theme.css">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/js/star-rating.min.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/js/locales/zh.js"></script>
+    <script type="text/javascript" src="/js/employ/rating/themes/krajee-fa/theme.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/employ/entry/entryManage.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12">
+                <div>
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">申请部门：</label>
+                                <div class="col-sm-1" style="text-align:center">
+                                    <input type="hidden" id="deptId" name="entryDept" class="form-control">
+                                    <input type="text" id="deptName" class="form-control height18" readonly="readonly"
+                                           style="width:120%">
+                                </div>
+                                <div class="col-sm-1" style="text-align:center">
+                                    <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                                            id="selDept"></button>
+                                    <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"
+                                            id="cleanDept"></button>
+                                </div>
+                                <label class="col-sm-1 control-label">申请职位：</label>
+                                <div class="col-sm-2 layui-form">
+                                    <select name="entryProfession" data="postId" class="form-control height18"
+                                            lay-verify="" lay-search lay-filter="postId">
+                                        <option value="">请选择职位</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">姓名：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="entryName" class="form-control"
+                                           placeholder="请输入姓名" maxlength="10" special="true"/>
+                                </div>
+                                <label class="col-sm-1 control-label">性别：</label>
+                                <div class="col-sm-2">
+                                   <!-- <select name="empGender" class="form-control height18">
+                                        <option value="">请选择性别</option>
+                                        <option value="0">女</option>
+                                        <option value="1">男</option>
+                                    </select>-->
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="" name="empGender" checked>所有</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="0" name="empGender">女</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="1" name="empGender">男</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">个人电话：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="entryPhone" class="form-control"
+                                           placeholder="请输入个人联系电话" maxlength="11" special="true"/>
+                                </div>
+                                <label class="col-sm-1 control-label">身份证：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="empCode" class="form-control"
+                                           placeholder="请输入身份证号码" maxlength="18" special="true"/>
+                                </div>
+                                <label class="col-sm-1 control-label">民族：</label>
+                                <div class="col-sm-2 layui-form">
+                                    <select name="empRace" data="raceId" class="form-control height18" lay-verify=""
+                                            lay-search lay-filter="nationId">
+                                        <option value="">请选择民族</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">籍贯：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="empNative" class="form-control"
+                                           placeholder="请输入籍贯信息" maxlength="50" special="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">学历：</label>
+                                <div class="col-sm-2">
+                                    <select name="empEducation" class="form-control height18">
+                                        <option value="">请选择学历</option>
+                                        <option value="8">小学</option>
+                                        <option value="0">初中</option>
+                                        <option value="1">高中</option>
+                                        <option value="2">专科</option>
+                                        <option value="3">本科</option>
+                                        <option value="4">硕士</option>
+                                        <option value="5">博士</option>
+                                        <option value="6">博士后</option>
+                                        <option value="7">其他</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">其他学历：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="empEducationOther" class="form-control"
+                                           placeholder="请输入学历名称" maxlength="20" special="true"/>
+                                </div>
+                                <label class="col-sm-1 control-label">户口性质：</label>
+                                <div class="col-sm-2">
+                                   <!-- <select name="entryResidence" class="form-control height18">
+                                        <option value="">请选择户口性质</option>
+                                        <option value="0">城镇户口</option>
+                                        <option value="1">农村户口</option>
+                                    </select>-->
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="" name="entryResidence" checked>所有</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="0" name="entryResidence">城镇</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="1" name="entryResidence">农村</label>
+                                </div>
+                                <label class="col-sm-1 control-label">婚否：</label>
+                                <div class="col-sm-2">
+                                    <select name="entryMarriage" class="form-control height18">
+                                        <option value="">请选择婚姻状态</option>
+                                        <option value="0">未婚</option>
+                                        <option value="1">已婚</option>
+                                        <option value="2">离婚</option>
+                                        <option value="3">丧偶</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">曾经病史：</label>
+                                <div class="col-sm-2">
+                                   <!-- <select name="entryHasSick" class="form-control height18">
+                                        <option value="">请选择病史信息</option>
+                                        <option value="0">否</option>
+                                        <option value="1">是</option>
+                                    </select>-->
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="" name="entryHasSick" checked>所有</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="0" name="entryHasSick">否</label>
+                                    <label class="radio-inline i-checks"><input class="i-checks" type="radio" value="1" name="entryHasSick">是</label>
+                                </div>
+                                <label class="col-sm-1 control-label">申请日期：</label>
+                                <div class="col-sm-2">
+                                    <input type="text" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                           class="form-control layer-date laydate-icon"
+                                           name="createTimeStart" placeholder="开始日期"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                    <input type="text" style="vertical-align:middle;cursor:pointer;width:48.5%;"
+                                           class="form-control layer-date laydate-icon"
+                                           name="createTimeEnd" placeholder="结束日期"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                </div>
+                                <label class="col-sm-1 control-label">求职途径：</label>
+                                <div class="col-sm-2">
+                                    <select name="entryChannel" class="form-control height18">
+                                        <option value="">请选择求职途径</option>
+                                        <option value="0">BOSS直聘</option>
+                                        <option value="8">前程无忧</option>
+                                        <option value="9">智联招聘</option>
+                                        <option value="4">校园招聘</option>
+                                        <option value="6">内部推荐</option>
+                                        <option value="5">猎头推荐</option>
+                                        <option value="3">人才市场</option>
+                                        <option value="1">社交媒体</option>
+                                        <option value="2">离职再入职</option>
+                                        <option value="10">分子公司调岗</option>
+                                        <option value="7">其他</option>
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label">状态：</label>
+                                <div class="col-sm-2">
+                                    <select name="state" class="form-control height18">
+                                        <option value="">请选择状态</option>
+                                        <option value="0">待审核</option>
+                                        <option value="1">审核中</option>
+                                        <option value="2">同意录用</option>
+                                        <option value="3">已入职</option>
+                                        <option value="4">不予考虑</option>
+                                        <option value="5">已离职</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="dataSearch" class="btn btn-warning">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <button class="btn btn-primary" type="button" onclick="window.open('/regist')">
+                        <i class="fa fa-plus"></i>&nbsp;&nbsp;增加
+                    </button>
+                    <button class="btn btn-primary" type="button" onclick="exportData()" id="exportButton">
+                        <i class="fa fa-download"></i>&nbsp;&nbsp;导出
+                    </button>
+                    <button class="btn btn-danger" type="button" onclick="changeEntryState(null,'0')">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;删除
+                    </button>
+                </div>
+                <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                    <div class="jqGrid_wrapper">
+                        <table id="entryTable"></table>
+                        <div id="entryTableNav"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- 入职申请的资料审核； -->
+<div class="modal inmodal" id="approveModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%;">
+        <form id="approveForm">
+            <input type="hidden" name="entryId"/>
+            <input type="hidden" name="comId"/>
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">资料审核</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">身份证：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comCode" special="true" data="entryCodeFile"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">学历证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comEducation" special="true" data="empEducationFile"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">离职证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comExperienceDesc" special="true" data="empExperienceFile"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">户口证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comResidence" special="true" data="entryResidenceFile"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">个人照片：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comImage" special="true" data="entryImage"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">体检证明：</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" placeholder="请输入说明内容"
+                                                   style="vertical-align:middle;width: 70%;display: inline;"
+                                                   name="comReport" special="true" data="entryReport"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">其他说明：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comOther"
+                                                      placeholder="请输入说明内容" maxlength="500" special="true"
+                                                      style="resize:none;width: 97%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer" style="text-align: center;">
+                    <button type="button" class="btn btn-primary" id="agreeApprove" onclick="saveApprove('0')">
+                        <i class="fa fa-check"></i>&nbsp;&nbsp;同意
+                    </button>
+                    <button type="button" class="btn btn-danger" id="rejectApprove" onclick="saveApprove('1')">
+                        <i class="fa fa-close"></i>&nbsp;&nbsp;拒绝
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- 录用提交流程选择审核人； -->
+<div class="modal inmodal" id="employModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width: 880px;">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title" id="title">基本信息</h4>
+            </div>
+            <div class="ibox-content" id="formDiv">
+                <form id="stepOne" action="/entryManage/saveHire" desc="基本信息">
+                    <input type="hidden" name="entryId"/>
+                    <input type="hidden" name="hireId"/>
+                    <input id="entryCompanyCode" type="hidden" name="entryCompanyCode"/>
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">姓名：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empName" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入姓名" maxlength="10" special="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">性别：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empGender"/>
+                                            <input type="text" id="empGenderText" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入性别" maxlength="5"
+                                                   special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">出生日期：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="empBirth" class="form-control" style="width: 78%;"
+                                                   placeholder="请输入出生日期" maxlength="10" special="true"
+                                                   readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">婚姻状况：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empMarriage"/>
+                                            <input type="text" id="empMarriageText" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入婚姻状况" maxlength="5"
+                                                   special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">学历：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empEducation"/>
+                                            <input type="hidden" name="empEducationOther"/>
+                                            <input type="text" id="empEducationText" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入学历" maxlength="10" special="true"
+                                                   readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">院校专业：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empCollege"/>
+                                            <input type="hidden" name="empMajor"/>
+                                            <input type="text" id="collegeMajor" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入院校及专业" maxlength="10"
+                                                   special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">家庭住址：</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" name="empLocalAddress"
+                                                   placeholder="请输入家庭住址" maxlength="200" special="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <!--<label class="col-sm-1 control-label">录用部门：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empDept"/>
+                                            <input type="text" name="empDeptName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入部门名称" maxlength="10"
+                                                   special="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职位：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="empProfession"/>
+                                            <input type="text" name="empProfessionName"
+                                                   class="form-control" style="width: 78%;" placeholder="请输入职位名称"
+                                                   maxlength="10" special="true" readonly/>
+                                        </div>-->
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>一级部门：
+                                        </label>
+                                        <div class="col-sm-5 layui-form">
+                                            <div style="max-width: 260px !important;">
+                                                <select id="entryFirstDept" name="entryFirstDept" class="form-control height18" lay-search  lay-filter="entryFirstDept">
+                                                    <option value="0">业务部门</option>
+                                                    <option value="1">媒介部门</option>
+                                                    <option value="2">其他部门</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>录用部门：
+                                        </label>
+                                        <div class="col-sm-5 layui-form">
+                                           <div style="max-width: 260px !important;">
+                                               <select id="empDept" name="empDept" class="form-control height18" lay-search lay-filter="empDept">
+                                               </select>
+                                           </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>职位：
+                                        </label>
+                                        <div class="col-sm-5 layui-form">
+                                            <div style="max-width: 260px !important;">
+                                                <select id="empProfession" name="empProfession" class="form-control height18" lay-search>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>员工状态：
+                                        </label>
+                                        <div class="col-sm-5 layui-form">
+                                            <div style="max-width: 260px !important;">
+                                                <select id="entryState" name="entryState" class="form-control height18" lay-search lay-filter="entryState">
+                                                    <option value="0">试用</option>
+                                                    <option value="1">实习</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span><span class="trialName">试用</span>期限：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" style="vertical-align:middle;cursor:pointer;width:38%;"
+                                                   class="form-control layer-date laydate-icon"
+                                                   name="trialBegin" placeholder="开始日期"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   required="true" special="true" readonly/>
+                                            <input type="text" style="vertical-align:middle;cursor:pointer;width:39%;"
+                                                   class="form-control layer-date laydate-icon"
+                                                   name="trialEnd" placeholder="结束日期"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   required="true" special="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>到岗日期：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text"
+                                                   style="vertical-align:middle;cursor:pointer;max-width: 260px;"
+                                                   class="form-control layer-date laydate-icon"
+                                                   name="empExpectDate" placeholder="确定的拟到岗日期"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   required="true" special="true" readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <form id="stepTwo" action="/entryManage/saveSalary" desc="人员薪资">
+                    <input type="hidden" name="entryId"/>
+                    <input type="hidden" name="salId"/>
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span><span class="trialName">试用</span>工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" id="trialTotal" name="trialSalary" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入试用/实习期工资" maxlength="10"
+                                                   required="true" number="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>职位工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="trialPost" class="form-control trial" oninput="trialCal();"
+                                                   style="width: 78%;" placeholder="请输入试用/实习期职位工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>绩效工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="trialPerformance" class="form-control trial" oninput="trialCal();"
+                                                   style="width: 78%;" placeholder="请输入试用/实习期绩效工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>其他工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="trialOther" class="form-control trial" oninput="trialCal();"
+                                                   style="width: 78%;" placeholder="请输入试用/实习期其他工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>转正工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" id="formalTotal" name="formalSalary" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入转正工资" maxlength="10"
+                                                   required="true" number="true" readonly/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>职位工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="formalPost" class="form-control formal" oninput="formalCal();"
+                                                   style="width: 78%;" placeholder="请输入转正职位工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>绩效工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="formalPerformance" class="form-control formal" oninput="formalCal();"
+                                                   style="width: 78%;" placeholder="请输入转正绩效工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">
+                                            <span style="color: red;">*</span>其他工资：
+                                        </label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="formalOther" class="form-control formal" oninput="formalCal();"
+                                                   style="width: 78%;" placeholder="请输入转正其他工资" maxlength="10"
+                                                   required="true" number="true" onkeyup="value=value.replace(/[^\d.]/g,'')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <form id="stepThree" action="/entryManage/saveComment" desc="印象评估">
+                    <input type="hidden" name="entryId"/>
+                    <input type="hidden" name="comId"/>
+                    <input type="hidden" name="operate">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">形象气质：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFigure"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">沟通表达：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comCommunicate"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">应聘诚意：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFaith"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职业素质：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comQuality"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">工作经验：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comExperience"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">累计分值：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="comTotalScore" value="0"
+                                                   style="width: 78%;" class="form-control" placeholder="上述五项累计分值"
+                                                   maxlength="3" digits="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">评估建议：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comAdvice"
+                                                      placeholder="请输入面试评估建议" maxlength="500"
+                                                      special="true" style="resize:none;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <form id="stepFour" action="/entryManage/saveComment" desc="能力评估">
+                    <input type="hidden" name="entryId"/>
+                    <input type="hidden" name="comId"/>
+                    <input type="hidden" name="operate">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">专业测试：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFigure"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">仪容态度：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comCommunicate"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">领悟反应：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comFaith"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">职位能力：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comQuality"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">职位匹配度：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="kv-fa rating-loading" name="comExperience"
+                                                   data-size="xs" maxlength="3" digits="true"/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">累计分值：</label>
+                                        <div class="col-sm-5">
+                                            <input type="text" name="comTotalScore" value="0"
+                                                   style="width: 78%;" class="form-control" placeholder="上述五项累计分值"
+                                                   maxlength="3" digits="true" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="comAdvice"
+                                                      placeholder="请输入面试评估建议" maxlength="500"
+                                                      special="true" style="resize:none;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <form id="stepFive" action="/entryManage/startEmploy" desc="提交审核">
+                    <input type="hidden" name="entryId"/>
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">录用部门：</label>
+                                        <div class="col-sm-5">
+                                            <input type="hidden" name="deptId"/>
+                                            <input type="text" name="empDeptName" class="form-control"
+                                                   style="width: 78%;" placeholder="请输入部门名称" maxlength="10"
+                                                   special="true" disabled/>
+                                        </div>
+                                        <label class="col-sm-1 control-label">审核人：</label>
+                                        <div class="col-sm-4 layui-form">
+                                            <input name="userName" type="hidden"/>
+                                            <select name="userId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="userId">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="text-align: center;">
+                <button type="button" class="btn btn-primary" id="stepBackword" onclick="stepBackword()">
+                    <i class="fa fa-backward"></i>&nbsp;&nbsp;上一步
+                </button>
+                <button type="button" class="btn btn-primary" id="stepForward" onclick="stepForward()">
+                    <i class="fa fa-forward"></i>&nbsp;&nbsp;下一步
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 审核流程详情； -->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div id="history" class="col-sm-12"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <h5>部门信息</h5>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

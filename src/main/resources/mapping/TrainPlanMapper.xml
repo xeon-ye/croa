@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainPlanMapper">
+    <sql id="selectColumn">
+      tp.id,
+      tp.title,
+      tp.course_plate as coursePlate,
+      tp.train_way as trainWay,
+      tp.courseware_keep as coursewareKeep,
+      tp.train_time_desc as trainTimeDesc,
+      tp.remake,
+      tp.create_id as createId,
+      tp.create_date as createDate,
+      tp.update_id as updateId,
+      tp.update_date as updateDate,
+      tp.company_code as companyCode,
+      tp.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="coursePlate != null">course_plate,</if>
+            <if test="trainWay != null">train_way,</if>
+            <if test="coursewareKeep != null">courseware_keep,</if>
+            <if test="trainTimeDesc != null">train_time_desc,</if>
+            <if test="remake != null">remake,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="coursePlate != null">#{coursePlate},</if>
+            <if test="trainWay != null">#{trainWay},</if>
+            <if test="coursewareKeep != null">#{coursewareKeep},</if>
+            <if test="trainTimeDesc != null">#{trainTimeDesc},</if>
+            <if test="remake != null">#{remake},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--更新答题卡状态-->
+    <update id="updateStateById">
+        UPDATE t_train_plan
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_plan
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="coursePlate != null">course_plate = #{coursePlate},</if>
+            <if test="trainWay != null">train_way = #{trainWay},</if>
+            <if test="coursewareKeep != null">courseware_keep = #{coursewareKeep},</if>
+            <if test="trainTimeDesc != null">train_time_desc = #{trainTimeDesc},</if>
+            <if test="remake != null">remake = #{remake},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--分页查询培训计划-->
+    <select id="listTrainPlanByParam" resultType="com.qinfei.qferp.entity.study.TrainPlan">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+          t_train_plan tp
+        WHERE tp.state <![CDATA[<>]]> -9
+          <if test="title != null and title != ''">
+              AND tp.title LIKE CONCAT(#{title}, '%')
+          </if>
+          <if test="coursePlate != null">
+              AND tp.course_plate = #{coursePlate}
+          </if>
+          <if test="trainWay != null">
+              AND tp.train_way = #{trainWay}
+          </if>
+          <if test="coursewareKeep != null">
+              AND tp.courseware_keep = #{coursewareKeep}
+          </if>
+          <if test="state != null">
+              AND tp.state = #{state}
+          </if>
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND tp.company_code = #{companyCode}
+          </if>
+    </select>
+    <!--查询培训计划总数-->
+    <select id="getTrainPlanTotal" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM
+          t_train_plan tp
+        WHERE tp.state <![CDATA[<>]]> -9
+          <if test="title != null and title != ''">
+              AND tp.title LIKE CONCAT(#{title}, '%')
+          </if>
+          <if test="coursePlate != null">
+              AND tp.course_plate = #{coursePlate}
+          </if>
+          <if test="trainWay != null">
+              AND tp.train_way = #{trainWay}
+          </if>
+          <if test="coursewareKeep != null">
+              AND tp.courseware_keep = #{coursewareKeep}
+          </if>
+          <if test="state != null">
+              AND tp.state = #{state}
+          </if>
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND tp.company_code = #{companyCode}
+          </if>
+    </select>
+
+
+
+</mapper>

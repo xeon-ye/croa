@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.QuestionMapper">
+    <sql id="selectColumn">
+      tq.id,
+      tq.course_plate as coursePlate,
+      tq.question_type as questionType,
+      tq.question_level as questionLevel,
+      tq.question_title as questionTitle,
+      tq.question_answer_num as questionAnswerNum,
+      tq.question_answer as questionAnswer,
+      tq.question_answer_desc as questionAnswerDesc,
+      tq.create_id as createId,
+      tq.create_date as createDate,
+      tq.update_id as updateId,
+      tq.update_date as updateDate,
+      tq.company_code as companyCode,
+      tq.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_train_question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="coursePlate != null">course_plate,</if>
+            <if test="questionType != null">question_type,</if>
+            <if test="questionLevel != null">question_level,</if>
+            <if test="questionTitle != null and questionTitle != ''">question_title,</if>
+            <if test="questionAnswerNum != null">question_answer_num,</if>
+            <if test="questionAnswer != null and questionAnswer != ''">question_answer,</if>
+            <if test="questionAnswerDesc != null and questionAnswerDesc != ''">question_answer_desc,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="coursePlate != null">#{coursePlate},</if>
+            <if test="questionType != null">#{questionType},</if>
+            <if test="questionLevel != null">#{questionLevel},</if>
+            <if test="questionTitle != null and questionTitle != ''">#{questionTitle},</if>
+            <if test="questionAnswerNum != null">#{questionAnswerNum},</if>
+            <if test="questionAnswer != null and questionAnswer != ''">#{questionAnswer},</if>
+            <if test="questionAnswerDesc != null and questionAnswerDesc != ''">#{questionAnswerDesc},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_train_question (
+        course_plate,
+        question_type,
+        question_level,
+        question_title,
+        question_answer_num,
+        question_answer,
+        question_answer_desc,
+        create_id,
+        create_date,
+        update_id,
+        update_date,
+        company_code,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="question" index="index" separator=",">
+            (
+            #{question.coursePlate},
+            #{question.questionType},
+            #{question.questionLevel},
+            #{question.questionTitle},
+            #{question.questionAnswerNum},
+            #{question.questionAnswer},
+            #{question.questionAnswerDesc},
+            #{question.createId},
+            now(),
+            #{question.updateId},
+            now(),
+            #{question.companyCode},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!--更新题目状态-->
+    <update id="updateStateById">
+        UPDATE t_train_question tq
+        SET tq.state = #{state},
+         tq.update_date = now(),
+         tq.update_id = #{updateId}
+        WHERE tq.id = #{id}
+    </update>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_question
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="coursePlate != null">course_plate = #{coursePlate},</if>
+            <if test="questionType != null">question_type = #{questionType},</if>
+            <if test="questionLevel != null">question_level = #{questionLevel},</if>
+            <if test="questionTitle != null and questionTitle != ''">question_title = #{questionTitle},</if>
+            <if test="questionAnswerNum != null">question_answer_num = #{questionAnswerNum},</if>
+            <if test="questionAnswer != null and questionAnswer != ''">question_answer = #{questionAnswer},</if>
+            <if test="questionAnswerDesc != null and questionAnswerDesc != ''">question_answer_desc = #{questionAnswerDesc},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新题目信息-->
+    <update id="batchUpdateQuestion">
+        UPDATE t_train_question
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            update_id = #{updateId},
+            <trim prefix="course_plate = case " suffix="else course_plate end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.coursePlate != null">
+                        when id = #{question.id} then #{question.coursePlate}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_type = case " suffix="else question_type end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionType != null">
+                        when id = #{question.id} then #{question.questionType}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_level = case " suffix="else question_level end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionLevel != null">
+                        when id = #{question.id} then #{question.questionLevel}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_title = case " suffix="else question_title end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionTitle != null and question.questionTitle != ''">
+                        when id = #{question.id} then #{question.questionTitle}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_answer_num = case " suffix="else question_answer_num end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionAnswerNum != null">
+                        when id = #{question.id} then #{question.questionAnswerNum}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_answer = case " suffix="else question_answer end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionAnswer != null">
+                        when id = #{question.id} then #{question.questionAnswer}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="question_answer_desc = case " suffix="else question_answer_desc end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.questionAnswerDesc != null">
+                        when id = #{question.id} then #{question.questionAnswerDesc}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="state = case " suffix="else state end,">
+                <foreach collection="questionList" item="question" index="index">
+                    <if test="question.state != null">
+                        when id = #{question.id} then #{question.state}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        id in
+        <foreach item="question" collection="questionList" index="index" open="(" close=")" separator=",">
+            #{question.id}
+        </foreach>
+    </update>
+
+    <!--根据题目ID获取题目-->
+    <select id="listQuestionByIds" resultType="com.qinfei.qferp.entity.study.Question">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_train_question tq
+        WHERE id in
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+      </foreach>
+    </select>
+
+    <!--根据参数获取题目列表-->
+    <select id="listQuestionByParam" resultType="com.qinfei.qferp.entity.study.Question">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+          t_train_question tq
+        WHERE tq.state <![CDATA[<>]]> -9
+        <if test="questionTitle != null and questionTitle != ''">
+            AND tq.question_title LIKE CONCAT(#{questionTitle}, '%')
+        </if>
+        <if test="coursePlate != null">
+            AND tq.course_plate = #{coursePlate}
+        </if>
+        <if test="questionType != null">
+            AND tq.question_type = #{questionType}
+        </if>
+        <if test="questionLevel != null">
+            AND tq.question_level = #{questionLevel}
+        </if>
+        <if test="questionAnswerNum != null">
+            AND tq.question_answer_num = #{questionAnswerNum}
+        </if>
+        <if test="state != null">
+            AND tq.state = #{state}
+        </if>
+        <if test="excludeIds != null and excludeIds.size() > 0">
+            AND tq.id not in
+            <foreach item="id" collection="excludeIds" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

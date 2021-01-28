@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmSearchCacheMapper">
+    <sql id="selectColumn">
+      tcsc.id as id,
+      tcsc.search_keyword as searchKeyword,
+      tcsc.company_name as companyName,
+      tcsc.company_legal as companyLegal,
+      tcsc.establish_date as establishDate,
+      tcsc.company_status as companyStatus,
+      tcsc.register_num as registerNum,
+      tcsc.credit_code as creditCode,
+      tcsc.original_name as originalName,
+      tcsc.cache_date as cacheDate
+    </sql>
+
+    <!--新增-->
+    <insert id="save" keyProperty="id" useGeneratedKeys="true">
+        insert into t_crm_search_cache
+        (
+        <trim suffixOverrides=",">
+            <if test="searchKeyword != null and searchKeyword != ''">search_keyword,</if>
+            <if test="companyName != null and companyName != ''">company_name,</if>
+            <if test="companyLegal != null and companyLegal != ''">company_legal,</if>
+            <if test="establishDate != null">establish_date,</if>
+            <if test="companyStatus != null and companyStatus != ''">company_status,</if>
+            <if test="registerNum != null and registerNum != ''">register_num,</if>
+            <if test="creditCode != null and creditCode != ''">credit_code,</if>
+            <if test="originalName != null and originalName != ''">original_name,</if>
+            <if test="cacheDate != null">cache_date</if>
+        </trim>
+        )
+        values
+        (
+        <trim suffixOverrides=",">
+            <if test="searchKeyword != null and searchKeyword != ''">#{searchKeyword},</if>
+            <if test="companyName != null and companyName != ''">#{companyName},</if>
+            <if test="companyLegal != null and companyLegal != ''">#{companyLegal},</if>
+            <if test="establishDate != null">#{establishDate},</if>
+            <if test="companyStatus != null and companyStatus != ''">#{companyStatus},</if>
+            <if test="registerNum != null and registerNum != ''">#{registerNum},</if>
+            <if test="creditCode != null and creditCode != ''">#{creditCode},</if>
+            <if test="originalName != null and originalName != ''">#{originalName},</if>
+            <if test="cacheDate != null">#{cacheDate}</if>
+        </trim>
+        )
+    </insert>
+
+    <!--批量增加日程对应提醒时间-->
+    <insert id="batchSave" parameterType="com.qinfei.qferp.entity.crm.CrmSearchCache">
+        insert into t_crm_search_cache (
+          search_keyword,
+          company_name,
+          company_legal,
+          establish_date,
+          company_status,
+          register_num,
+          credit_code,
+          original_name,
+          cache_date
+        )
+        values
+        <foreach collection="list" item="crmSearchCache" index="index" separator=",">
+          (
+            #{crmSearchCache.searchKeyword},
+            #{crmSearchCache.companyName},
+            #{crmSearchCache.companyLegal},
+            #{crmSearchCache.establishDate},
+            #{crmSearchCache.companyStatus},
+            #{crmSearchCache.registerNum},
+            #{crmSearchCache.creditCode},
+            #{crmSearchCache.originalName},
+            #{crmSearchCache.cacheDate}
+          )
+        </foreach>
+    </insert>
+
+    <!--更新记录-->
+    <update id="edit" parameterType="com.qinfei.qferp.entity.crm.CrmSearchCache">
+        update t_crm_search_cache
+        <set>
+            cache_date = now(),
+            <if test="companyLegal != null and companyLegal != ''">company_legal = #{companyLegal},</if>
+            <if test="establishDate != null">establish_date = #{establishDate},</if>
+            <if test="companyStatus != null and companyStatus != ''">company_status = #{companyStatus},</if>
+            <if test="registerNum != null and registerNum != ''">register_num = #{registerNum},</if>
+            original_name = #{originalName},
+        </set>
+        where company_name = #{companyName}
+        AND credit_code = #{creditCode}
+    </update>
+
+    <!--根据参数查询公司列表-->
+    <select id="listCrmSearchByParam" resultType="com.qinfei.qferp.entity.crm.CrmSearchCache">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_crm_search_cache tcsc
+        WHERE
+        	tcsc.company_name LIKE CONCAT('%', #{keyword}, '%')
+        OR tcsc.search_keyword LIKE CONCAT('%', #{keyword}, '%')
+        OR tcsc.register_num LIKE CONCAT('%', #{keyword}, '%')
+        OR tcsc.credit_code LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <!--根据公司名称获取公司-->
+    <select id="listCrmSearchByCompanyName" resultType="java.lang.String">
+        SELECT
+          CONCAT(tcsc.company_name, '-', tcsc.credit_code)
+        FROM
+          t_crm_search_cache tcsc
+        WHERE tcsc.company_name in
+        <foreach item="keyword" collection="keywords" index="index" open="(" close=")" separator=",">
+            #{keyword}
+        </foreach>
+    </select>
+
+</mapper>

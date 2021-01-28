@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaSupplierPriceMapper">
+    <sql id="selectColumn">
+        tmsp.id,
+        tmsp.media_supplier_relate_id as mediaSupplierRelateId,
+        tmsp.cell,
+        tmsp.cell_name as cellName,
+        tmsp.cell_value as cellValue,
+        tmsp.create_date as createDate,
+        tmsp.update_date as updateDate,
+        tmsp.versions,
+        tmsp.cell_type as cellType,
+        tmsp.cell_value_text as cellValueText
+    </sql>
+
+    <!--根据媒体ID删除扩展表-->
+    <delete id="deleteByRelateIds">
+        DELETE
+        FROM
+        t_media_supplier_price
+        WHERE
+        media_supplier_relate_id in
+        <foreach item="mediaSupplierRelateId" collection="mediaSupplierRelateIds" index="index" open="(" close=")" separator=",">
+            #{mediaSupplierRelateId}
+        </foreach>
+    </delete>
+
+    <!--拷贝t_media_supplier_relate_audit表数据到该表-->
+    <insert id="copySupplierPriceByRelateIds" parameterType="java.util.List">
+        insert into
+        t_media_supplier_price
+        select
+          NULL AS id,
+          tmspa.media_supplier_relate_id,
+          tmspa.cell,
+          tmspa.cell_name,
+          tmspa.cell_value,
+          tmspa.create_date,
+          tmspa.update_date,
+          tmspa.state,
+          tmspa.versions,
+          tmspa.cell_type,
+          tmspa.cell_value_text
+        from t_media_supplier_price_audit tmspa where tmspa.media_supplier_relate_id in
+        <foreach collection="mediaSupplierRelateIds" item="mediaSupplierRelateId" open="(" close=")" separator=",">
+            #{mediaSupplierRelateId}
+        </foreach>
+    </insert>
+
+    <!--批量插入媒体扩展表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_media_supplier_price (
+        media_supplier_relate_id,
+        cell,
+        cell_name,
+        cell_value,
+        create_date,
+        update_date,
+        versions,
+        cell_type,
+        cell_value_text
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierPrice" index="index" separator=",">
+            (
+            #{mediaSupplierPrice.mediaSupplierRelateId},
+            #{mediaSupplierPrice.cell},
+            #{mediaSupplierPrice.cellName},
+            #{mediaSupplierPrice.cellValue},
+            now(),
+            now(),
+            0,
+            #{mediaSupplierPrice.cellType},
+            #{mediaSupplierPrice.cellValueText}
+            )
+        </foreach>
+    </insert>
+
+    <!--批量插入媒体扩展表（含ID，数据迁移使用）-->
+    <insert id="saveBatchForId" parameterType="java.util.List">
+        INSERT INTO t_media_supplier_price (
+        id,
+        media_supplier_relate_id,
+        cell,
+        cell_name,
+        cell_value,
+        create_date,
+        update_date,
+        versions,
+        cell_type,
+        cell_value_text
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierPrice" index="index" separator=",">
+            (
+            #{mediaSupplierPrice.id},
+            #{mediaSupplierPrice.mediaSupplierRelateId},
+            #{mediaSupplierPrice.cell},
+            #{mediaSupplierPrice.cellName},
+            #{mediaSupplierPrice.cellValue},
+            now(),
+            now(),
+            0,
+            #{mediaSupplierPrice.cellType},
+            #{mediaSupplierPrice.cellValueText}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

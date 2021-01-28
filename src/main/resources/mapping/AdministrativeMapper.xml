@@ -1,0 +1,916 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.administrative.AdministrativeMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.administrative.Administrative">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="emp_id" jdbcType="INTEGER" property="empId" />
+    <result column="emp_name" jdbcType="VARCHAR" property="empName" />
+    <result column="administrative_type" jdbcType="INTEGER" property="administrativeType" />
+    <result column="administrative_name" jdbcType="VARCHAR" property="administrativeName" />
+    <result column="begin_time" jdbcType="TIMESTAMP" property="beginTime" />
+    <result column="endtime" jdbcType="TIMESTAMP" property="endtime" />
+    <result column="administrative_time" jdbcType="DOUBLE" property="administrativeTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="approve_state" jdbcType="INTEGER" property="approveState" />
+    <result column="approve_result" jdbcType="INTEGER" property="approveResult" />
+    <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="item_id" jdbcType="INTEGER" property="itemId" />
+    <result column="task_id" jdbcType="VARCHAR" property="taskId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="dept_id" jdbcType="INTEGER" property="deptId" />
+    <result column="dept_name" jdbcType="VARCHAR" property="deptName" />
+    <result column="approver_user_id" jdbcType="VARCHAR" property="approverUserId" />
+    <result column="company_code" jdbcType="VARCHAR" property="companyCode" />
+
+
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, emp_id, emp_name, administrative_type, administrative_name, begin_time, endtime, 
+    administrative_time, state, approve_state, approve_result, finish_time, create_time, 
+    update_time, create_id, update_id, item_id, task_id, title, dept_id, dept_name,
+    approver_user_id, company_code
+  </sql>
+
+  <sql id="condition">
+    <if test="companyCode != null and companyCode !=''">
+      and a.company_code  = #{companyCode}
+    </if>
+    <if test="administrativeTypes != null">
+      and a.administrative_type  in
+      <foreach collection="administrativeTypes"  index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+    </if>
+    <if test="administrativeType != null">
+      and a.administrative_type  = #{administrativeType}
+    </if>
+    <if test="empName != null">
+      and a.emp_name like '%${empName}%'
+    </if>
+    <if test="administrativeName != null">
+      and a.administrative_name like '%${administrativeName}%'
+    </if>
+    <if test="approveState != null">
+      and a.approve_state = #{approveState}
+    </if>
+    <if test="deptIds != null">
+      and a.dept_id in (${deptIds})
+    </if>
+
+    <if test="approveStates != null">
+      and a.approve_state  in
+      <foreach collection="approveStates"  index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+    </if>
+    <if test="createTimeStart !=null ">
+      AND a.begin_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd !=null ">
+      AND a.begin_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s')
+    </if>
+    <if test="endTimeStart !=null ">
+      AND a.endtime &gt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd !=null ">
+      AND a.endtime &lt;= STR_TO_DATE(CONCAT(#{endTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s')
+    </if>
+      <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+          And ((a.begin_time &lt;= #{containsTimeStart} and a.endtime &gt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          or (a.begin_time &gt;= #{containsTimeStart} and a.endtime &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (a.begin_time &gt;=  #{containsTimeStart} and a.begin_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (a.endtime &gt;= #{containsTimeStart} and a.endtime &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          )
+      </if>
+    <if test="title !=null ">
+      AND a.title like concat('%',#{title},'%')
+    </if>
+  </sql>
+
+  <sql id="condition1">
+    <if test="companyCode != null and companyCode !=''">
+      and a.company_code  = #{companyCode}
+    </if>
+    <if test="administrativeTypes != null">
+      and a.administrative_type  in
+      <foreach collection="administrativeTypes"  index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+    </if>
+    <if test="administrativeType != null">
+      and a.administrative_type  = #{administrativeType}
+    </if>
+    <if test="empName != null">
+      and a.emp_name like '%${empName}%'
+    </if>
+
+    <if test="administrativeName != null">
+      and a.administrative_name like '%${administrativeName}%'
+    </if>
+    <if test="approveState != null">
+      and a.approve_state = #{approveState}
+    </if>
+    <if test="approveStates != null">
+      and a.approve_state  in
+      <foreach collection="approveStates"  index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+    </if>
+    <if test="createTimeStart !=null ">
+      AND a.begin_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd !=null ">
+      AND a.begin_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s')
+    </if>
+    <if test="endTimeStart !=null ">
+      AND a.endtime &gt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd !=null ">
+      AND a.endtime &lt;= STR_TO_DATE(CONCAT(#{endTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s')
+    </if>
+    <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+      And ((a.begin_time &lt;= #{containsTimeStart} and a.endtime &gt;=STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+         or (a.begin_time &gt;= #{containsTimeStart} and a.endtime &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+        OR (a.begin_time &gt;=  #{containsTimeStart} and a.begin_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+        OR (a.endtime &gt;= #{containsTimeStart}and a.endtime &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+        )
+    </if>
+    <if test="title !=null ">
+      AND a.title like concat('%',#{title},'%')
+    </if>
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_administrative
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <!--按条件查询所有数据-->
+  <select id="administrativeList" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    <where>
+      a.state &lt;&gt; -9
+      <if test="empId !=null">
+        and a.emp_id = #{empId}
+      </if>
+      <if test="userId == null">
+        AND a.approver_user_id like concat('%',#{approverUserId},'%')
+      </if>
+      <include refid="condition"/>
+    </where>
+      and (a.emp_id  = #{empId}
+      or a.approver_user_id like '%${approverUserId}%' or a.emp_id  = #{userId})
+    <if test="cwbz !=null">
+      union
+      select
+      <include refid="Base_Column_List" />
+      from  t_administrative a
+      where
+      a.state>-9 and a.company_code=#{companyCode}
+      <if test="empId != null">
+        and a.emp_id =#{empId}
+      </if>
+      <include refid="condition"/>
+    </if>
+      order by create_time desc
+  </select>
+
+  <!--行政部查询所有人已提交审批的数据和自己所有的数据-->
+  <select id="getList" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    where task_id &lt;&gt; ''
+    and state &lt;&gt; -9
+    <if test="empId !=null ">
+      and emp_id = #{empId,jdbcType=INTEGER}
+    </if>
+    <include refid="condition"/>
+    union
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    where (
+    emp_id = #{id,jdbcType=INTEGER}
+    <if test="approverUserId != null">
+      or approver_user_id like concat('%',#{approverUserId},'%')
+    </if>
+    )
+    and state &lt;&gt; -9
+    <include refid="condition1"/>
+    order by create_time desc
+  </select>
+
+  <!--搜索的是当前登录人-->
+  <select id="getList1" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    where state &lt;&gt; -9
+    <if test="empId !=null ">
+      and emp_id = #{empId,jdbcType=INTEGER}
+    </if>
+    <include refid="condition"/>
+  </select>
+
+  <!--搜索的是其他人-->
+  <select id="getList2" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    where
+    task_id &lt;&gt; ''
+    and state &lt;&gt; -9
+    <if test="empId !=null ">
+      and emp_id = #{empId,jdbcType=INTEGER}
+    </if>
+    <include refid="condition"/>
+  </select>
+  <select id="getList4" parameterType="java.util.Map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM  t_administrative a
+    where
+      state &lt;&gt; -9
+    <if test="userId == null">
+      AND a.approver_user_id like concat('%',#{approverUserId},'%')
+    </if>
+    <if test="userId != null">
+      and (a.emp_id =#{userId} or a.approver_user_id like concat('%',#{approverUserId},'%'))
+    </if>
+    <if test="empId !=null">
+      and a.emp_id =#{empId}
+    </if>
+    <include refid="condition"/>
+    order by create_time desc
+  </select>
+
+  <select id="getList3" parameterType="java.util.Map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative a
+    where
+    task_id &lt;&gt; ''
+    and state &lt;&gt; -9
+    and (a.emp_id  = #{empId}
+    or a.approver_user_id like concat('%',#{approverUserId},'%'))
+    <include refid="condition"/>
+    <if test="cwbz !=null">
+      union
+      select
+      <include refid="Base_Column_List" />
+      from  t_administrative a
+      where
+      a.state>-9
+      and a.company_code=#{companyCode}
+      and a.emp_id  = #{empId}
+      <include refid="condition"/>
+    </if>
+  </select>
+
+
+
+
+  <update id="updateStateByPrimaryKey" parameterType="java.lang.Integer">
+    update t_administrative set state = -9
+    where id = #{id, jdbcType=INTEGER}
+  </update>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_administrative
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.administrative.Administrative">
+    insert into t_administrative (id, emp_id, emp_name, 
+      administrative_type, administrative_name, 
+      begin_time, endtime, administrative_time, 
+      state, approve_state, approve_result, 
+      finish_time, create_time, update_time, 
+      create_id, update_id, item_id, task_id, title,
+      dept_id, dept_name, approver_user_id, company_code)
+    values (#{id,jdbcType=INTEGER}, #{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, 
+      #{administrativeType,jdbcType=INTEGER}, #{administrativeName,jdbcType=VARCHAR}, 
+      #{beginTime,jdbcType=TIMESTAMP}, #{endtime,jdbcType=TIMESTAMP}, #{administrativeTime,jdbcType=DOUBLE},
+      #{state,jdbcType=INTEGER}, #{approveState,jdbcType=INTEGER}, #{approveResult,jdbcType=INTEGER}, 
+      #{finishTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+      #{createId,jdbcType=INTEGER}, #{updateId,jdbcType=INTEGER}, #{itemId,jdbcType=INTEGER},
+      #{taskId,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, #{deptId,jdbcType=INTEGER},
+      #{deptName,jdbcType=VARCHAR}, #{approverUserId,jdbcType=VARCHAR}, #{companyCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.administrative.Administrative" useGeneratedKeys="true"
+          keyProperty="id">
+    insert into t_administrative
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="empId != null">
+        emp_id,
+      </if>
+      <if test="empName != null">
+        emp_name,
+      </if>
+      <if test="administrativeType != null">
+        administrative_type,
+      </if>
+      <if test="administrativeName != null">
+        administrative_name,
+      </if>
+      <if test="beginTime != null">
+        begin_time,
+      </if>
+      <if test="endtime != null">
+        endtime,
+      </if>
+      <if test="administrativeTime != null">
+        administrative_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="approveState != null">
+        approve_state,
+      </if>
+      <if test="approveResult != null">
+        approve_result,
+      </if>
+      <if test="finishTime != null">
+        finish_time,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="itemId != null">
+        item_id,
+      </if>
+      <if test="taskId != null">
+        task_id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="deptId != null">
+        dept_id,
+      </if>
+      <if test="deptName != null">
+        dept_name,
+      </if>
+      <if test="approverUserId != null">
+        approver_user_id,
+      </if>
+      <if test="companyCode != null">
+        company_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="administrativeType != null">
+        #{administrativeType,jdbcType=INTEGER},
+      </if>
+      <if test="administrativeName != null">
+        #{administrativeName,jdbcType=VARCHAR},
+      </if>
+      <if test="beginTime != null">
+        #{beginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null">
+        #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="administrativeTime != null">
+        #{administrativeTime,jdbcType=DOUBLE},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="approveState != null">
+        #{approveState,jdbcType=INTEGER},
+      </if>
+      <if test="approveResult != null">
+        #{approveResult,jdbcType=INTEGER},
+      </if>
+      <if test="finishTime != null">
+        #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="itemId != null">
+        #{administrativeId,jdbcType=INTEGER},
+      </if>
+      <if test="taskId != null">
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        #{deptId,jdbcType=INTEGER},
+      </if>
+      <if test="deptName != null">
+        #{deptName,jdbcType=VARCHAR},
+      </if>
+      <if test="approverUserId != null">
+      #{approverUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyCode != null">
+        #{companyCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.administrative.Administrative">
+    update t_administrative
+    <set>
+      <if test="empId != null">
+        emp_id = #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        emp_name = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="administrativeType != null">
+        administrative_type = #{administrativeType,jdbcType=INTEGER},
+      </if>
+      <if test="administrativeName != null">
+        administrative_name = #{administrativeName,jdbcType=VARCHAR},
+      </if>
+      <if test="beginTime != null">
+        begin_time = #{beginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null">
+        endtime = #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="administrativeTime != null">
+        administrative_time = #{administrativeTime,jdbcType=DOUBLE},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="approveState != null">
+        approve_state = #{approveState,jdbcType=INTEGER},
+      </if>
+      <if test="approveResult != null">
+        approve_result = #{approveResult,jdbcType=INTEGER},
+      </if>
+      <if test="finishTime != null">
+        finish_time = #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="itemId != null">
+        item_id = #{itemId,jdbcType=INTEGER},
+      </if>
+      <if test="taskId != null">
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="deptId != null">
+        dept_id = #{deptId,jdbcType=INTEGER},
+      </if>
+      <if test="deptName != null">
+        dept_name = #{deptName,jdbcType=VARCHAR},
+      </if>
+      <if test="approverUserId != null">
+        approver_user_id = #{approverUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyCode != null">
+        company_code = #{companyCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.administrative.Administrative">
+    update t_administrative
+    set emp_id = #{empId,jdbcType=INTEGER},
+      emp_name = #{empName,jdbcType=VARCHAR},
+      administrative_type = #{administrativeType,jdbcType=INTEGER},
+      administrative_name = #{administrativeName,jdbcType=VARCHAR},
+      begin_time = #{beginTime,jdbcType=TIMESTAMP},
+      endtime = #{endtime,jdbcType=TIMESTAMP},
+      administrative_time = #{administrativeTime,jdbcType=DOUBLE},
+      state = #{state,jdbcType=INTEGER},
+      approve_state = #{approveState,jdbcType=INTEGER},
+      approve_result = #{approveResult,jdbcType=INTEGER},
+      finish_time = #{finishTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_id = #{createId,jdbcType=INTEGER},
+      update_id = #{updateId,jdbcType=INTEGER},
+      item_id = #{itemId,jdbcType=INTEGER},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      dept_id = #{deptId,jdbcType=INTEGER},
+      dept_name = #{deptName,jdbcType=VARCHAR},
+      approver_user_id = #{approverUserId,jdbcType=VARCHAR},
+      company_code = #{companyCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="exportleaveContent" resultType="map">
+    select
+    tal.emp_id empId,
+    tal.emp_name empName,
+    tal.begin_time beginTime,
+    tal.end_time endTime,
+    tal.title title,
+    tal.reason reason,
+    tal.picture picture,
+    tal.picture_link pictureLink,
+    tal.attachment attachment,
+    tal.attachment_link attachmentLink,
+    tal.create_time createTime,
+    tal.leave_time leaveTime,
+    tal.leave_days leaveDays,
+    tal.vacation_time vactionTime,
+    t.type_name typeName,
+    a.company_code companyCode,
+    a.approve_state approveState
+    from t_administrative_leave tal
+    left join t_administrative_leave_type t
+    on t.type_id = tal.leave_type
+    left JOIN  t_administrative a
+    on a.id= tal.administrative_id
+    where tal.state>-1 and a.state!=0 and a.company_code =#{companyCode} and a.state>-2
+    <if test="empName != null and empName != ''">
+      and  tal.emp_name = #{empName}
+    </if>
+    <if test="empId != null and empId != ''">
+      and  tal.emp_id = #{empId}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      and  tal.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="endTimeStart != null and endTimeStart != ''">
+      and  tal.end_time &lt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd != null and endTimeEnd != ''">
+      and  tal.end_time &gt;= #{endTimeEnd}
+    </if>
+    <if test="createTimeStart != null and createTimeStart != ''">
+      and  tal.create_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd != null and createTimeEnd != ''">
+      and  tal.create_time &lt;=  STR_TO_DATE(concat(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %H:%i:%s')
+    </if>
+      <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+          And ((tal.begin_time &lt;= #{containsTimeStart} and tal.end_time &gt;=STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          or (tal.begin_time &gt;= #{containsTimeStart} and tal.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tal.begin_time &gt;=  #{containsTimeStart} and tal.begin_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tal.end_time &gt;= #{containsTimeStart}and tal.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          )
+      </if>
+    <if test="title != null and title != ''">
+      and  tal.title = #{title}
+    </if>
+    <if test="reason != null and reason != ''">
+      and  tal.reason like #{reason}
+    </if>
+    <if test="picture != null and picture != ''">
+      and  tal.picture like #{picture}
+    </if>
+    <if test="pictureLink != null and pictureLink != ''">
+      and  tal.picture_link like #{pictureLink}
+    </if>
+    <if test="attachmentLink != null and attachmentLink != ''">
+      and  tal.attachment_link like #{attachmentLink}
+    </if>
+    <if test="typeName != null and typeName != ''">
+      and  t.type_name &gt;= #{typeName}
+    </if>
+    <if test="approveState != null and approveState != ''">
+    and  a.approve_state = #{approveState}
+  </if>
+  </select>
+  <select id="exportworkOvertimeContent" resultType="map">
+    select
+    tao.emp_name empName,
+    tao.begin_time beginTime,
+    tao.end_time endTime,
+    tao.title title,
+    tao.reason reason,
+    tao.picture picture,
+    tao.picture_link pictureLink,
+    tao.attachment attachment,
+    tao.attachment_link attachmentLink,
+    tao.create_time createTime,
+    tao.work_time workTime,
+    a.company_code companyCode
+    from t_administrative_overtimework tao
+    LEFT JOIN t_administrative a
+    on a.id = tao.administrative_id
+    where tao.state>-1 and a.state !=0 and a.state>-2 and a.company_code=#{companyCode}
+    <if test="empName != null and empName != ''">
+      and  tao.emp_name = #{empName}
+    </if>
+    <if test="empId != null and empId != ''">
+      and  tao.emp_id = #{empId}
+    </if>
+    <if test="approveState != null and approveState != ''">
+      and  a.approve_state = #{approveState}
+    </if>
+    <if test="createTimeStart != null and createTimeStart != ''">
+      and  tao.create_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd != null and createTimeEnd != ''">
+      and  tao.create_time &lt;= #{createTimeEnd}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      and  tao.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="endTimeStart != null and endTimeStart != ''">
+      and  tao.end_time &lt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd != null and endTimeEnd != ''">
+      and  tao.end_time &gt;= #{endTimeEnd}
+    </if>
+      <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+          And ((tao.begin_time &lt;= #{containsTimeStart} and tao.end_time &gt;=STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          or (tao.begin_time &gt;= #{containsTimeStart} and tao.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tao.begin_time &gt;=  #{containsTimeStart} and tao.begin_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tao.end_time &gt;= #{containsTimeStart}and tao.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          )
+      </if>
+    <if test="title != null and title != ''">
+      and  tao.title = #{title}
+    </if>
+
+  </select>
+
+  <select id="exportGoOutContent" resultType="map">
+    select
+    taow.emp_name empName,
+    taow.begin_time beginTime,
+    taow.end_time endTime,
+    taow.title title,
+    taow.reason reason ,
+    taow.picture picture,
+    taow.picture_link pictureLink,
+    taow.attachment attachment,
+    taow.attachment_link attachmentLink,
+    taow.time time,
+    taow.days days
+    FROM t_administrative_out_work taow
+     LEFT JOIN t_administrative a
+    on taow.administrative_id = a.id
+     where taow.state>-1 and a.company_code=#{companyCode} AND a.state>-1
+    <if test="approveState != null and approveState != ''">
+      and  a.approve_state = #{approveState}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      and  taow.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="endTimeStart != null and endTimeStart != ''">
+      and  taow.end_time &lt;= #{endTimeStart}
+    </if>
+      <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+          And ((taow.begin_time &lt;= #{containsTimeStart} and taow.end_time &gt;=STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          or (taow.begin_time &gt;= #{containsTimeStart} and taow.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (taow.begin_time &gt;=  #{containsTimeStart} and taow.begin_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (taow.end_time &gt;= #{containsTimeStart}and taow.end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          )
+      </if>
+    <if test="endTimeEnd != null and endTimeEnd != ''">
+      and  taow.end_time &gt;= #{endTimeEnd}
+    </if>
+    <if test="createTimeStart != null and createTimeStart != ''">
+      and  taow.create_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd != null and createTimeEnd != ''">
+      and  taow.create_time &lt;= #{createTimeEnd}
+    </if>
+    <if test="empId != null and empId != ''">
+      and  taow.emp_id = #{empId}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and  taow.end_time &lt;= #{endTime}
+    </if>
+    <if test="title != null and title != ''">
+      and  taow.title = #{title}
+    </if>
+
+  </select>
+  <select id="exportBusinessTripContent" resultType="map">
+  select
+  tao.title title,
+  tao.emp_dept_name empDeptName,
+  tao.emp_name empName,
+  tao.emp_duty empDuty,
+  tao.agent_dept_name agentDeptName,
+  tao.agent_name agentName,
+  tao.escort_dept_name escortDept,
+  tao.agent_duty agentDuty,
+  tao.escort_name escortName,
+  tao.escort_duty escortDuty,
+  tao.destination destination ,
+  tao.reason reason,
+  tao.picture_link pictureLink,
+  tao.attachment_link attachmentLink,
+  tao.report_link reportLink,
+  tao.begin_time beginTime,
+  tao.end_time endTime,
+  tao.startoff_time startoffTime,
+  tao.expense expense,
+  tao.is_expense isExpense,
+  tao.days days
+  from t_administrative_onbusiness tao
+  LEFT JOIN t_administrative a
+  on a.id= tao.administrative_id
+  where tao.state>-1 and a.state>-2 and a.company_code=#{companyCode}
+    <if test="approveState != null and approveState != ''">
+      and  a.approve_state = #{approveState}
+    </if>
+    <if test="endTimeStart != null and endTimeStart != ''">
+      and  tao.end_time &lt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd != null and endTimeEnd != ''">
+      and  tao.end_time &gt;= #{endTimeEnd}
+    </if>
+    <if test="createTimeStart != null and createTimeStart != ''">
+      and  tao.create_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd != null and createTimeEnd != ''">
+      and  tao.create_time &lt;= #{createTimeEnd}
+    </if>
+    <if test="beginTime != null and beginTime != ''">
+      and  tao.begin_time &gt;= #{beginTime}
+    </if>
+    <if test="empId != null and empId != ''">
+      and  tao.emp_id = #{empId}
+    </if>
+    <if test="endTime != null and endTime != ''">
+      and  tao.end_time &lt;= #{endTime}
+    </if>
+
+    <if test="title != null and title != ''">
+      and  tao.title = #{title}
+    </if>
+  </select>
+  <select id="exportBusinessPlan" resultType="com.qinfei.qferp.entity.administrative.UserBusinessPlan">
+    SELECT DISTINCT
+    ttt.id
+    FROM
+    (
+    SELECT
+    t.id,
+    t.conclusionId
+    FROM
+    (
+    SELECT
+    tbp.id id,
+    tbc.id conclusionId ,
+    tbp.update_time updateDate
+    FROM
+    t_business_plan tbp
+    LEFT JOIN t_business_conclusion tbc  on
+    tbc.plan_id = tbp.id
+    left JOIN  t_administrative ta
+    on ta.id= tbp.administrative_id
+    WHERE
+    tbp.state <![CDATA[<>]]> -9 and ta.company_code= #{companyCode}
+    <if test="approveState != null and approveState != ''">
+      and  ta.approve_state = #{approveState}
+    </if>
+    <if test="createTimeStart != null and createTimeStart != ''">
+      and  tbp.travel_state_time &gt;= #{createTimeStart}
+    </if>
+    <if test="createTimeEnd != null and createTimeEnd != ''">
+      and  tbp.travel_state_time  &lt;= #{createTimeEnd}
+    </if>
+    <if test="endTimeStart != null and endTimeStart != ''">
+      and  tbp.travel_end_time &gt;= #{endTimeStart}
+    </if>
+    <if test="endTimeEnd != null and endTimeEnd != ''">
+      and  tbp.travel_end_time  &lt;= #{endTimeEnd}
+    </if>
+      <if test="containsTimeStart !=null and containsTimeEnd !=null" >
+          And ((tbp.travel_state_time &lt;= #{containsTimeStart} and tbp.travel_end_time &gt;=STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          or (tbp.travel_state_time &gt;= #{containsTimeStart} and tbp.travel_end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd},'23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tbp.travel_state_time &gt;=  #{containsTimeStart} and tbp.travel_state_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          OR (tbp.travel_end_time &gt;= #{containsTimeStart} and tbp.travel_end_time &lt;= STR_TO_DATE(CONCAT(#{containsTimeEnd}, '23:59:59'),'%Y-%m-%d %H:%i:%s'))
+          )
+      </if>
+    <if test="empId != null and empId != ''">
+      and  tbp.apply_id = #{empId}
+    </if>
+    <if test="state != null and state != ''">
+      and  tbp.state = #{state}
+    </if>
+    <if test="title != null and title != ''">
+      and  tbp.title = #{title}
+    </if>
+    ) t
+    GROUP BY
+    t.id,
+    t.conclusionId
+    ORDER BY
+    t.updateDate DESC
+    ) ttt
+  </select>
+
+  <select id="listByParam" resultType="com.qinfei.qferp.entity.administrative.UserBusinessPlan">
+    SELECT
+    tbp.title title ,
+    tbp.dept_name deptName,
+    tbp. application_date applicationDate,
+    tbp.place_type placeType,
+    tbp.place place,
+    tbp.reason reason,
+    tbp.traffic traffic,
+    tbp.travel_state_time travelStateTime,
+    tbp.travel_end_time travelEndTime,
+    tbp.number_day numberDay,
+    tbp.travel_user travelUser,
+    tbp.target target,
+    tbp.trip trip,
+    tbp.cost_budget costBudget,
+    tbp.note note,
+    tbp.apply_name applyName,
+    tbp.field_user fieldUser,
+    tbp.female female,
+    tbc.conclusion conclusion
+    FROM t_business_plan tbp
+   LEFT JOIN t_business_conclusion tbc
+    on tbp.id=tbc.plan_id
+   LEFT JOIN t_administrative ta
+    on ta.id= tbp.administrative_id
+    where tbp.state>-9
+    <if test="approveState != null and approveState != ''">
+      and  ta.approve_state = #{approveState}
+    </if>
+    <if test="travelStateTime != null and travelStateTime != ''">
+      and  tbp.travel_state_time &gt;= #{travelStateTime}
+    </if>
+    <if test="travelEndTime != null and travelEndTime != ''">
+      and  tbp.travel_end_time &lt;= #{travelEndTime}
+    </if>
+    <if test="empId != null and empId != ''">
+      and  tbp.apply_id = #{empId}
+    </if>
+    <if test="title != null and title != ''">
+      and  tbp.title = #{title}
+    </if>
+    <if test="state != null and state != ''">
+      and  tbp.state = #{state}
+    </if>
+    <if test="ids != null and ids.size() > 0">
+      AND tbp.id in
+      <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+        #{id}
+      </foreach>
+    </if>
+  </select>
+
+  <select id="listConclusion" resultType="com.qinfei.qferp.entity.administrative.UserBusinessPlan">
+    SELECT
+    tbp.title title ,
+    tbp.apply_name applyName,
+    tbp.dept_name deptName,
+    tbp.application_date applicationDate,
+    tbp.travel_state_time travelStateTime,
+    tbp.travel_end_time travelEndTime,
+    tbc.conclusion
+    FROM t_business_conclusion  tbc
+    INNER JOIN  t_business_plan tbp
+    ON  tbp.id= tbc.plan_id
+    WHERE tbp.state <![CDATA[<>]]> -9
+    AND  tbc.plan_id IN
+    <foreach collection="cid" index="index" item="id"  open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </select>
+</mapper>

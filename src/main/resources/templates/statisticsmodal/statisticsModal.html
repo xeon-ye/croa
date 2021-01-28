@@ -1,0 +1,514 @@
+<div class="modal inmodal" id="statisticsModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div id="modalDialog" class="modal-dialog">
+        <!--模态框整个可编辑区间-->
+        <div class="modal-content" id="modalContent">
+            <!--模态框头部-->
+            <div class="modal-header" id="modalHeader">
+                <!--标题-->
+                <div class="titleStyle">
+                    <div id="dialogTitle" class="dialogTitle"></div>
+                    <div class="dialogBtn">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                </div>
+
+                <!--查询条件区域-->
+                <div id="selectCondition">
+                    <form id="paramForm" role="form" style="height: 100%;width: 100%;">
+                        <!--隐藏域：Js动态加载-->
+                        <!--<input type="hidden" id="custId" name="custId" value="56"> &lt;!&ndash;客户&ndash;&gt;-->
+                        <!--查询条件通用样式，需要添加其他条件时，拷贝修改名称即可-->
+                        <div class="paramDiv">
+                            <div class="labelName">时间范围：</div>
+                            <div class="paramInputDiv">
+                                <select id="modalTimeQuantum" name="timeQuantum" class="form-param">
+                                    <option value="1" selected="selected">本月</option>
+                                    <option value="2">本年</option>
+                                    <option value="3">时间区间</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!--时间区间：含自定义样式-->
+                        <div class="paramDiv modalIssuedDate">
+                            <div class="labelName">发布时间：</div>
+                            <div class="paramInputDiv">
+                                <input placeholder="开始日期" id="modalIssuedDateStart" name="issuedDateStart" class="form-param">
+                            </div>
+                        </div>
+                        <div class="paramDiv modalIssuedDate">
+                            <div class="labelName" style="width: 40px !important;text-align: center !important;">至</div> <!--此处需要内部样式处理，不然会格的太开-->
+                            <div class="paramInputDiv">
+                                <input placeholder="结束日期" id="modalIssuedDateEnd" name="issuedDateEnd" class="form-param">
+                            </div>
+                        </div>
+
+                        <!--查询按钮：条件区最后面-->
+                        <div class="paramDiv">
+                            <div class="labelName">
+                                <button type="button" id="modalSearchButton" class="btn btn-primary" onclick="statisticsModal.queryDispatch();">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!--导航栏区域-->
+                <div class="navStyle">
+                    <div id="selectType_1" class="selectType col-sm-2"></div>
+                    <div id="selectType_2" class="selectType col-sm-2"></div>
+                    <div id="selectType_3" class="selectType col-sm-2"></div>
+                    <div id="selectType_4" class="selectType col-sm-2"></div>
+                    <div id="selectType_5" class="selectType col-sm-2"></div>
+                    <div id="selectType_6" class="selectType col-sm-2"></div>
+                </div>
+            </div>
+            <!--模态内容区-->
+            <div id="modalBody" class="modal-body">
+                <!--切换按钮-->
+                <div class="horizon-prev"><img src="/img/statisticsModal/l-arrow.png"></div>
+                <div class="horizon-next"><img src="/img/statisticsModal/r-arrow.png"></div>
+                <!--实际内容区：实现滑动效果-->
+                <div id="main">
+                    <div id="scrollContent">
+                        <!--业务员相关内容区：每个区域都可展示多种风格，具体风格单独编写，区域仅展示一种风格，其他的隐藏-->
+                        <div id="content_1" class="statisticsContent">
+                            <!--风格（business）：当从业务员进入时展示内容-->
+                            <div class="business">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="business_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="business_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="business_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="business_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="business_noIncomeAmountRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="business_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="business_profitRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--折线图-->
+                                    <div id="modalBusinessChartByDate">
+                                    </div>
+                                    <!--板块占比饼图-->
+                                    <div id="modalBusinessChartByMediaType">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalBusinessExportBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalBusinessTable"></table>
+                                        <div id="modalBusinessPager"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!--媒介相关内容区：每个区域都可展示多种风格，具体风格单独编写，区域仅展示一种风格，其他的隐藏-->
+                        <div id="content_2" class="statisticsContent">
+                            <!--风格（mediaUser）：当从媒介进入时展示内容-->
+                            <div class="mediaUser">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaUser_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaUser_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaUser_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaUser_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="mediaUser_noIncomeAmountRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaUser_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="mediaUser_profitRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--折线图-->
+                                    <div id="modalMediaUserChartByDate">
+                                    </div>
+                                    <!--板块占比饼图-->
+                                    <div id="modalMediaUserChartByMediaType">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalMediaUserExportBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalMediaUserTable"></table>
+                                        <div id="modalMediaUserPager"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--板块相关内容区：每个区域都可展示多种风格，具体风格单独编写，区域仅展示一种风格，其他的隐藏-->
+                        <div id="content_3" class="statisticsContent">
+                            <!--风格（mediaType）：当从板块进入时展示内容-->
+                            <div class="mediaType">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaType_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaType_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaType_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaType_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="mediaType_noIncomeAmountRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="mediaType_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="mediaType_profitRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--折线图-->
+                                    <div id="modalMediaTypeChartByDate">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalMediaTypeExportBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalMediaTypeTable"></table>
+                                        <div id="modalMediaTypePager"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--媒体相关内容区：每个区域都可展示多种风格，具体风格单独编写，区域仅展示一种风格，其他的隐藏-->
+                        <div id="content_4" class="statisticsContent">
+                            <!--风格（media）：当从板块进入时展示内容-->
+                            <div class="media">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="media_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="media_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="media_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="media_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="media_noIncomeAmountRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="media_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="media_profitRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--折线图-->
+                                    <div id="modalMediaChartByDate">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalMediaExportBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalMediaTable"></table>
+                                        <div id="modalMediaPager"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--客户相关内容区：每个区域都可展示多种风格，具体风格单独编写，区域仅展示一种风格，其他的隐藏-->
+                        <div id="content_5" class="statisticsContent">
+                            <!--风格（cust）：当从客户进入时展示内容-->
+                            <div class="cust">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="cust_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="cust_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="cust_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="cust_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="cust_noIncomeAmountRate">100.12%</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="cust_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="cust_profitRate">100.12%</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--最近趋势图-->
+                                    <div id="modalCustChartByDate">
+                                    </div>
+                                    <!--板块占比饼图-->
+                                    <div id="modalCustChartByMediaType">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalCustExporttBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalCustTable"></table>
+                                        <div id="modalCustPager"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!--供应商员相关内容区-->
+                        <div id="content_6" class="statisticsContent">
+                            <!--风格（supplier）：当从供应商进入时展示内容-->
+                            <div class="supplier">
+                                <div class="top">
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-user"></i>
+                                            <div>
+                                                <div class="title-content">总稿件数量</div>
+                                                <div class="text-content">实际：<span class="val-content" id="supplier_articleNum"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div>
+                                                <div class="title-content">报价总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="supplier_saleAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div>
+                                                <div class="title-content">成本总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="supplier_payAmount"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-cny"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">未到款总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="supplier_noIncomeAmount"></span></div>
+                                                <div class="text-content">未到款率：<span  style="color: red;font-size: 10px;" id="supplier_noIncomeAmountRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="top_block">
+                                        <div>
+                                            <i class="fa fa-money"></i>
+                                            <div style="margin-top: -9px;">
+                                                <div class="title-content">利润总金额</div>
+                                                <div class="text-content">实际：<span class="val-content" id="supplier_profit"></span></div>
+                                                <div class="text-content">利润率：<span  style="color: red;font-size: 10px;" id="supplier_profitRate"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="middle">
+                                    <!--折线图-->
+                                    <div id="modalSupplierChartByDate">
+                                    </div>
+                                    <!--板块占比饼图-->
+                                    <div id="modalSupplierChartByMediaType">
+                                    </div>
+                                </div>
+                                <div class="bottom">
+                                    <button id="modalSupplierExportBtn" class="btn btn-info" type="button">
+                                        <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+                                    </button>
+                                    <div class="jqGrid_wrapper" style="height: 83%;width:100%;overflow-y: auto;">
+                                        <table id="modalSupplierTable"></table>
+                                        <div id="modalSupplierPager"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

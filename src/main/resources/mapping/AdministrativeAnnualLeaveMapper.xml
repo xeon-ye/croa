@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.administrative.AdministrativeAnnualLeaveMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.administrative.AdministrativeAnnualLeave">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="emp_id" jdbcType="INTEGER" property="empId" />
+    <result column="emp_name" jdbcType="VARCHAR" property="empName" />
+    <result column="demp_id" jdbcType="INTEGER" property="dempId" />
+    <result column="demp_name" jdbcType="VARCHAR" property="dempName" />
+    <result column="type_id" jdbcType="INTEGER" property="typeId" />
+    <result column="type_name" jdbcType="VARCHAR" property="typeName" />
+    <result column="time" jdbcType="INTEGER" property="time" />
+    <result column="surplus_time" jdbcType="INTEGER" property="surplusTime" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_name" jdbcType="VARCHAR" property="createName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_name" jdbcType="VARCHAR" property="updateName" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, emp_id, emp_name, demp_id, demp_name, type_id, type_name, time, surplus_time, 
+    create_id, create_name, create_time, update_id, update_name, update_time, state
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_administrative_annual_leave
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+
+  <select id="getAnnualLeaveByTypeId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative_annual_leave
+    where type_id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="getAnnualLeave" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative_annual_leave
+    where emp_id = #{empId,jdbcType=INTEGER}
+    and type_id = #{typeId,jdbcType=INTEGER}
+  </select>
+
+
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_administrative_annual_leave
+    where type_id = #{typeId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeAnnualLeave">
+    insert into t_administrative_annual_leave (id, emp_id, emp_name, 
+      demp_id, demp_name, type_id, 
+      type_name, time, surplus_time, 
+      create_id, create_name, create_time, 
+      update_id, update_name, update_time, 
+      state)
+    values (#{id,jdbcType=INTEGER}, #{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, 
+      #{dempId,jdbcType=INTEGER}, #{dempName,jdbcType=VARCHAR}, #{typeId,jdbcType=INTEGER}, 
+      #{typeName,jdbcType=VARCHAR}, #{time,jdbcType=INTEGER}, #{surplusTime,jdbcType=INTEGER}, 
+      #{createId,jdbcType=INTEGER}, #{createName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateId,jdbcType=INTEGER}, #{updateName,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{state,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeAnnualLeave">
+    insert into t_administrative_annual_leave
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="empId != null">
+        emp_id,
+      </if>
+      <if test="empName != null">
+        emp_name,
+      </if>
+      <if test="dempId != null">
+        demp_id,
+      </if>
+      <if test="dempName != null">
+        demp_name,
+      </if>
+      <if test="typeId != null">
+        type_id,
+      </if>
+      <if test="typeName != null">
+        type_name,
+      </if>
+      <if test="time != null">
+        time,
+      </if>
+      <if test="surplusTime != null">
+        surplus_time,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createName != null">
+        create_name,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateName != null">
+        update_name,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="dempId != null">
+        #{dempId,jdbcType=INTEGER},
+      </if>
+      <if test="dempName != null">
+        #{dempName,jdbcType=VARCHAR},
+      </if>
+      <if test="typeId != null">
+        #{typeId,jdbcType=INTEGER},
+      </if>
+      <if test="typeName != null">
+        #{typeName,jdbcType=VARCHAR},
+      </if>
+      <if test="time != null">
+        #{time,jdbcType=INTEGER},
+      </if>
+      <if test="surplusTime != null">
+        #{surplusTime,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeAnnualLeave">
+    update t_administrative_annual_leave
+    <set>
+      <if test="empId != null">
+        emp_id = #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        emp_name = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="dempId != null">
+        demp_id = #{dempId,jdbcType=INTEGER},
+      </if>
+      <if test="dempName != null">
+        demp_name = #{dempName,jdbcType=VARCHAR},
+      </if>
+      <if test="typeId != null">
+        type_id = #{typeId,jdbcType=INTEGER},
+      </if>
+      <if test="typeName != null">
+        type_name = #{typeName,jdbcType=VARCHAR},
+      </if>
+      <if test="time != null">
+        time = #{time,jdbcType=INTEGER},
+      </if>
+      <if test="surplusTime != null">
+        surplus_time = #{surplusTime,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        update_name = #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeAnnualLeave">
+    update t_administrative_annual_leave
+    set emp_id = #{empId,jdbcType=INTEGER},
+      emp_name = #{empName,jdbcType=VARCHAR},
+      demp_id = #{dempId,jdbcType=INTEGER},
+      demp_name = #{dempName,jdbcType=VARCHAR},
+      type_id = #{typeId,jdbcType=INTEGER},
+      type_name = #{typeName,jdbcType=VARCHAR},
+      time = #{time,jdbcType=INTEGER},
+      surplus_time = #{surplusTime,jdbcType=INTEGER},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_name = #{createName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_name = #{updateName,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.plan.UserGroupMapper">
+    <sql id="selectColumn">
+       tug.id,
+       tug.name,
+       tug.state,
+       tug.remarks,
+       tug.company_code as companyCode,
+       tug.create_date as createDate,
+       tug.create_id as createId,
+       tug.update_date as updateDate,
+       tug.update_id as updateId,
+       tug.group_type_id as groupTypeId
+    </sql>
+
+    <select id="listBusinessPart1" resultType="com.qinfei.qferp.entity.sys.User" >
+        SELECT
+          su.id,
+          su.`name`,
+          su.dept_id,
+          su.dept_name,
+          su.company_code
+        FROM
+        sys_user su
+        WHERE
+        su.state > -2
+        and  su.handover_state = 0
+        <if test="name != null and name != ''">
+            AND su.`name` LIKE CONCAT(#{name}, '%')
+        </if>
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND su.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--分页查询批次列表-->
+    <select id="listPg" resultType="com.qinfei.qferp.entity.plan.UserGroup">
+        SELECT
+          <include refid="selectColumn"/>, GROUP_CONCAT(su.`name`) as userName
+        FROM
+          t_user_group_relate tugr
+        INNER JOIN sys_user su ON su.id = tugr.user_id
+        INNER JOIN t_user_group tug ON tugr.group_id = tug.id
+          AND tug.state = 0
+        WHERE
+          tugr.state = 0 and tug.group_type_id = #{groupTypeId}
+          <if test="name != null and name != ''">
+              AND tug.`name` LIKE CONCAT(#{name},'%')
+          </if>
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND tug.company_code = #{companyCode}
+          </if>
+        GROUP BY
+        tug.id
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                tug.update_date DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getById" resultType="com.qinfei.qferp.entity.plan.UserGroup">
+        SELECT <include refid="selectColumn"/>
+        FROM  t_user_group tug  where tug.state>-2 and tug.id=#{id}
+    </select>
+
+    <select id="queryUserId" resultType="com.qinfei.qferp.entity.plan.UserGroup">
+    SELECT
+        s.*
+    FROM
+        sys_user s,
+        t_user_group_relate r
+    WHERE
+        s.id = r.user_id
+    AND s.state >- 2
+    AND r.state >- 2
+    AND r.group_id = #{id}
+    </select>
+
+    <update id="updateState"  parameterType="java.util.List">
+        UPDATE
+        t_user_group
+        SET
+        <if test="state != null">
+          state = #{state,jdbcType=INTEGER},
+        </if>
+        <if test="updateId != null">
+          update_id = #{updateId,jdbcType=INTEGER}
+        </if>
+        where id=#{id}
+    </update>
+
+    <!--根据群组类型更改群组状态-->
+    <update id="updateStateByType">
+        UPDATE
+        t_user_group
+        SET
+        state = #{state},
+        update_id = #{updateId}
+        where group_type_id=#{groupTypeId}
+    </update>
+
+</mapper>

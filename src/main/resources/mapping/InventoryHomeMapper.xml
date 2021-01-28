@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.InventoryHomeMapper">
+    <!--采购订单时间条件筛选-->
+    <sql id="purchaseTimeCondition">
+        <!--本月份-->
+        <if test="purchaseOrderTime == 1">
+            and year(${tableField}) = year(now())
+            and month(${tableField}) = month(now())
+        </if>
+        <!--本年度-->
+        <if test="purchaseOrderTime == 2">
+            and year(${tableField}) = year(now())
+        </if>
+        <!--时间区间-->
+        <if test="purchaseOrderTime == 3">
+            <if test="purchaseOrderTimeStart != null and purchaseOrderTimeStart != ''">
+                and ${tableField} &gt;= #{purchaseOrderTimeStart}
+            </if>
+            <if test="purchaseOrderTimeEnd != null and purchaseOrderTimeEnd != ''">
+                and ${tableField} &lt;= STR_TO_DATE(CONCAT(#{purchaseOrderTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+            </if>
+        </if>
+    </sql>
+
+    <!--商品库存时间条件筛选-->
+    <sql id="stockTimeCondition">
+        <!--本月份-->
+        <if test="shopInventoryTime == 1">
+            and year(${tableField}) = year(now())
+            and month(${tableField}) = month(now())
+        </if>
+        <!--本年度-->
+        <if test="shopInventoryTime == 2">
+            and year(${tableField}) = year(now())
+        </if>
+        <!--时间区间-->
+        <if test="shopInventoryTime == 3">
+            <if test="shopInventoryTimeStart != null and shopInventoryTimeStart != ''">
+                and ${tableField} &gt;= #{shopInventoryTimeStart}
+            </if>
+            <if test="shopInventoryTimeEnd != null and shopInventoryTimeEnd != ''">
+                and ${tableField} &lt;= STR_TO_DATE(CONCAT(#{shopInventoryTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+            </if>
+        </if>
+        <if test="wareId!=null and wareId!=''">
+            and g.warehouse_id=#{wareId}
+        </if>
+    </sql>
+
+    <!--出入库统计时间条件筛选-->
+    <sql id="outBoundTimeCondition">
+        <!--本月份-->
+        <if test="outBoundTime == 1">
+            and year(${tableField}) = year(now())
+            and month(${tableField}) = month(now())
+        </if>
+        <!--本年度-->
+        <if test="outBoundTime == 2">
+            and year(${tableField}) = year(now())
+        </if>
+        <!--时间区间-->
+        <if test="outBoundTime == 3">
+            <if test="outBoundTimeStart != null and outBoundTimeStart != ''">
+                and ${tableField} &gt;= #{outBoundTimeStart}
+            </if>
+            <if test="outBoundTimeEnd != null and outBoundTimeEnd != ''">
+                and ${tableField} &lt;= STR_TO_DATE(CONCAT(#{outBoundTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+            </if>
+        </if>
+    </sql>
+
+    <!--物品采购订单统计(判断创建时间？)-->
+    <select id="purchaseOrderStatistics" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        count(*) as orderNum,
+        ifnull(sum(b.money),0) as orderAmount,
+        <choose>
+            <when test="purchaseOrderTime == 1">
+                DATE_FORMAT(b.create_time,'%Y-%m-%d') as time
+            </when>
+            <otherwise>
+                DATE_FORMAT(b.create_time,'%Y-%m') as time
+            </otherwise>
+        </choose>
+        from t_saves_product_buying b
+        where b.state in(1,6,7) and b.company_code=#{companyCode}
+        <include refid="purchaseTimeCondition">
+            <property name="tableField" value="b.create_time"/>
+        </include>
+        GROUP BY
+        <choose>
+            <when test="purchaseOrderTime == 1">
+                DATE_FORMAT(b.create_time,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(b.create_time,'%Y-%m')
+            </otherwise>
+        </choose>
+        order by time asc
+    </select>
+
+    <!--查询采购订单的金额，数量-->
+    <select id="purchaseOrderResult" parameterType="java.util.Map" resultType="java.util.Map">
+       SELECT
+        count(*) as orderNum,
+        ifnull(sum(b.money),0) as orderAmount
+        from t_saves_product_buying b
+        where b.state in(1,6,7) and b.company_code=#{companyCode}
+        <include refid="purchaseTimeCondition">
+            <property name="tableField" value="b.create_time"/>
+        </include>
+    </select>
+
+    <!--商品库存分析饼图-->
+    <select id="stockAnalysisPie" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        g.type_id typeId,
+        gt.`name`,
+        count(*) stockAmount
+        FROM
+        t_saves_goods g
+        LEFT JOIN t_saves_goods_type gt ON g.type_id = gt.id
+        WHERE
+        gt.state >- 2
+        AND g.state = 0
+        AND g.company_code = #{companyCode}
+        <include refid="stockTimeCondition">
+            <property name="tableField" value="g.update_time"></property>
+        </include>
+        GROUP BY
+        g.type_id,
+        gt.`name`
+        order by typeId desc
+    </select>
+    <!--商品库存分析趋势图-->
+    <select id="stockAnalysis" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        ifnull(sum(gt.price),0) as stockMoney,
+        count(*) stockAmount,
+        <choose>
+            <when test="shopInventoryTime == 1">
+                DATE_FORMAT(g.update_time,'%Y-%m-%d') as time
+            </when>
+            <otherwise>
+                DATE_FORMAT(g.update_time,'%Y-%m') as time
+            </otherwise>
+        </choose>
+        FROM
+        t_saves_goods g
+        LEFT JOIN t_saves_goods_type gt ON g.goods_id = gt.id
+        WHERE
+        gt.state >- 2
+        AND g.state = 0
+        AND g.company_code = #{companyCode}
+        <include refid="stockTimeCondition">
+            <property name="tableField" value="g.update_time"></property>
+        </include>
+        GROUP BY
+        <choose>
+            <when test="shopInventoryTime == 1">
+                DATE_FORMAT(g.update_time,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(g.update_time,'%Y-%m')
+            </otherwise>
+        </choose>
+        order by time asc
+    </select>
+    <!--商品库存分析结果（库存金额，库存数量）-->
+    <select id="stockAnalysisResult" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        ifnull(sum(gt.price),0) as stockMoney,
+        count(*) stockAmount
+        FROM
+        t_saves_goods g
+        LEFT JOIN t_saves_goods_type gt ON g.goods_id = gt.id
+        WHERE
+        gt.state >- 2
+        AND g.state = 0
+        AND g.company_code = #{companyCode}
+        <include refid="stockTimeCondition">
+            <property name="tableField" value="g.update_time"></property>
+        </include>
+    </select>
+    <!--入库统计数据-->
+    <select id="putStockStatistics" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+        count(*) AS putAmount,
+        ifnull(sum(b.money), 0) AS putMoney,
+        <choose>
+            <when test="outBoundTime == 1">
+                DATE_FORMAT(b.update_time,'%Y-%m-%d') as time
+            </when>
+            <otherwise>
+                DATE_FORMAT(b.update_time,'%Y-%m') as time
+            </otherwise>
+        </choose>
+        FROM
+        t_saves_outbound tso
+        LEFT JOIN t_saves_product_buying b ON tso.foreign_id = b.id
+        WHERE
+        tso.type = 1
+        AND b.state = 7 and tso.company_code=#{companyCode}
+        <include refid="outBoundTimeCondition">
+            <property name="tableField" value="b.update_time"></property>
+        </include>
+        GROUP BY
+        <choose>
+            <when test="outBoundTime == 1">
+                DATE_FORMAT(b.update_time,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(b.update_time,'%Y-%m')
+            </otherwise>
+        </choose>
+        order by time asc
+    </select>
+    <!--出库统计数据-->
+    <select id="outStockStatistics" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        count(*) AS outAmount,
+        ifnull(sum(a.money), 0) AS outMoney,
+        <choose>
+            <when test="outBoundTime == 1">
+                DATE_FORMAT(a.update_time,'%Y-%m-%d') as time
+            </when>
+            <otherwise>
+                DATE_FORMAT(a.update_time,'%Y-%m') as time
+            </otherwise>
+        </choose>
+        FROM
+        t_saves_outbound tso
+        LEFT JOIN t_saves_receive_apply a ON tso.foreign_id = a.id
+        WHERE
+        tso.type = 2
+        AND a.state = 7 and tso.company_code=#{companyCode}
+        <include refid="outBoundTimeCondition">
+            <property name="tableField" value="a.update_time"></property>
+        </include>
+        GROUP BY
+        <choose>
+            <when test="outBoundTime == 1">
+                DATE_FORMAT(a.update_time,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(a.update_time,'%Y-%m')
+            </otherwise>
+        </choose>
+        order by time asc
+    </select>
+    <!--出入库统计结果-->
+    <select id="outBoundResult" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+        count(*) AS putAmount,
+        ifnull(sum(b.money), 0) AS putMoney,
+        NULL AS outAmount,
+        NULL AS outMoney
+        FROM
+        t_saves_outbound tso
+        LEFT JOIN t_saves_product_buying b ON tso.foreign_id = b.id
+        WHERE
+        tso.type = 1
+        AND b.state = 7 and tso.company_code=#{companyCode}
+        <include refid="outBoundTimeCondition">
+            <property name="tableField" value="b.update_time"></property>
+        </include>
+        GROUP BY
+        outAmount,
+        outMoney
+        UNION ALL
+        SELECT
+        NULL AS putAmount,
+        NULL AS putMoney,
+        count(*) AS outAmount,
+        ifnull(sum(a.money), 0) AS outMoney
+        FROM
+        t_saves_outbound tso
+        LEFT JOIN t_saves_receive_apply a ON tso.foreign_id = a.id
+        WHERE
+        tso.type = 2
+        AND a.state = 7 and tso.company_code=#{companyCode}
+        <include refid="outBoundTimeCondition">
+            <property name="tableField" value="a.update_time"></property>
+        </include>
+        GROUP BY
+        putAmount,
+        putMoney
+    </select>
+</mapper>

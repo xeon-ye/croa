@@ -1,0 +1,205 @@
+/*通用*/
+
+.layui-tab{
+    margin: unset !important;
+}
+.ellipsisContent{
+    width: 98%;white-space: nowrap;text-overflow: ellipsis;
+}
+.contentOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+/*弹出模态框-通用*/
+.stockModalCommon{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.stockModalBtnOuter{
+    border-bottom: 1px solid #E6E6E6;
+    width: 100%;
+    height: 50px;
+    float: left;
+    display: flex;
+    padding-left: 5px;
+    background-color: #F9FAFC;
+}
+
+.stockModalTitle{
+    border: 0px solid red;
+    width: 150px;
+    height: 50px;
+    line-height: 50px;
+    float: left;
+    text-align: left;
+    font-size: 15px;
+    font-family: Candara;
+    font-weight: bold;
+}
+
+.stockModalBtn{
+    border: 0px solid red;
+    width: 150px;
+    height: 50px;
+    flex: 1;
+    float: right;
+}
+
+.stockModalBtn > div{
+    height: 50px;
+    line-height: 50px;
+    border-left: 1px solid #E6E6E6;
+    width: 90px;
+    text-align: center;
+    cursor: pointer;
+    float: right;
+    font-weight: 400;
+}
+
+.stockModalBtn > div > i{
+    color: #A6C3DD;
+}
+
+.stockModalFormOuter{
+    border: 0px solid red;
+    width: 100%;
+    height: 90px;
+    float: left;
+    padding: 10px 0px;
+}
+
+/* 防止下拉框的下拉列表被隐藏---必须设置--- */
+.layui-table-cell {
+    overflow: visible !important;        }
+/* 使得下拉框与单元格刚好合适 */
+td .layui-form-select{
+    margin-top: -10px;
+    margin-left: -15px;
+    margin-right: -15px;
+}
+/*解决下拉框被表格覆盖样式问题*/
+.layui-form-select dl {
+    z-index: 9999;
+}
+.layui-table-box {
+    overflow: visible
+}
+.layui-table-body{
+    overflow:visible;
+}
+.coursePic{
+    width: 160px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    background-image: url("/img/train/course_pic_default.png");
+    background-repeat: no-repeat;
+    -moz-background-size:100% 100%;
+    background-size:100% 100%;
+}
+.leftMargin{
+    margin-left: -102px;
+}
+.inputMargin{
+    margin-left: 16px;
+}
+.userDivClass{
+    border: 1px solid #C7C7CD;
+    height: 100%;
+    width: 23%;
+    float: left;
+    height: 30px;
+    margin-top: 5px;
+    margin-left: 5px;
+    padding-right: 10px;
+    padding-left: 10px;
+    background-color: #f2f5ee;
+}
+.textOver{
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.userClass{
+    width: 75%;
+    text-align: center;
+    float: left;
+    font-weight:bold;
+    height: 30px;
+    line-height: 30px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+/*表格单元格中控件样式*/
+.tableButton{
+    padding: 1px 4px;
+    height: 20px;
+    line-height: 19px;
+    font-size: 12px;
+    font-family: Candara;
+    float: left;
+    margin-top: 2px;
+    border-radius: 3px;
+    margin-right: 3px;
+}
+.blueBtn{
+    border: 1px solid #4BBBFD;
+    color: #4BBBFD;
+    background-color: #E1F2FB;
+}
+.orangeBtn{
+    border: 1px solid #F0736A;
+    color: #EC695F;
+    background-color: #FCECEA;
+}
+.iboxtable {
+    /*border: 1px solid #0C0C0C;*/
+    height: 180px;
+    width: 321px;
+    margin: 27px;
+    background-repeat: no-repeat;
+    -moz-background-size:100% 100%;
+    background-size:100% 100%;
+}
+.ibox-con{
+    /*border: 1px solid;*/
+    height: 157px;
+    width: 321px;
+    margin-left: -15px;
+}
+.ibox-foot{
+    /*border: 1px solid ;*/
+    background-color: #999;
+    width: 321px;
+    margin-left: -15px;
+    height: 30px;
+    opacity:0.5;
+}
+.ibox-tit{
+    background-color: #999;
+    height: 22px;
+    width: 92px;
+    margin-top: 13px;
+    background-image: url("/img/train/course_pic_default.png");
+    opacity:0.5;
+}
+.title-font{
+    font-size: 11px;
+}
+.inmodal{
+    z-index: 99999 !important;
+    position: absolute ;
+}

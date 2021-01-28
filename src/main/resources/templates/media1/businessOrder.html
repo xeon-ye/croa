@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'媒体下单-'+${AppName}"></title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/media/media.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <!-- iCheck -->
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="https://cdn.bootcss.com/bignumber.js/5.0.0/bignumber.min.js"></script>
+    <!--<script src="/js/media/common.js"></script>-->
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <link href="/css/statisticsModal/statisticsFTModal.css" rel="stylesheet">
+    <script src="/js/statisticsModal/statisticsFTModal.js"></script>
+    <script src="/js/media1/businessOrder.js"></script>
+    <style type="text/css">
+
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+        /**
+         * 查询媒体
+         */
+        function queryMedia (){
+            reflushTable();
+        }
+
+        function keyup_submit(evt){
+            evt = (evt) ? evt : ((window.event) ? window.event : "");
+            var curKey = evt.keyCode ? evt.keyCode : evt.which;
+            if (curKey == 13) {//keyCode=13是回车键
+                queryMedia();
+            }
+        }
+
+        //使用layui表单，下拉列表改变事件
+        layui.use('form', function(){
+            var form = layui.form;
+            //时间改变事件
+            form.on('select(userName)', function(data){
+                $("#userId").val(data.value);  //初始化责任人
+                reflushTable();
+            });
+            //复投改变事件
+            form.on('select(ftTime)', function(data){
+                if(data.value){
+                    $("#ftSort").css("display", "block");
+                    $("#ftSortFlag").val($("#ftSort").find("select").val());
+                }else {
+                    $("#ftSort").css("display", "none");
+                    $("#ftSortFlag").val("");
+                    $("#ftSort").find("select").val(1);
+                    form.render('select');
+                }
+                $("#timeQuantum").val(data.value);  //初始化时间
+                reflushTable();
+            });
+            //复投排序规则
+            form.on('select(ftSortFlag)', function(data){
+                $("#ftSortFlag").val(data.value);  //设置排序规则
+                reflushTable();
+            });
+        });
+    </script>
+</head>
+
+<!--<body>-->
+<body class="">
+<!--<div class="wrapper wrapper-content  animated fadeInRight">-->
+<div class="row" style="padding: 10px 15px">
+    <div class="ibox">
+        <div class="ibox-title">
+            <h5 class="col-md-2">资源站 &nbsp;
+                <i class="fa fa-angle-double-right"></i>&nbsp;
+                <span class="text-danger " id="mediaTypeText"></span>
+                <input type="hidden" id="mediaTypeVal">
+            </h5>
+            <div class="col-md-10 form-inline" style="position: relative;top: -7px" title="敲回车键可以进行搜索">
+                <input class="form-control" style="width: 20%;" id="wechat" onkeydown="keyup_submit(event)" placeholder="请输入微信ID搜索"/>
+                <input class="form-control" style="width: 20%" id="ks" onkeydown="keyup_submit(event)" placeholder="请输入快手ID搜索"/>
+                <input class="form-control" style="width: 20%" id="douyin" onkeydown="keyup_submit(event)" placeholder="请输入抖音ID搜索"/>
+                <input class="form-control" style="width: 20%;" id="mName" name="name" onkeydown="keyup_submit(event)" placeholder="请输入媒体名称搜索"/>
+                <button class="btn btn-warning" onclick="queryMedia()"><i class="fa fa-search"></i>&nbsp;搜索</button>
+            </div>
+        </div>
+
+        <!--查询条件，所有条件动态添加到这里-->
+        <form id="termForm" style="display: none">
+           <!-- <input name="wechatId" value="" type="hidden" id="wechatId"/> &lt;!&ndash;微信ID&ndash;&gt;
+            <input name="ksId" value="" type="hidden" id="ksId"/> &lt;!&ndash;快手ID&ndash;&gt;-->
+            <input name="mediaContentId" value="" type="hidden" id="mediaContentId"/>
+            <input name="mediaName" value="" type="hidden" id="mediaName"/>
+            <input name="userId" value="" type="hidden" id="userId"/>
+            <input name="ftSortFlag" value="" type="hidden" id="ftSortFlag"/>
+            <input name="timeQuantum" value="1" type="hidden" id="timeQuantum"/>
+            <input id="state" name="state" value="1" type="hidden"/> <!--state=1表示审核通过-->
+            <input id="plateId" name="plateId" type="hidden" value="1"/>
+
+            <!--下面为动态加载的查询条件-->
+        </form>
+
+        <!--筛选条件-->
+        <div class="ibox">
+            <ul id="mediaTypeUL" class="ibox-title col-lg-12">
+                <li class="col-lg-12 ibox-tools" style="position: relative">
+                    <div class="col-md-12">
+                        <label class="col-md-1">板块类型:</label>
+                    </div>
+                    <div class="col-md-11 plateWrap" id="mediaPlate">
+                        <!--标准板块-->
+                        <div id="extendFormStandardPlateWrap"
+                             style="border:0px solid red;width: 100%;min-height: 30px;display: flex;align-items: center;">
+                            <div style="border: 0px solid red;height: 17px;width: 60px;">
+                                <img src="/img/standard.png" width="60" height="17"
+                                     style="vertical-align:unset !important;"/>
+                            </div>
+                            <div id="extendFormStandardPlate"
+                                 style="border: 0px solid red;flex: 1px;min-height: 30px;padding-left: 15px;"></div>
+                        </div>
+                        <!--非标准板块-->
+                        <div id="extendFormNotStandardPlateWrap"
+                             style="border:0px solid red;width: 100%;min-height: 30px;display: flex;align-items: center;">
+                            <div style="border: 0px solid red;height: 17px;width: 60px;">
+                                <img src="/img/notStandard.png" width="60" height="17"
+                                     style="vertical-align:unset !important;"/>
+                            </div>
+                            <div id="extendFormNotStandardPlate"
+                                 style="border: 0px solid red;flex: 1px;min-height: 30px;padding-left: 15px;"></div>
+                        </div>
+                    </div>
+                    <a id="more" class="collapse-link" style="position: absolute;right: 0px;">
+                        <i class="text-danger" style="font-size: 10px">更多</i>
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </li>
+            </ul>
+            <!--其他条件，后期动态更新-->
+            <div id="otherCondition" class="ibox-content col-md-12" style="padding-top: 2px;display: none;">
+                <ul id="mediaTermUL" class="col-md-12">
+                    <li class='col-md-12 layui-form'>
+                        <label class="col-md-1" style='float:left;'>责任人：</label>
+                        <div class="col-sm-2">
+                            <select class="form-control" id="userName" lay-search lay-filter="userName">
+                                <option value="">请选择责任人</option>
+                            </select>
+                        </div>
+                    </li>
+                    <li class='col-md-12 layui-form'>
+                        <label class="col-md-1" style='float:left;'>复投排序：</label>
+                        <div class="col-sm-2">
+                            <select class="form-control" lay-search lay-filter="ftTime">
+                                <option value="" selected="selected">不限</option>
+                                <option value="1">近三月</option>
+                                <option value="2">近半年</option>
+                                <option value="3">近一年</option>
+                            </select>
+                        </div>
+                        <div id="ftSort" class="col-sm-2" style="display: none;">
+                            <select class="form-control" lay-search lay-filter="ftSortFlag">
+                                <option value="1" selected="selected">复投从高到低</option>
+                                <option value="2">复投从低到高</option>
+                            </select>
+                        </div>
+                    </li>
+                    <!--下面为动态加载的查询条件-->
+                </ul>
+            </div>
+
+        </div>
+
+        <!--媒体列表-->
+        <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+            <div class="jqGrid_wrapper">
+                <table id="table_medias">
+                </table>
+                <div id="pager_medias"></div>
+            </div>
+        </div>
+
+        <!--订单列表-->
+        <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+            <div class="jqGrid_wrapper">
+                <table id="table_orders">
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div style="position: fixed;bottom:0px;width: 100%;padding: 0px;margin: 0px;z-index: 10;" class="text-center col-md-12 bg-info row">
+        <button id="saveBtn" class="btn btn-warning" onclick="save()"><i class="fa fa-arrow-right"></i> 下一步</button>
+        <button id="exportButton" class="btn btn-success" type="button" onclick="exportData()"
+                style="margin-left: 10px;">
+            <i class="fa fa-download"></i>&nbsp;&nbsp;导出方案
+        </button>
+    </div>
+</div>
+</body>
+<!--媒体供应商价格模态框-->
+<div class="modal inmodal" id="mediaSupplierPriceModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="min-width: 850px;max-height: 505px;overflow-y: auto;">
+        <!--模态框整个可编辑区间-->
+        <div class="modal-content">
+            <!--模态框头部-->
+            <div class="modal-header" style="padding: 5px !important;">
+                <!--标题-->
+                <div style="width: 100%;height:40px; display: block; float: left;">
+                    <div id="dialogTitle" style=" display: block;float: left;width: 98%;height: 40px;line-height: 40px;text-align: center;font-size: 20px !important;">
+                        媒体供应商价格
+                    </div>
+                    <div style=" height: 40px;line-height: 40px;width: 2%;display: block;float: left;">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+                    </div>
+                </div>
+
+                <!--请求参数-->
+                <div id="requestParam" style="display: none;">
+                    <!--选中的媒体ID，窗口关闭后清除-->
+                    <input type="hidden" id="modalMediaId">
+                    <input type="hidden" id="modalCell">
+
+                    <!--以下：记录业务员关闭供应商价格窗口时，是否有选中价格，如果选择了，媒体列表价格单选框选中，否则取消-->
+                    <input type="hidden" id="mediaPriceRadioId"> <!--媒体列表价格单选框ID，结合checkFlag设置窗口关闭单选框是否选中-->
+                    <input type="hidden" id="checkFlag" value="0"> <!--0:未选择价格、1-选择价格-->
+                </div>
+            </div>
+            <!--模态内容区-->
+            <div class="modal-body">
+                <div class="jqGrid_wrapper" style="max-height: 400px;overflow-y: auto;">
+                    <table id="mediaSupplierPriceTable"></table>
+                    <!--<div id="mediaSupplierPricePager"></div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--媒体供应商非价格模态框-->
+<div class="modal inmodal" id="mediaSupplierPriceModal1" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:80%;overflow-y: auto;">
+        <!--模态框整个可编辑区间-->
+        <div class="modal-content">
+            <!--模态框头部-->
+            <div class="modal-header" style="padding: 5px !important;">
+                <!--标题-->
+                <div style="width: 100%;height:40px; display: block; float: left;">
+                    <div id="dialogTitle1" style=" display: block;float: left;width: 98%;height: 40px;line-height: 40px;text-align: center;font-size: 20px !important;">
+                        媒体供应商信息
+                    </div>
+                    <div style=" height: 40px;line-height: 40px;width: 2%;display: block;float: left;">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+                    </div>
+                </div>
+
+                <!--请求参数-->
+                <div id="requestParam1" style="display: none;">
+                    <!--选中的媒体ID，窗口关闭后清除-->
+                    <input type="hidden" id="modalMediaId1">
+                </div>
+            </div>
+            <!--模态内容区-->
+            <div class="modal-body">
+                <div class="jqGrid_wrapper" style="max-height: 400px;overflow-y: auto;">
+                    <table id="mediaSupplierPriceTable1"></table>
+                    <!--<div id="mediaSupplierPricePager"></div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--复投率统计-->
+<div th:include="statisticsmodal/statisticsFTModal" ></div>
+<!-- 自定义js -->
+<!--<script src="/js/content.js?v=1.0.0"></script>-->
+</html>

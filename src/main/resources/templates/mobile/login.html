@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="${AppName}">系统登录</title>
+    <link href="../css/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <!--插件样式-->
+    <link href="../css/mobile/slidercaptcha.css" type="text/css" rel="stylesheet" />
+    <link href="../css/mobile/common.css" type="text/css" rel="stylesheet" />
+    <style>
+        .login-box {
+            width: 375px;
+            height: max-content;
+            position: absolute;
+            top: 100px;
+            left: 0;
+            right: 0;
+            margin: auto;
+            padding: 0 20px;
+        }
+        .login-box .welcome {
+            font-weight: 600;
+            font-size: 24px;
+            color: #000;
+        }
+        .input-box {
+            padding: 0 25px;
+            margin: 20px 0 40px;
+        }
+        .input-box .item {
+            margin-bottom: 15px;
+        }
+        .input-box .item>div{
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .input-box .item div #v_container {
+            height: 100%;
+            position: absolute;
+            right: 0;
+            height: 40px;
+        }
+        .input-box .item div img {
+            width: 15px;
+            height: auto;
+        }
+        .input-box .item div input {
+            background:none;
+            outline:none;
+            border:none;
+            padding-left: 15px;
+            height: 28px;
+            line-height: 28px;
+            flex: 1;
+            margin-top: 5px;
+        }
+        .input-box .item div input:focus{
+            border:none;
+        }
+        .button-box {
+            padding: 0 15px;
+        }
+        .button-box #slideValidate {
+            border: 1px solid #629ce9;
+            color: #629ce9;
+            background: #fff;
+            height: 40px;
+            width: 100%;
+            outline: none
+        }
+        .button-box #btnLogin {
+            background: #629ce9;
+            border-radius: 20px;
+            height: 40px;
+            font-size: 20px;
+            color: #fff;
+            margin-top: 40px;
+            width: 100%;
+            border: none;
+            outline: none
+        }
+        .slidercaptcha {
+            display: none;
+            position: absolute;
+            width: 90%;
+            height: 285px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.125);
+            z-index: 1;
+            background: #fff;
+            right: 0;
+            left: 0;
+            margin: auto;
+            top: 45px;
+        }
+        .slidercaptcha .card-header {
+            padding: .75rem 1.25rem;
+            border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .slidercaptcha .card-body {
+            padding: 1rem;
+        }
+
+        .slidercaptcha canvas:first-child {
+            border-radius: 4px;
+            border: 1px solid #e6e8eb;
+        }
+
+        .slidercaptcha.card .card-header {
+            background-image: none;
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .refreshIcon {
+            position: absolute;
+            right: -23px;
+            top: -38px;
+            cursor: pointer;
+            margin: 6px;
+            color: rgba(0,0,0,.25);
+            font-size: 16px;
+            z-index: 5;
+            transition: color .3s linear;
+        }
+    </style>
+
+    <script>
+
+        $(function () {
+        /*     var verifyCode = new GVerify("v_container"); */
+
+            //验证
+            $.validator.setDefaults({
+                highlight: function (e) {
+                    $(e).closest(".form-group").removeClass("has-success").addClass("has-error")
+                }, success: function (e) {
+                    e.closest(".form-group").removeClass("has-error").addClass("has-success")
+                }, errorElement: "span", errorPlacement: function (e, r) {
+                    e.appendTo(r.is(":radio") || r.is(":checkbox") ? r.parent().parent().parent() : r.parent().parent())
+                }, errorClass: "help-block m-b-none", validClass: "help-block m-b-none"
+            }), $().ready(function () {
+                var e = "<i class='fa fa-times-circle'></i> ";
+                $("#fmLogin").validate({
+                    rules: {
+                        userName: {required: !0, minlength: 2, maxlength: 50},
+                        password: {required: !0, minlength: 3, maxlength: 50},
+                        verification: {required: !0, equalTo: '#fuel'},
+                    },
+                    messages: {
+                        userName: {required: e + "请输入用户名", minlength: e + "用户名长度必须大于{0}个字符", maxlength: e + "用户名长度必须小于{0}个字符"},
+                        password: {required: e + "请输入密码", minlength: e + "密码长度必须大于{0}个字符", maxlength: e + "密码长度必须小于{0}个字符"},
+                        verification: {required: '请输入验证码', equalTo: '验证码不正确'}
+                    }
+                });
+            });
+
+            $("#btnLogin").click(function () {
+                if ($("#fmLogin").valid()) {
+                    var params = $("#fmLogin").serializeJson();
+                    $.post("/user/login", params, function (data) {
+                        if (data.code != 200) {
+                            if (data.code === 1002) {
+                                swal('密码安全级别过低，请到电脑上修改');
+                            } else {
+                                swal(data.msg);
+                            }
+                        } else {
+                            location.href = '/mobile/index';
+                        }
+                    }, "json");
+                }
+            });
+            
+            
+            $("#sendVerifyCode").click(function () {
+                if($("#fmLogin").validate().element($("#userName")) & $("#fmLogin").validate().element($("#password"))){
+                    $.ajax({
+                        type: "post",
+                        url: baseUrl + "/user/sendVerifyCode",
+                        data: {
+                            userName: $("#userName").val(),
+                            password: $("#password").val()
+                        },
+                        dataType: "json",
+                        success: function (data) {
+                            if (data.code == 200) {
+                                swal("验证码已发送到该账号绑定的手机号："+data.data.phone+"，请注意查收!");
+                                daojishi(60);
+                                document.getElementById("verifyCode").setAttribute("placeholder", data.data.count);
+                            } else if(data.code == 201){
+                                swal(data.msg);
+                            }else if(data.code == 1003){
+                                swal(data.msg);
+                            }else {
+                                swal("用户名或密码不正确，请确认用户名和密码后重试！");
+                            }
+                        },
+                        error: function () {
+                            swal("系统异常，请联系管理员！");
+                        }
+                    });
+                }
+            });
+            
+        })
+        
+        function repositionVerifyCode(){
+        if($("#fmLogin").validate().element($("#verifyCode"))){
+            $("#sendVerifyCode").addClass("help-block");
+        }
+    }
+        
+        
+        
+        
+    </script>
+</head>
+<body>
+    <div class="m-content">
+        <div class="login-box">
+            <p class="welcome">您好，请登录！</p>
+            <div class="slidercaptcha card">
+                <div class="card-header">
+                    <span>请完成安全验证</span>
+                </div>
+                <div class="card-body"><div id="captcha"></div></div>
+            </div>
+            <form role="form" action="index.html" id="fmLogin" autocomplete="off">
+                <div class="input-box">
+                    <div class="item">
+                        <div>
+                            <span><img src="/img/mobile/user_icon.png" alt=""></span>
+                            <input type="text" id="userName" name="userName" placeholder="用户名" required="">
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div>
+                            <span><img src="/img/mobile/password_icon.png" alt=""></span>
+                            <input type="password" id="password" name="password" placeholder="密码" required="" autoComplete="new-password">
+                        </div>
+                    </div>
+                    <div class="item">
+                     <!--    <div>
+                            <span><img src="/img/mobile/yanzhengma.png" alt=""></span>
+                            <input type="text" id="verification" name="verification" placeholder="请输入验证码" required="" autocomplete="off">
+                            <div id="v_container"></div>
+                        </div> -->
+                        
+                          <input type="text" id="verifyCode" name="verifyCode" class="form-control" 
+                                   oninput="repositionVerifyCode()"
+                                   placeholder="输入验证码" maxlength="6" tabindex="1">
+                           <button type=button class="btn btn-white btn-outline" style="display: block; width: 100%" id="sendVerifyCode" >获取验证码</button>
+                    </div>
+                </div>
+                <div class="button-box">
+                    <button type="button" id="btnLogin">登 录</button>
+                    <input type="text" id="fuel" hidden="">
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

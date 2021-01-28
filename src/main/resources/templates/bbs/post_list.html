@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>我的论坛--管理中心</title>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/bbs/post_list.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <style type="text/css">
+        *{
+            padding: 0px;
+            margin: 0px;
+        }
+        #showForumName a:hover{
+            color: #777777;
+        }
+        .ibox .open > .dropdown-menu{
+            right:auto;
+            opacity:0.2;
+        }
+        a{
+            color: grey;
+        }
+        a:hover{
+             color: blue;
+             cursor: pointer;
+        }
+        .noDataStyle{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80%;
+            margin-top: 60px;
+        }
+        .layui-laypage-em{
+            background-color: #3396fb!important;
+        }
+        .layui-tab-brief>.layui-tab-more li.layui-this:after,.layui-tab-brief>.layui-tab-title .layui-this:after{
+            border-bottom:2px solid #3396fb;
+        }
+        .layui-tab-title .layui-this:after{
+            height: 36px;
+        }
+        textarea{resize:none;}
+        .load-box {
+            display: flex;
+            justify-content: space-between;
+        }
+        .layui-this{
+            color: #222222!important;
+        }
+        .tabTitle{
+            color: #999999;
+        }
+        .form-control:focus{
+            border-color: #3396fb!important;
+        }
+        #showDiv{
+            font-size: 14px;
+            color: #999999;
+            float: right;
+        }
+        .searchDiv{
+            float: right;
+            margin: 10px 0;
+        }
+        .searchBtnStyle{
+            width: 60px;
+            height: 40px;
+            border: #3396fb;
+            background-color: #3396fb;
+            font-size: 14px;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+        .search-style{
+            width: 220px;
+            height: 40px;
+            color: #676A6C;
+            font-size: 14px;
+            border-radius: 2px;
+            background: url(/img/bbs/sousuo.png) 10px 12px no-repeat;
+            padding-left: 35px;
+        }
+        .w-65 {
+            width: 96%;
+        }
+        @media (min-width: 1366px) {
+            .w-65 {
+                width: 94%;
+            }
+        }
+     </style>
+</head>
+<body>
+<form id="termForm" style="display: none">
+    <!--默认-9为空-->
+    <input id="topicType" name="forumId" type="hidden"/>
+    <input id="titleSearch" name="titleQc" type="hidden"/>
+    <input id="moderator" name="moderator" type="hidden"/>
+    <input id="postState" name="postState" type="hidden"/>
+    <input id="banzuFlag" name="banzuFlag" value="0" type="hidden"/>
+    <input id="companyCode" name="companyCode" type="hidden"/>
+</form>
+<div style="height: 60px;display: flex; justify-content: center;border-bottom: #ebebeb 1px solid">
+    <div class="w-65 load-box">
+        <div style="height: 60px;">
+            <div style="font-size: 14px;color: #999999;height: 60px;line-height: 60px;">
+                <a href="javascript:void(0)" onclick="changeUrl()">首页</a>&nbsp;&nbsp;
+                <span id="showbbsName">
+                    <i class="glyphicon glyphicon-menu-right" style="color: #999999"></i>&nbsp;&nbsp;
+                    <a href="javascript:void(0)" onclick="toTopiclist()" id="bbsPlateName"></a>
+                </span>
+                <i class="glyphicon glyphicon-menu-right" style="color: #999999"></i>&nbsp;&nbsp;
+                管理中心
+            </div>
+        </div>
+        <div id="showDiv">
+            <div class="searchDiv">
+                <div style="float: left;height: 40px;line-height: 40px;margin-right: 20px;" id="banzuNameTip">
+                    <span>版主</span>：<span id="showBanzuName" style="color: #f00000"></span>
+                </div>
+                <div style=" width: 230px;height: 40px;float: left;">
+                    <input autocomplete="off" class="search-style form-control" placeholder="请输入标题" type="text" name="titleQc" id="titleQc"/>
+                </div>
+                <div style="width: 60px;height: 40px;float: left;">
+                    <button type="button" class="form-control searchBtnStyle" id="searchBtn">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="display: flex;justify-content: center;">
+    <div class="w-65" style="margin: 0 auto;padding: 20px 0;">
+        <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="width:100%;height:100%;margin: 0px;">
+            <input type="hidden" id="index"/>
+            <ul class="layui-tab-title" style="width: 100%;border: 0px;">
+                <li class="tabTitle layui-this" data-id="0" id="showForumList">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                                <span class="text-muted text-xs" id="bankuaiName" style="padding:10px">板块</span>
+                                    <!--<b class="caret"></b>-->
+                                </span>
+                    </a>
+                    <dl class="dropdown-menu animated fadeInRight m-t-xs" id="showForumData">
+                    </dl>
+                </li>
+                <li class="tabTitle" data-id="1">我发表的帖子</li>
+                <li class="tabTitle" data-id="2">我回复的帖子</li>
+                <li class="tabTitle" data-id="3">我赞过的帖子</li>
+            </ul>
+            <div class="layui-tab-content"
+                 style="width: 100%;height: 100%;padding: 0px !important;clear: both;margin-top: 20px;">
+                <div class="jqGrid_wrapper tabContent" id="banzuDiv">
+                    <ul style="height: 50px; line-height: 50px;border-bottom: #ebebeb 1px solid;color: #999999">
+                        <li style="float: left;width: 30%;text-align: center;color: #999999">标题</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">阅读数</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">点赞数</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">灌水数</li>
+                        <li style="float: left;width: 20%;text-align: center;color: #999999">发表日期</li>
+                        <li style="float: left;width: 20%;text-align: center;color: #999999">操作</li>
+                    </ul>
+                    <table cellpadding="0" cellspacing="0" style="width: 100%;" id="banzu_list">
+
+                    </table>
+                </div>
+                <div class="jqGrid_wrapper tabContent" id="publishDiv" style="display: none;">
+                    <ul style="height: 50px; line-height: 50px;border-bottom: #ebebeb 1px solid;color: #999999">
+                        <li style="float: left;width: 30%;text-align: center">标题</li>
+                        <li style="float: left;width: 10%;text-align: center">阅读数</li>
+                        <li style="float: left;width: 10%;text-align: center">点赞数</li>
+                        <li style="float: left;width: 10%;text-align: center">灌水数</li>
+                        <li style="float: left;width: 20%;text-align: center">发表日期</li>
+                        <li style="float: left;width: 20%;text-align: center">操作</li>
+                    </ul>
+                    <table cellpadding="0" cellspacing="0" style="width: 100%;" id="publish_list">
+
+                    </table>
+                </div>
+                <div class="jqGrid_wrapper tabContent" id="replyDiv" style="display: none;">
+                    <ul style="height: 50px; line-height: 50px;border-bottom: #ebebeb 1px solid;color: #999999">
+                        <li style="float: left;width: 30%;text-align: center">标题</li>
+                        <li style="float: left;width: 10%;text-align: center">阅读数</li>
+                        <li style="float: left;width: 10%;text-align: center">点赞数</li>
+                        <li style="float: left;width: 10%;text-align: center">灌水数</li>
+                        <li style="float: left;width: 20%;text-align: center">发表日期</li>
+                        <li style="float: left;width: 20%;text-align: center">所属板块</li>
+                    </ul>
+                    <table cellpadding="0" cellspacing="0" style="width: 100%;" id="reply_list">
+
+                    </table>
+                </div>
+                <div class="jqGrid_wrapper tabContent" id="postDiv" style="display: none;">
+                    <ul style="height: 50px; line-height: 50px;border-bottom: #ebebeb 1px solid;color: #999999">
+                        <li style="float: left;width: 30%;text-align: center;color: #999999">标题</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">阅读数</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">点赞数</li>
+                        <li style="float: left;width: 10%;text-align: center;color: #999999">灌水数</li>
+                        <li style="float: left;width: 20%;text-align: center;color: #999999">发表日期</li>
+                        <li style="float: left;width: 20%;text-align: center;color: #999999">所属板块</li>
+                    </ul>
+                    <table cellpadding="0" cellspacing="0" style="width: 100%;" id="post_list">
+
+                    </table>
+                </div>
+            </div>
+            <!--分页插件-->
+            <div id="queryTablePager" style="text-align: center;vertical-align: bottom"></div>
+        </div>
+        <!--<div class="tabs-container">-->
+        <!--<ul class="nav nav-tabs" id="navTabs">-->
+        <!--<li class="active firstDiv"><a data-toggle="tab" id="firstStep" href="javascript:void(0)" aria-expanded="true" onclick="tabSwitch(this)" index="0">我发表的帖子</a>-->
+        <!--</li>-->
+        <!--<li class="secondDiv"><a data-toggle="tab" id="secondStep" href="javascript:void(0)" aria-expanded="false" onclick="tabSwitch(this)" index="1">我回复的帖子</a>-->
+        <!--</li>-->
+        <!--<li class="thirdDiv"><a data-toggle="tab" id="thirdStep" href="javascript:void(0)" aria-expanded="false" onclick="tabSwitch(this)" index="2">我赞过的帖子</a>-->
+        <!--</li>-->
+        <!--</ul>-->
+        <!--<div class="tab-content" >-->
+        <!--<div style="margin-top: 15px">-->
+        <!--<a href="javascript:void(0)" id="total" onclick="searchTopic(1)">所有</a>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #f0f0f0">|</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+        <!--<a href="javascript:void(0)" id="toping" value="1" onclick="searchTopic(2)">待置顶</a>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #f0f0f0">|</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+        <!--<a href="javascript:void(0)" id="creaming"  value="1" onclick="searchTopic(3)">待加精</a>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #f0f0f0">|</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+        <!--<a href="javascript:void(0)" id="top" value="2" onclick="searchTopic(4)">置顶</a>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #f0f0f0">|</span>&nbsp;&nbsp;&nbsp;&nbsp;-->
+        <!--<a href="javascript:void(0)" id="cream" value="2" onclick="searchTopic(5)">精华</a>-->
+        <!--</div>-->
+        <!--<div id="firstDiv" class="tab-pane form-horizontal active"  style="margin-top:8px;">-->
+        <!--<div class="row">-->
+        <!--<div class="col-sm-12">-->
+        <!--&lt;!&ndash;我发表的帖子&ndash;&gt;-->
+        <!--<form id="firstForm">-->
+        <!--<div class="ibox-content" style="border: 0px; padding: 15px 0">-->
+        <!--<div class="jqGrid_wrapper" style="width: 100%;">-->
+        <!--<table id="query_table_logs" style="width: 100%;"></table>-->
+        <!--<div id="query_pager_logs" style="width: 100%;"></div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</form>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div id="secondDiv" class="tab-pane form-horizontal"  style="margin-top:8px;">-->
+        <!--<div class="row" >-->
+        <!--<div class="col-sm-12">-->
+        <!--<form id="secondForm">-->
+        <!--&lt;!&ndash;我回复的帖子&ndash;&gt;-->
+        <!--<div class="ibox-content" style="border: 0px;  padding: 15px 0">-->
+        <!--<div class="jqGrid_wrapper" style="width: 100%;">-->
+        <!--<table id="query_table_logs2" style="width: 100%;"></table>-->
+        <!--<div id="query_pager_logs2" style="width: 100%;"></div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</form>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div id="thirdDiv" class="tab-pane form-horizontal"  style="margin-top:8px;">-->
+        <!--<div class="row" >-->
+        <!--<div class="col-sm-12">-->
+        <!--<form id="editForm" class="form-horizontal" action="" method="post">-->
+        <!--&lt;!&ndash;我赞过的帖子&ndash;&gt;-->
+        <!--<div class="ibox-content" style="border: 0px;  padding: 15px 0">-->
+        <!--<div class="jqGrid_wrapper" style="width: 100%;">-->
+        <!--<table id="query_table_logs3" style="width: 100%;"></table>-->
+        <!--<div id="query_pager_logs3" style="width: 100%;"></div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</form>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+    </div>
+</div>
+</div>
+<!--提交删除理由页面-->
+<div class="modal inmodal" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="delForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span style="color: #c9615e;">删除操作</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="topicId" id="topicId3">
+                                <div class="form-group">
+                                    <label class="col-sm-1"></label>
+                                    <div class="col-sm-10">
+                                        <textarea cols="25" rows="15" class="form-control" id="delReason" name="delReason" placeholder="亲，请输入删除理由...">
+
+                                        </textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" onclick="delTopic()">提交</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--申请置顶页面-->
+<div class="modal inmodal" id="topModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="topForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h5 class="modal-title"><span style="color: #c9302c;">申请置顶</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="goTopId" id="goTopId">
+                                <div class="form-group" id="dealTopDiv">
+                                    <label class="col-sm-2">申请原因</label>
+                                    <div class="col-sm-8">
+                                        <span id="showTopReason"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2"></label>
+                                    <div class="col-sm-9">
+                                        <textarea cols="25" rows="15" class="form-control" id="topReason" name="topReason" maxlength="100" onkeyup="checkContent(this)" placeholder="亲，请输入...">
+
+                                        </textarea>
+                                        <label id="showError"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="showTop">
+                        <button type="button" class="btn btn-info" id="makeTop">保存</button>
+                        <button type="button" class="btn btn-warning" id="notTop" onclick="topTopic(0)">拒绝</button>
+                    </div>
+                    <button type="button" class="btn btn-info" id="applyTop" onclick="topTopic(1)">保存</button>
+                    <!--<button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>-->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--申请加精页面-->
+<div class="modal inmodal" id="hightModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:550px;height: 500px;">
+        <form id="hightForm" class="form-horizontal" action="" type="post">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h5 class="modal-title"><span style="color: #c9302c;">申请加精</span></h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="hightTopicId" id="hightTopicId">
+                                <div class="form-group" id="dealHightDiv">
+                                    <label class="col-sm-2">申请原因</label>
+                                    <div class="col-sm-8">
+                                        <span id="showHightReason"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2"></label>
+                                    <div class="col-sm-9">
+                                        <textarea cols="25" rows="15" class="form-control" id="hightReason" name="hightReason" maxlength="100" onkeyup="checkContent2(this)" placeholder="亲，请输入...">
+
+                                        </textarea>
+                                        <label id="showError2"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!--版主加精-->
+                    <div id ="showHight">
+                        <button type="button" class="btn btn-info" id="makeHight">保存</button>
+                        <button type="button" class="btn btn-warning" id="notHight" onclick="hightTopic(0)">拒绝</button>
+                    </div>
+                    <!--申请加精-->
+                    <button type="button" class="btn btn-info" id="applyHight" onclick="hightTopic(1)">保存</button>
+                    <!--<button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>-->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+<script>
+    // function resize(table) {
+    //     // if (table == undefined) return;
+    //     // var width = $(table).parents(".jqGrid_wrapper").width();
+    //     // if (width == 0) return;
+    //
+    //     $(table).setGridWidth($('.load-box').width());
+    // }
+  // function tabSwitch(t) {
+  //     $(".tab-content").children("div").each(function (index, tq) {
+  //         $(tq).removeClass("active");
+  //     })
+  //     //点击的index值
+  //     var flag = $(t).attr("index");
+  //     //因为添加了一个新的搜索条件div所以eq的index有所变化
+  //     var index = Number(flag)+1 ;
+  //     $(".tab-content").children("div:eq("+index+")").addClass("active");
+  //     //对index进行逻辑判断0 我发表的帖子,1 我回复的帖子,2 我赞过的帖子
+  //     if(flag==0){
+  //         $("#postState").val("");
+  //         $("#searchState").val(-9);
+  //         // resize("#query_table_logs");
+  //         postTopic();
+  //     }else if(flag==1){
+  //         $("#postState").val("");
+  //         $("#searchState").val(-9);
+  //         resize("#query_table_logs2");
+  //         postTopic2();
+  //     }else if(flag==2){
+  //         //postState=1为点赞
+  //         $("#postState").val(1);
+  //         $("#searchState").val(-9);
+  //         resize("#query_table_logs3");
+  //         postTopic3();
+  //     }
+  // }
+</script>
+</html>

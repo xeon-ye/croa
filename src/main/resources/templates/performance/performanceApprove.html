@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>绩效考核审核</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/process/approveTask.js"></script>
+    <script th:src="@{//js/performance/performanceApprove.js(v=${version})}"></script>
+    <script th:src="@{//js/flowable/RollbackCompont.js(v=${version})}"></script>
+</head>
+<style type="text/css">
+    .font-red {
+        color: red;
+    }
+    .white-Style {
+        background-color: white;
+    }
+    .font-common{
+        color: #797C7D;
+    }
+    #scoreDetailTable textarea{
+        border: 0px;
+        resize: none;
+    }
+    .input-border-red{
+        border: red 1px solid;
+        position: relative;
+    }
+    .input-border-red span {
+        display: block;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        color: red;
+    }
+</style>
+<body>
+<!-- 审核页面； -->
+<div class="modal inmodal" id="performanceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width: 96%;">
+        <form id="approveForm">
+            <input type="hidden" name="agree"/>
+            <input type="hidden" name="deptId"/>
+            <input type="hidden" name="taskId"/>
+            <input type="hidden" name="schId"/>
+            <input type="hidden" name="schName"/>
+            <input type="hidden" name="scoreId"/>
+            <input type="hidden" name="processState"/>
+            <input type="hidden" id="proportionSelf"/>
+            <input type="hidden" id="proportionLeader"/>
+            <input type="hidden" id="proportionGroup"/>
+            <input type="hidden" id="schLevel"/>
+            <input type="hidden" id="schSuffice"/>
+            <input type="hidden" id="scoreSelfTotal"/>
+            <input type="hidden" id="scoreLeaderTotal"/>
+            <input type="hidden" id="scoreGroupTotal"/>
+            <input type="hidden" name="schemeType" id="schemeType"/>
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="scoreTitle">绩效评估内容</h4>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">绩效评估</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <table border="1px" width="100%"
+                                   style="text-align: center;line-height: 30px;font-weight: bold;"
+                                   id="scoreDetailTable">
+                                <tr>
+                                    <td>考核日期</td>
+                                    <td colspan="3"><input type="text" name="proDate"/></td>
+                                    <td>考核对象</td>
+                                    <td colspan="2"><input type="text" name="userName"/></td>
+                                    <td>考核职位</td>
+                                    <td colspan="2"><input type="text" name="postName"/></td>
+                                </tr>
+                                <tr>
+                                    <td>绩效考核阶段</td>
+                                    <td colspan="9"><span data="proType"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>绩效考核部门</td>
+                                    <td colspan="9"><input type="text" name="deptName"/></td>
+                                </tr>
+                                <tr class="kpl" id="scoreContent">
+                                    <td width="10%">考核项目</td>
+                                    <td width="15%">考核指标</td>
+                                    <td width="15%">指标要求</td>
+                                    <td width="20%" colspan="2">评分标准</td>
+                                    <td width="7%">单项分值</td>
+                                    <td width="7%">自评</td>
+                                    <td width="7%">上级评</td>
+                                    <td width="7%">总分</td>
+                                    <td width="10%">备注</td>
+                                </tr>
+                                <tr class="okr" id="okrContent">
+                                    <td width="26%" colspan="2">工作目标</td>
+                                    <td width="10%">分值</td>
+                                    <td width="10%" colspan="2">是否完成</td>
+                                    <td width="15%" colspan="2">未完成原因</td>
+                                    <td width="10%">自评</td>
+                                    <td width="10%">上级评</td>
+                                    <td width="10%">总分</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="" id="variableTd">实际综合得分</td>
+                                    <!--考核总分-->
+                                    <td class="kpl"><span id="totalScore"></span></td>
+                                    <!--自评-->
+                                    <td><span id="scoreSelf"></span></td>
+                                    <!--上级评-->
+                                    <td><span id="scoreLeader"></span></td>
+                                    <!--总分-->
+                                    <td><span id="totalValue"></span></td>
+                                    <td class="kpl"><span id="remark"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>评价等级</td>
+                                    <td colspan="9"><input type="text" name="scoreLevel"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">审批意见</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">意见：</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" name="desc" placeholder="请输入审核意见"
+                                                      maxlength="500" special="true" style="resize:none;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-title approveUser">
+                    <h5 style="font-weight:bold">下一步审核</h5>
+                </div>
+                <div class="ibox-content approveUser">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label approveUser">审核人：</label>
+                                        <div class="col-sm-3 layui-form">
+                                            <input name="userName" type="hidden"/>
+                                            <select name="userId" class="form-control height18"
+                                                    lay-verify="" lay-search lay-filter="userId">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="text-align: center;">
+                    <div class="col-md-3" id="rollback1"></div>
+                    <div class="col-md-9">
+                        <button type="button" class="submit btn btn-primary" id="submitPerformProcess" onclick="submitApprove()">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;提交审核
+                        </button>
+                        <button type="button" class="approve btn btn-primary" id="agreeEmploy" onclick="agreeApprove()">
+                            <i class="fa fa-check"></i>&nbsp;&nbsp;同意
+                        </button>
+                        <button type="button" class="approve btn btn-danger" id="rejectEmploy" onclick="rejectApprove()">
+                            <i class="fa fa-close"></i>&nbsp;&nbsp;拒绝
+                        </button>
+                        <button type="button" class="btn btn-white" onclick="returnApprove()">
+                            <i class="fa fa-backward"></i>&nbsp;&nbsp;返回
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

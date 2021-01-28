@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>客户参数设置</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script th:src="@{/js/fee/commonFee.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/common_util.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/company_param_setting.js(v=${version})}"  data-th-inline="javascript"></script>
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="margin-bottom: 0px">
+            <div class="ibox-title" style="padding-left: 20px">
+                <h3 style="font-weight: bold; margin-left: 20px">客户参数设置</h3>
+            </div>
+            <div class="ibox-content" style="padding: 15px 20px 0px 20px">
+                <div class="form-horizontal" id="queryDiv">
+                    <form id="queryForm">
+                        <div style="margin-top: 25px; margin-left: 30px"><h3>客户保护参数</h3></div>
+                        <div class="hr-line-dashed" style="margin: 5px 0px 15px 20px"></div>
+                        <div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">保护类型:</label>
+                                <div class="col-sm-6">
+                                    <input type="hidden" name="level" id="level" value="A">
+                                    <button class="btn btn-success" id="classA" disabled="disabled"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A类&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-white" id="classB"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;B类&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-white" id="classC"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;C类&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">保护名额<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="num" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <!--<div class="form-group">
+                                <label class="col-sm-2 control-label">客户考核:</label>
+                                <div class="col-sm-1">
+                                    <div class="checkbox i-checks" style="padding-left: 0">
+                                        <input type="checkbox" name="type"/>考核
+                                    </div>
+                                </div>
+                                <div class="col-sm-1">
+                                    <div class="checkbox i-checks" style="padding-left: 0">
+                                        <input type="checkbox" name="type"/>审核
+                                    </div>
+                                </div>
+                            </div>-->
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">是否考核<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <div class="radio i-checks" style="padding-left: 0">
+                                        <input type="radio" value="1" name="eval"/>&nbsp;是&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <input type="radio" value="0" name="eval"/>&nbsp;否&nbsp;
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">是否审核<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <div class="radio i-checks" style="padding-left: 0">
+                                        <input type="radio" value="1" name="audit"/>&nbsp;是&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <input type="radio" value="0" name="audit"/>&nbsp;否&nbsp;
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 25px; margin-left: 30px"><h3>客户考核参数</h3></div>
+                        <div class="hr-line-dashed" style="margin: 5px 0px 15px 20px"></div>
+                        <div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">跟进考核时间（天数）<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="TRACK_EVAL_DAY" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">成交考核时间（天数）<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="DEAL_EVAL_DAY" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">考核提醒提前时间（天数）<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="EVAL_REMIND_DAY" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 25px; margin-left: 30px"><h3>客户流转参数</h3></div>
+                        <div class="hr-line-dashed" style="margin: 5px 0px 15px 20px"></div>
+                        <div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">客户流转黑名单次数<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="TO_BLACK_TIMES" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">客户认领单天限额<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="CLAIM_TIMES_DAY" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">客户认领开始时间限定<span class="text-red">*</span>:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="CLAIM_START_TIME" required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'')" readonly="readonly">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="pull-right">
+                                    <button type="button" class="btn btn-primary" id="saveProt" onclick="protObj.save(this)"><i class="fa fa-save">&nbsp;保存&nbsp;</i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

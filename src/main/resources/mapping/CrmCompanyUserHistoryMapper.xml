@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmCompanyUserHistoryMapper">
+
+    <resultMap type="com.qinfei.qferp.entity.crm.CrmCompanyUserHistory" id="CrmCompanyUserHistoryMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="companyUserId" column="company_user_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="companyId" column="company_id" jdbcType="INTEGER"/>
+        <result property="companyName" column="company_name" jdbcType="VARCHAR"/>
+        <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        <result property="wechat" column="wechat" jdbcType="VARCHAR"/>
+        <result property="qq" column="qq" jdbcType="INTEGER"/>
+        <result property="normalize" column="normalize" jdbcType="INTEGER"/>
+        <result property="dept" column="dept" jdbcType="VARCHAR"/>
+        <result property="project" column="project" jdbcType="VARCHAR"/>
+        <result property="job" column="job" jdbcType="VARCHAR"/>
+        <result property="custType" column="cust_type" jdbcType="INTEGER"/>
+        <result property="professionLevel" column="profession_level" jdbcType="VARCHAR"/>
+        <result property="personality" column="personality" jdbcType="VARCHAR"/>
+        <result property="age" column="age" jdbcType="INTEGER"/>
+        <result property="family" column="family" jdbcType="VARCHAR"/>
+        <result property="prevCompany" column="prev_company" jdbcType="VARCHAR"/>
+        <result property="education" column="education" jdbcType="VARCHAR"/>
+        <result property="hobby" column="hobby" jdbcType="VARCHAR"/>
+        <result property="looks" column="looks" jdbcType="VARCHAR"/>
+        <result property="successDetail" column="success_detail" jdbcType="VARCHAR"/>
+        <result property="intention" column="Intention" jdbcType="VARCHAR"/>
+        <result property="photo" column="photo" jdbcType="VARCHAR"/>
+        <result property="promiseDay" column="promise_day" jdbcType="OTHER"/>
+        <result property="taxType" column="tax_type" jdbcType="VARCHAR"/>
+        <result property="invoiceType" column="invoice_type" jdbcType="INTEGER"/>
+        <result property="invoiceTitle" column="invoice_title" jdbcType="VARCHAR"/>
+        <result property="taxCode" column="tax_code" jdbcType="VARCHAR"/>
+        <result property="bankNo" column="bank_no" jdbcType="VARCHAR"/>
+        <result property="bankName" column="bank_name" jdbcType="VARCHAR"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="state" column="state" jdbcType="INTEGER"/>
+        <result property="noReason" column="no_reason" jdbcType="VARCHAR"/>
+        <result property="isPublic" column="is_public" jdbcType="INTEGER"/>
+        <result property="devState" column="dev_state" jdbcType="INTEGER"/>
+        <result property="deleteFlag" column="delete_flag" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="creator" column="creator" jdbcType="INTEGER"/>
+        <result property="createCompanyCode" column="create_company_code" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUserId" column="update_user_id" jdbcType="INTEGER"/>
+        <result property="isBlack" column="is_black" jdbcType="INTEGER"/>
+        <result property="auditFlag" column="audit_flag" jdbcType="INTEGER"/>
+        <result property="evalTime" column="eval_time" jdbcType="TIMESTAMP"/>
+        <result property="ywDeptId" column="yw_dept_id" jdbcType="INTEGER"/>
+        <result property="protectLevel" column="protect_level" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 通用查询结果列-->
+    <sql id="Base_Column_List">
+    id as id,
+    company_user_id as companyUserId,
+    name as name,
+    company_id as companyId,
+    company_name as companyName,
+    mobile as mobile,
+    wechat as wechat,
+    qq as qq,
+    normalize as normalize,
+    dept as dept,
+    project as project,
+    job as job,
+    cust_type as custType,
+    profession_level as professionLevel,
+    personality as personality,
+    age as age,
+    family as family,
+    prev_company as prevCompany,
+    education as education,
+    hobby as hobby,
+    looks as looks,
+    success_detail as successDetail,
+    Intention as intention,
+    photo as photo,
+    promise_day as promiseDay,
+    tax_type as taxType,
+    invoice_type as invoiceType,
+    invoice_title as invoiceTitle,
+    tax_code as taxCode,
+    bank_no as bankNo,
+    bank_name as bankName,
+    address as address,
+    phone as phone,
+    state as state,
+    no_reason as noReason,
+    is_public as isPublic,
+    dev_state as devState,
+    delete_flag as deleteFlag,
+    create_time as createTime,
+    creator as creator,
+    create_company_code as createCompanyCode,
+    update_time as updateTime,
+    update_user_id as updateUserId,
+    is_black as isBlack,
+    audit_flag as auditFlag,
+    eval_time as evalTime,
+    yw_dept_id as ywDeptId,
+    protect_level as protectLevel
+    </sql>
+    
+    <!--查询列表-->
+    <select id="listPg" resultType="map">
+        select
+            a.id as id,
+            a.company_user_id as companyUserId,
+            a.name as name,
+            a.company_id as companyId,
+            a.company_name as companyName,
+            a.mobile as mobile,
+            a.wechat as wechat,
+            a.qq as qq,
+            a.normalize as normalize,
+            a.dept as dept,
+            a.project as project,
+            a.job as job,
+            a.cust_type as custType,
+            a.profession_level as professionLevel,
+            a.personality as personality,
+            a.age as age,
+            a.family as family,
+            a.prev_company as prevCompany,
+            a.education as education,
+            a.hobby as hobby,
+            a.looks as looks,
+            a.success_detail as successDetail,
+            a.Intention as intention,
+            a.photo as photo,
+            a.promise_day as promiseDay,
+            a.tax_type as taxType,
+            a.invoice_type as invoiceType,
+            a.invoice_title as invoiceTitle,
+            a.tax_code as taxCode,
+            a.bank_no as bankNo,
+            a.bank_name as bankName,
+            a.address as address,
+            a.phone as phone,
+            a.state as state,
+            a.no_reason as noReason,
+            a.is_public as isPublic,
+            a.dev_state as devState,
+            a.delete_flag as deleteFlag,
+            DATE_FORMAT(a.create_time,"%Y-%m-%d %H:%i") as createTime,
+            b.name as creator,
+            a.create_company_code as createCompanyCode,
+            a.update_time as updateTime,
+            a.update_user_id as updateUserId,
+            a.is_black as isBlack,
+            a.audit_flag as auditFlag,
+            a.eval_time as evalTime,
+            a.yw_dept_id as ywDeptId,
+            a.protect_level as protectLevel
+        from t_crm_company_user_history a
+        left join sys_user b on a.creator = b.id
+        where a.company_user_id = #{companyUserId}
+        order by a.create_time desc
+    </select>
+    
+    <!--查询单个-->
+    <select id="getById" resultMap="CrmCompanyUserHistoryMap">
+        select
+          <include refid="Base_Column_List"/>
+        from t_crm_company_user_history
+        where id = #{id}
+    </select>
+
+</mapper>

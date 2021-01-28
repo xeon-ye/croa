@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>客户首页统计</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <!--统计概况模态框Css-->
+    <link href="/css/statisticsModal/statisticsModal.css" rel="stylesheet">
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- 自定义js -->
+    <script src="/js/hplus.js?v=4.1.0"></script>
+    <script type="text/javascript" src="/js/contabs.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <!--页面js-->
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <script th:src="@{/js/crm/commonDatagrid.js(v=${version})}"  data-th-inline="javascript"></script>
+    <style>
+        .top_block {
+            height: 100px;
+            width: 19%;
+            float: left;
+            margin: 0 0.5%;
+            text-align: center;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+            padding: 25px 0;
+        }
+
+        .top_block2 {
+            height: 200px;
+            width: 19%;
+            float: left;
+            margin: 0 0.5%;
+            text-align: center;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+            margin-top: 12px;
+            padding: 25px 0;
+        }
+
+        .text-content {
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 20px;
+
+        }
+
+        .val-content {
+            font-weight: bold;
+            font-size: 15px;
+            color: red;
+            line-height: 29px;
+        }
+
+        .img-content {
+            margin-right: 20px;
+            float: left;
+        }
+
+        .top_block > div {
+            display: table;
+            margin: auto;
+        }
+
+        .top_block > div > i {
+            font-size: 40px;
+            float: left;
+            margin-right: 10px;
+
+        }
+
+        .top_block:nth-child(1) > div > i {
+            color: #EE7383;
+        }
+
+        .top_block:nth-child(1) > div > div > div:first-child {
+            color: #EE7383;
+        }
+
+        .top_block:nth-child(2) > div > i {
+            color: #72C7D9
+        }
+
+        .top_block:nth-child(2) > div > div > div:first-child {
+            color: #72C7D9
+        }
+
+        .top_block:nth-child(3) > div > i {
+            color: #FFB148;
+        }
+
+        .top_block:nth-child(3) > div > div > div:first-child {
+            color: #FFB148;
+        }
+
+        .top_block:nth-child(4) > div > i {
+            color: #A5D16F;
+        }
+
+        .top_block:nth-child(4) > div > div > div:first-child {
+            color: #A5D16F;
+        }
+
+        .top_block:nth-child(5) > div > i {
+            color: #2FA82E;
+        }
+
+        .top_block:nth-child(5) > div > div > div:first-child {
+            color: #2FA82E;
+        }
+
+        .top_block > div > div, .top_block > div > img {
+            float: left;
+            text-align: left;
+        }
+
+        .title-content {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #topChart {
+            margin-top: 10px;
+        }
+
+        #usersContent {
+            width: 100%;
+            padding-left: 10px;
+        }
+
+        #usersContent > table {
+            width: 100%;
+        }
+
+        #usersContent > table tr {
+            line-height: 28px;
+            height: 28px;
+            width: 100%;
+            text-align: left;
+        }
+
+        #usersContent > table tr > td i {
+            margin-left: 15px;
+            font-size: 17px;
+        }
+
+        #usersContent > table tr > td > span {
+            display: inline-block;
+            width: 50px;
+        }
+
+        #chart {
+            margin-top: 310px;
+        }
+
+        #chart > div {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+            height: 200px;
+        }
+
+        #chart > div > div {
+            height: 200px;
+            margin-top: 10px;
+        }
+
+        .ui-jqgrid-pager .layui-form-select {
+            display: none;
+        }
+    </style>
+
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script src="/js/statisticsModal/statisticsModal.js"></script>
+    <script src="/js/crm/statistics/cust_manager_statistics.js"></script>
+
+    <script th:inline="javascript">
+        $().ready(function () {
+            //加载时间控件
+            var issuedDateStart = {
+                elem: '#issuedDateStart',
+                format: 'YYYY/MM/DD',
+                istime: true,
+                istoday: false
+            };
+            laydate(issuedDateStart);
+            issuedDateStart.elem = '#issuedDateEnd';
+            laydate(issuedDateStart);
+        });
+    </script>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-16px;">
+            <div class="ibox-title">
+                <h5 style="font-weight: bold">查询条件</h5>
+            </div>
+            <div class="ibox-content" style="padding:0 0 0 0">
+                <div class="form-horizontal">
+                    <form id="searchForm" class="layui-form">
+                        <div class="form-group" style="margin-top:15px;">
+                            <label class="col-sm-1 control-label right0">类别:</label>
+                            <div class="col-sm-1 ">
+                                <!--时间段-->
+                                <select id="timeQuantum" name="timeQuantum" class="form-control height18" lay-search lay-filter="timeQuantum">
+                                    <option value="1">本年度</option>
+                                    <option value="2">本季度</option>
+                                    <option value="3" selected="selected">本月份</option>
+                                    <option value="4">当天</option>
+                                    <option value="5">时间区间</option>
+                                </select>
+                            </div>
+
+                            <div id="issuedDateFormGroup" style="display: none">
+                                <label class="col-sm-1 control-label right0">选择时间范围：</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期" style="width:40%;margin-left:0;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateStart" name="issuedDateStart" autocomplete="off">
+                                    <span style="display:inline-block;padding:0 10px;">至</span>
+                                    <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                           class="form-control layer-date" id="issuedDateEnd" name="issuedDateEnd" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div id ="deptDiv" style="display:none">
+                                <label class="col-sm-1 control-label right0">业务部门:</label>
+                                <div class="col-sm-2">
+                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                        <input type="hidden" id="currentDeptId" name="currentDeptId" class="height18">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly">
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF" id="selDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="选择部门"></span>
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF" id="cleanDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="清除选择的部门"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="col-sm-1 control-label right0">业务员:</label>
+                            <div class="col-sm-1">
+                                <select name="currentUserId" id="currentUserId" class="form-control height18" lay-search lay-filter="currentUserId">
+                                </select>
+                            </div>
+
+                            <div>
+                                <button type="button" id="searchButton" class="btn btn-primary"
+                                        style="float:left;margin-left:20px;"
+                                        onclick="searchForm.search()">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="topChart" class="row col-md-12">
+    <div class="col-sm-9">
+        <div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <div class="title-content">登记客户数</div>
+                        <div class="text-content">实际：<span class="val-content" id="djkhs"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-user-secret"></i>
+                    <div>
+                        <div class="title-content">成交客户数量</div>
+                        <div class="text-content">实际：<span class="val-content" id="custNum"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div>
+                        <div class="title-content">销售业绩</div>
+                        <div class="text-content">实际：<span class="val-content" id="saleAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-money"></i>
+                    <div>
+                        <div class="title-content">利润业绩</div>
+                        <div class="text-content">实际：<span class="val-content" id="profit"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top_block">
+                <div>
+                    <i class="fa fa-cny"></i>
+                    <div>
+                        <div class="title-content">回款额</div>
+                        <div class="text-content">实际：<span class="val-content" id="incomeAmount"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div id="statisticsPie4" class="top_block2"></div>
+            <div id="statisticsPie5"  class="top_block2"></div>
+            <div id="statisticsPie6"  class="top_block2"></div>
+            <div id="statisticsPie7"  class="top_block2"></div>
+            <div id="statisticsPie8"  class="top_block2" style="padding: 10px 0;"></div>
+        </div>
+        <!--表格-->
+        <div class="col-sm-12">
+            <div class="jqGrid_wrapper" style="margin-top:20px;padding:0;overflow: hidden">
+                <table id="table"></table>
+                <div id="pager"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3" style="padding:0">
+        <div class="top_block" style="height:300px;width:100%;overflow-x: scroll;">
+            <div style="font-size: 20px;color: #FF9873;border-bottom: 1px solid #eeeeee;margin-bottom: 10px"><i
+                    class="fa fa-users" style="color: #FF9873;font-size: 30px;"></i>&nbsp;团队成员
+            </div>
+            <div id="usersContent" style="height: 250px; ">
+            </div>
+        </div>
+        <!--饼图-->
+        <div style="width:100%" id="chart">
+            <div>
+                <div id="statisticsPie1">
+
+                </div>
+            </div>
+        </div>
+
+            <!--<div>-->
+                <!--<div id="statisticsPie2">-->
+
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div>
+                <div id="statisticsPie3">
+
+                </div>
+            </div>-->
+    </div>
+</div>
+</body>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:800px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择业务部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--统计模态框导入-->
+<div th:include="statisticsmodal/statisticsModal" ></div>
+</html>

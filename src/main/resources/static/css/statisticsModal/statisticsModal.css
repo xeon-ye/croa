@@ -1,0 +1,387 @@
+/*------表格控件样式------开始------*/
+#statisticsModal .ui-jqgrid{
+    width: 99% !important;
+}
+#statisticsModal  .ui-jqgrid-bdiv{/*表格展示滚动条*/
+    overflow: auto !important;
+}
+/*#statisticsModal  .ui-jqgrid-pager tbody tr{  !*表格工具栏居中*!
+    display: flex;
+    justify-content:center;
+    align-items:center;
+}*/
+/*------左右切换箭头样式------开始------*/
+#statisticsModal  .horizon-prev, .horizon-next {
+    /*position: fixed;*/
+    position: absolute;
+    top: 50%;
+    margin-top: -24px;
+    z-index: 9999;
+    opacity: 0.3;
+    cursor: pointer;
+}
+
+#statisticsModal  .horizon-prev {
+    left: 20px;
+}
+
+#statisticsModal  .horizon-next {
+    right: 20px;
+}
+/*------左右切换箭头样式------结束------*/
+/*------模态框样式------开始------*/
+#statisticsModal  #modalDialog{
+    height: 1200px;
+    min-width: 1100px;
+}
+
+#statisticsModal  #modalHeader{
+    padding: 0px !important;
+}
+
+#statisticsModal  .titleStyle{
+    border-bottom: 1px solid #c1c1c1;
+    width: 100%;
+    height:40px;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  .dialogTitle{
+    border: 0px solid yellow;
+    display: block;
+    float: left;
+    width: 98%;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: 20px !important;
+}
+
+#statisticsModal  .dialogBtn{
+    height: 40px;
+    line-height: 40px;
+    width: 2%;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  .dialogBtn > button{
+    width: 100%;
+    height: 100%;
+    margin: 0px !important;
+    padding: 0px !important;
+    text-align: center;
+    font-size: 25px;
+}
+
+/*------查询条件样式------开始------*/
+#statisticsModal  #selectCondition{
+    border-bottom: 1px solid #c1c1c1;
+    padding: 5px 15px !important;
+    width: 100%;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  .paramDiv{
+    height: 100%;
+    width: 20%;
+    margin-top: 1px;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  .paramDiv > .labelName > button{
+    height: 30px !important;
+    padding: 0px 12px !important;
+    margin-top: -2px !important;
+}
+
+#statisticsModal  .labelName{
+    border: 0px solid red;
+    height: 40px;
+    line-height: 40px;
+    text-align: right;
+    width: 40%;
+    margin: 0px;
+    padding: 0px;
+    float: left;
+}
+
+#statisticsModal  .paramInputDiv{
+    height: 40px;
+    line-height: 40px;
+    text-align: left;
+    border: 0px solid red;
+    width: 60%;
+    margin: 0px;
+    padding: 0px;
+    float: left;
+}
+
+#statisticsModal  .paramInputDiv > :first-child{
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+}
+
+#statisticsModal  .paramInputDiv > input{
+    margin-top: 5px;
+}
+
+
+/*输入框的样式*/
+#statisticsModal  .form-param{
+    outline-style: none; /*将外部样式禁用，这样才能实现获取焦点改变颜色*/
+    border-radius: 1px;
+    padding-left: 6px;
+    border: 1px solid rgb(169,169,169) !important;
+}
+#statisticsModal  .form-param:focus{
+    border-color:#1ab394 !important;
+}
+
+#statisticsModal  .modalIssuedDate{
+    display: none; /*发布日期样式*/
+}
+
+/*------tab样式------开始------*/
+#statisticsModal  .navStyle{
+    border-bottom: 1px solid #c1c1c1;
+    width: 100%;
+    height:40px;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  .selectType{
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    display: block;
+    color: #676A6C;
+    font-size: 14px !important;
+    float: left;
+    cursor: pointer;
+}
+
+#statisticsModal  #modalBody{
+    border:0px solid red;
+    padding: 0px !important;
+    width: 100%;
+    height: 600px;
+    min-height: 600px;
+}
+
+#statisticsModal  #main{
+    border: 0px solid yellow;
+    height:100%;
+    width:100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#statisticsModal  #scrollContent{
+    border: 0px solid blue;
+    height:100%;
+}
+
+#statisticsModal  .statisticsContent{
+    border: 0px solid red;
+    height:100%;
+    display: block;
+    float:left;
+}
+
+/*------业务员内容区样式------开始------*/
+
+/*------媒介内容区样式------开始------*/
+
+/*------板块内容区样式------开始------*/
+
+/*------媒体内容区样式------开始------*/
+
+/*------客户内容区样式------开始------*/
+/*--------------cust风格--------------*/
+#statisticsModal  .cust,
+#statisticsModal  .business,
+#statisticsModal  .mediaUser,
+#statisticsModal  .mediaType,
+#statisticsModal  .media,
+#statisticsModal  .supplier{
+    width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
+#statisticsModal  .top{
+    border: 0px solid purple;
+    width: 100%;
+    height: 15%;
+    min-height: 100px;
+    display: flex;
+    justify-content:center;
+    align-items:center;
+    float: left;
+}
+
+#statisticsModal  .middle{
+    border-top: 1px solid #C7C7CD;
+    border-bottom: 1px solid #C7C7CD;
+    width: 100%;
+    height: 40%;
+    display: block;
+    float:left;
+}
+
+/*有饼图时：趋势图*/
+#statisticsModal  #modalCustChartByDate,
+#statisticsModal  #modalBusinessChartByDate,
+#statisticsModal  #modalMediaUserChartByDate,
+#statisticsModal  #modalSupplierChartByDate{
+    border-right:1px solid #C7C7CD;
+    width: 74%;
+    height: 100%;
+    display: block;
+    float: left;
+    margin-right: 1%;
+}
+/*无饼图时：趋势图*/
+#statisticsModal  #modalMediaTypeChartByDate,
+#statisticsModal  #modalMediaChartByDate{
+    width: 100%;
+    height: 100%;
+    display: block;
+    float: left;
+}
+
+#statisticsModal  #modalCustChartByMediaType,
+#statisticsModal  #modalBusinessChartByMediaType,
+#statisticsModal  #modalMediaUserChartByMediaType,
+#statisticsModal  #modalSupplierChartByMediaType{
+    border:0px solid red;
+    width: 25%;
+    height: 100%;
+    display: block;
+    float: left;
+}
+
+
+/*-------顶部统计----开始---*/
+#statisticsModal  .top_block{
+    height: 80px;
+    width: 19%;
+    float: left;
+    margin: 0 1%;
+    text-align: center;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: rgb(170, 170, 170) 2px 2px 2px 2px;
+    padding: 20px 0;
+}
+
+#statisticsModal  .text-content{
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 20px;
+}
+
+#statisticsModal  .val-content{
+    font-weight: bold;
+    font-size: 10px;
+    color: red;
+    line-height: 29px;
+}
+
+#statisticsModal  .top > .top_block > div{
+    display: table;
+    margin-left: 20px;
+}
+
+#statisticsModal  .top > .top_block > div > i {
+    font-size: 40px;
+    float: left;
+    margin-right: 10px;
+
+}
+
+#statisticsModal  .top > .top_block:nth-child(1) > div > i{
+    color: #EE7383;
+}
+
+#statisticsModal  .top > .top_block:nth-child(1) > div > div > div:first-child{
+    color: #EE7383;
+}
+
+#statisticsModal  .top > .top_block:nth-child(2) > div > i{
+    color: #72C7D9
+}
+
+#statisticsModal  .top > .top_block:nth-child(2) > div > div > div:first-child {
+    color: #72C7D9
+}
+
+#statisticsModal  .top > .top_block:nth-child(3) > div > i {
+    color: #FFB148;
+}
+
+#statisticsModal  .top > .top_block:nth-child(3) > div > div > div:first-child {
+    color: #FFB148;
+}
+
+#statisticsModal  .top > .top_block:nth-child(4) > div > i {
+    color: #A5D16F;
+}
+
+#statisticsModal  .top > .top_block:nth-child(4) > div > div > div:first-child {
+    color: #A5D16F;
+}
+
+#statisticsModal  .top > .top_block:nth-child(5) > div > i {
+    color: #2FA82E;
+}
+
+#statisticsModal  .top > .top_block:nth-child(5) > div > div > div:first-child {
+    color: #2FA82E;
+}
+
+#statisticsModal  .top > .top_block > div > div, .top_block > div > img {
+    float: left;
+    text-align: left;
+}
+
+#statisticsModal  .top > .title-content {
+    font-size: 15px;
+    font-weight: bold;
+}
+/*-------顶部统计----结束---*/
+#statisticsModal  .bottom{
+    border-top: 0px solid #C7C7CD;
+    padding-top: 2px;
+    width: 100%;
+    height: 45%;
+    display: block;
+    float: left;
+}
+
+/*#statisticsModal  .bottom > .left{
+    border-right: 0px solid #C7C7CD;
+    width: 60%;
+    height: 100%;
+    display: block;
+    float: left;
+}
+
+
+
+#statisticsModal  .bottom > .right{
+    border: 0px solid red;
+    width: 39%;
+    margin-left: 1%;
+    height: 100%;
+    display: block;
+    float: left;
+}*/
+
+/*------供应商内容区样式------开始------*/

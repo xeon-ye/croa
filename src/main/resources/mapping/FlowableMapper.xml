@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.flowable.FlowableMapper">
+
+    <select id="listHistoryTask" resultType="java.util.Map">
+        SELECT
+        	tt.ID_ AS taskId,
+        	tt.process,
+        	tt.dataId,
+        	tt.`name`,
+        	tt.`user`,
+        	tt.userId,
+        	tt.`time`,
+        	tt.`desc`,
+            tt.state
+        FROM
+	    (
+	    	SELECT
+	    		aht.ID_,
+	    		ahv0.TEXT_ AS process,
+	    		ahv1.TEXT_ AS dataId,
+	    		aht.NAME_ AS `name`,
+	    		aht.OWNER_ AS `user`,
+	    		aht.ASSIGNEE_ AS userId,
+	    		aht.END_TIME_ AS `time`,
+	    		aht.DELETE_REASON_ AS `desc`,
+                1 as state
+	    	FROM
+	    		act_hi_taskinst aht
+	    	INNER JOIN act_hi_varinst ahv0 ON aht.PROC_INST_ID_ = ahv0.PROC_INST_ID_
+	    	INNER JOIN act_hi_varinst ahv1 ON aht.PROC_INST_ID_ = ahv1.PROC_INST_ID_
+	    	WHERE
+	    		aht.OWNER_ IS NOT NULL
+	    	AND aht.ASSIGNEE_ IS NOT NULL
+	    	AND ahv0.TASK_ID_ IS NULL
+	    	AND ahv1.TASK_ID_ IS NULL
+	    	<if test="param != null and param.size() > 0">
+                AND
+                  <foreach collection="param" item="item" index="index" open="(" close=")" separator="OR">
+					  (
+					  	ahv0.NAME_ = 'process'
+					  	AND ahv0.TEXT_ = #{item.process}
+					  	AND ahv1.NAME_ = 'dataId'
+					  	AND ahv1.TEXT_ = #{item.dataId}
+					  )
+                  </foreach>
+
+            </if>
+	    	UNION ALL
+	    		SELECT
+	    			art.ID_ AS taskId,
+	    			arv0.TEXT_ AS process,
+	    			arv1.TEXT_ AS dataId,
+	    			art.NAME_ AS `name`,
+	    			art.OWNER_ AS `user`,
+	    			art.ASSIGNEE_ AS userId,
+	    			art.CREATE_TIME_ AS `time`,
+	    			art.DELEGATION_ AS `desc`,
+                    0 as state
+	    		FROM
+	    			act_ru_task art
+	    		INNER JOIN act_ru_variable arv0 ON art.PROC_INST_ID_ = arv0.PROC_INST_ID_
+	    		INNER JOIN act_ru_variable arv1 ON art.PROC_INST_ID_ = arv1.PROC_INST_ID_
+				INNER JOIN act_ru_variable arv2 ON art.PROC_INST_ID_ = arv2.PROC_INST_ID_
+	    		WHERE
+	    			arv0.TASK_ID_ IS NULL
+	    		AND arv1.TASK_ID_ IS NULL
+                <if test="param != null and param.size() > 0">
+                    AND
+                    <foreach collection="param" item="item" index="index" open="(" close=")" separator="OR">
+						(
+							arv0.NAME_ = 'process'
+							AND arv0.TEXT_ = #{item.process}
+							AND arv1.NAME_ = 'dataId'
+							AND arv1.TEXT_ = #{item.dataId}
+							AND arv2.NAME_ = 'processState'
+							AND arv2.TEXT_ = 0
+						)
+                    </foreach>
+
+                </if>
+	        ) tt
+           ORDER BY
+	       tt.time ASC
+    </select>
+
+	<!--根据流程实例ID查询已审核的节点列表-->
+	<select id="listHasAuditTaskByProcInstId" resultType="java.util.Map">
+		SELECT
+			aht.TASK_DEF_KEY_ AS processKey,
+			aht.NAME_ AS processName,
+			aht.OWNER_ AS `owner`,
+			aht.ASSIGNEE_ AS ownerId
+		FROM
+			act_hi_actinst aha
+		INNER JOIN act_hi_taskinst aht ON aha.TASK_ID_ = aht.ID_
+		WHERE
+			aht.ASSIGNEE_ IS NOT NULL
+		AND aht.OWNER_ IS NOT NULL
+		AND aha.ACT_TYPE_ = 'userTask'
+		AND aha.PROC_INST_ID_ = #{procInstId}
+		ORDER BY
+			aht.END_TIME_ DESC
+	</select>
+</mapper>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 入职申请审核记录； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployEntryCommentMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployEntryComment">
+        <id column="com_id" jdbcType="INTEGER" property="comId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="com_type" jdbcType="INTEGER" property="comType"/>
+        <result column="com_figure" jdbcType="INTEGER" property="comFigure"/>
+        <result column="com_communicate" jdbcType="INTEGER" property="comCommunicate"/>
+        <result column="com_faith" jdbcType="INTEGER" property="comFaith"/>
+        <result column="com_quality" jdbcType="INTEGER" property="comQuality"/>
+        <result column="com_experience" jdbcType="INTEGER" property="comExperience"/>
+        <result column="com_total_score" jdbcType="INTEGER" property="comTotalScore"/>
+        <result column="com_advice" jdbcType="VARCHAR" property="comAdvice"/>
+        <result column="com_code" jdbcType="VARCHAR" property="comCode"/>
+        <result column="com_education" jdbcType="VARCHAR" property="comEducation"/>
+        <result column="com_residence" jdbcType="VARCHAR" property="comResidence"/>
+        <result column="com_experience_desc" jdbcType="VARCHAR" property="comExperienceDesc"/>
+        <result column="com_image" jdbcType="VARCHAR" property="comImage"/>
+        <result column="com_report" jdbcType="VARCHAR" property="comReport"/>
+        <result column="com_other" jdbcType="VARCHAR" property="comOther"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        com_id,
+        entry_id,
+        com_type,
+        com_figure,
+        com_communicate,
+        com_faith,
+        com_quality,
+        com_experience,
+        com_total_score,
+        com_advice,
+        com_code,
+        com_education,
+        com_residence,
+        com_experience_desc,
+        com_image,
+        com_report,
+        com_other,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_entry_comment
+        where
+        com_id = #{comId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询审核记录的主键； -->
+    <select id="selectIdByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment"
+            resultType="java.lang.Integer" useCache="true">
+        select com_id from e_entry_comment where state &lt;&gt; -1 and state &lt;&gt; 5 and com_type = #{comType} and entry_id = #{entryId}
+    </select>
+
+    <!-- 根据入职申请的ID和状态查询审核记录； -->
+    <select id="selectByParentId" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment"
+            resultMap="BaseResultMap" useCache="true">
+        select * from e_entry_comment where state &lt;&gt; -1 and state &lt;&gt; 5 and com_type = #{comType} and entry_id = #{entryId}
+    </select>
+
+    <!-- 根据入职申请的ID查询相关的审核信息； -->
+    <select id="selectEmployInfo" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select * from e_entry_comment where state &lt;&gt; -1 and state &lt;&gt; 5 and entry_id = #{entryId}
+    </select>
+
+    <select id="listByEntryId" resultMap="BaseResultMap" useCache="true">
+        select * from e_entry_comment where state <![CDATA[<>]]> -1 and state <![CDATA[<>]]> 5 and entry_id in
+        <foreach collection="entryIdList" item="entryId" open="(" close=")" separator=",">
+            #{entryId}
+        </foreach>
+    </select>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment" useGeneratedKeys="true"
+            keyProperty="comId">
+        insert into e_entry_comment (
+        com_id,
+        entry_id,
+        com_type,
+        com_figure,
+        com_communicate,
+        com_faith,
+        com_quality,
+        com_experience,
+        com_total_score,
+        com_advice,
+        com_code,
+        com_education,
+        com_residence,
+        com_experience_desc,
+        com_image,
+        com_report,
+        com_other,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{comId,jdbcType=INTEGER},
+        #{entryId,jdbcType=INTEGER},
+        #{comType,jdbcType=INTEGER},
+        #{comFigure,jdbcType=INTEGER},
+        #{comCommunicate,jdbcType=INTEGER},
+        #{comFaith,jdbcType=INTEGER},
+        #{comQuality,jdbcType=INTEGER},
+        #{comExperience,jdbcType=INTEGER},
+        #{comTotalScore,jdbcType=INTEGER},
+        #{comAdvice,jdbcType=VARCHAR},
+        #{comCode,jdbcType=VARCHAR},
+        #{comEducation,jdbcType=VARCHAR},
+        #{comResidence,jdbcType=VARCHAR},
+        #{comExperienceDesc,jdbcType=VARCHAR},
+        #{comImage,jdbcType=VARCHAR},
+        #{comReport,jdbcType=VARCHAR},
+        #{comOther,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment"
+            useGeneratedKeys="true" keyProperty="comId">
+        insert into e_entry_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="comId != null">com_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="comType != null">com_type,</if>
+            <if test="comFigure != null">com_figure,</if>
+            <if test="comCommunicate != null">com_communicate,</if>
+            <if test="comFaith != null">com_faith,</if>
+            <if test="comQuality != null">com_quality,</if>
+            <if test="comExperience != null">com_experience,</if>
+            <if test="comTotalScore != null">com_total_score,</if>
+            <if test="comAdvice != null">com_advice,</if>
+            <if test="comCode != null">com_code,</if>
+            <if test="comEducation != null">com_education,</if>
+            <if test="comResidence != null">com_residence,</if>
+            <if test="comExperienceDesc != null">com_experience_desc,</if>
+            <if test="comImage != null">com_image,</if>
+            <if test="comReport != null">com_report,</if>
+            <if test="comOther != null">com_other,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="comId != null">#{comId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="comType != null">#{comType,jdbcType=INTEGER},</if>
+            <if test="comFigure != null">#{comFigure,jdbcType=INTEGER},</if>
+            <if test="comCommunicate != null">#{comCommunicate,jdbcType=INTEGER},</if>
+            <if test="comFaith != null">#{comFaith,jdbcType=INTEGER},</if>
+            <if test="comQuality != null">#{comQuality,jdbcType=INTEGER},</if>
+            <if test="comExperience != null">#{comExperience,jdbcType=INTEGER},</if>
+            <if test="comTotalScore != null">#{comTotalScore,jdbcType=INTEGER},</if>
+            <if test="comAdvice != null">#{comAdvice,jdbcType=VARCHAR},</if>
+            <if test="comCode != null">#{comCode,jdbcType=VARCHAR},</if>
+            <if test="comEducation != null">#{comEducation,jdbcType=VARCHAR},</if>
+            <if test="comResidence != null">#{comResidence,jdbcType=VARCHAR},</if>
+            <if test="comExperienceDesc != null">#{comExperienceDesc,jdbcType=VARCHAR},</if>
+            <if test="comImage != null">#{comImage,jdbcType=VARCHAR},</if>
+            <if test="comReport != null">#{comReport,jdbcType=VARCHAR},</if>
+            <if test="comOther != null">#{comOther,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment">
+        update e_entry_comment
+        <include refid="EmployCommon.deleteInfo"/>
+        where com_id = #{comId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 根据员工ID更新状态信息； -->
+    <update id="updateStateByEmpId" parameterType="java.util.Map">
+        update e_entry_comment
+        <set>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where state &lt;&gt; -1
+        <if test="entryId != null">
+            and entry_id = #{entryId,jdbcType=INTEGER}
+        </if>
+        <if test="empId != null">
+            and entry_id = (select entry_id from e_employee where emp_id = #{empId} and state &lt;&gt; -1)
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment">
+        update e_entry_comment
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="comType != null">com_type = #{comType,jdbcType=INTEGER},</if>
+            <if test="comFigure != null">com_figure = #{comFigure,jdbcType=INTEGER},</if>
+            <if test="comCommunicate != null">com_communicate = #{comCommunicate,jdbcType=INTEGER},</if>
+            <if test="comFaith != null">com_faith = #{comFaith,jdbcType=INTEGER},</if>
+            <if test="comQuality != null">com_quality = #{comQuality,jdbcType=INTEGER},</if>
+            <if test="comExperience != null">com_experience = #{comExperience,jdbcType=INTEGER},</if>
+            <if test="comTotalScore != null">com_total_score = #{comTotalScore,jdbcType=INTEGER},</if>
+            <if test="comAdvice != null">com_advice = #{comAdvice,jdbcType=VARCHAR},</if>
+            <if test="comCode != null">com_code = #{comCode,jdbcType=VARCHAR},</if>
+            <if test="comEducation != null">com_education = #{comEducation,jdbcType=VARCHAR},</if>
+            <if test="comResidence != null">com_residence = #{comResidence,jdbcType=VARCHAR},</if>
+            <if test="comExperienceDesc != null">com_experience_desc = #{comExperienceDesc,jdbcType=VARCHAR},</if>
+            <if test="comImage != null">com_image = #{comImage,jdbcType=VARCHAR},</if>
+            <if test="comReport != null">com_report = #{comReport,jdbcType=VARCHAR},</if>
+            <if test="comOther != null">com_other = #{comOther,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        com_id = #{comId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntryComment">
+        update
+        e_entry_comment
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        com_type = #{comType,jdbcType=INTEGER},
+        com_figure = #{comFigure,jdbcType=INTEGER},
+        com_communicate = #{comCommunicate,jdbcType=INTEGER},
+        com_faith = #{comFaith,jdbcType=INTEGER},
+        com_quality = #{comQuality,jdbcType=INTEGER},
+        com_experience = #{comExperience,jdbcType=INTEGER},
+        com_total_score = #{comTotalScore,jdbcType=INTEGER},
+        com_advice = #{comAdvice,jdbcType=VARCHAR},
+        com_code = #{comCode,jdbcType=VARCHAR},
+        com_education = #{comEducation,jdbcType=VARCHAR},
+        com_residence = #{comResidence,jdbcType=VARCHAR},
+        com_experience_desc = #{comExperienceDesc,jdbcType=VARCHAR},
+        com_image = #{comImage,jdbcType=VARCHAR},
+        com_report = #{comReport,jdbcType=VARCHAR},
+        com_other = #{comOther,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        com_id = #{comId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

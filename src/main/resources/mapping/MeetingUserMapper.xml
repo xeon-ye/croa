@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingUserMapper">
+    <sql id="selectColumn">
+        tmu.id,
+        tmu.meet_id as meetId,
+        tmu.meet_task_id as meetTaskId,
+        tmu.user_id as userId,
+        tmu.user_type as userType,
+        tmu.accept_flag as acceptFlag,
+        tmu.create_id as createId,
+        tmu.create_date as createDate,
+        tmu.update_id as updateId,
+        tmu.update_date as updateDate,
+        tmu.state
+    </sql>
+    <insert id="addMeetingUser">
+        INSERT  into t_meeting_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetId != null">meet_id,</if>
+            <if test="meetTaskId != null">meet_task_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userType != null">user_type,</if>
+            <if test="acceptFlag != null">accept_flag,</if>
+            <if test="state != null">state,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetId != null">#{meetId},</if>
+            <if test="meetTaskId != null">#{meetTaskId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userType != null">#{userType},</if>
+            <if test="acceptFlag != null">#{acceptFlag},</if>
+            <if test="state != null">#{state},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增会议相关用户-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_meeting_user (
+        meet_id,
+        meet_task_id,
+        user_id,
+        user_type,
+        accept_flag,
+        state,
+        create_id,
+        update_id
+        )
+        VALUES
+        <foreach collection="list" item="meetingUser" index="index" separator=",">
+            (
+            #{meetingUser.meetId},
+            #{meetingUser.meetTaskId},
+            #{meetingUser.userId},
+            #{meetingUser.userType},
+            #{meetingUser.acceptFlag},
+            0,
+            #{meetingUser.createId},
+            #{meetingUser.updateId}
+            )
+        </foreach>
+    </insert>
+
+    <select id="userIdSum" resultType="java.lang.Integer">
+        select COUNT(DISTINCT id) from t_meeting_user where meet_id=#{id}
+    </select>
+    <select id="acceptSum" resultType="java.lang.Integer">
+        select
+        COUNT(*)
+        FROM
+            t_meeting_user
+        WHERE
+            meet_id =#{id}
+        and accept_flag = 1
+    </select>
+
+    <select id="getUserId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.meeting.MeetingUser">
+    select
+        su.name ,
+        su.dept_id deptId,
+        tm.state as meetState,
+        <include refid="selectColumn"/>
+        from t_meeting_user tmu
+        LEFT JOIN sys_user su on tmu.user_id = su.id
+        LEFT JOIN t_meeting tm on tm.id = tmu.meet_id
+        where
+        tmu.meet_id = #{id} and tmu.state>-2
+    </select>
+
+    <select id="getInputUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select
+        DISTINCT
+        tmu.user_id as userId
+        from t_meeting_user tmu
+        where
+        tmu.meet_id = #{meetId} and tmu.state>-9
+    </select>
+    <select id="meetUsers" resultType="com.qinfei.qferp.entity.sys.User">
+        select
+        DISTINCT
+         su.id,
+          su.`name`,
+          su.dept_id,
+          su.dept_name,
+          su.company_code,
+          su.image
+          from sys_user su
+          LEFT JOIN t_meeting_user tmu on tmu.user_id = su.id
+          where tmu.meet_id = #{id}
+          <if test="name != null and name != ''">
+              AND su.name like CONCAT(#{name},'%')
+          </if>
+    </select>
+
+    <!--根据会议ID集合查询所有相关公司用户-->
+    <select id="listUserByParam" resultType="com.qinfei.qferp.entity.meeting.MeetingUser">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_meeting_user tmu
+        WHERE
+        	tmu.state = 0
+        <if test="meetId != null">
+            AND tmu.meet_id = #{meetId}
+        </if>
+        <if test="meetTaskId != null">
+            AND tmu.meet_task_id = #{meetTaskId}
+        </if>
+        <if test="userType != null">
+            AND tmu.user_type = #{userType}
+        </if>
+        <if test="userId != null">
+            AND tmu.user_id = #{userId}
+        </if>
+        <if test="acceptFlag != null">
+            AND tmu.accept_flag = #{acceptFlag}
+        </if>
+        <if test="meetIdList != null and meetIdList.size() > 0">
+            AND tmu.meet_id in
+            <foreach item="meetId" collection="meetIdList" index="index" open="(" close=")" separator=",">
+                #{meetId}
+            </foreach>
+        </if>
+    </select>
+
+    <!--根据会议ID查询相关会议人员-->
+    <select id="listMeetUserByMeetId" resultType="com.qinfei.qferp.entity.meeting.MeetingUser">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+          t_meeting_user tmu
+        WHERE tmu.state = 0 and tmu.meet_id = #{meetId}
+    </select>
+
+
+    <!--根据会议任务id 查询相关人员-->
+    <select id="getMeetintTaskUser" resultType="com.qinfei.qferp.entity.meeting.MeetingUser">
+        SELECT
+        su.name,
+         <include refid="selectColumn"/>
+        from t_meeting_user tmu
+        LEFT JOIN  sys_user su on su.id= tmu.user_id
+        where tmu.state =0
+        and tmu.meet_task_id = #{taskId}
+    </select>
+</mapper>

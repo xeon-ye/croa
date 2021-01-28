@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>物品领用</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <!--物品领用js-->
+    <script type="text/javascript" th:src="@{//js/inventory/apply_list.js(v=${version})}"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <link href="/css/inventory/purchase_list.css" rel="stylesheet">
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <style type="text/css">
+        .layui-form-selectup dl{
+            top: unset;
+            bottom: unset;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            var createTime = {
+                elem: '#createTimeQc',
+                format: 'yyyy-MM-dd',
+                istime : true,
+                istoday : true,// 是否显示今天
+                isclear : true, // 是否显示清空
+            };
+            laydate.render(createTime);
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+        })
+    </script>
+</head>
+<body>
+<div class="layui-tab layui-tab-brief" lay-filter="tabFilter" style="margin: 0px;">
+    <!--查询条件-->
+    <ul class="layui-tab-title">
+        <input id="tabIndex" name="tabIndex" type="hidden"/>
+        <li class="layui-this">我领用的</li>
+        <li id="myOperate">我使用的</li>
+    </ul>
+    <!--列表内容-->
+    <div class="bottomContentOuter layui-tab-content">
+        <!--我领用的-->
+        <div id="applyTab" class="tabContent" style="height: 100%;width: 100%;">
+            <!--领用列表-->
+            <div class="contentOuter">
+                <!--顶部搜索条件-->
+                <div class="searchParamOuter">
+                    <form id="applyForm" autocomplete="off" class="layui-form form-horizontal" method="get">
+                        <!--查询条件-->
+                        <div class="paramDiv">
+                            <label class="control-label">领用编号 :</label>
+                            <input id="codeQc" name="codeQc" class="form-control" style="display: inline-block;width: 60%"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">创建时间 :</label>
+                            <input id="createTimeQc" name="createTimeQc" class="form-control" style="display: inline-block;width: 60%"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">状态 :</label>
+                            <select id="stateQc" name="stateQc" lay-filter="stateQc" class="form-control">
+                                <option value="">请选择</option>
+                                <option value="-1">已驳回</option>
+                                <option value="0">已保存</option>
+                                <option value="2">审核中</option>
+                                <option value="1">已完成</option>
+                                <option value="6">部分出库</option>
+                                <option value="7">已出库</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" id="applySearch" onclick="refreshTableData()"
+                                    class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;查询
+                            </button>
+                            <button type="button" id="addApplyBtn" class="btn btn-primary" onclick="applyObj.showSaveApply()" style="margin-left: 10px;">
+                                <i class="fa fa-plus"></i>&nbsp;填写领用单
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!--我领用列表-->
+                <div>
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                        <colgroup>
+                            <col width="8%">
+                            <col width="16%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="12%">
+                            <col width="16%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>
+                                <div style="text-align: center;">
+                                    序号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    领用编号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    标题
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center">
+                                    创建人
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    创建时间
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    产品用途
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    流程状态
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="applyManageList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div id="applyPager" style="text-align: center;"></div>
+            </div>
+        </div>
+        <!--我使用的-->
+        <div id="productUsedTab" class="tabContent" style="height: 100%;width: 100%;display: none;">
+            <div class="contentOuter">
+                <!--顶部搜索条件-->
+                <div class="searchParamOuter">
+                    <form id="productUsedForm" autocomplete="off" class="layui-form form-horizontal" method="get">
+                        <!--查询条件-->
+                        <div class="paramDiv">
+                            <label class="control-label">库存编号 :</label>
+                            <input name="codeQc" class="form-control" style="display: inline-block;width: 60%"/>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">产品分类 :</label>
+                            <select id="typeQc" lay-filter="typeQc" name="typeQc" class="form-control"></select>
+                        </div>
+                        <div class="paramDiv">
+                            <label class="control-label">类型 :</label>
+                            <select id="stateQc2" lay-filter="stateQc2" name="stateQc" class="form-control">
+                                <option value="">请选择</option>
+                                <option value="1">报修</option>
+                                <option value="2">报废</option>
+                                <option value="3">归还</option>\
+                                <option value="-1">使用中</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="button" id="usedSearch" onclick="refreshTableData()"
+                                    class="btn btn-primary">
+                                <i class="fa fa-search"></i>&nbsp;查询
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!--我使用列表-->
+                <div>
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="12%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="6%">
+                            <col width="6%">
+                            <col width="6%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="8%">
+                            <col width="8%">
+                            <col width="16%">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>
+                                <div style="text-align: center;">
+                                    序号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    库存编号
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center">
+                                    产品分类
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    产品名称
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center">
+                                    规格
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    单位
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    数量
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    领用人
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    归还日期
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    类型
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    状态
+                                </div>
+                            </th>
+                            <th>
+                                <div style="text-align: center;">
+                                    操作
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="productUsedList">
+                        </tbody>
+                    </table>
+                </div>
+                <!--分页插件-->
+                <div id="productUsedPager" style="text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--审核详情模态框-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--物品领用审核流程详情弹出框-->
+<div id="showHistoryModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="showHistoryForm" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>审批流程</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="applyObj.closeApproveDiv();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group" style="margin-left: 0px;">
+                    <div id="showHistoryDiv" class="col-sm-12">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--物品使用审核流程详情弹出框-->
+<div id="showHistoryModal2" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="showHistoryForm2" autocomplete="off" class="layui-form form-horizontal" method="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>审批流程</span>
+                </div>
+                <div class="stockModalBtn">
+                    <div onclick="productUsedObj.closeApproveModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group" style="margin-left: 0px;">
+                    <div id="showHistoryDiv2" class="col-sm-12">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增领用单-->
+<div id="saveApplyModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addApplyForm" autocomplete="off" lay-filter="addApply" class="layui-form form-horizontal" type="post"
+              enctype="multipart/form-data">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span class="save">新增领用单</span>
+                    <span class="edit">编辑领用单</span>
+                </div>
+                <div id="editFooter" class="editFooter stockModalBtn">
+                    <div onclick="applyObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="editBtn" class="edit" onclick="applyObj.submitApply(this,'/apply/editApply',4)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editApplyBtn" class="edit" onclick="applyObj.submitApply(this,'/apply/editApply',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="addBtn" class="save" onclick="applyObj.submitApply(this,'/apply/saveApply',4)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="saveApplyBtn" class="save" onclick="applyObj.submitApply(this,'/apply/saveApply',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div id="viewFooter" class="viewFooter stockModalBtn">
+                    <div onclick="applyObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject1" class="approve" onclick="applyObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass1" class="approve" onclick="applyObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory1" class="approve" onclick="applyObj.showHistory2()">
+                        <!--<i class="fa fa-arrow-circle-o-up"></i>-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        领用编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="applyCode" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        领用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="userId" name="userId" type="hidden" class="form-control"/>
+                        <input id="userName" name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>产品用途:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="purpose" class="form-control" placeholder="请输入产品用途"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        领用时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>选择仓库:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="wareId" lay-filter="wareId" class="form-control"></select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        附件:
+                    </label>
+                    <input type="hidden" name="affixLink">
+                    <input type="hidden" name="affixName">
+                    <div class="col-sm-3">
+                        <div id="affixDiv"></div>
+                        <input type="file" name="file" class="form-control" multiple/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        金额:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="money" name="money" readonly onkeyup="value=value.replace(/[^\d.]/g,'')" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                    备注:
+                    </label>
+                    <div class="col-sm-3">
+                    <input name="desc" class="form-control" placeholder="请输入备注"/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;">
+                        领用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="10%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="10%">
+                                    <col width="10%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="6%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">产品分类<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">产品名称<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">当前库存</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">领用数量<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">单价<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">总额<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">领用人<span class="text-red">*</span></td>
+                                    <td style="text-align: center;">归还日期</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" id="btn_addCheck" name="btn_addCheck"
+                                                class="btn btn-white btn-xs">
+                                            <i class="glyphicon glyphicon-plus"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="height: 229px;overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="checkTable"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="10%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="10%">
+                                        <col width="10%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="6%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="remark" name="remark" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" id="flag"/>
+                            <input type="hidden" id="state" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="taskId" id="taskId"/>
+                            <input type="hidden" name="itemId" id="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增报修单-->
+<div id="saveRepairModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addRepairForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-报修</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateOperateBtn" class="save" onclick="productUsedObj.submitRepair(this,'/repair/saveRepair',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editOperateBtn" class="save" onclick="productUsedObj.submitRepair(this,'/repair/saveRepair',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveOperateBtn" class="edit" onclick="productUsedObj.submitRepair(this,'/repair/editRepair',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addOperateBtn" class="edit" onclick="productUsedObj.submitRepair(this,'/repair/editRepair',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject" class="approve" onclick="productUsedObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass" class="approve" onclick="productUsedObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory" class="approve" onclick="productUsedObj.showHistory2(29)">
+                        <!--29为报修流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        报修编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 10px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                报修原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入报修原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增报废单-->
+<div id="saveScrapModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addScrapForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-报废</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateScrapBtn" class="save" onclick="productUsedObj.submitScrap(this,'/scrap/saveScrap',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editScrapBtn" class="save" onclick="productUsedObj.submitScrap(this,'/scrap/saveScrap',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveScrapBtn" class="edit" onclick="productUsedObj.submitScrap(this,'/scrap/editScrap',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addScrapBtn" class="edit" onclick="productUsedObj.submitScrap(this,'/scrap/editScrap',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject2" class="approve" onclick="productUsedObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass2" class="approve" onclick="productUsedObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory2" class="approve" onclick="productUsedObj.showHistory2(30)">
+                        <!--30为报废流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        报废编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable2"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 10px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                报废原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入报废原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description2" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--新增归还单-->
+<div id="saveReturnModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="addReturnForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>我使用的-归还</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="updateReturnBtn" class="save" onclick="productUsedObj.submitReturn(this,'/return/saveReturn',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="editReturnBtn" class="save" onclick="productUsedObj.submitReturn(this,'/return/saveReturn',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                    <div id="saveReturnBtn" class="edit" onclick="productUsedObj.submitReturn(this,'/return/editReturn',29)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        提交
+                    </div>
+                    <div id="addReturnBtn" class="edit" onclick="productUsedObj.submitReturn(this,'/return/editReturn',0)">
+                        <i class="fa fa-arrow-circle-o-up"></i>
+                        保存
+                    </div>
+                </div>
+                <div class="viewFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                    <div id="reject3" class="approve" onclick="productUsedObj.reject(this)">
+                        <i class="fa fa-ban"></i>
+                        拒绝
+                    </div>
+                    <div id="pass3" class="approve" onclick="productUsedObj.approve(this)">
+                        <i class="fa fa-check-circle-o"></i>
+                        同意
+                    </div>
+                    <div id="showHistory3" class="approve" onclick="productUsedObj.showHistory2(31)">
+                        <!--31为归还流程id-->
+                        详情
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        归还编号:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="code" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red">*</span>标题:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="text" name="title" class="title form-control" placeholder="请输入标题"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        使用人:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="userId" type="hidden"/>
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        使用部门:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="deptId" type="hidden"/>
+                        <input name="deptName" class="input-readonly form-control" readonly/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        创建时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        使用明细
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="8%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="12%">
+                                    <col width="8%">
+                                    <col width="12%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">产品分类</td>
+                                    <td style="text-align: center;">产品名称</td>
+                                    <td style="text-align: center;">规格</td>
+                                    <td style="text-align: center;">单位</td>
+                                    <td style="text-align: center;">数量</td>
+                                    <td style="text-align: center;">归还日期</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable3"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="8%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="12%">
+                                        <col width="8%">
+                                        <col width="12%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                        <div class="col-md-12 form-group" style="margin-top: 10px;">
+                            <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                                归还原因
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-10">
+                                <textarea name="remark" class="form-control" placeholder="请输入归还原因"></textarea>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div class="licence col-md-12 form-group" style="display: none">
+                            <label class="col-sm-2 control-label">
+                                审核理由:
+                            </label>
+                            <div class="col-sm-9">
+                                <input id="description3" name="description" class="form-control"/>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                        </div>
+                        <div style="display: none">
+                            <!--编辑时需要的数据-->
+                            <input type="hidden" name="state"/>
+                            <input type="hidden" name="id"/>
+                            <input type="hidden" name="inventoryId"/>
+                            <input type="hidden" name="taskId"/>
+                            <input type="hidden" name="itemId"/>
+                            <input type="hidden" name="companyCode"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--查看库存详情-->
+<div id="viewInventoryDetailsModal" style="display: none;">
+    <div class="stockModalCommon">
+        <form id="viewForm" autocomplete="off" class="layui-form form-horizontal" type="post">
+            <!--顶部按钮-->
+            <div class="stockModalBtnOuter">
+                <div class="stockModalTitle">
+                    <span>库存详情</span>
+                </div>
+                <div class="editFooter stockModalBtn">
+                    <div onclick="productUsedObj.closeModal();">
+                        <i class="fa fa-close"></i>
+                        关闭
+                    </div>
+                </div>
+            </div>
+            <!--表单内容-->
+            <div class="stockModalFormOuter">
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        库存编号:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="code" class="overFlowDiv input-readonly form-control" readonly/>
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        当前归属:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="warehouseId" class="input-readonly form-control" readonly/>
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        归属人:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="userName" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <label class="col-sm-2 control-label">
+                        归属时间:
+                    </label>
+                    <div class="col-sm-2">
+                        <input name="createTime" class="input-readonly form-control" readonly/>
+                    </div>
+                </div>
+            </div>
+            <!--列表内容-->
+            <div class="stockModalTableOuter">
+                <div class="col-md-12 form-group">
+                    <div class="modalTableTitle col-sm-2 control-label" style="padding-right: 26px;margin-top: -16px">
+                        库存日志
+                    </div>
+                </div>
+                <!--表格顶部汇总栏目，当栏目过多自动产生滚动条-->
+                <div class="modalTableTotal">
+                    <div class="col-sm-1"></div>
+                    <div style="margin-right: 24px;margin-left: 34px;">
+                        <span class="spanBox">产品分类：</span>
+                        <span name="typeName"></span>
+                    </div>
+                    <div style="margin-right: 24px">
+                        <span class="spanBox">产品名称：</span>
+                        <span name="goodsName"></span>
+                    </div>
+                    <div style="margin-right: 24px">
+                        <span class="spanBox">规格：</span>
+                        <span name="specs"></span>
+                    </div>
+                    <div style="margin-right: 24px">
+                        <span class="spanBox">单位：</span>
+                        <span name="unit"></span>
+                    </div>
+                    <div style="margin-right: 24px">
+                        <span class="spanBox">数量：</span>
+                        <span name="number">100</span>
+                    </div>
+                    <div>
+                        <span class="spanBox">金额：</span>
+                        ￥<span name="price"></span>元
+                    </div>
+                </div>
+                <div class="modalTableContent">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10 form-group">
+                        <div class="col-sm-12">
+                            <table class="layui-table" lay-skin="line" cellspacing="0" cellpadding="0px"
+                                   style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="10%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                    <col width="20%">
+                                </colgroup>
+                                <thead>
+                                <tr class="active">
+                                    <td style="text-align: center;">序号</td>
+                                    <td style="text-align: center;">库存编号</td>
+                                    <td style="text-align: center;">操作人</td>
+                                    <td style="text-align: center;">操作时间</td>
+                                    <td style="text-align: center;">流程状态</td>
+                                </tr>
+                                </thead>
+                            </table>
+                            <div style="overflow-y: auto;padding: 0px;width: 100%;">
+                                <table class="layui-table" lay-skin="line" id="showDetailsTable5"
+                                       style="margin-top: 0px;margin-bottom: 0px;table-layout:fixed;">
+                                    <colgroup>
+                                        <col width="10%">
+                                        <col width="20%">
+                                        <col width="20%">
+                                        <col width="20%">
+                                        <col width="20%">
+                                    </colgroup>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!--TODO 表格底部内容-->
+                    <div class="modalTableBottomContent">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" style="z-index: 199999999!important;" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

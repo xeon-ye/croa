@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmCompanyMapper">
+
+    <resultMap type="com.qinfei.qferp.entity.crm.CrmCompany" id="CrmCompanyMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="industry" column="industry" jdbcType="VARCHAR"/>
+        <result property="product" column="product" jdbcType="VARCHAR"/>
+        <result property="structure" column="structure" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="purpose" column="purpose" jdbcType="VARCHAR"/>
+        <result property="scale" column="scale" jdbcType="VARCHAR"/>
+        <result property="advVolume" column="advVolume" jdbcType="VARCHAR"/>
+        <result property="area" column="area" jdbcType="VARCHAR"/>
+        <result property="experience" column="experience" jdbcType="VARCHAR"/>
+        <result property="publicMedia" column="publicMedia" jdbcType="VARCHAR"/>
+        <result property="channel" column="channel" jdbcType="VARCHAR"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="creator" column="creator" jdbcType="INTEGER"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="updateUserId" column="updateUserId" jdbcType="INTEGER"/>
+        <result property="typeCode" column="typeCode" jdbcType="VARCHAR"/>
+        <result property="typeName" column="typeName" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="standardize" column="standardize" jdbcType="INTEGER"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="deleteFlag" column="deleteFlag" jdbcType="INTEGER"/>
+        <result property="auditFlag" column="auditFlag" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 通用查询结果列-->
+    <sql id="Base_Column_List">
+    id as id,
+    name as name,
+    industry as industry,
+    product as product,
+    structure as structure,
+    brand as brand,
+    purpose as purpose,
+    scale as scale,
+    adv_volume as advVolume,
+    area as area,
+    experience as experience,
+    public_media as publicMedia,
+    channel as channel,
+    create_time as createTime,
+    creator as creator,
+    update_time as updateTime,
+    update_user_id as updateUserId,
+    type_code as typeCode,
+    type_name as typeName,
+    type as type,
+    standardize as standardize,
+    image as image,
+    delete_flag as deleteFlag,
+    protect_level as protectLevel,
+    audit_flag as auditFlag
+    </sql>
+
+    <!--查询单个-->
+    <select id="getByIdDetail" resultType="map">
+        SELECT
+            a.id as id,
+            a.name as name,
+            b.name as industry,
+            a.product as product,
+            a.structure as structure,
+            a.brand as brand,
+            a.purpose as purpose,
+            a.scale as scale,
+            a.adv_volume as advVolume,
+            c.name as area,
+            a.experience as experience,
+            a.public_media as publicMedia,
+            a.channel as channel,
+            a.create_time as createTime,
+            a.creator as creator,
+            a.update_time as updateTime,
+            a.update_user_id as updateUserId,
+            a.type_code as typeCode,
+            a.type_name as typeName,
+                case when a.type=1 then '公司客户' else '个人客户' end as type,
+            a.standardize as standardize,
+            a.image as image,
+            a.delete_flag as deleteFlag,
+            a.protect_level as protectLevel,
+            a.audit_flag as auditFlag
+        FROM t_crm_company a
+        left join sys_dict b on a.industry = b.code and b.type_code = 'industry'
+        left join sys_district c on c.id = a.area
+        where a.id = #{id}
+    </select>
+
+    <select id="getById" resultMap="CrmCompanyMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company
+        where id = #{id}
+    </select>
+    <select id="getByName" resultMap="CrmCompanyMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company
+        where name = #{name}
+    </select>
+
+    <select id="getByCompanyUserId" resultMap="CrmCompanyMap">
+        select
+            a.id as id,
+            a.name as name,
+            a.industry as industry,
+            a.product as product,
+            a.structure as structure,
+            a.brand as brand,
+            a.purpose as purpose,
+            a.scale as scale,
+            a.adv_volume as advVolume,
+            a.area as area,
+            a.experience as experience,
+            a.public_media as publicMedia,
+            a.channel as channel,
+            a.create_time as createTime,
+            a.creator as creator,
+            a.update_time as updateTime,
+            a.update_user_id as updateUserId,
+            a.type_code as typeCode,
+            a.type_name as typeName,
+            a.type as type,
+            a.standardize as standardize,
+            a.image as image,
+            a.delete_flag as deleteFlag,
+            a.protect_level as protectLevel,
+            a.audit_flag as auditFlag
+        from t_crm_company a left join t_crm_company_user b on a.id = b.company_id
+        where b.id = #{companyUserId}
+    </select>
+
+    <select id="getByUserId" resultMap="CrmCompanyMap">
+        select
+            a.id as id,
+            a.name as name,
+            a.industry as industry,
+            a.product as product,
+            a.structure as structure,
+            a.brand as brand,
+            a.purpose as purpose,
+            a.scale as scale,
+            a.adv_volume as advVolume,
+            a.area as area,
+            a.experience as experience,
+            a.public_media as publicMedia,
+            a.channel as channel,
+            a.create_time as createTime,
+            a.creator as creator,
+            a.update_time as updateTime,
+            a.update_user_id as updateUserId,
+            a.type_code as typeCode,
+            a.type_name as typeName,
+            a.type as type,
+            a.standardize as standardize,
+            a.image as image,
+            a.delete_flag as deleteFlag,
+            a.protect_level as protectLevel,
+            a.audit_flag as auditFlag
+        from  t_crm_company a
+        left join t_crm_company_user b on a.id = b.company_id
+        where b.id = #{companyUserId}
+    </select>
+
+    <update id="updateCompany" parameterType="map">
+        update t_crm_company
+        <set>
+            update_time = now(),
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="industry != null">
+                industry = #{industry},
+            </if>
+            <if test="product != null">
+                product = #{product},
+            </if>
+            <if test="structure != null">
+                structure = #{structure},
+            </if>
+            <if test="brand != null">
+                brand = #{brand},
+            </if>
+            <if test="purpose != null">
+                purpose = #{purpose},
+            </if>
+            <if test="scale != null">
+                scale = #{scale},
+            </if>
+            <if test="advVolume != null ">
+                adv_volume = #{advVolume},
+            </if>
+            <if test="area != null">
+                area = #{area},
+            </if>
+            <if test="experience != null">
+                experience = #{experience},
+            </if>
+            <if test="publicMedia != null">
+                public_media = #{publicMedia},
+            </if>
+            <if test="channel != null">
+                channel = #{channel},
+            </if>
+            <if test="typeCode != null">
+                type_code = #{typeCode},
+            </if>
+            <if test="typeName != null">
+                type_name = #{typeName},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="standardize != null">
+                standardize = #{standardize},
+            </if>
+            <if test="image != null">
+                image = #{image},
+            </if>
+            <if test="protectLevel != null">
+                protect_level = #{protectLevel},
+            </if>
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="auditFlag != null">
+                audit_flag = #{auditFlag},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <select id="queryCompanyProduct" resultType="map">
+        SELECT
+            a.`id` as id,
+            a.`category` as category,
+            a.`suit_users` as suitUsers,
+            a.`suit_scene` as suitScene,
+            a.`pack_style` as packStyle,
+            a.`price` as price,
+            a.`func` as func,
+            a.`company_id` as companyId,
+            DATE_FORMAT(a.`create_time`,"%Y-%m-%d %H:%i") as createTime,
+            (select b.name from sys_user b where b.id = a.creator) as creator,
+            DATE_FORMAT(a.`update_time`,"%Y-%m-%d %H:%i") as updateTime,
+            (select c.name from sys_user c where c.id = a.update_user_id) as updateUserName
+        FROM t_crm_company_product a
+            where a.company_id = #{companyId} and delete_flag = 0
+    </select>
+
+    <!--查询单个公司产品-->
+    <select id="getProductById" resultType="map">
+        select
+            a.`id` as id,
+            a.`category` as category,
+            a.`suit_users` as suitUsers,
+            a.`suit_scene` as suitScene,
+            a.`pack_style` as packStyle,
+            a.`price` as price,
+            a.`func` as func
+        from t_crm_company_product a
+        where a.id = #{productId} and a.delete_flag = 0
+    </select>
+
+    <insert id="saveProduct" parameterType="map">
+        INSERT INTO `t_crm_company_product` (`category`, `suit_users`, `suit_scene`, `pack_style`, `price`, `func`,
+        `company_id`, `create_time`, `creator`, `delete_flag`)
+        VALUES (#{category}, #{suitUsers}, #{suitScene}, #{packStyle}, #{price}, #{func},
+         #{companyId}, now(), #{creator}, 0);
+    </insert>
+
+    <update id="updateProduct" parameterType="map">
+        update t_crm_company_product
+        <set>
+            update_time = now(),
+            <if test="category != null">
+                category = #{category},
+            </if>
+            <if test="suitUsers != null">
+                suit_users = #{suitUsers},
+            </if>
+            <if test="suitScene != null">
+                suit_scene = #{suitScene},
+            </if>
+            <if test="packStyle != null">
+                pack_style = #{packStyle},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="func != null">
+                func = #{func},
+            </if>
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <select id="queryCompanyConsumer" resultType="map">
+        SELECT
+            a.`id` as id,
+            a.`age` as age,
+            case a.`sex` when 1 then '男' when 0 then '女' when 2 then '全部' else '' end as sex,
+            a.`area` as area,
+            a.`education` as education,
+            a.`job` as job,
+            a.`hobby` as hobby,
+            a.`topic` as topic,
+            a.`company_id` as companyId,
+            DATE_FORMAT(a.`create_time`,"%Y-%m-%d %H:%i") as createTime,
+            (select b.name from sys_user b where b.id = a.creator) as creator,
+            DATE_FORMAT(a.`update_time`,"%Y-%m-%d %H:%i") as updateTime,
+            (select c.name from sys_user c where c.id = a.update_user_id) as updateUserName
+        FROM t_crm_company_consumer a
+            where a.company_id = #{companyId} and a.delete_flag = 0
+    </select>
+    <!--查询单个公司用户群体-->
+    <select id="getConsumerById" resultType="map">
+        select
+            a.`id` as id,
+            a.`age` as age,
+            a.`sex` as sex,
+            a.`area` as area,
+            a.`education` as education,
+            a.`job` as job,
+            a.`hobby` as hobby,
+            a.`topic` as topic
+        from t_crm_company_consumer a
+        where a.id = #{consumer} and a.delete_flag = 0
+    </select>
+
+    <insert id="saveConsumer" parameterType="map">
+        INSERT INTO `t_crm_company_consumer` (`age`, `sex`, `area`, `education`, `job`, `hobby`,
+        `topic`, `company_id`, `create_time`, `creator`, `delete_flag`)
+        VALUES (#{age}, #{sex}, #{area}, #{education}, #{job}, #{hobby},
+         #{topic}, #{companyId}, now(), #{creator}, 0);
+    </insert>
+
+    <update id="updateConsumer" parameterType="map">
+        update t_crm_company_consumer
+        <set>
+            update_time = now(),
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="area != null">
+                area = #{area},
+            </if>
+            <if test="education != null">
+                education = #{education},
+            </if>
+            <if test="job != null">
+                job = #{job},
+            </if>
+            <if test="topic != null">
+                topic = #{topic},
+            </if>
+            <if test="hobby != null">
+                hobby = #{hobby},
+            </if>
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--查询客户保护信息-->
+    <select id="queryProtectByProtectId" resultType="map">
+        SELECT
+            a.id as id,
+            case when a.protect_level=3 then 'A类' when a.protect_level=2 then 'B类' when a.protect_level=1 then 'C类' else '' end as protectLevel,
+            b.name as companyName,
+            b.type_name as typeName,
+            c.name as industry,
+            d.name as area,
+            b.brand as brand,
+            b.product as product,
+            b.audit_flag as auditFlag,
+            b.id as companyId,
+            a.apply_name as applyName,
+            a.apply_dept_name as applyDeptName,
+            a.apply_time as applyTime,
+            a.state as state,
+            a.task_id as taskId,
+            a.item_id as itemId
+        FROM t_crm_company_protect a
+            left join t_crm_company b on a.company_id = b.id
+            left join sys_dict c on b.industry = c.code and c.type_code = 'industry'
+            left join sys_district d on d.id = b.area
+        where a.id = #{protectId}
+    </select>
+
+    <!--查询客户保护列表-->
+    <select id="listProtect" resultType="map">
+        select
+            a.id as id,
+            a.company_id as companyId,
+            a.company_name as companyName,
+            a.protect_level as protectLevel,
+            a.apply_name as applyName,
+            a.apply_dept_name as applyDeptName,
+            DATE_FORMAT(a.`apply_time`,"%Y-%m-%d %H:%i") as applyTime,
+            a.state as state,
+            DATE_FORMAT(a.`update_time`,"%Y-%m-%d %H:%i") as updateTime,
+            b.name as updateUserName,
+            a.task_id as taskId
+        from t_crm_company_protect a
+        left join sys_user b on a.update_user_id = b.id
+        where a.company_id = #{companyId} and delete_flag = 0
+        order by a.id desc
+    </select>
+
+    <insert id="saveProtect" parameterType="map">
+        INSERT INTO `t_crm_company_protect` (`company_id`, `company_name`, `protect_level`, `apply_id`, `apply_name`,
+         `apply_time`, `apply_dept_id`,`apply_dept_name`, `delete_flag`, `state`)
+        VALUES (#{companyId}, #{companyName}, #{protectLevel}, #{applyId}, #{applyName},
+        now(), #{applyDeptId}, #{applyDeptName}, 0, #{state})
+    </insert>
+
+    <!--查询单个公司用户群体-->
+    <update id="updateProtect" parameterType="map">
+        update t_crm_company_protect
+        <set>
+            update_time = now(),
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag},
+            </if>
+            <if test="state != null">
+                state = #{state},
+            </if>
+            <if test="loginUserId != null">
+                update_user_id = #{loginUserId},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <select id="getProtect" resultType="map">
+        select
+            a.id as id,
+            a.company_id as companyId,
+            a.company_name as companyName,
+            a.protect_level as protectLevel,
+            a.apply_id as applyId,
+            a.apply_name as applyName,
+            a.apply_dept_id as applyDeptId,
+            a.apply_dept_name as applyDeptName,
+            DATE_FORMAT(a.`apply_time`,"%Y-%m-%d %H:%i") as applyTime,
+            a.state as state,
+            DATE_FORMAT(a.`update_time`,"%Y-%m-%d %H:%i") as updateTime,
+            a.task_id as taskId
+        from t_crm_company_protect a where a.id = #{protectId}
+    </select>
+
+    <select id="trackList" resultType="Map">
+        SELECT cck.id,
+        cck.company_user_id companyUserId,
+        cck.content,
+        cck.image_name imageName,
+        cck.image_link imageLink,
+        cck.affix_name affixName,
+        cck.affix_link affixLink,
+        DATE_FORMAT(cck.track_time,'%Y-%m-%d %H:%i') trackTime,
+        cc.`name` companyName,
+        ccu.`name` companyUserName,
+        su.name
+        FROM t_crm_company_track cck
+        LEFT JOIN t_crm_company_user ccu ON cck.company_user_id=ccu.id
+        LEFT JOIN t_crm_company cc ON ccu.company_id=cc.id
+        LEFT JOIN sys_user su ON su.id = cck.creator
+        WHERE cck.company_user_id=#{companyUserId} AND cck.delete_flag = 0
+        ORDER BY cck.id DESC
+    </select>
+
+    <insert id="saveCompanyTrack" parameterType="map">
+        INSERT INTO `t_crm_company_track`
+        (`company_user_id`,`content`,`image_name`,`image_link`,`affix_name`,`affix_link`,`track_time`,`creator`,`create_time`)
+        VALUES
+        ( #{companyUserId}, #{content}, #{imageName}, #{imageLink}, #{affixName},#{affixLink}, NOW(), #{creator},NOW());
+    </insert>
+
+    <!--查询重复的客户公司名-->
+    <select id="getRepeadCompanyName" resultType="map">
+        select  name as name, count(id) as count, min(id) as id FROM t_crm_company group by name having count(id) > 1
+    </select>
+
+    <!--公司名重复的时候，取第一个-->
+    <select id="getEarliestByName" resultMap="CrmCompanyMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_crm_company
+        where name = #{name} order by id asc
+    </select>
+    <delete id="deleteById" parameterType="integer">
+        delete from t_crm_company where id = #{id}
+    </delete>
+    <!--定时器处理历史重复的公司名，更换id-->
+    <update id="updateUserCompanyId" parameterType="map">
+        update t_crm_company_user set company_id = #{oldCompanyId} where company_id = #{newCompanyId}
+    </update>
+    <!--定时器处理历史重复的公司名，更换id-->
+    <update id="updateOrderCompanyId" parameterType="map">
+        update t_biz_order set company_id = #{oldCompanyId} where company_id = #{newCompanyId}
+    </update>
+    <!--定时器处理历史重复的公司名，更换id-->
+    <update id="updateInvoiceCompanyId" parameterType="map">
+        update fee_invoice set cust_company_id = #{oldCompanyId} where cust_company_id = #{newCompanyId}
+    </update>
+    <!--定时器处理历史重复的公司名，更换id-->
+    <update id="updateRefundCompanyId" parameterType="map">
+        update fee_refund set cust_company_id = #{oldCompanyId} where cust_company_id = #{newCompanyId}
+    </update>
+    <!--修改公司名，把新的公司名和id更新到订单表中-->
+    <update id="updateOrderCompanyInfo" parameterType="map">
+        update t_biz_order set company_id = #{newCompanyId}, company_name = #{newCompanyName} where cust_id = #{companyUserId}
+    </update>
+    <!--修改公司名，把新的公司名和id更新到还未结束的开票表数据中-->
+    <update id="updateInvoiceCompanyInfo" parameterType="map">
+        update fee_invoice set cust_company_id = #{newCompanyId}, cust_company_name = #{newCompanyName} where cust_id = #{companyUserId} and state != 1
+    </update>
+    <!--修改公司名，把新的公司名和id更新到还未结束的退款表数据中-->
+    <update id="updateRefundCompanyInfo" parameterType="map">
+        update fee_refund set cust_company_id = #{newCompanyId}, cust_company_name = #{newCompanyName} where cust_id = #{companyUserId} and state != 1
+    </update>
+    <!--修改公司名，把新的公司名和id更新到还未结束的烂账表数据中-->
+    <update id="updateMessCompanyInfo" parameterType="map">
+        update fee_refund set cust_company_id = #{newCompanyId}, cust_company_name = #{newCompanyName} where cust_id = #{companyUserId} and state != 1
+    </update>
+</mapper>

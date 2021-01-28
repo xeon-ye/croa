@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainCourseSignMapper">
+    <sql id="selectColumn">
+      tcs.id,
+      tcs.course_id as courseId,
+      tcs.user_id as userId,
+      tcs.complete_time as completeTime,
+      tcs.complete_rate as completeRate,
+      tcs.integral as integral,
+      tcs.score as score,
+      tcs.score_flag as scoreFlag,
+      tcs.like_flag as likeFlag,
+      tcs.vent_flag as ventFlag,
+      tcs.create_id as createId,
+      tcs.create_date as createDate,
+      tcs.update_id as updateId,
+      tcs.update_date as updateDate,
+      tcs.company_code as companyCode,
+      tcs.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+    <sql id="courseColumn">
+      tc.id as trainCourseId,
+      tc.title,
+      tc.course_plate as coursePlate,
+      tc.train_way as trainWay,
+      tc.sign_start_time as signStartTime,
+      tc.sign_end_time as signEndTime,
+      tc.train_start_time as trainStartTime,
+      tc.train_end_time as trainEndTime,
+      tc.train_address as trainAddress,
+      tc.train_grade as trainGrade,
+      tc.course_end_time as courseEndTime,
+      tc.course_pic as coursePic,
+      tc.create_id as teacherId,
+      tc.state as courseState
+    </sql>
+
+    <!--学员报名课程-->
+    <resultMap id="signCourseMap" type="com.qinfei.qferp.entity.study.TrainCourseSign">
+        <id column="id" property="id"/>
+        <result column="courseId" property="courseId"/>
+        <result column="userId" property="userId"/>
+        <result column="completeTime" property="completeTime"/>
+        <result column="completeRate" property="completeRate"/>
+        <result column="integral" property="integral"/>
+        <result column="score" property="score"/>
+        <result column="scoreFlag" property="scoreFlag"/>
+        <result column="likeFlag" property="likeFlag"/>
+        <result column="ventFlag" property="ventFlag"/>
+        <result column="createId" property="createId"/>
+        <result column="createDate" property="createDate"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="state" property="state"/>
+        <association property="trainCourse" javaType="com.qinfei.qferp.entity.study.TrainCourse">
+            <id column="trainCourseId" property="id"/>
+            <result column="title" property="title"/>
+            <result column="coursePlate" property="coursePlate"/>
+            <result column="trainWay" property="trainWay"/>
+            <result column="signStartTime" property="signStartTime"/>
+            <result column="signEndTime" property="signEndTime"/>
+            <result column="trainStartTime" property="trainStartTime"/>
+            <result column="trainEndTime" property="trainEndTime"/>
+            <result column="trainAddress" property="trainAddress"/>
+            <result column="trainGrade" property="trainGrade"/>
+            <result column="courseEndTime" property="courseEndTime"/>
+            <result column="coursePic" property="coursePic"/>
+            <result column="teacherId" property="createId"/>
+            <result column="courseState" property="state"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_course_sign
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="completeRate != null">complete_rate,</if>
+            <if test="integral != null">integral,</if>
+            <if test="score != null">score,</if>
+            <if test="likeFlag != null">like_flag,</if>
+            <if test="ventFlag != null">vent_flag,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="completeRate != null">#{completeRate},</if>
+            <if test="integral != null">#{integral},</if>
+            <if test="score != null">#{score},</if>
+            <if test="likeFlag != null">#{likeFlag},</if>
+            <if test="ventFlag != null">#{ventFlag},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_course_sign
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="completeRate != null">complete_rate = #{completeRate},</if>
+            <if test="integral != null">integral = #{integral},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="scoreFlag != null">score_flag = #{scoreFlag},</if>
+            <if test="likeFlag != null">like_flag = #{likeFlag},</if>
+            <if test="ventFlag != null">vent_flag = #{ventFlag},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--修改状态-->
+    <update id="updateStateById">
+        UPDATE t_train_course_sign
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--修改状态-->
+    <update id="updateStateByCourseId">
+        UPDATE t_train_course_sign
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE course_id = #{courseId}
+    </update>
+
+    <!--获取指定人员的课程报名-->
+    <select id="getCourseSignByUserId" resultType="com.qinfei.qferp.entity.study.TrainCourseSign">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+        t_train_course_sign tcs
+        WHERE
+        tcs.state <![CDATA[<>]]> -9
+        AND tcs.course_id = #{courseId}
+        AND tcs.user_id = #{userId}
+    </select>
+
+    <!--获取指定学员的报名课程列表-->
+    <select id="listSignUpCourseByParam" resultMap="signCourseMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="courseColumn"/>
+        FROM
+        t_train_course_sign tcs
+        INNER JOIN t_train_course tc ON tcs.course_id = tc.id
+        WHERE
+          tcs.state <![CDATA[<>]]> -9
+        <if test="userId != null">
+            AND tcs.user_id = #{userId}
+        </if>
+        <if test="state != null">
+            AND tcs.state = #{state}
+        </if>
+        <!--已结束-->
+        <if test="courseHasEnd">
+            AND tc.course_end_time <![CDATA[<]]> now()
+        </if>
+        <!--可评论-->
+        <if test="courseCanComment">
+            AND tc.train_end_time <![CDATA[<=]]> now()
+            AND tc.course_end_time <![CDATA[>]]> now()
+        </if>
+        <!--未开始-->
+        <if test="courseNotStart">
+            AND tc.train_start_time <![CDATA[>]]> now()
+        </if>
+        <!--查询某讲师课程-->
+        <if test="teacherId != null">
+            AND tc.create_id = #{teacherId}
+        </if>
+        <if test="companyCode != null and companyCode != null and companyCode != 'JT'">
+            AND tcs.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--根据课程ID查询报名列表-->
+    <select id="listCourseSignByCourseId" resultType="com.qinfei.qferp.entity.study.TrainCourseSign">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+        t_train_course_sign tcs
+        WHERE
+        tcs.state <![CDATA[<>]]> -9
+        AND tcs.course_id = #{courseId}
+    </select>
+
+    <!--学员总数-->
+    <select id="getStudentTotal" resultType="java.lang.Integer">
+        SELECT
+        count(*)
+        FROM
+        (
+          SELECT
+          count(distinct tcs.user_id)
+          FROM
+          t_train_course_sign tcs
+          <if test="deptId != null">
+              INNER JOIN sys_user su ON su.id = tcs.user_id
+          </if>
+          LEFT JOIN t_train_course tc ON tcs.course_id = tc.id
+          WHERE
+          tcs.state <![CDATA[<>]]> -9
+          <!--查询某讲师课程-->
+          <if test="teacherId != null">
+              AND tc.create_id = #{teacherId}
+          </if>
+          <if test="companyCode != null and companyCode != null and companyCode != 'JT'">
+              AND tcs.company_code = #{companyCode}
+          </if>
+          <if test="userId != null">
+              AND tcs.user_id = #{userId}
+          </if>
+          <if test="deptId != null">
+              AND su.dept_id = #{deptId}
+          </if>
+          GROUP BY
+          tcs.user_id
+        ) t
+    </select>
+
+    <!--学员统计-->
+    <select id="listStudentByParam" resultType="java.util.Map">
+        SELECT
+          tcs.user_id as userId,
+          IFNULL(count(DISTINCT tcs.id) ,0) AS signNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_time ELSE 0 END), 0) AS completeTime,
+          IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_rate ELSE 0 END), 0) AS completeRate,
+          IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.integral ELSE 0 END), 0) AS integral
+        FROM
+        t_train_course_sign tcs
+        <if test="deptId != null">
+            INNER JOIN sys_user su ON su.id = tcs.user_id
+        </if>
+        LEFT JOIN t_train_course tc ON tcs.course_id = tc.id
+        WHERE
+          tcs.state <![CDATA[<>]]> -9
+          <!--查询某讲师课程-->
+          <if test="teacherId != null">
+              AND tc.create_id = #{teacherId}
+          </if>
+          <if test="companyCode != null and companyCode != null and companyCode != 'JT'">
+              AND tcs.company_code = #{companyCode}
+          </if>
+          <if test="userId != null">
+              AND tcs.user_id = #{userId}
+          </if>
+          <if test="deptId != null">
+              AND su.dept_id = #{deptId}
+          </if>
+        GROUP BY
+        tcs.user_id
+    </select>
+
+    <!--学员统计-->
+    <select id="listStudentByParamForExport" resultType="java.util.Map">
+        SELECT
+        tcs.user_id as userId,
+        su.name as userName,
+        su.dept_name as deptName,
+        IFNULL(count(DISTINCT tcs.id) ,0) AS signNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_time ELSE 0 END),
+        0) AS completeTime,
+        IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_rate ELSE 0 END),
+        0) AS completeRate,
+        IFNULL(SUM(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.integral ELSE 0 END), 0) AS
+        integral
+        FROM
+        t_train_course_sign tcs
+        INNER JOIN sys_user su ON su.id = tcs.user_id
+        LEFT JOIN t_train_course tc ON tcs.course_id = tc.id
+        WHERE
+        tcs.state <![CDATA[<>]]> -9
+        <!--查询某讲师课程-->
+        <if test="teacherId != null">
+            AND tc.create_id = #{teacherId}
+        </if>
+        <if test="companyCode != null and companyCode != null and companyCode != 'JT'">
+            AND tcs.company_code = #{companyCode}
+        </if>
+        <if test="userId != null">
+            AND tcs.user_id = #{userId}
+        </if>
+        <if test="deptId != null">
+            AND su.dept_id = #{deptId}
+        </if>
+        GROUP BY
+        tcs.user_id
+    </select>
+
+    <!--课程学员列表-->
+    <select id="listStudentByCourseIdAndDept" resultType="java.util.Map">
+        SELECT
+        tcs.id,
+        tcs.course_id as courseId,
+        tcs.user_id as userId,
+        IFNULL(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_time ELSE 0 END, 0) AS
+        completeTime,
+        IFNULL(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.complete_rate ELSE 0 END, 0) AS
+        completeRate,
+        IFNULL(CASE WHEN tc.state = 1 AND tc.train_end_time <![CDATA[<]]> NOW() THEN tcs.integral ELSE 0 END, 0) AS
+        integral,
+        tcs.score as score,
+        tcs.score_flag as scoreFlag,
+        tcs.like_flag as likeFlag,
+        tcs.vent_flag as ventFlag,
+        tcs.create_id as createId,
+        tcs.create_date as createDate,
+        tcs.update_id as updateId,
+        tcs.update_date as updateDate,
+        tcs.company_code as companyCode,
+        tcs.state,
+        tc.title as courseTitle,
+        su.dept_name as deptName,
+        su.name as userName
+        FROM
+        t_train_course_sign tcs
+        LEFT JOIN t_train_course tc ON tcs.course_id = tc.id
+        INNER JOIN sys_user su ON su.id = tcs.user_id
+        WHERE
+        tcs.state <![CDATA[<>]]> -9
+        AND tcs.course_id = #{courseId}
+        <if test="userId != null">
+            tcs.user_id = #{userId}
+        </if>
+        <if test="deptIds != null and deptIds.size() > 0">
+            AND su.dept_id IN
+            <foreach item="deptId" collection="deptIds" index="index" open="(" close=")" separator=",">
+                #{deptId}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

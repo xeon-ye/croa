@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="common_header(title,links,scripts,styles)">
+    <meta charset="UTF-8">
+    <title th:replace="${title}">内部智能管理系统-主页</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="Cache-Control" content="no-siteapp"/>
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link th:href="@{/css/bootstrap.min.css(v=${version})}"   rel="stylesheet"/>
+    <link th:href="@{/css/font-awesome.min.css(v=${version})}" rel="stylesheet"/>
+    <!-- jqgrid-->
+    <link th:href="@{/css/plugins/jqgrid/ui.jqgridffe4.css(v=${version})}" rel="stylesheet"/>
+    <link th:href="@{/css/animate.css(v=${version})}" rel="stylesheet"/>
+    <link th:href="@{/css/style.css(v=${version})}" rel="stylesheet"/>
+    <!-- Sweet Alert -->
+    <link th:href="@{/css/plugins/sweetalert/sweetalert.css(v=${version})}" rel="stylesheet"/>
+    <link th:href="@{/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css(v=${version})}"  rel="stylesheet"/>
+    <link th:href="@{/css/plugins/select2/select2.min.css(v=${version})}" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/plugins/ladda/ladda-themeless.min.css(v=${version})}">
+    <th:block data-th-if="${links}" th:replace="${links}"/>
+
+    <script src="/js/jquery.min.js?v=2.1.4"></script>
+    <script src="/js/bootstrap.min.js?v=3.3.6"></script>
+
+    <script th:src="@{/js/plugins/peity/jquery.peity.min.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/jqgrid/i18n/grid.locale-cnffe4.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/jqgrid/jquery.jqGrid.minffe4.js(v=${version})}"></script>
+    <script th:src="@{/js/content.min.js(v=${version})}"></script>
+    <!-- Sweet alert -->
+    <script th:src="@{/js/plugins/sweetalert/sweetalert.min.js(v=${version})}"></script>
+    <!--validate -->
+    <script th:src="@{/js/plugins/validate/jquery.validate.min.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/validate/messages_zh.min.js(v=${version})}"></script>
+
+    <script th:src="@{/js/plugins/select2/select2.min.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/select2/i18n/zh-CN.js(v=${version})}"></script>
+
+    <script th:src="@{/js/core.js(v=${version})}"></script>
+    <script th:src="@{/js/head.js(v=${version})}" data-th-inline="javascript"></script>
+
+    <script th:src="@{/js/plugins/layer/layer.min.js(v=${version})}"></script>
+
+    <script th:src="@{/js/plugins/ladda/spin.min.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/ladda/ladda.min.js(v=${version})}"></script>
+    <script th:src="@{/js/plugins/iCheck/icheck.min.js(v=${version})}"></script>
+    <script type="text/javascript" data-th-inline="javascript">
+        var user = [[${session.user}]];
+    </script>
+
+    <!--/* Per-page placeholder for additional js */-->
+    <th:block data-th-if="${scripts}" th:replace="${scripts}"/>
+
+    <th:block data-th-if="${styles}" th:replace="${styles}"/>
+
+</head>
+
+</html>

@@ -1,0 +1,749 @@
+    <!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>公告通知管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <!--    <script src="/js/plugins/layer/laydate/laydate.js"></script>-->
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+    <script th:src="@{/js/announcementinform/Mediapass.js(v=${version})}"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <style type="text/css">
+        /*新闻资讯相关样式*/
+        .tbodyWrap{
+            border: 0px solid red;
+            width: 100%;
+            flex:1;
+            overflow: auto;
+        }
+        /*滚动条样式*/
+        .tbodyWrap::-webkit-scrollbar {
+            width: 2px;
+        }
+        .ellipsisContent{
+            width: 98%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .tableButton{
+            padding: 1px 4px;
+            height: 20px;
+            line-height: 19px;
+            font-size: 12px;
+            font-family: Candara;
+            float: left;
+            margin-top: 2px;
+            border-radius: 3px;
+            margin-right: 3px;
+        }
+        .blueBtn{
+            border: 1px solid #4BBBFD;
+            color: #4BBBFD;
+            background-color: #E1F2FB;
+        }
+        .orangeBtn{
+            border: 1px solid #F0736A;
+            color: #EC695F;
+            background-color: #FCECEA;
+        }
+        .jituan{
+            color:#1ab394;
+        }
+
+        .youxiu{
+            color:rgb(256,182,187)
+        }
+
+        .gongsi{
+            color:rgb(250,186,174)
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //通知公告相关
+            // 单选框、多选框美化；
+            $(".i-checks").iCheck({
+                checkboxClass: "icheckbox_square-green",
+                radioClass: "iradio_square-green",
+            });
+            //时间选择器
+            laydate.render({
+                elem: '#releaseStartTime',
+                type: 'datetime'
+            });
+            //时间选择器
+            laydate.render({
+                elem: '#releaseStartTime1',
+                type: 'datetime'
+            });
+            //时间选择器
+            laydate.render({
+                elem: '#releaseEndTime',
+                type: 'datetime',
+                istime:true,
+                ready:function () {
+                    this.dateTime.hours=23;
+                    this.dateTime.minutes=59;
+                    this.dateTime.seconds=59;
+                }
+            });
+            //时间选择器
+            laydate.render({
+                elem: '#releaseEndTime1',
+                type: 'datetime',
+                istime:true,
+                ready:function () {
+                    this.dateTime.hours=23;
+                    this.dateTime.minutes=59;
+                    this.dateTime.seconds=59;
+                }
+            });
+            $("#editModal").draggable();//模态框拖动
+
+            //新闻资讯相关
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //新闻资讯-表格复选框事件
+                form.on('checkbox(newsAllChoose)', function(data){
+                    var child = $(data.elem).closest(".newsContentWrap").find('tbody input[type="checkbox"]');
+                    child.each(function(index, item){
+                        item.checked = data.elem.checked;
+                    });
+                    form.render('checkbox');
+                });
+
+                //新闻资讯-文章标签
+                form.on('select(type)', function(data){
+                    newsObj.init();
+                });
+
+                form.render();
+            });
+
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+
+            //公共-加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    commonObj.tabChange(data.index);
+                });
+            });
+        })
+    </script>
+</head>
+<body style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+<!--顶部TAB-->
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: unset;">
+    <ul class="layui-tab-title">
+        <li id="mediaPassTab" class="layui-this">通知公告</li>
+        <li id="newsTab">新闻资讯</li>
+    </ul>
+</div>
+
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content" style="flex: 1;overflow: hidden;">
+    <!--通知公告-->
+    <div id="mediaPassWrap" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+            <!--查询条件-->
+            <form id="searchForm" autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 122px;">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label" >发布部门:</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="publishDeptName" name="publishDeptNameQC" class="form-control" >
+                        </div>
+
+                        <label class="col-sm-1 control-label">事务类型:</label>
+                        <div class="col-sm-2">
+                            <select name="transactionTypeQC" id="transactionType" class="form-control height18">
+                                <option value="">请选择</option>
+                                <option value="1">通知</option>
+                                <option value="2">公示</option>
+                                <option value="3">分享</option>
+                                <option value="4">提问</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-1 control-label">资源类型:</label>
+                        <div class="col-sm-2">
+                            <select name="resourceTypeQC" id="resourceType" class="form-control height18">
+                                <option value="">请选择</option>
+                                <option value="1">web页面 </option>
+                                <option value="2">文件</option>
+                                <option value="3">图片</option>
+                                <option value="4">插图</option>
+                                <option value="5">电影</option>
+                                <option value="6">书籍</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-1 control-label">标签:</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="labelQC" name="labelQC" class="form-control" >
+                            <!--<select name="labelQC" id="label" class="form-control height18">-->
+                            <!--<option value="">请选择</option>-->
+                            <!--<option value="1">会议 </option>-->
+                            <!--<option value="2">制度</option>-->
+                            <!--<option value="3">电影</option>-->
+                            <!--</select>-->
+                        </div>
+                        <!--<label class="col-sm-1 control-label">生效部门:</label>-->
+                        <!--<div class="col-sm-2">-->
+                        <!--<input type="text" id="operationDaptName" name="operationDaptNameQC"    class="form-control" >-->
+                        <!--</div>-->
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label">生效时间:</label>
+                        <div class="col-sm-2" style="min-width: 340px;">
+                            <input placeholder="开始日期"style="width:150px;vertical-align: middle;float: left;text-align: center;font-size:10px;" readonly
+                                   class="form-control layer-date laydate-icon " id="releaseStartTime" name="releaseStartTimeQC">
+                            <!--<span style="display:inline-block;padding:0 1px;">至</span>-->
+                            <input placeholder="结束日期" style="width:150px;text-align: center;margin-left: 160px;font-size:10px;" readonly
+                                   class="form-control layer-date laydate-icon" id="releaseEndTime" name="releaseEndTimeQC">
+                        </div>
+                        <label class="col-sm-1 control-label" style="margin-left: -58px;">资源状态:</label>
+                        <div class="col-sm-2">
+                            <select name="resourcesStateQC" id="resourcesState" class="form-control height18">
+                                <option value="">请选择</option>
+                                <option value="0">已保存 </option>
+                                <option value="1">归档</option>
+                                <option value="4">已发布 </option>
+                                <option value="-9">失效</option>
+                            </select>
+                        </div>
+
+                        <label class="col-sm-1 control-label">发布人:</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="releaseUser" name="releaseUserQC" class="form-control" >
+                        </div>
+
+                        <button type="button" id="searchButton" style="margin-left: 95px;" class="btn btn-primary" onclick="mediaPassObj.init();">
+                            <i class="fa fa-search"></i>&nbsp;查询
+                        </button>
+
+                    </div>
+                    <div class="col-lg-3 form-group form-inline">
+
+                    </div>
+                </div>
+            </form>
+            <div style="flex: 1;width: 100%;display: flex;flex-direction: column;">
+                <div class="ibox-title" style="display: flex;align-items: center;padding: unset;">
+                    <button id="addBtn" class="btn btn-danger" type="button" onclick="mediaPassObj.addBtnClick();">
+                        <i class="fa fa-plus"></i>&nbsp;新增通知
+                    </button>
+                </div>
+                <div class="ibox-content" style="flex: 1;width: 100%;padding: unset;display: flex;flex-direction: column;overflow-y:auto;overflow-x: hidden;">
+                    <div class="jqGrid_wrapper" style="width: 100%;flex: 1;">
+                        <table id="table_Announcement_list"></table>
+                        <div id="pager_Announcement_list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--新闻资讯-->
+    <div id="newsWrap" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="ibox-content" style="width: 100%;height: 100%;">
+            <form id="newsQueryForm" autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;">
+                <div style="width: 100%;height: 100%;display: flex;flex-direction: column;overflow: hidden;">
+                    <!--搜索条件-->
+                    <div style="border:0px solid red;width: 100%;height: 50px;line-height: 50px;padding: 0 15px;">
+                        <div class="col-md-12" style="display: flex;align-items: center;padding-left: 0px;">
+                            <label class="col-md-1 control-label" style="padding-top: 0px;padding-left: 0px;width: unset;">
+                                文章标签:
+                            </label>
+                            <div class="col-md-2">
+                                <select name="type" class="form-control height18" lay-search lay-filter="type">
+                                    <option value="">请选择文章标签</option>
+                                    <option value="1">集团新闻</option>
+                                    <option value="2">公司新闻</option>
+                                    <option value="4">优秀事迹</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="queryValue" class="form-control" placeholder="搜索文章关键字">
+                            </div>
+                            <div class="col-sm-1" style="margin-top: -2px;">
+                                <button type="button" class="btn btn-primary" onclick="newsObj.init();">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--内容列表-->
+                    <div class="newsContentWrap layui-form" style="border: 0px solid red;width: 100%;flex: 1;float: left;overflow: auto;display: flex;flex-direction: column;">
+                        <div class="paramDiv" style="text-align: left;float: left; width: 20%;height: 40px;">
+                            <button class="btn btn-primary" type="button" onclick="newsObj.addClick();">
+                                <i class="fa fa-plus"></i>&nbsp;新增
+                            </button>
+                            <button id="batchDelNews" class="btn btn-danger" type="button" onclick="newsObj.batchDel();">
+                                <i class="fa fa-close"></i>&nbsp;批量删除
+                            </button>
+                        </div>
+                        <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                            <colgroup>
+                                <col width="4%">
+                                <col width="6%">
+                                <col width="15%">
+                                <col width="50%">
+                                <col width="15%">
+                                <col width="10%">
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th>
+                                    <div class="ellipsisContent">
+                                        <input id="newsAllChoose" type="checkbox" lay-skin="primary" lay-filter="newsAllChoose">
+                                    </div>
+                                </th>
+                                <th title="序号">
+                                    <div class="ellipsisContent">
+                                        序号
+                                    </div>
+                                </th>
+                                <th title="文章标签">
+                                    <div class="ellipsisContent">
+                                        文章标签
+                                    </div>
+                                </th>
+                                <th title="文章标题">
+                                    <div class="ellipsisContent">
+                                        文章标题
+                                    </div>
+                                </th>
+                                <th title="发布时间">
+                                    <div class="ellipsisContent">
+                                        发布时间
+                                    </div>
+                                </th>
+                                <th title="操作">
+                                    <div class="ellipsisContent">
+                                        操作
+                                    </div>
+                                </th>
+                            </tr>
+                            </thead>
+                        </table>
+                        <div class="tbodyWrap">
+                            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                                <colgroup>
+                                    <col width="4%">
+                                    <col width="6%">
+                                    <col width="15%">
+                                    <col width="50%">
+                                    <col width="15%">
+                                    <col width="10%">
+                                </colgroup>
+                                <tbody class="newsList">
+                                <!--<tr>
+                                <td title="1">
+                                    <div class="ellipsisContent">
+                                        <input type="checkbox" lay-skin="primary">
+                                    </div>
+                                </td>
+                                <td title="1">
+                                    <div class="ellipsisContent">
+                                        1
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="讲师">
+                                    <div class="ellipsisContent">
+                                        讲师
+                                    </div>
+                                </td>
+                                <td title="业务培训课程">
+                                    <div class="ellipsisContent">
+                                        业务培训课程
+                                    </div>
+                                </td>
+                                </tr>-->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--分页插件-->
+                    <div id="newsPager" style="text-align: right;margin-right: 25px;"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--新增公告通知-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" style="overflow: auto" >
+    <div class="modal-dialog" style="width: 1300px;">
+        <form id="editForm" class="form-horizontal" action=""  type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header" style="padding: 15px;">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title save">新增通知公告</h4>
+                    <h4 class="modal-title update">更改公告信息</h4>
+                </div>
+                <div class="ibox-content" style="overflow-x: hidden;">
+                    <div class="row">
+                       <div class="col-sm-12">
+                           <input type="hidden" id="id" name="id" class="form-control">
+                           <div class="form-group">
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>事务类型:</label>
+                               <div class="col-sm-3">
+                                   <select name="transactionType" id="transactionType1" class="form-control height18" required="">
+                                       <option value="">请选择</option>
+                                       <option value="1">通知 </option>
+                                       <option value="2">公示</option>
+                                       <option value="3">分享</option>
+                                       <option value="4">提问</option>
+                                   </select>
+                               </div>
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>资源类型:</label>
+                               <div class="col-sm-3">
+                                   <select name="resourceType" id="resourceType1" class="form-control height18" required="">
+                                       <option value="">请选择</option>
+                                       <option value="1">web页面 </option>
+                                       <option value="2">文件</option>
+                                       <option value="3">图片</option>
+                                       <option value="4">插图</option>
+                                       <option value="5">电影</option>
+                                       <option value="6">书籍</option>
+                                   </select>
+                               </div>
+                               <label class="col-sm-1 control-label" >标签:</label>
+                               <div class="col-sm-3 " >
+                                   <input type="text" id="label2" name="label" class="form-control">
+                               </div>
+                           </div>
+                           <div class="form-group">
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>标题:</label>
+                               <div class="col-sm-11">
+                                   <input type="text" id="title1" name="title" class="form-control" required="">
+                               </div>
+
+                           </div>
+                           <div class="form-group">
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>发布人:</label>
+                               <div class="col-sm-3">
+                                   <input type="text" id="releaseUser1" name="releaseUser" class="form-control" required="" readonly="readonly">
+                               </div>
+                               <label class="col-sm-1 control-label">发布部门:</label>
+                               <div class="col-sm-3">
+                                   <input type="text" id="publishDeptName1" name="publishDeptName" class="form-control" required="" readonly="readonly" >
+                               </div>
+
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>强制阅读:</label>
+                               <div class="col-sm-3" >
+                                   <span class="radio-inline i-checks">
+                                       <input type="radio"  value="1"  name="mandatory" id="mandatory1"/>是
+                                   </span>
+                                   <span class="radio-inline i-checks">
+                                       <input type="radio"  value="0"  name="mandatory" id="mandatory2"/>否
+                                   </span>
+                               </div>
+                               <!--<label class="col-sm-1 control-label"><span class="text-red">*</span>发布时间:</label>-->
+                               <!--<div class="col-sm-3">-->
+                                   <!--<input placeholder="开始日期"style="vertical-align: middle;max-width: unset;"-->
+                                          <!--class="form-control layer-date laydate-icon " id="releaseStartTime1" name="releaseTime"   required="" readonly>-->
+                                   <!--&lt;!&ndash;<span style="display:inline-block;padding:0 1px;">至</span>&ndash;&gt;-->
+                               <!--</div>-->
+                               <!--<label class="col-sm-1 control-label">截止时间:</label>-->
+                               <!--<div class="col-sm-3">-->
+                                   <!--<input placeholder="结束日期" style="vertical-align: middle;max-width: unset;"-->
+                                          <!--class="form-control layer-date laydate-icon" id="releaseEndTime1" name="releaseTimeEnd" readonly>-->
+                               <!--</div>-->
+                           </div>
+                           <div class="form-group">
+
+                               <label class="col-sm-1 control-label"><span class="text-red">*</span>生效部门:</label>
+                               <div id="inner" class="form-group inner">
+                                   <div class="col-sm-3">
+                                       <button type="button" class="btn btn-primary glyphicon glyphicon-search" id="selDept" onclick="mediaPassObj.selDeptClick();">&nbsp;选择部门</button>
+                                   </div>
+                                   <!--<div id="selectedDept" class="col-sm-10" style="overflow: scroll; height: 200px ; width:1300px;overflow-x:visible; ">-->
+                                   <!--</div>-->
+                              </div>
+                          </div>
+                           <div class="form-group">
+                               <div class="col-sm-1"></div>
+                               <div class="col-sm-11 height64">
+                                   <div id="selectedDept" style="border: 1px solid #CCCCCC;overflow: scroll;height: 150px;overflow-x:visible;">
+                                   </div>
+                               </div>
+                           </div>
+                           <div class="form-group">
+                               <label class="col-sm-1 control-label">附件:</label>
+                               <input type="hidden" name="affixLink">
+                               <input type="hidden" name="affixName">
+                               <div class="col-sm-3">
+                                   <div id="affixDiv"></div>
+                                   <input type="file" id="file" name="file" class="form-control" multiple/>
+                               </div>
+
+                           </div>
+                           <!--<div class="form-group">-->
+
+                           <!--<label class="col-sm-1 control-label">附件:</label>-->
+                           <!--<input type="hidden" name="attachmentLink">-->
+                           <!--<input type="hidden" name="attachment">-->
+                           <!--<div class="col-sm-3">-->
+                               <!--<a id="attachmentLink" href="">-->
+                                   <!--<span id="attachmentName"></span>-->
+                               <!--</a>-->
+                               <!--<input type="file" id="file" name="file" class="form-control">-->
+                           <!--</div>-->
+                           <!--</div>-->
+                           <div class="form-group">
+
+                           </div>
+                           <!--<div class="form-group">-->
+                               <!--<label class="col-sm-1 control-label">内容:</label>-->
+                               <!--<div class="col-sm-11 height64">-->
+                                   <!--<textarea id="content" name="content" class="form-control" style="height: 100px;"></textarea>-->
+                               <!--</div>-->
+                           <!--</div>-->
+                           <div class=" form-group">
+                               <label class="col-sm-1 control-label">内容:</label>
+                                   <div class="col-sm-11">
+                                       <textarea id="content" name="content" style="width: 100%;height:300px;"></textarea>
+                                   </div>
+                           </div>
+            </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审批流程不一样-->
+                    <input type="hidden" id="taskId" name="taskId">
+                    <input type="hidden" id="state" name="state" value="0">
+                    <input type="hidden" id="companyCode" name="companyCode" >
+                    <button type="button" class="btn btn-success save" id ="baocun" onclick="mediaPassObj.submitHander(this,'/Mediapass/add',0)" >保存
+                    </button>
+                    <button type="button" class="btn btn-primary save" id="save" onclick="mediaPassObj.submitHander(this,'/Mediapass/add',4)">提交
+                    </button>
+                    <button type="button" class="btn btn-success update" id="baocun2" onclick="mediaPassObj.submitHander(this,'/Mediapass/edit',0)" >保存
+                    </button>
+                    <button type="button" class="btn btn-primary update" id="update" onclick="mediaPassObj.submitHander(this,'/Mediapass/edit',4)">提交
+                    </button>
+                    <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true" >
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:640px;overflow-y: auto;">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="panel panel-default animated bounceInRight" style="height: 700px">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <div title="公告标题" id="title" name="title"  style="font-size: 24px; text-align: center" class="text-danger" ></div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <form id="viewForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id1" name="id" class="form-control">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label"><span class="text-red">*</span>编号:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="no1" name="no" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-1 control-label"><span class="text-red">*</span>事务类型:</label>
+                                    <div class="col-sm-3">
+                                        <select name="transactionType" id="transactionType2" class="form-control height18" readonly="readonly">
+                                            <option value="">请选择</option>
+                                            <option value="1">通知 </option>
+                                            <option value="2">公示</option>
+                                            <option value="3">分享</option>
+                                            <option value="4">提问</option>
+                                        </select>
+                                    </div>
+                                    <label class="col-sm-1 control-label">标签:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="label1" name="label" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">发布时间:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="发布时间" name="releaseTime" id="expertPayTime1"
+                                               class="form-control layer-date laydate-icon" style="max-width: unset;"
+                                               onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"
+                                               required="" readonly="readonly"/>
+                                    </div>
+                                    <label class="col-sm-1 control-label"><span class="text-red">*</span>发布人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="releaseUser2" name="releaseUser" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-1 control-label"><span class="text-red">*</span>发布部门:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="publishDeptDame" name="publishDeptName" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <!--<a id="attachmentLink1" href=""  target="_blank">-->
+                                            <!--<span id="attachment1"></span>-->
+                                        <!--</a>-->
+                                        <div id="affixDiv1" name="file1"></div>
+
+                                    </div>
+                                </div>
+                                <div class="form-group"><label class="col-sm-1 control-label">内容:</label>
+                                    <div class="col-sm-11" >
+                                        <div id="content1" name="content" class="form-control" style="height: 400px;overflow-y: auto;" ></div>
+                                    </div>
+                                </div>
+                                <div id="auditFalse" style="text-align: right;">
+                                    <button type="button" class="btn btn-danger" id="cancel1" data-dismiss="modal">
+                                        <i class="fa fa-close"></i>&nbsp;&nbsp;关闭
+                                    </button>
+                                    <!--<button type="button" class="btn btn-danger" id="details" data-dismiss="modal">-->
+                                        <!--<i class="fa fa-close"></i>&nbsp;&nbsp;阅读详情-->
+                                    <!--</button>-->
+                                    <button type="button" class="btn btn-primary save" id="confirm" onclick="mediaPassObj.submitHander(this,'/Mediapass/confirm',1)">确认
+                                    </button>
+                                </div>
+                                </div>
+                            </div>
+                    </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--新增新闻-->
+<div class="modal inmodal fade" id="addNews" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2 id="modalTitle">新增新闻</h2>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 400px;">
+                <form id="newsForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                    <!--主键ID-->
+                    <input type="hidden" id="newsId" name="id">
+                    <div class="col-md-12">
+                        <label class="col-md-2 control-label">
+                            <span class="text-red">*</span>新闻标题:
+                        </label>
+                        <div class="col-md-6">
+                            <input id="newsTitle" name="title" maxlength="200" placeholder="新闻标题" class="form-control" required/>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="newsType" name="type" class="form-control height18" lay-search>
+                                <option value="1">集团新闻</option>
+                                <option value="2">公司新闻</option>
+                                <!--<option value="3">图文新闻</option>-->
+                                <option value="4">优秀事迹</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 10px;">
+                        <label class="col-md-2 control-label">
+                            <span class="text-red">*</span>新闻内容:
+                        </label>
+                        <div class="col-md-9">
+                            <textarea id="newsContent" name="content" style="width:100%;height:300px;"></textarea>
+                        </div>
+                        <div class="col-md-1">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button id="saveBtn" type="button" class="btn btn-primary" onclick="newsObj.add();">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button id="editBtn" type="button" class="btn btn-primary" onclick="newsObj.edit();">
+                    <i class="fa fa-save"></i>&nbsp;编辑
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

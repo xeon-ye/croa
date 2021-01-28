@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{})">
+    <title>考核计划设置</title>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/performance/performanceProgramSet.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+</head>
+
+<body>
+<!--搜索模块-->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">管理员视图</h5>
+                    </div>
+                    <div class="ibox-content" style="display: table">
+                        <div class="row col-md-12">
+                            <label class=" control-label" style="float: left;text-align: right">计划编码：</label>
+                            <div class="col-sm-2 form-group">
+                                <input type="text" id="proCode" name="proCode" class="form-control">
+                            </div>
+
+                            <label class=" control-label" style="float: left;text-align: right">计划名称：</label>
+                            <div class="col-sm-2 form-group">
+                                <input type="text" id="proTitle" name="proName" class="form-control">
+                            </div>
+
+                            <label class=" control-label" style="float: left;text-align: right">计划类型：</label>
+                            <div class="col-sm-2">
+                                <select class="form-control" >
+                                    <option value="">请选择</option>
+                                    <option value="0">月度考核</option>
+                                    <option value="1">季度考核</option>
+                                    <option value="2">年中考核</option>
+                                    <option value="2">年终考核</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row col-md-12">
+                            <div class="col-sm-4">
+                                <label class="control-label" style="text-align: right;float: left">考核开始日期：</label>
+                                <div class=" input-daterange input-group">
+                                    <input class="input-sm form-control layer-date laydate-icon "
+                                           name="createTimeStart" placeholder="开始时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                    <span class="input-group-addon" style="padding: 3px 8px">到</span>
+                                    <input class="input-sm form-control layer-date laydate-icon "
+                                           name="createTimeEnd" placeholder="结束时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="control-label" style="text-align: right;float: left">考核结束日期：</label>
+                                <div class=" input-daterange input-group">
+                                    <input class="input-sm form-control layer-date laydate-icon"
+                                           name="endTimeStart" placeholder="开始时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                    <span class="input-group-addon" style="padding: 3px 8px">到</span>
+                                    <input class="input-sm form-control layer-date laydate-icon"
+                                           name="endTimeEnd" placeholder="结束时间"
+                                           onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                           readonly/>
+                                </div>
+                            </div>
+                            <button type="button" id="dataSearch" class="btn btn-warning">
+                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ibx-content">
+                        <div class="ibox-title">
+                            <button id="addBtn" class="btn btn-primary" type="button"><i class="fa fa-plus"></i>&nbsp;新增计划
+                            </button>
+                        </div>
+                        <div >
+                            <div class="jqGrid_wrapper">
+                                <table id="entryTable"></table>
+                                <div id="entryTableNav"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--查看模块-->
+<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="panel panel-default animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title save">绩效计划信息</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="ibox float-e-margins">
+                            <div class="form-horizontal" style="margin-top: -10px">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">计划编码:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="proId" name="proId" class="form-control" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-1 control-label">计划名称:</label>
+                                    <div class="col-sm-2">
+                                        <input type="text" id="proName" name="proName" class="form-control">
+                                    </div>
+                                    <label class="control-label" style="text-align: right;float: left">考核日期：</label>
+                                    <div class="input-daterange input-group ">
+                                        <div class="col-sm-6">
+                                            <input class="input-sm form-control layer-date laydate-icon "
+                                                   name="proBegin" placeholder="开始时间"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   readonly/>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <input class="input-sm form-control layer-date laydate-icon "
+                                                   name="proEnd" placeholder="结束时间"
+                                                   onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                   readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-horizontal" style="margin-top: -10px">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">统分比例:</label>
+                                    <label class="col-sm-1 control-label">自评权重</label>
+                                    <div class="col-sm-1">
+                                        <input type="text" style="width:85%;display:inline" id="proportionSelf" name="proportionSelf" class="form-control">
+                                        <span class="text-red">%</span>
+                                    </div>
+                                    <label class="col-sm-1 control-label">上级评分权重</label>
+                                    <div class="col-sm-1">
+                                        <input type="text" style="width:85%;display:inline" id="proportionLeader" name="proportionLeader" class="form-control"><span class="text-red">%</span></div>
+                                    <label class="col-sm-1 control-label">考评小组评分权重</label>
+                                    <div class="col-sm-1">
+                                        <input type="text" style="width:85%;display:inline" id="proportionGroup" name="proportionGroup" class="form-control"><span class="text-red">%</span></div>
+                                </div>
+                            </div>
+
+                            <div class="form-horizontal" style="margin-top: -10px">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">考核方案:</label>
+                                    <button type="button" class="btn btn-primary btn-circle glyphicon glyphicon-plus " id="addSupplier" onclick=""></button>
+                                </div>
+                            </div>
+
+                            <div class="form-horizontal" style="margin-top: -10px">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label">备注:</label>
+                                    <div class="col-sm-8">
+                                        <textarea cols="30" rows="5" id="problemDescription" name="problemDescription" placeholder="问题描述" required="" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title" style="margin-top: -35px;">
+                                    <div class="form-horizontal">
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button type="button" class="btn btn-danger" id="cancel" onclick="goBackHtml()">
+                                                <i class="fa fa-close"></i>&nbsp;返回
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--查看页面-->
+<!--<div class="modal inmodal" id="viewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="panel panel-default animated bounceInRight" style="height:600px">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <div title="考核计划标题" id="proName" name="proName"  style="font-size: 24px; text-align: center" class="text-danger" ></div>
+                </div>
+            </div>
+            <div class="panel-body">
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="viewForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <input type="hidden" id="id1" name="id1" class="form-control">
+                                <div class="form-group update">
+                                    <label class="col-sm-2 control-label">计划编号<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="proCode" name="proCode" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">计划名称<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="proName" name="proName" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-6">
+                                        <input class="input-sm form-control layer-date laydate-icon "
+                                               name="proBegin" placeholder="开始时间"
+                                               onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                               readonly/>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input class="input-sm form-control layer-date laydate-icon "
+                                               name="proEnd" placeholder="结束时间"
+                                               onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                               readonly/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">支付户主<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="accountId1" name="accountId1" class="form-control">
+                                        <input type="text" id="accountName1" name="accountName1" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">附件:</label>
+                                    <div class="col-sm-3">
+                                        <a id="affixLink1" href="" target="_blank">
+                                            <span id="affixName1"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">支付开户行<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="accountBankName1" name="accountBankName1"
+                                               class="form-control" required="" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">支付账号<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="accountBankNo1" name="accountBankNo1"
+                                               class="form-control" required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">期望借款金额<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="applyAmount1" name="applyAmount1" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">状态<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="state1" name="state1" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">实际出款账户<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="hidden" id="outAccountId1" name="outAccountId1"
+                                               class="form-control">
+                                        <input type="text" id="outAccountName1" name="outAccountName1"
+                                               class="form-control" required="" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">期望借款日期:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="进款日期" name="expertPayTime1" id="expertPayTime1"
+                                               class="form-control layer-date laydate-icon"
+                                               onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"
+                                               required="" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">实际出款金额<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="payAmount1" name="payAmount1" class="form-control"
+                                               required="" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">实际出款日期:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="实际出款日期" name="payTime1" id="payTime1"
+                                               class="form-control layer-date laydate-icon"
+                                               onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"
+                                               required="" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">借款原因<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-8">
+                                        <textarea id="remark1" name="remark1" class="form-control" required=""
+                                                  readonly="readonly"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div id="auditTrue" align="center" class="">
+                                        <input type="hidden" name="taskId1" id="taskId1">
+                                        <button type="button" class="btn btn-success " id="pass1"
+                                                onclick="approve(this)">审核通过
+                                        </button>
+                                        <button type="button" class="btn btn-danger " id="reject1"
+                                                onclick="reject(this)">审核驳回
+                                        </button>
+                                        <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left" onclick="goBackProcess()">返回</button>
+                                    </div>
+                                    <div id="auditFalse" class="">
+                                        <button type="button" class="btn btn-success " id="review" onclick="checkBtoB()" >确认出款
+                                        </button>
+                                        <button type="button" class="btn btn-danger" id="cancel1" data-dismiss="modal">
+                                            <i class="fa fa-close"></i>&nbsp;&nbsp;关闭</button>
+                                        <button type="button" id="goback" class="btn btn-white" onclick="goBackHtml()">返回</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+
+<!--新增OR修改模块-->
+<!--<div class="modal inmodal" id="timeWorkViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="panel panel-default animated bounceInRight" style="height:600px">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <div title="加班标题" id="timeWorkTitl" name="title" style="font-size: 24px; text-align: center"
+                         class="text-danger"></div>
+                </div>
+            </div>
+            <div class="panel-body"></div>
+            <div class="ibox-content">
+                <div>
+                    <form id="savePropose" action="">
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-content">
+                                <div class="form-horizontal" style="margin-top: 8px">
+                                    <div class="form-group">
+                                        <div class="layui-form-item" pane="">
+                                            <label class="layui-form-label">是否启用:</label>
+                                            <div class="layui-input-block">
+                                                <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" title="开关">
+                                            </div>
+                                        </div>
+
+                                        <div class="layui-form-item" pane="">
+                                            <label class="layui-form-label">是否发通知:</label>
+                                            <div class="layui-input-block">
+                                                <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" title="开关">
+                                            </div>
+                                        </div>
+
+                                        <div class="layui-form-item" pane="">
+                                            <label class="layui-form-label">是否发消息到考核对象:</label>
+                                            <div class="layui-input-block">
+                                                <input type="checkbox" checked="" name="open" lay-skin="switch" lay-filter="switchTest" title="开关">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-horizontal" style="margin-top: -10px">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">计划编码:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="proId" name="proId" class="form-control" readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label">计划名称:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" id="proName" name="proName" class="form-control">
+                                        </div>
+                                        <label class="control-label" style="text-align: right;float: left">考核日期：</label>
+                                        <div class="input-daterange input-group ">
+                                            <div class="col-sm-6">
+                                                <input class="input-sm form-control layer-date laydate-icon "
+                                                       name="proBegin" placeholder="开始时间"
+                                                       onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                       readonly/>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <input class="input-sm form-control layer-date laydate-icon "
+                                                       name="proEnd" placeholder="结束时间"
+                                                       onclick="laydate({istime: false,istoday: false, format: 'YYYY-MM-DD'})"
+                                                       readonly/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-horizontal" style="margin-top: -10px">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">统分比例:</label>
+                                        <label class="col-sm-1 control-label">自评权重</label>
+                                        <div class="col-sm-1">
+                                            <input type="text" style="width:85%;display:inline" id="proportionSelf" name="proportionSelf" class="form-control">
+                                            <span class="text-red">%</span>
+                                        </div>
+                                        <label class="col-sm-1 control-label">上级评分权重</label>
+                                        <div class="col-sm-1">
+                                            <input type="text" style="width:85%;display:inline" id="proportionLeader" name="proportionLeader" class="form-control"><span class="text-red">%</span></div>
+                                        <label class="col-sm-1 control-label">考评小组评分权重</label>
+                                        <div class="col-sm-1">
+                                            <input type="text" style="width:85%;display:inline" id="proportionGroup" name="proportionGroup" class="form-control"><span class="text-red">%</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-horizontal" style="margin-top: -10px">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">考核方案:</label>
+                                        <button type="button" class="btn btn-primary btn-circle glyphicon glyphicon-plus " id="addSupplier" onclick=""></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-horizontal" style="margin-top: -10px">
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label">备注:</label>
+                                        <div class="col-sm-8">
+                                            <textarea cols="30" rows="5" id="problemDescription" name="problemDescription" placeholder="问题描述" required="" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title" style="margin-top: -35px;">
+                                    <div class="form-horizontal">
+                                        <div class="col-sm-12" style="text-align: center;">
+                                            <button type="button" class="btn btn-primary" id="save" onclick="submitHander(this,'/propose/addPropose')">
+                                                <i class="fa fa-save"></i>&nbsp;保存
+                                            </button>
+                                            <button type="button" class="btn btn-danger" id="cancel" onclick="goBackHtml()">
+                                                <i class="fa fa-close"></i>&nbsp;返回
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+</body>
+</html>

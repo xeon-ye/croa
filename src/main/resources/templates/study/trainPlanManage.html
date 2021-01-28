@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>培训计划管理</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/trainPlanManage.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <!--课程范围选择-->
+    <link href="/css/utils/sysUserCompont.css" rel="stylesheet">
+    <script src="/js/utils/sysUserCompont.js"></script>
+    <script src="/js/study/trainPlanManage.js"></script>
+    <style>
+        .head-img {
+            width: 80%;
+            /*height: 60%;*/
+            border-radius: 5px;
+            border: 1px solid #efefef;
+        }
+        .layui-layer-content{
+            overflow: hidden !important;
+            background-color: #f7f7f7 !important;
+        }
+
+    </style>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //---------------培训计划管理---------------
+                //培训计划-板块
+                form.on('select(trainPlanPlate)', function(data){
+                    trainPlanManageObj.init();
+                });
+                //培训计划-培训方式
+                form.on('select(trainPlanWay)', function(data){
+                    trainPlanManageObj.init();
+                });
+                //培训计划-课件存档
+                form.on('select(trainPlanKeep)', function(data){
+                    trainPlanManageObj.init();
+                });
+                //培训计划-状态
+                form.on('select(trainPlanState)', function(data){
+                    trainPlanManageObj.init();
+                });
+
+                //---------------培训计划报名---------------
+                //培训计划-课程板块
+                form.on('select(trainPlanSignPlate)', function(data){
+                    trainPlanSignObj.init();
+                });
+                //培训计划-培训方式
+                form.on('select(trainPlanSignWay)', function(data){
+                    trainPlanSignObj.init();
+                });
+                //培训计划-课件存档
+                form.on('select(trainPlanSignKeep)', function(data){
+                    trainPlanSignObj.init();
+                });
+
+            });
+
+            //加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    commonObj.tabChange(data.index);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--顶部搜索-->
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li id="trainPlanManageTab" class="layui-this">培训计划管理</li>
+        <li id="trainPlanSignTab">培训计划报名</li>
+    </ul>
+</div>
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content">
+    <!--培训计划管理-->
+    <div id="trainPlanManage" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="trainPlanManageForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            标题:
+                        </label>
+                        <input name="title" placeholder="请输入培训计划标题" class="form-control" onkeydown="commonObj.enterEvent(0, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程板块:
+                        </label>
+                        <select name="coursePlate" placeholder="课程板块" class="form-control" lay-search lay-filter="trainPlanPlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            培训方式:
+                        </label>
+                        <select name="trainWay" placeholder="培训方式" class="form-control" lay-search lay-filter="trainPlanWay">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课件存档:
+                        </label>
+                        <select name="coursewareKeep" placeholder="课件存档" class="form-control" lay-search lay-filter="trainPlanKeep">
+                            <option value="">请选择课件存档</option>
+                            <option value="0">不存档</option>
+                            <option value="1">存档</option>
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            状态:
+                        </label>
+                        <select name="state" placeholder="状态" class="form-control" lay-search lay-filter="trainPlanState">
+                            <option value="">请选择状态</option>
+                            <option value="0">启用</option>
+                            <option value="1">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <div class="paramDiv" style="text-align: left;float: left;">
+                    <button class="btn btn-primary" type="button" onclick="trainPlanManageObj.trainPlanModalShow();">
+                        <i class="fa fa-plus"></i>&nbsp;新增培训
+                    </button>
+                </div>
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="14%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="24%">
+                        <col width="8%">
+                        <col width="8%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="标题">
+                            <div class="ellipsisContent">
+                                标题
+                            </div>
+                        </th>
+                        <th title="培训时间">
+                            <div class="ellipsisContent">
+                                培训时间
+                            </div>
+                        </th>
+                        <th title="课程板块">
+                            <div class="ellipsisContent">
+                                课程板块
+                            </div>
+                        </th>
+                        <th title="培训方式">
+                            <div class="ellipsisContent">
+                                培训方式
+                            </div>
+                        </th>
+                        <th title="课件存档">
+                            <div class="ellipsisContent">
+                                课件存档
+                            </div>
+                        </th>
+                        <th title="描述">
+                            <div class="ellipsisContent">
+                                描述
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="14%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="24%">
+                            <col width="8%">
+                            <col width="8%">
+                        </colgroup>
+                        <tbody class="trainPlanManageList">
+                            <!--<tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="标题">
+                             <div class="ellipsisContent">
+                                 标题
+                             </div>
+                         </td>
+                         <td title="2020年5月">
+                             <div class="ellipsisContent">
+                                 2020年5月
+                             </div>
+                         </td>
+                         <td title="业务板块">
+                             <div class="ellipsisContent">
+                                 业务板块
+                             </div>
+                         </td>
+                         <td title="线上培训">
+                             <div class="ellipsisContent">
+                                 线上培训
+                             </div>
+                         </td>
+                         <td title="是">
+                             <div class="ellipsisContent">
+                                 是
+                             </div>
+                         </td>
+                         <td title="描述">
+                             <div class="ellipsisContent">
+                                描述
+                             </div>
+                         </td>
+                         <td title="启用">
+                             <div class="ellipsisContent">
+                                 启用
+                             </div>
+                         </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button">
+                                     编辑
+                                 </button>
+                                 <button class="tableButton blueBtn" type="button">
+                                     启用
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="trainPlanManageListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+
+    <!--培训计划报名-->
+    <div id="trainPlanSign" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <div class="contentOuter">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="trainPlanSignForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            标题:
+                        </label>
+                        <input name="title" placeholder="请输入培训计划标题" class="form-control" onkeydown="commonObj.enterEvent(1, 'init', event);"/>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课程板块:
+                        </label>
+                        <select name="coursePlate" placeholder="课程板块" class="form-control" lay-search lay-filter="trainPlanSignPlate">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            培训方式:
+                        </label>
+                        <select name="trainWay" placeholder="培训方式" class="form-control" lay-search lay-filter="trainPlanSignWay">
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            课件存档:
+                        </label>
+                        <select name="coursewareKeep" placeholder="课件存档" class="form-control" lay-search lay-filter="trainPlanSignKeep">
+                            <option value="">请选择课件存档</option>
+                            <option value="0">不存档</option>
+                            <option value="1">存档</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="14%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="24%">
+                        <col width="8%">
+                        <col width="8%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="标题">
+                            <div class="ellipsisContent">
+                                标题
+                            </div>
+                        </th>
+                        <th title="培训时间">
+                            <div class="ellipsisContent">
+                                培训时间
+                            </div>
+                        </th>
+                        <th title="课程板块">
+                            <div class="ellipsisContent">
+                                课程板块
+                            </div>
+                        </th>
+                        <th title="培训方式">
+                            <div class="ellipsisContent">
+                                培训方式
+                            </div>
+                        </th>
+                        <th title="课件存档">
+                            <div class="ellipsisContent">
+                                课件存档
+                            </div>
+                        </th>
+                        <th title="描述">
+                            <div class="ellipsisContent">
+                                描述
+                            </div>
+                        </th>
+                        <th title="状态">
+                            <div class="ellipsisContent">
+                                状态
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="14%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="24%">
+                            <col width="8%">
+                            <col width="8%">
+                        </colgroup>
+                        <tbody class="trainPlanSignList">
+                            <!--<tr>
+                     <td title="1">
+                         <div class="ellipsisContent">
+                             1
+                         </div>
+                     </td>
+                     <td title="标题">
+                         <div class="ellipsisContent">
+                             标题
+                         </div>
+                     </td>
+                     <td title="2020年5月">
+                         <div class="ellipsisContent">
+                             2020年5月
+                         </div>
+                     </td>
+                     <td title="业务板块">
+                         <div class="ellipsisContent">
+                             业务板块
+                         </div>
+                     </td>
+                     <td title="线上培训">
+                         <div class="ellipsisContent">
+                             线上培训
+                         </div>
+                     </td>
+                     <td title="是">
+                         <div class="ellipsisContent">
+                             是
+                         </div>
+                     </td>
+                     <td title="描述">
+                         <div class="ellipsisContent">
+                            描述
+                         </div>
+                     </td>
+                     <td title="启用">
+                         <div class="ellipsisContent">
+                             启用
+                         </div>
+                     </td>
+                     <td>
+                         <div class="ellipsisContent">
+                             <button class="tableButton blueBtn" type="button">
+                                 编辑
+                             </button>
+                             <button class="tableButton blueBtn" type="button">
+                                 启用
+                             </button>
+                         </div>
+                     </td>
+                 </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="trainPlanSignListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+</div>
+</body>
+
+<!--新增计划-->
+<div id="trainPlanModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                添加培训计划
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="trainPlanManageObj.trainPlanModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="trainPlanManageObj.trainPlanSubmit(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="trainModalContentOuter">
+            <form id="trainPlanForm" autocomplete="off" class="form-horizontal layui-form" method="post" style="font-size: 12px;">
+                <input type="hidden" name="id"/>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        <span class="text-red">*</span>计划标题:
+                    </label>
+                    <div class="col-sm-11">
+                        <input name="title" placeholder="请输入培训计划标题" maxlength="256" class="form-control" required/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        <span class="text-red">*</span>课程板块:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="coursePlate" class="form-control" lay-search>
+                            <option value="">请选择课程板块</option>
+                        </select>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        <span class="text-red">*</span>培训方式:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="trainWay" class="form-control" lay-search>
+                            <option value="">请选择培训方式</option>
+                        </select>
+                    </div>
+                    <label class="col-sm-1 control-label">
+                        课件存档:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="coursewareKeep" class="form-control" lay-search>
+                            <option value="">请选择课件存档</option>
+                            <option value="0">不存档</option>
+                            <option value="1">存档</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        <span class="text-red">*</span>培训时间:
+                    </label>
+                    <div class="col-sm-11">
+                        <input name="trainTimeDesc" placeholder="请输入培训时间，例如：入职第一周、某某年某某月等" maxlength="200" class="form-control" required/>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-1 control-label">
+                        培训描述:
+                    </label>
+                    <div class="col-sm-11">
+                        <textarea name="remake" maxlength="512" placeholder="请输入培训描述" class="layui-textarea" style="height: 100px;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--计划报名-->
+<div id="trainSignModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                培训计划报名(课程计划及大纲)
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="trainPlanSignObj.trainSignModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+                <div onclick="trainPlanSignObj.trainSignSubmit(this);">
+                    <i class="fa fa-arrow-circle-o-up"></i>&nbsp;
+                    提交
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="trainModalContentOuter">
+            <form id="trainSignForm" autocomplete="off" class="form-horizontal layui-form" method="post">
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程标题:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="title" placeholder="请输入课程标题" maxlength="256" class="form-control" required/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程板块:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="coursePlate"/>
+                        <select name="coursePlate" class="form-control" lay-search disabled>
+                            <option value="">请选择课程板块</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训方式:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="trainWay"/>
+                        <select name="trainWay" class="form-control" lay-search disabled>
+                            <option value="">请选择培训方式</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>报名开始时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="signStartTime" name="signStartTime" placeholder="请输入报名开始时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="signStartTime-error" for="signStartTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>报名截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="signEndTime" name="signEndTime" placeholder="请输入报名截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="signEndTime-error" for="signEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训开始时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="trainStartTime" name="trainStartTime" placeholder="请输入培训开始时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="trainStartTime-error" for="trainStartTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>培训截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="trainEndTime" name="trainEndTime" placeholder="请输入培训截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="trainEndTime-error" for="trainEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        培训地址:
+                    </label>
+                    <div class="col-sm-9">
+                        <input name="trainAddress" placeholder="请输入培训地址" maxlength="256" class="form-control"/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程学分:
+                    </label>
+                    <div class="col-sm-3">
+                        <input name="trainGrade" placeholder="请输入课程学分" class="form-control" value="10" onkeyup="value=value.replace(/[^\d.]/g,'')" required/>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        <span class="text-red"> * </span>课程反馈截止时间:
+                    </label>
+                    <div class="col-sm-3">
+                        <input id="courseEndTime" name="courseEndTime" placeholder="请输入课程反馈截止时间" class="form-control" required/>
+                        <!--这个当点击提交有表单校验信息，会覆盖内容-->
+                        <label class="error" id="courseEndTime-error" for="courseEndTime" style="display: none;">
+
+                        </label>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        添加图片:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="coursePic"/>
+                        <div class="coursePic" onclick="commonObj.imageUpload.upload();">
+                            <i class="fa fa-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        课程报名范围:
+                    </label>
+                    <div class="col-sm-3">
+                        <select name="courseEnrollFlag" class="form-control" lay-search lay-filter="courseEnrollFlag">
+                            <option value="0">请选择课程报名范围</option>
+                            <option value="1">部门</option>
+                            <option value="2">角色</option>
+                            <option value="3">用户</option>
+                        </select>
+                        <div class="courseEnrollBtn" style="display: none;">
+                            <button type="button" class="btn btn-primary  glyphicon glyphicon-search" style="margin-top: 5px;" onclick="trainPlanSignObj.courseSignRangeModalShow(this);"></button>
+                            <button type="button" class="btn btn-danger  glyphicon glyphicon-remove" style="margin-top: 5px;" onclick="trainPlanSignObj.courseSignRangeClear(this);"></button>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <label class="col-sm-2 control-label">
+                        课程大纲:
+                    </label>
+                    <div class="col-sm-9">
+                        <textarea name="courseRemake" placeholder="请输入课程大纲" class="form-control" style="height: 240px;"></textarea>
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--图片上传-->
+<form style="display: none" class="dropzone" id="imageUploadForm"></form>
+</html>

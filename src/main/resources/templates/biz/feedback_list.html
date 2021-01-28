@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>反馈信息列表</title>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/biz/feedback_list.js"></script>
+</head>
+
+<body>
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <!--查询条件-->
+    <form id="queryForm">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <input type="hidden" name="selectType" value="YW"/>
+                                <input type="hidden" name="custNotNull" value="true"/>
+                                <input type="hidden" name="customerName"/>
+                                <label class="col-sm-1 control-label">客户公司名称:</label>
+                                <div class="col-sm-2 layui-form">
+                                    <select lay-verify="" lay-search name="companyId" id="companyId"
+                                            lay-filter="companyId"
+                                            class="form-control height18">
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label right0">对接人名称:</label>
+                                <div class="col-sm-2 layui-form">
+                                    <select lay-verify="" lay-search name="custId" id="dockingId"
+                                            class="form-control height18">
+                                    </select>
+                                </div>
+                                <label class="col-sm-1 control-label right0">稿件标题:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="title" class="form-control height18"
+                                           th:placeholder="请输入稿件标题">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="dataSearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!--查询条件结束-->
+    <div class="row">
+        <div class="col-sm-12"  style="padding-left: 0px;padding-right: 0px;">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title" id="buttons">
+                    <button id="exportButton" class="btn btn-success" type="button" onclick="exportData()">
+                        <i class="fa fa-download"></i>&nbsp;&nbsp;导出表格
+                    </button>
+                    <button id="clearChoose" class="btn btn-danger" type="button" onclick="clearChooseData()">
+                        <i class="fa fa-trash"></i>&nbsp;&nbsp;清空选中
+                    </button>
+                </div>
+                <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                    <div class="form-horizontal">
+                        <div class="jqGrid_wrapper">
+                            <table id="feedBackTable"></table>
+                            <div id="feedBackNav"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

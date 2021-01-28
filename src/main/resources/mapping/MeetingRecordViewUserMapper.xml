@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingRecordViewUserMapper">
+    <sql id="selectColumn">
+        tmrvu.id,
+        tmrvu.meet_record_id as meetRecordId,
+        tmrvu.user_id as userId,
+        tmrvu.create_id as createId,
+        tmrvu.create_date as createDate,
+        tmrvu.update_id as updateId,
+        tmrvu.update_date as updateDate,
+        tmrvu.state
+    </sql>
+    <!--添加会议记录查看人员id-->
+    <insert id="addUserId" parameterType="com.qinfei.qferp.entity.meeting.MeetingRecordViewUser">
+     INSERT  into t_meeting_record_view_user
+     <trim prefix="(" suffix=")" suffixOverrides=",">
+         <if test="id != null">id,</if>
+         <if test="meetRecordId != null">meet_record_id,</if>
+         <if test="userId != null">user_id,</if>
+         <if test="state != null">state,</if>
+         <if test="createId != null">create_id,</if>
+         <if test="createDate != null">create_date,</if>
+         <if test="updateId != null">update_id,</if>
+         <if test="updateDate != null">update_date</if>
+     </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="meetRecordId != null">#{meetRecordId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="state != null">#{state},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增会议相关用户-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_meeting_record_view_user (
+          meet_record_id,
+          user_id,
+          state,
+          create_id,
+          create_date,
+          update_id,
+          update_date
+        )
+        VALUES
+        <foreach collection="list" item="viewUser" index="index" separator=",">
+            (
+            #{viewUser.meetRecordId},
+            #{viewUser.userId},
+            0,
+            #{viewUser.createId},
+            now(),
+            #{viewUser.createId},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <select id="getUserId" resultType="com.qinfei.qferp.entity.sys.User">
+    SELECT DISTINCT
+        su. NAME
+    FROM
+        t_meeting_record_view_user tmrvu
+    LEFT JOIN sys_user su ON su.id = tmrve.user_id
+    WHERE
+        tmrvu.state >- 2
+    AND tmrve.meet_record_id = #{meetRecordId}
+    </select>
+
+
+
+
+</mapper>

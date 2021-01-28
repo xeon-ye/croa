@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.sys.DeptMapper">
+  <!--查询架构所有公司-->
+  <select id="listJTAllCompany" resultType="com.qinfei.qferp.entity.sys.Dept">
+    select sd.id, sd.company_code as code,sd.`name`
+    from sys_dept sd
+    where sd.`code` = 'GL' and (sd.`level` = 0  or (sd.`level` = 1 and sd.company_code <![CDATA[<>]]> 'JT'))
+    <if test='companyCode != null and companyCode != ""'>
+      and sd.company_code=#{companyCode}
+    </if>
+    and sd.state > -2
+    ORDER BY sd.`level`, sd.id
+  </select>
+
+  <!--根据条件查询部门人数，如果是父级部门则会把所有子级部门人员进行统计-->
+  <select id="listDeptUserNumByParam" resultType="java.util.Map">
+    SELECT
+    sd.id,
+    sd.parent_id AS parentId,
+    sd.`level`,
+    count( t.id ) AS userNum
+    FROM
+    sys_dept sd
+    LEFT JOIN (
+    SELECT
+    su.id,
+    su.dept_id
+    <if test="groupId != null">
+      , tug.id AS groupId
+    </if>
+    FROM
+    sys_user su
+    <if test="(roleType != null and roleType != '') or (roleCode != null and roleCode != '') or (notRoleCode != null and notRoleCode != '')">
+      INNER JOIN sys_user_role sur ON sur.user_id = su.id
+      INNER JOIN sys_role sr ON sur.role_id = sr.id
+      <if test="roleType != null and roleType != ''">
+        AND sr.type = #{roleType}
+      </if>
+      <choose>
+        <when test="(roleCode != null and roleCode != '') and (notRoleCode == null or notRoleCode == '')">
+          AND sr.`code` = #{roleCode}
+        </when>
+        <when test="(roleCode == null or roleCode == '') and (notRoleCode != null and notRoleCode != '')">
+          AND sr.`code` <![CDATA[<>]]> #{notRoleCode}
+        </when>
+        <otherwise></otherwise>
+      </choose>
+    </if>
+    <if test="groupId != null">
+      INNER JOIN t_user_group_relate tugr ON su.id = tugr.user_id  AND tugr.state = 0
+      INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+    </if>
+    WHERE
+    su.state > -2
+    <if test="handoverState != null">
+      AND su.handover_state = #{handoverState}
+    </if>
+    <!--根据配置，排除某些特定不需要填写每日计划的用户-->
+    <if test="excludeUserList != null and  excludeUserList.size() > 0">
+      AND su.id NOT IN
+      <foreach collection="excludeUserList" item="userId" index="index" open="(" close=")" separator=",">
+        #{userId}
+      </foreach>
+    </if>
+    ) t ON t.dept_id = sd.id
+    WHERE
+    sd.state <![CDATA[<>]]> -9
+    <if test="groupId != null">
+      and t.groupId = #{groupId}
+    </if>
+    <if test="deptLevel != null">
+      AND sd.`level` >= #{deptLevel}
+    </if>
+    <if test="deptCode != null and deptCode != ''">
+      AND sd.`code` = #{deptCode}
+    </if>
+    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+      AND sd.company_code = #{companyCode}
+    </if>
+    <!--根据配置，排除某些特定不需要填写每日计划的部门-->
+    <if test="excludeDeptList != null and  excludeDeptList.size() > 0">
+      AND sd.id NOT IN
+      <foreach collection="excludeDeptList" item="deptId" index="index" open="(" close=")" separator=",">
+        #{deptId}
+      </foreach>
+    </if>
+    <if test="deptIds != '' and deptIds != null">
+      AND sd.id IN (${deptIds})
+    </if>
+    GROUP BY
+    sd.id
+    ORDER BY
+    sd.`level` DESC
+  </select>
+</mapper>

@@ -1,0 +1,2017 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaAuditMapper">
+    <sql id="selectColumn">
+         tm.id,
+         tm.create_date as createDate,
+         tm.is_delete as isDelete,
+         tm.update_date as updateDate,
+         tm.versions,
+         tm.comm_start as commStart,
+         tm.contact,
+         tm.contactor,
+         tm.link,
+         tm.media_content_id as mediaContentId,
+         tm.name,
+         tm.no,
+         tm.out_price as outPrice,
+         tm.phone,
+         tm.pic_path as picPath,
+         tm.data_source as dataSource,
+         tm.price,
+         tm.profit_rate as profitRate,
+         tm.remarks,
+         tm.state,
+         tm.enabled,
+         tm.is_copy as isCopy,
+         tm.copy_remarks as copyRemarks,
+         tm.company_code as companyCode,
+         tm.company_code_name as companyCodeName,
+         tm.creator_id as creatorId,
+         tm.plate_id as plateId,
+         tm.region_id as regionId,
+         tm.type_id as typeId,
+         tm.updated_id as updatedId,
+         tm.user_id as userId,
+         tm.discount as discount,
+         tm.master_media_id as masterMediaId
+    </sql>
+    <sql id="mediaExtendColumn">
+       tme.id as mediaExtendId,
+       tme.cell,
+       tme.cell_name,
+       tme.cell_value,
+       tme.cell_value_text,
+       tme.db_type,
+       tme.type,
+       tme.media_id
+    </sql>
+    <sql id="regionColumn">
+        sysd.id as regionId,
+        sysd.name as regionName,
+        sysd.area_code,
+        sysd.post_code,
+        sysd.parent_id,
+        sysd.short_name,
+        sysd.longitude,
+        sysd.latitude,
+        sysd.sort,
+        sysd.create_time,
+        sysd.state as regionState
+    </sql>
+    <sql id="userColumn">
+        su.id as userId1,
+        su.name as userName,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode,
+        su.phone as userPhone,
+        su.qq as userQQ,
+        su.wechat as userWechat
+    </sql>
+    <sql id="supplierColumn">
+        tms.id as supplierId,
+        tms.media_type_id as mediaTypeId,
+        tms.name as supplierCompany,
+        tms.contactor as supplierName,
+        tms.phone as supplierPhone,
+        tms.qqwechat,
+        tms.`desc`,
+        tms.contactor_desc as contactorDesc,
+        tms.creator,
+        tms.state as supplierState,
+        tms.company_code as createUserCompanyCode
+    </sql>
+
+    <!--媒体列表返回对象-->
+    <resultMap id="listByParamResult" type="com.qinfei.qferp.entity.media1.MediaAudit">
+        <id column="id" property="id"/>
+        <result column="createDate" property="createDate"/>
+        <result column="isDelete" property="isDelete"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="versions" property="versions"/>
+        <result column="commStart" property="commStart"/>
+        <result column="contact" property="contact"/>
+        <result column="contactor" property="contactor"/>
+        <result column="link" property="link"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="outPrice" property="outPrice"/>
+        <result column="phone" property="phone"/>
+        <result column="picPath" property="picPath"/>
+        <result column="dataSource" property="dataSource"/>
+        <result column="price" property="price"/>
+        <result column="profitRate" property="profitRate"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="enabled" property="enabled"/>
+        <result column="isCopy" property="isCopy"/>
+        <result column="copyRemarks" property="copyRemarks"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="companyCodeName" property="companyCodeName"/>
+        <result column="creatorId" property="creatorId"/>
+        <result column="plateId" property="plateId"/>
+        <result column="regionId" property="regionId"/>
+        <result column="typeId" property="typeId"/>
+        <result column="updatedId" property="updatedId"/>
+        <result column="userId" property="userId"/>
+        <result column="discount" property="discount"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="userId1" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+            <result column="userPhone" property="phone"/>
+            <result column="userQQ" property="qq"/>
+            <result column="userWechat" property="wechat"/>
+        </association>
+        <collection property="mediaExtends" ofType="com.qinfei.qferp.entity.media1.MediaExtendAudit">
+            <id column="mediaExtendId" property="id"/>
+            <result column="cell" property="cell"/>
+            <result column="cell_name" property="cellName"/>
+            <result column="cell_value" property="cellValue"/>
+            <result column="cell_value_text" property="cellValueText"/>
+            <result column="db_type" property="dbType"/>
+            <result column="type" property="type"/>
+            <result column="media_id" property="mediaId"/>
+        </collection>
+    </resultMap>
+    <!--媒体列表返回对象-->
+    <resultMap id="mediaChangeMap" type="com.qinfei.qferp.entity.media1.Media1">
+        <id column="id" property="id"/>
+        <result column="createDate" property="createDate"/>
+        <result column="isDelete" property="isDelete"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="versions" property="versions"/>
+        <result column="commStart" property="commStart"/>
+        <result column="contact" property="contact"/>
+        <result column="contactor" property="contactor"/>
+        <result column="link" property="link"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="outPrice" property="outPrice"/>
+        <result column="phone" property="phone"/>
+        <result column="picPath" property="picPath"/>
+        <result column="dataSource" property="dataSource"/>
+        <result column="price" property="price"/>
+        <result column="profitRate" property="profitRate"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="enabled" property="enabled"/>
+        <result column="isCopy" property="isCopy"/>
+        <result column="copyRemarks" property="copyRemarks"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="companyCodeName" property="companyCodeName"/>
+        <result column="creatorId" property="creatorId"/>
+        <result column="plateId" property="plateId"/>
+        <result column="regionId" property="regionId"/>
+        <result column="typeId" property="typeId"/>
+        <result column="updatedId" property="updatedId"/>
+        <result column="userId" property="userId"/>
+        <result column="discount" property="discount"/>
+        <collection property="mediaExtends" ofType="com.qinfei.qferp.entity.media1.MediaExtend">
+            <id column="mediaExtendId" property="id"/>
+            <result column="cell" property="cell"/>
+            <result column="cell_name" property="cellName"/>
+            <result column="cell_value" property="cellValue"/>
+            <result column="cell_value_text" property="cellValueText"/>
+            <result column="db_type" property="dbType"/>
+            <result column="type" property="type"/>
+            <result column="media_id" property="mediaId"/>
+        </collection>
+    </resultMap>
+    <!--媒体编辑返回对象-->
+    <resultMap id="editByParamResult" type="com.qinfei.qferp.entity.media1.MediaAudit">
+        <id column="id" property="id"/>
+        <result column="createDate" property="createDate"/>
+        <result column="isDelete" property="isDelete"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="versions" property="versions"/>
+        <result column="commStart" property="commStart"/>
+        <result column="contact" property="contact"/>
+        <result column="contactor" property="contactor"/>
+        <result column="link" property="link"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="outPrice" property="outPrice"/>
+        <result column="phone" property="phone"/>
+        <result column="picPath" property="picPath"/>
+        <result column="dataSource" property="dataSource"/>
+        <result column="price" property="price"/>
+        <result column="profitRate" property="profitRate"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="enabled" property="enabled"/>
+        <result column="isCopy" property="isCopy"/>
+        <result column="copyRemarks" property="copyRemarks"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="companyCodeName" property="companyCodeName"/>
+        <result column="creatorId" property="creatorId"/>
+        <result column="plateId" property="plateId"/>
+        <result column="regionId" property="regionId"/>
+        <result column="typeId" property="typeId"/>
+        <result column="updatedId" property="updatedId"/>
+        <result column="userId" property="userId"/>
+        <result column="discount" property="discount"/>
+        <collection property="mediaExtends" ofType="com.qinfei.qferp.entity.media1.MediaExtend">
+            <id column="mediaExtendId" property="id"/>
+            <result column="cell" property="cell"/>
+            <result column="cell_name" property="cellName"/>
+            <result column="cell_value" property="cellValue"/>
+            <result column="cell_value_text" property="cellValueText"/>
+            <result column="db_type" property="dbType"/>
+            <result column="type" property="type"/>
+            <result column="media_id" property="mediaId"/>
+        </collection>
+    </resultMap>
+    <!--获取媒体价格返回对象-->
+    <resultMap id="mediaPriceResult" type="com.qinfei.qferp.entity.media1.MediaPrice">
+        <id column="mediaId" property="mediaId"/>
+        <result column="userId" property="userId"/>
+        <result column="mediaName" property="mediaName"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="state" property="state"/>
+        <collection property="mediaPriceCellList" ofType="com.qinfei.qferp.entity.media1.MediaPriceCell">
+            <result column="supplierId" property="supplierId"/>
+            <result column="supplierCompanyName" property="supplierCompanyName"/>
+            <result column="supplierName" property="supplierName"/>
+            <result column="supplierCreator" property="supplierCreator"/>
+            <result column="phone" property="supplierPhone"/>
+            <result column="relateId" property="relateId"/>
+            <result column="isCopy" property="isCopy"/>
+            <result column="copyRemarks" property="copyRemarks"/>
+            <result column="cell" property="cell"/>
+            <result column="cellName" property="cellName"/>
+            <result column="cellValue" property="cellValue"/>
+            <result column="cellType" property="cellType"/>
+            <result column="cellValueText" property="cellValueText"/>
+            <result column="enabled" property="enabled"/>
+            <result column="supplierCompanyCode" property="companyCode"/>
+            <result column="deptId" property="deptId"/>
+            <result column="supplierRelateState" property="supplierRelateState"/>
+        </collection>
+    </resultMap>
+    <!--获取媒体供应商返回对象-->
+    <resultMap id="mediaSupplierResult" type="com.qinfei.qferp.entity.media1.MediaAudit">
+        <id column="id" property="id"/>
+        <result column="createDate" property="createDate"/>
+        <result column="isDelete" property="isDelete"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="versions" property="versions"/>
+        <result column="commStart" property="commStart"/>
+        <result column="contact" property="contact"/>
+        <result column="contactor" property="contactor"/>
+        <result column="link" property="link"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="outPrice" property="outPrice"/>
+        <result column="phone" property="phone"/>
+        <result column="picPath" property="picPath"/>
+        <result column="dataSource" property="dataSource"/>
+        <result column="price" property="price"/>
+        <result column="profitRate" property="profitRate"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="enabled" property="enabled"/>
+        <result column="isCopy" property="isCopy"/>
+        <result column="copyRemarks" property="copyRemarks"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="companyCodeName" property="companyCodeName"/>
+        <result column="creatorId" property="creatorId"/>
+        <result column="plateId" property="plateId"/>
+        <result column="regionId" property="regionId"/>
+        <result column="typeId" property="typeId"/>
+        <result column="updatedId" property="updatedId"/>
+        <result column="userId" property="userId"/>
+        <result column="discount" property="discount"/>
+        <collection property="suppliers" ofType="com.qinfei.qferp.entity.media.Supplier">
+            <id column="supplierId" property="id"/>
+            <result column="mediaTypeId" property="mediaTypeId"/>
+            <result column="supplierCompany" property="name"/>
+            <result column="supplierName" property="contactor"/>
+            <result column="supplierPhone" property="phone"/>
+            <result column="qqwechat" property="qqwechat"/>
+            <result column="desc" property="desc"/>
+            <result column="contactorDesc" property="contactorDesc"/>
+            <result column="creator" property="creator"/>
+            <result column="supplierState" property="state"/>
+            <result column="createUserCompanyCode" property="companyCode"/>
+        </collection>
+    </resultMap>
+    <!--根据媒体供应商关系ID获取审批通过的媒体和供应商信息-->
+    <resultMap id="mediaOneSupplierResult" type="com.qinfei.qferp.entity.media1.MediaAudit">
+        <id column="id" property="id"/>
+        <result column="createDate" property="createDate"/>
+        <result column="isDelete" property="isDelete"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="versions" property="versions"/>
+        <result column="commStart" property="commStart"/>
+        <result column="contact" property="contact"/>
+        <result column="contactor" property="contactor"/>
+        <result column="link" property="link"/>
+        <result column="mediaContentId" property="mediaContentId"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="outPrice" property="outPrice"/>
+        <result column="phone" property="phone"/>
+        <result column="picPath" property="picPath"/>
+        <result column="dataSource" property="dataSource"/>
+        <result column="price" property="price"/>
+        <result column="profitRate" property="profitRate"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="enabled" property="enabled"/>
+        <result column="isCopy" property="isCopy"/>
+        <result column="copyRemarks" property="copyRemarks"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="companyCodeName" property="companyCodeName"/>
+        <result column="creatorId" property="creatorId"/>
+        <result column="plateId" property="plateId"/>
+        <result column="regionId" property="regionId"/>
+        <result column="typeId" property="typeId"/>
+        <result column="updatedId" property="updatedId"/>
+        <result column="userId" property="userId"/>
+        <result column="discount" property="discount"/>
+        <association property="supplier" javaType="com.qinfei.qferp.entity.media.Supplier">
+            <id column="supplierId" property="id"/>
+            <result column="mediaTypeId" property="mediaTypeId"/>
+            <result column="supplierCompany" property="name"/>
+            <result column="supplierName" property="contactor"/>
+            <result column="supplierPhone" property="phone"/>
+            <result column="qqwechat" property="qqwechat"/>
+            <result column="desc" property="desc"/>
+            <result column="contactorDesc" property="contactorDesc"/>
+            <result column="creator" property="creator"/>
+            <result column="supplierState" property="state"/>
+            <result column="createUserCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <!--分页查询媒体-->
+    <sql id="selectSql">
+        SELECT
+        tm.id,
+        tmsra.supplier_id
+        FROM
+        t_media_audit tm
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id
+        AND tme.is_delete = 0
+        LEFT JOIN t_media_supplier_relate_audit tmsra on tm.id = tmsra.media_id
+        LEFT JOIN t_media_supplier tms on tms.id = tmsra.supplier_id
+        WHERE tm.master_media_id IS NULL
+        <if test="state != null">
+            AND tm.state = #{state}
+        </if>
+        <!--媒体管理去除删除的，媒体审核不去除-->
+        <if test="isDelete != null">
+            AND tm.is_delete <![CDATA[<>]]> #{isDelete}
+        </if>
+        <if test="userId != null">
+            AND tm.user_id = #{userId}
+        </if>
+        <if test="no != null">
+            AND tm.no = #{no}
+        </if>
+        <if test="plateId != null">
+            AND tm.plate_id = #{plateId}
+        </if>
+        <if test="typeId != null">
+            AND tm.type_id = #{typeId}
+        </if>
+        <if test="supplierName != null and  supplierName != ''">
+            AND tms.contactor LIKE CONCAT(#{supplierName},'%')
+        </if>
+        <if test="mediaName != null and  mediaName != ''">
+            AND tm.`name` LIKE CONCAT(#{mediaName},'%')
+        </if>
+        <if test="mediaContentId != null and  mediaContentId != ''">
+            AND tm.`media_content_id` LIKE CONCAT(#{mediaContentId},'%')
+        </if>
+        <if test="regionId != null">
+            AND tm.region_id = #{regionId}
+        </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+        </if>
+        <if test="priceStart != null">
+            AND tm.price <![CDATA[>=]]> #{priceStart}
+        </if>
+        <if test="priceEnd != null">
+            AND tm.price <![CDATA[<=]]> #{priceEnd}
+        </if>
+        <if test="enabled != null">
+            AND tm.enabled = #{enabled}
+        </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+        </if>
+        <if test="isCopy != null">
+            AND tm.is_copy = #{isCopy}
+        </if>
+        <if test="extendNum != null">
+            AND tme.cell = #{extendParam.cell}
+            <choose>
+                <when test="extendParam.type != null and extendParam.type == 'checkbox'">
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and
+                        (
+                        <foreach collection="extendParam.cellValue.split(',')" item="cellValue" index="index" open="(" close=")" separator="and">
+                            tme.cell_value like concat('%',#{cellValue},'%')
+                        </foreach>
+                        )
+                    </if>
+                </when>
+                <otherwise>
+                   <!-- <choose>
+                        &lt;!&ndash;如果是微信ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.wechatIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        &lt;!&ndash;如果是快手ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.ksIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        <otherwise>
+
+                        </otherwise>
+                    </choose>-->
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and tme.cell_value = #{extendParam.cellValue}
+                    </if>
+                    <if test="extendParam.cellValueStart != null and extendParam.cellValueStart != ''">
+                        and tme.cell_value <![CDATA[>=]]> #{extendParam.cellValueStart}
+                    </if>
+                    <if test="extendParam.cellValueEnd != null and extendParam.cellValueEnd != ''">
+                        and tme.cell_value <![CDATA[<=]]> #{extendParam.cellValueEnd}
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        and tm.create_date <![CDATA[>=]]> #{onlineTime}
+    </sql>
+    <select id="listByParamPage" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        select distinct ttt.id from (
+          SELECT
+          t.id,
+          t.supplier_id
+          FROM
+          (
+          <choose>
+              <when test="extendParams != null and extendParams.size() > 0">
+                  <foreach collection="extendParams" item="extendParam" index="index" open="(" close=")" separator="UNION ALL">
+                      (
+                      <include refid="selectSql"/>
+                      )
+                  </foreach>
+              </when>
+              <otherwise>
+                  <include refid="selectSql"/>
+              </otherwise>
+          </choose>
+          ) t
+          GROUP BY
+          t.id,t.supplier_id
+          <if test="extendNum != null">
+              HAVING count(*) = #{extendNum}
+          </if>
+          ORDER BY
+          <choose>
+              <when test="sidx != null and sidx != ''">
+                  ${sidx} ${sord}
+              </when>
+              <otherwise>
+                  t.id desc
+              </otherwise>
+          </choose>
+        ) ttt
+        <choose>
+            <!--复投从高到低-->
+            <when test="ftSortFlag == 1">
+                LEFT JOIN t_biz_article tba ON ttt.id = tba.media_id
+                AND tba.state > 0  and tba.issue_states = 4
+                <if test="startDate != null and startDate != ''">
+                    AND tba.issued_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y-%m-%d %T')
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND tba.issued_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y-%m-%d %T')
+                </if>
+                GROUP BY ttt.id
+                ORDER BY count(DISTINCT tba.id) desc, ttt.id DESC
+            </when>
+            <!--复投从低到高-->
+            <when test="ftSortFlag == 2">
+                LEFT JOIN t_biz_article tba ON ttt.id = tba.media_id
+                AND tba.state > 0  and tba.issue_states = 4
+                <if test="startDate != null and startDate != ''">
+                    AND tba.issued_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y-%m-%d %T')
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND tba.issued_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y-%m-%d %T')
+                </if>
+                GROUP BY ttt.id
+                ORDER BY count(DISTINCT tba.id) asc, ttt.id DESC
+            </when>
+        </choose>
+    </select>
+
+    <!--媒体导出功能：导出所有条件筛选的媒体-->
+    <sql id="selectAllSql">
+        SELECT
+        tm.id,
+        tmsra.supplier_id
+        FROM
+        t_media_audit tm
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id
+        AND tme.is_delete = 0
+        LEFT JOIN t_media_supplier_relate_audit tmsra on tm.id = tmsra.media_id and tmsra.state = 0
+        LEFT JOIN t_media_supplier tms on tms.id = tmsra.supplier_id
+        WHERE tm.is_delete = 0
+        <if test="state != null">
+            AND tm.state = #{state}
+        </if>
+        <if test="userId != null">
+            AND tm.user_id = #{userId}
+        </if>
+        <if test="no != null">
+            AND tm.no = #{no}
+        </if>
+        <if test="plateId != null">
+            AND tm.plate_id = #{plateId}
+        </if>
+        <if test="typeId != null">
+            AND tm.type_id = #{typeId}
+        </if>
+        <if test="supplierName != null and  supplierName != ''">
+            AND tms.contactor LIKE CONCAT(#{supplierName},'%')
+        </if>
+        <if test="mediaName != null and  mediaName != ''">
+            AND tm.`name` LIKE CONCAT(#{mediaName},'%')
+        </if>
+        <if test="mediaContentId != null and  mediaContentId != ''">
+            AND tm.`media_content_id` LIKE CONCAT(#{mediaContentId},'%')
+        </if>
+        <if test="regionId != null">
+            AND tm.region_id = #{regionId}
+        </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+        </if>
+        <if test="priceStart != null">
+            AND tm.price <![CDATA[>=]]> #{priceStart}
+        </if>
+        <if test="priceEnd != null">
+            AND tm.price <![CDATA[<=]]> #{priceEnd}
+        </if>
+        <if test="enabled != null">
+            AND tm.enabled = #{enabled}
+        </if>
+        <if test="isCopy != null">
+            AND tm.is_copy = #{isCopy}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tm.company_code = #{companyCode}
+        </if>
+        <if test="extendNum != null">
+            AND tme.cell = #{extendParam.cell}
+            <choose>
+                <when test="extendParam.type != null and extendParam.type == 'checkbox'">
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and
+                        (
+                        <foreach collection="extendParam.cellValue.split(',')" item="cellValue" index="index" open="(" close=")" separator="and">
+                            tme.cell_value like concat('%',#{cellValue},'%')
+                        </foreach>
+                        )
+                    </if>
+                </when>
+                <otherwise>
+                    <!--<choose>
+                        &lt;!&ndash;如果是微信ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.wechatIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        &lt;!&ndash;如果是快手ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.ksIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        <otherwise>
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value = #{extendParam.cellValue}
+                            </if>
+                        </otherwise>
+                    </choose>-->
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and tme.cell_value = #{extendParam.cellValue}
+                    </if>
+                    <if test="extendParam.cellValueStart != null and extendParam.cellValueStart != ''">
+                        and tme.cell_value <![CDATA[>=]]> #{extendParam.cellValueStart}
+                    </if>
+                    <if test="extendParam.cellValueEnd != null and extendParam.cellValueEnd != ''">
+                        and tme.cell_value <![CDATA[<=]]> #{extendParam.cellValueEnd}
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        and tm.create_date <![CDATA[>=]]> #{onlineTime}
+    </sql>
+    <select id="listAllByParam" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        select distinct ttt.id from (
+        SELECT
+        t.id,
+        t.supplier_id
+        FROM
+        (
+        <choose>
+            <when test="extendParams != null and extendParams.size() > 0">
+                <foreach collection="extendParams" item="extendParam" index="index" open="(" close=")" separator="UNION ALL">
+                    (
+                    <include refid="selectAllSql"/>
+                    )
+                </foreach>
+            </when>
+            <otherwise>
+                <include refid="selectAllSql"/>
+            </otherwise>
+        </choose>
+        ) t
+        GROUP BY
+        t.id,t.supplier_id
+        <if test="extendNum != null">
+            HAVING count(*) = #{extendNum}
+        </if>
+        ORDER BY t.id desc
+        ) ttt
+    </select>
+    <!--媒体导出功能/媒体供应商关系功能：根据媒体Id集合获取供应商价格信息-->
+    <select id="listMediaSupplierInfoByMediaIds" resultMap="mediaPriceResult">
+        SELECT
+        tma.id AS mediaId,
+        tma.`name` AS mediaName,
+        tma.media_content_id as mediaContentId,
+        tma.company_code AS companyCode,
+        tma.state,
+        tmsra.supplier_id AS supplierId,
+        tms.`name` AS supplierCompanyName,
+        tms.contactor AS supplierName,
+        tms.company_code as supplierCompanyCode,
+        tms.creator as supplierCreator,
+        tms.phone,
+        tmsra.id AS relateId,
+        tmsra.is_copy AS isCopy,
+        tmsra.copy_remarks AS copyRemarks,
+        tmsra.enabled,
+        tmsra.state as supplierRelateState,
+        tmspa.media_supplier_relate_id AS mediaRelateId,
+        tmspa.cell,
+        tmspa.cell_name AS cellName,
+        tmspa.cell_value AS cellValue,
+        tmspa.cell_type AS cellType,
+        su.dept_id as deptId,
+        tmspa.cell_value_text AS cellValueText
+        FROM
+        t_media_audit tma
+        left join sys_user su on su.id = tma.user_id
+        INNER JOIN t_media_supplier_relate_audit tmsra ON tma.id = tmsra.media_id
+        AND (tmsra.state <![CDATA[<>]]> 1 OR tmsra.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体关系-->
+        LEFT JOIN t_media_supplier tms ON tms.id = tmsra.supplier_id
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id
+        WHERE tma.is_delete = 0
+        <if test="cell != null and cell != ''">
+            AND tmspa.cell = #{cell}
+        </if>
+        <if test="state != null">
+            AND tmsra.state = #{state}
+        </if>
+        AND tma.id in
+        <foreach collection="mediaIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ORDER BY tma.update_date desc
+    </select>
+
+    <!--媒体供应商关系审核-->
+    <sql id="selectAllRelateSql">
+        SELECT
+        tm.id,
+        tmsra.supplier_id,
+        tm.update_date as updateDate
+        FROM
+        t_media_audit tm
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id
+        AND tme.is_delete = 0
+        LEFT JOIN t_media_supplier_relate_audit tmsra on tm.id = tmsra.media_id
+        LEFT JOIN t_media_supplier tms on tms.id = tmsra.supplier_id
+        WHERE tm.is_delete = 0 and tm.master_media_id is NULL
+        <!--媒体关系状态-->
+        <if test="state != null">
+            AND tmsra.state = #{state}
+        </if>
+        <if test="isDelete != null">
+            AND tmsra.is_delete <![CDATA[<>]]> #{isDelete}
+        </if>
+        <if test="userId != null">
+            AND tm.user_id = #{userId}
+        </if>
+        <if test="no != null">
+            AND tm.no = #{no}
+        </if>
+        <if test="plateId != null">
+            AND tm.plate_id = #{plateId}
+        </if>
+        <if test="typeId != null">
+            AND tm.type_id = #{typeId}
+        </if>
+        <if test="supplierName != null and  supplierName != ''">
+            AND tms.contactor LIKE CONCAT(#{supplierName},'%')
+        </if>
+        <if test="mediaName != null and  mediaName != ''">
+            AND tm.`name` LIKE CONCAT(#{mediaName},'%')
+        </if>
+        <if test="mediaContentId != null and  mediaContentId != ''">
+            AND tm.`media_content_id` LIKE CONCAT(#{mediaContentId},'%')
+        </if>
+        <if test="regionId != null">
+            AND tm.region_id = #{regionId}
+        </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+        </if>
+        <if test="priceStart != null">
+            AND tm.price <![CDATA[>=]]> #{priceStart}
+        </if>
+        <if test="priceEnd != null">
+            AND tm.price <![CDATA[<=]]> #{priceEnd}
+        </if>
+        <if test="enabled != null">
+            AND tmsra.enabled = #{enabled}
+        </if>
+        <if test="isCopy != null">
+            AND tmsra.is_copy = #{isCopy}
+        </if>
+        <if test="extendNum != null">
+            AND tme.cell = #{extendParam.cell}
+            <choose>
+                <when test="extendParam.type != null and extendParam.type == 'checkbox'">
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and
+                        (
+                        <foreach collection="extendParam.cellValue.split(',')" item="cellValue" index="index" open="(" close=")" separator="and">
+                            tme.cell_value like concat('%',#{cellValue},'%')
+                        </foreach>
+                        )
+                    </if>
+                </when>
+                <otherwise>
+                    <!--<choose>
+                        &lt;!&ndash;如果是微信ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.wechatIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        &lt;!&ndash;如果是快手ID字段，则模糊查询，前匹配&ndash;&gt;
+                        <when test="extendParam.ksIdFlag == 1">
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value  like concat(#{extendParam.cellValue},'%')
+                            </if>
+                        </when>
+                        <otherwise>
+                            <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                                and tme.cell_value = #{extendParam.cellValue}
+                            </if>
+                        </otherwise>
+                    </choose>-->
+                    <if test="extendParam.cellValue != null and extendParam.cellValue != ''">
+                        and tme.cell_value = #{extendParam.cellValue}
+                    </if>
+                    <if test="extendParam.cellValueStart != null and extendParam.cellValueStart != ''">
+                        and tme.cell_value <![CDATA[>=]]> #{extendParam.cellValueStart}
+                    </if>
+                    <if test="extendParam.cellValueEnd != null and extendParam.cellValueEnd != ''">
+                        and tme.cell_value <![CDATA[<=]]> #{extendParam.cellValueEnd}
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+        and tm.create_date <![CDATA[>=]]> #{onlineTime}
+    </sql>
+    <select id="listAllRelateByParam" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+        t.id,
+        t.supplier_id
+        FROM
+        (
+        <choose>
+            <when test="extendParams != null and extendParams.size() > 0">
+                <foreach collection="extendParams" item="extendParam" index="index" open="(" close=")" separator="UNION ALL">
+                    (
+                    <include refid="selectAllRelateSql"/>
+                    )
+                </foreach>
+            </when>
+            <otherwise>
+                <include refid="selectAllRelateSql"/>
+            </otherwise>
+        </choose>
+        ) t
+        GROUP BY
+        t.id,t.supplier_id
+        <if test="extendNum != null">
+            HAVING count(*) = #{extendNum}
+        </if>
+        ORDER BY t.updateDate desc
+    </select>
+
+    <!--根据条件获取媒体列表-->
+    <select id="listByParam" resultMap="listByParamResult">
+        SELECT
+        	<include refid="selectColumn"/>,
+        	<include refid="userColumn"/>,
+            <include refid="mediaExtendColumn"/>
+        FROM
+          t_media_audit tm
+        LEFT JOIN sys_user su ON tm.user_id = su.id
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id AND tme.is_delete = 0
+        WHERE 1=1
+        and tm.master_media_id is NULL
+        <if test="state != null">
+            AND tm.state = #{state}
+        </if>
+        <if test="no != null">
+            AND tm.no = #{no}
+        </if>
+        <if test="plateId != null">
+            AND tm.plate_id = #{plateId}
+        </if>
+        <if test="typeId != null">
+            AND tm.type_id = #{typeId}
+        </if>
+        <if test="mediaName != null and  mediaName != ''">
+            AND tm.`name` LIKE CONCAT(#{mediaName},'%')
+        </if>
+        <if test="mediaContentId != null and  mediaContentId != ''">
+            AND tm.`media_content_id` LIKE CONCAT(#{mediaContentId},'%')
+        </if>
+        <if test="regionId != null">
+            AND tm.region_id = #{regionId}
+        </if>
+        <if test="contactor != null and contactor != ''">
+            AND tm.contactor = #{contactor}
+        </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+        </if>
+        <if test="priceStart != null">
+            AND tm.price <![CDATA[>=]]> #{priceStart}
+        </if>
+        <if test="priceEnd != null">
+            AND tm.price <![CDATA[<=]]> #{priceEnd}
+        </if>
+        <if test="ids != null and ids.size() > 0">
+            AND tm.id in
+            <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            ORDER BY
+            FIELD(tm.id,
+            <foreach collection="ids" item="id" index="index" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+
+
+    <!--根据媒体id获取媒体名称-->
+    <select id="listMediaByIds" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+          tm.id,
+          tm.name,
+          tm.media_content_id as mediaContentId,
+          tm.company_code as companyCode,
+          tm.user_id as userId,
+          tm.plate_id as plateId
+        FROM
+        t_media_audit tm
+        WHERE
+        tm.id in
+        <foreach collection="mediaIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        and tm.create_date <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <!--根据条件获取所有有效的媒体-->
+    <select id="listMediaByParam" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+          tm.id,
+          tm.`name`,
+          tm.plate_id AS plateId,
+          tm.contactor,
+        tm.data_source as dataSource,
+          tm.region_id as regionId,
+          tm.type_id as typeId,
+          tm.price,
+          tm.profit_rate as profitRate,
+          tm.out_price as outPrice,
+          tm.media_content_id as mediaContentId,
+          tm.user_id as userId,
+          tm.company_code as companyCode
+        FROM
+          t_media_audit tm
+          WHERE
+          tm.is_delete = 0
+        and tm.master_media_id IS NULL
+        AND (tm.state <![CDATA[<>]]> 1 OR tm.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体-->
+          <if test="name != null and name != ''">
+              AND tm.`name` = #{name}
+          </if>
+          <if test="plateId != null">
+              AND tm.plate_id = #{plateId}
+          </if>
+          <if test="contactor != null and contactor != ''">
+              AND tm.contactor = #{contactor}
+          </if>
+        <if test="dataSource != null">
+            AND tm.data_source = #{dataSource}
+          </if>
+          <if test="regionId != null">
+              AND tm.region_id = #{regionId}
+          </if>
+          <if test="typeId != null">
+              AND tm.type_id = #{typeId}
+          </if>
+          <if test="companyCode != null and companyCode != ''">
+              AND tm.company_code = #{companyCode}
+          </if>
+          <if test="id != null">
+              AND tm.id = #{id}
+          </if>
+          <if test="onlineTime != null and onlineTime != ''">
+              and tm.create_date <![CDATA[>=]]> #{onlineTime}
+          </if>
+    </select>
+
+    <!--根据条件获取媒体价格-->
+    <select id="listMediaPriceByParam" resultMap="mediaPriceResult">
+        SELECT
+        	tma.id AS mediaId,
+        	tma.`name` AS mediaName,
+        	tmea.cell,
+        	tmea.cell_name AS cellName,
+        	tmea.cell_value AS cellValue
+        FROM
+        	t_media_audit tma
+        INNER JOIN t_media_extend_audit tmea ON tma.id = tmea.media_id
+        AND tmea.type = 'price'
+        WHERE (tma.state <![CDATA[<>]]> 1 OR tma.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体-->
+        <if test="plateId != null">
+            AND tma.plate_id = #{plateId}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tma.company_code = #{companyCode}
+        </if>
+        <if test="id != null">
+            AND tma.id = #{id}
+        </if>
+        <if test="mediaIds != null and mediaIds.size() > 0">
+            AND tma.id in
+            <foreach collection="mediaIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        and tma.create_date <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <!--根据条件获取媒体供应商价格-->
+    <select id="listMediaSupplierPriceByParam" resultMap="mediaPriceResult">
+        SELECT
+        tma.id as mediaId,
+        tma.`name` as mediaName,
+        tmsra.supplier_id AS supplierId,
+        tmsra.id AS relateId,
+        tmsra.create_id as supplierCreator,
+        tmspa.media_supplier_relate_id AS mediaRelateId,
+        tmspa.cell,
+        tmspa.cell_name AS cellName,
+        tmspa.cell_value AS cellValue,
+        tmspa.cell_type as cellType,
+        tmspa.cell_value_text as cellValueText
+        FROM
+        t_media_audit tma
+        INNER JOIN t_media_supplier_relate_audit tmsra ON tma.id = tmsra.media_id
+        AND (tmsra.state <![CDATA[<>]]> 1 OR tmsra.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体关系-->
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id
+        WHERE (tma.state <![CDATA[<>]]> 1 OR tma.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体-->
+        <if test="plateId != null">
+            AND tma.plate_id = #{plateId}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tma.company_code = #{companyCode}
+        </if>
+        <if test="id != null">
+            AND tma.id = #{id}
+        </if>
+        <if test="mediaIds != null and mediaIds.size() > 0">
+            AND tma.id in
+            <foreach collection="mediaIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        and tma.create_date <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <!--根据条件获取媒体供应商价格-->
+    <select id="listMediaSupplierPriceByMediaIds" resultMap="mediaPriceResult">
+        SELECT
+        tma.id as mediaId,
+        tma.`name` as mediaName,
+        tmsra.supplier_id AS supplierId,
+        tmsra.id AS relateId,
+        tmspa.media_supplier_relate_id AS mediaRelateId,
+        tmspa.cell,
+        tmspa.cell_name AS cellName,
+        tmspa.cell_value AS cellValue,
+        tmspa.cell_value_text as cellValueText
+        FROM
+        t_media_audit tma
+        INNER JOIN t_media_supplier_relate_audit tmsra ON tma.id = tmsra.media_id
+        AND tmsra.is_delete <![CDATA[<>]]> 1 <!--排除掉删除的媒体关系-->
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id and tmspa.cell_type = 'price'
+        WHERE 1=1
+        <if test="plateId != null">
+            AND tma.plate_id = #{plateId}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tma.company_code = #{companyCode}
+        </if>
+        <if test="id != null">
+            AND tma.id = #{id}
+        </if>
+        <if test="mediaIds != null and mediaIds.size() > 0">
+            AND tma.id in
+            <foreach collection="mediaIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <!--根据媒体ID获取供应商信息和价格-->
+    <select id="getMediaSupplierInfoByMediaId" resultMap="mediaPriceResult">
+        SELECT
+          tma.id AS mediaId,
+          tma.`name` AS mediaName,
+          tma.`media_content_id` AS mediaContentId,
+          tma.`user_id` as userId,
+          tma.company_code AS companyCode,
+          tma.state,
+          tmsra.supplier_id AS supplierId,
+          tms.`name` AS supplierCompanyName,
+          tms.contactor AS supplierName,
+          tms.phone,
+          tms.creator supplierCreator,
+          tms.company_code as supplierCompanyCode,
+          tmsra.id AS relateId,
+          tmsra.is_copy AS isCopy,
+          tmsra.copy_remarks AS copyRemarks,
+          tmsra.enabled,
+          tmsra.state as supplierRelateState,
+          tmspa.media_supplier_relate_id AS mediaRelateId,
+          tmspa.cell,
+          tmspa.cell_name AS cellName,
+          tmspa.cell_value AS cellValue,
+          tmspa.cell_type as cellType,
+          su.dept_id as deptId,
+          tmspa.cell_value_text as cellValueText
+        FROM
+        t_media_audit tma
+        INNER JOIN t_media_supplier_relate_audit tmsra ON tma.id = tmsra.media_id
+        AND tmsra.is_delete = 0
+        LEFT JOIN t_media_supplier tms ON tms.id = tmsra.supplier_id
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id
+        LEFT JOIN sys_user su ON su.id = tms.creator
+        WHERE  tma.id = #{id}
+        <if test="cell != null and cell != ''">
+            AND tmspa.cell = #{cell}
+        </if>
+
+    </select>
+
+    <!--检查同一板块同一个公司下是否存在相同名称的媒体-->
+    <select id="checkMediaForName" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+          t_media_audit tm
+        WHERE
+          tm.is_delete = 0
+          AND (tm.state <![CDATA[<>]]> 1 OR tm.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体-->
+          AND tm.`name` = #{name}
+          AND tm.plate_id = #{plateId}
+          <if test="id != null">
+              AND tm.id <![CDATA[<>]]> #{id}
+          </if>
+          AND tm.create_date <![CDATA[>=]]> #{onlineTime}
+        LIMIT 1
+    </select>
+
+    <!--检查同一板块同一个公司下是否存在相同唯一标识的媒体-->
+    <select id="checkMediaForMediaContentId" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_media_audit tm
+        WHERE
+        tm.is_delete = 0
+        AND (tm.state <![CDATA[<>]]> 1 OR tm.is_delete <![CDATA[<>]]> 1) <!--排除掉删除的媒体-->
+        AND tm.`media_content_id` = #{mediaContentId}
+        AND tm.plate_id = #{plateId}
+        and tm.master_media_id IS  NULL
+        <if test="id != null">
+            AND tm.id <![CDATA[<>]]> #{id}
+        </if>
+        AND tm.create_date <![CDATA[>=]]> #{onlineTime}
+        LIMIT 1
+    </select>
+
+    <!--根据ID获取媒体信息-->
+    <select id="getMediaById" resultType="com.qinfei.qferp.entity.media1.MediaAudit">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+            t_media_audit tm
+        WHERE tm.id = #{id}
+    </select>
+
+    <!--根据媒体ID删除媒体表-->
+    <delete id="deleteByMediaId">
+        delete from t_media_audit where id = #{mediaId}
+    </delete>
+
+    <!--根据媒体ID批量删除媒体表-->
+    <update id="deleteBatch" parameterType="java.util.List">
+        delete from t_media_audit
+        where
+        id in
+        <foreach collection="list" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </update>
+
+    <!--根据ID获取媒体所有信息-->
+    <select id="getEditMediaById" resultMap="editByParamResult">
+        SELECT
+        <include refid="selectColumn"/>, <include refid="mediaExtendColumn"/>
+        FROM
+        t_media_audit tm
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id
+        WHERE tm.id = #{id}
+    </select>
+
+    <!--根据媒体Id获取媒体和供应商信息-->
+    <select id="getMediaSupplierById" resultMap="mediaSupplierResult">
+        SELECT
+          <include refid="selectColumn"/>, <include refid="supplierColumn"/>
+        FROM
+        	t_media_audit tm
+        LEFT JOIN t_media_supplier_relate_audit tmsr ON tm.id = tmsr.media_id
+        LEFT JOIN t_media_supplier tms ON tmsr.supplier_id = tms.id
+        WHERE  tm.id = #{mediaId}
+    </select>
+
+    <!--根据媒体供应商关系ID获取审批通过的媒体和供应商信息-->
+    <select id="getMediaSupplierByRelateId" resultMap="mediaOneSupplierResult">
+        SELECT
+          <include refid="selectColumn"/>, <include refid="supplierColumn"/>
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        INNER JOIN t_media_audit tm ON tm.id = tmsra.media_id
+        AND tm.state = 1 and tm.is_delete = 0
+        INNER JOIN t_media_supplier tms ON tms.id = tmsra.supplier_id
+        WHERE tmsra.is_delete = 0 and  tmsra.id = #{relateId}
+    </select>
+
+    <!--新增媒体-->
+    <insert id="save" parameterType="com.qinfei.qferp.entity.media1.MediaAudit" useGeneratedKeys="true" keyProperty="id">
+        insert into t_media_audit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="isDelete != null">is_delete,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="versions != null">versions,</if>
+            <if test="commStart != null">comm_start,</if>
+            <if test="contact != null">contact,</if>
+            <if test="contactor != null">contactor,</if>
+            <if test="link != null">link,</if>
+            <if test="mediaContentId != null">media_content_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="no != null">no,</if>
+            <if test="outPrice != null">out_price,</if>
+            <if test="phone != null">phone,</if>
+            <if test="picPath != null and picPath != ''">pic_path,</if>
+            <if test="dataSource != null">data_source,</if>
+            <if test="price != null">price,</if>
+            <if test="profitRate != null">profit_rate,</if>
+            <if test="remarks != null">remarks,</if>
+            <if test="state != null">state,</if>
+            <if test="enabled != null">enabled,</if>
+            <if test="isCopy != null">is_copy,</if>
+            <if test="copyRemarks != null and copyRemarks != ''">copy_remarks,</if>
+            <if test="companyCode != null  and companyCode != ''">company_code,</if>
+            <if test="companyCodeName != null and companyCodeName != ''">company_code_name,</if>
+            <if test="creatorId != null">creator_id,</if>
+            <if test="plateId != null">plate_id,</if>
+            <if test="regionId != null">region_id,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="updatedId != null">updated_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="discount != null">discount,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="isDelete != null">#{isDelete},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="versions != null">#{versions},</if>
+            <if test="commStart != null">#{commStart},</if>
+            <if test="contact != null">#{contact},</if>
+            <if test="contactor != null">#{contactor},</if>
+            <if test="link != null">#{link},</if>
+            <if test="mediaContentId != null">#{mediaContentId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="no != null">#{no},</if>
+            <if test="outPrice != null">#{outPrice},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="picPath != null and picPath != ''">#{picPath},</if>
+            <if test="dataSource != null">#{dataSource},</if>
+            <if test="price != null">#{price},</if>
+            <if test="profitRate != null">#{profitRate},</if>
+            <if test="remarks != null">#{remarks},</if>
+            <if test="state != null">#{state},</if>
+            <if test="enabled != null">#{enabled},</if>
+            <if test="isCopy != null">#{isCopy},</if>
+            <if test="copyRemarks != null and copyRemarks != ''">#{copyRemarks},</if>
+            <if test="companyCode != null and companyCode !=''">#{companyCode},</if>
+            <if test="companyCodeName != null and companyCodeName != ''">#{companyCodeName},</if>
+            <if test="creatorId != null">#{creatorId},</if>
+            <if test="plateId != null">#{plateId},</if>
+            <if test="regionId != null">#{regionId},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="updatedId != null">#{updatedId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="discount != null">#{discount},</if>
+        </trim>
+    </insert>
+
+    <!--批量插入媒体表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_media_audit (
+            create_date,
+            is_delete,
+            update_date,
+            versions,
+            comm_start,
+            contact,
+            contactor,
+            link,
+            media_content_id,
+            name,
+            no,
+            out_price,
+            phone,
+            pic_path,
+        data_source,
+            price,
+            profit_rate,
+            remarks,
+            state,
+            enabled,
+            is_copy,
+            copy_remarks,
+            company_code,
+            company_code_name,
+            creator_id,
+            plate_id,
+            region_id,
+            type_id,
+            updated_id,
+            user_id,
+            discount
+        )
+        VALUES
+        <foreach collection="list" item="media" index="index" separator=",">
+            (
+               now(),
+               0,
+               now(),
+               0,
+               #{media.commStart},
+               #{media.contact},
+               #{media.contactor},
+               #{media.link},
+               #{media.mediaContentId},
+               #{media.name},
+               #{media.no},
+               #{media.outPrice},
+               #{media.phone},
+               #{media.picPath},
+            0,
+               #{media.price},
+               #{media.profitRate},
+               #{media.remarks},
+               #{media.state},
+               0,
+               0,
+               #{media.copyRemarks},
+               #{media.companyCode},
+               #{media.companyCodeName},
+               #{media.creatorId},
+               #{media.plateId},
+               #{media.regionId},
+               #{media.typeId},
+               #{media.updatedId},
+               #{media.userId},
+               #{media.discount}
+            )
+        </foreach>
+    </insert>
+
+    <!--拷贝t_media1表数据到该表-->
+    <insert id="copyMediaByIds" parameterType="java.util.List">
+        insert into
+        t_media_audit
+        select * from t_media1 where id in
+        <foreach collection="list" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </insert>
+
+    <!--拷贝t_media1表数据到该表-->
+    <insert id="copyMediaById">
+        insert into
+        t_media_audit
+        select * from t_media1 where id = #{mediaId}
+    </insert>
+
+    <!--更新媒体-->
+    <update id="updateMedia" parameterType="com.qinfei.qferp.entity.media1.MediaAudit">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            <if test="commStart != null">comm_start = #{commStart},</if>
+            <if test="contact != null">contact = #{contact},</if>
+            <if test="contactor != null">contactor = #{contactor},</if>
+            <if test="link != null">link = #{link},</if>
+            <if test="mediaContentId != null">media_content_id = #{mediaContentId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="no != null">no = #{no},</if>
+            <if test="outPrice != null">out_price = #{outPrice},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="picPath != null and picPath != ''">pic_path = #{picPath},</if>
+            <if test="dataSource != null">data_source = #{dataSource},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="profitRate != null">profit_rate = #{profitRate},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="state != null">state = #{state},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="isCopy != null">is_copy = #{isCopy},</if>
+            <if test="copyRemarks != null and copyRemarks != ''">copy_remarks = #{copyRemarks},</if>
+            <if test="companyCode != null  and companyCode != ''">company_code = #{companyCode},</if>
+            <if test="companyCodeName != null and companyCodeName != ''">company_code_name = #{companyCodeName},</if>
+            <if test="creatorId != null">creator_id = #{creatorId},</if>
+            <if test="plateId != null">plate_id = #{plateId},</if>
+            <if test="regionId != null">region_id = #{regionId},</if>
+            <if test="typeId != null">type_id = #{typeId},</if>
+            <if test="updatedId != null">updated_id = #{updatedId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="discount != null">discount = #{discount},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--更新媒体-->
+    <update id="updateMediaForMap">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            <if test="link != null">link = #{link},</if>
+            <if test="mediaContentId != null">media_content_id = #{mediaContentId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="state != null">state = #{state},</if>
+            <if test="updatedId != null">updated_id = #{updatedId},</if>
+            <if test="discount != null">discount = #{discount},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新媒体-->
+    <update id="batchUpdateMedia" parameterType="java.util.List">
+        update t_media_audit
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="link = case " suffix="else link end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.link != null and media.link != ''">
+                        when id =  #{media.id} then #{media.link}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="media_content_id = case " suffix="else media_content_id end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.mediaContentId != null and media.mediaContentId != ''">
+                        when id =  #{media.id} then #{media.mediaContentId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="remarks = case " suffix="else remarks end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    when id =  #{media.id} then #{media.remarks}
+                </foreach>
+            </trim>
+            <trim prefix="state = case " suffix="else state end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.state != null">
+                        when id =  #{media.id} then #{media.state}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="updated_id = case " suffix="else updated_id end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.updatedId != null">
+                        when id =  #{media.id} then #{media.updatedId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="user_id = case " suffix="else user_id end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.userId != null">
+                        when id =  #{media.id} then #{media.userId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="discount = case " suffix="else discount end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.discount != null">
+                        when id =  #{media.id} then #{media.discount}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where id in
+        <foreach item="media" collection="mediaList" index="index" open="(" close=")" separator=",">
+            #{media.id}
+        </foreach>
+    </update>
+
+    <!--更新媒体（不需要审核）-->
+    <update id="updateMediaNotAudit" parameterType="com.qinfei.qferp.entity.media1.MediaAudit">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            <if test="picPath != null and picPath != ''">pic_path = #{picPath},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--更新媒体状态-->
+    <update id="updateMediaState">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            state = #{state},
+            updated_id = #{updatedId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新媒体状态-->
+    <update id="batchUpdateMediaState">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            state = #{state},
+            updated_id = #{updatedId},
+        </set>
+        WHERE
+          id in
+          <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+              #{id}
+          </foreach>
+    </update>
+
+    <!--更新媒体可用状态-->
+    <update id="updateMediaEnabled">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            enabled = #{enabled},
+            state = #{state},
+            updated_id = #{updatedId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量更新媒体可用状态-->
+    <update id="batchUpdateMediaEnabled">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            enabled = #{enabled},
+            state = #{state},
+            updated_id = #{updatedId},
+        </set>
+        WHERE
+        id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--更新媒体删除状态-->
+    <update id="updateMediaIsDeleteById">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            is_delete = #{isDelete},
+            <if test="state != null">
+                state = #{state},
+            </if>
+            updated_id = #{updatedId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--更新媒体删除状态-->
+    <update id="batchUpdateMediaIsDeleteById">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            is_delete = #{isDelete},
+            <if test="state != null">
+                state = #{state},
+            </if>
+            updated_id = #{updatedId},
+        </set>
+        where
+        id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据媒体ID获取稿件媒体ID-->
+    <select id="getArticleByMediaId" resultType="java.lang.Integer">
+        SELECT
+           tba.media_id AS mediaId
+        FROM
+          t_biz_article tba
+        WHERE
+          tba.state <![CDATA[<>]]> -9
+        AND tba.media_id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--根据媒体ID获取稿件媒体ID和供应商ID-->
+    <select id="getArticleInfoByMediaId" resultType="java.lang.String">
+        SELECT
+          CONCAT(tba.media_id, '-', tba.supplier_id) as mediaSupplierRelate
+        FROM
+        t_biz_article tba
+        WHERE
+        tba.state <![CDATA[<>]]> -9
+        AND tba.media_id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--根据供应商ID获取稿件供应商ID-->
+    <select id="listArticleBySupplierId" resultType="java.lang.Integer">
+        SELECT
+          tba.supplier_id AS supplierId
+        FROM
+          t_biz_article tba
+        WHERE tba.state <![CDATA[<>]]> -9
+        AND tba.media_id = #{mediaId}
+        AND tba.supplier_id IN
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--根据媒体ID获取稿件媒体ID-->
+    <select id="getArticleImportByMediaId" resultType="java.lang.Integer">
+        SELECT
+        tba.media_id AS mediaId
+        FROM
+        t_biz_article_import tba
+        WHERE
+        tba.state <![CDATA[<>]]> -9
+        AND tba.media_id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--获取媒体板块对应媒体数量-->
+    <select id="listMediaCountByPlateId" resultType="java.util.Map">
+        SELECT
+	      tm.plate_id AS plateId,
+	      ifnull(count(*),0) AS mediaTotal
+        FROM
+          t_media_audit tm
+        WHERE 1=1
+        <if test="state != null">
+            AND tm.state = #{state}
+        </if>
+        <!--媒体管理页面需要排除掉删除的-->
+        <if test="auditFlag != 1">
+            AND tm.is_delete <![CDATA[<>]]> 1
+        </if>
+        and tm.create_date <![CDATA[>=]]> #{onlineTime}
+        GROUP BY
+	        tm.plate_id
+    </select>
+
+    <!--获取媒体板块对应媒体供应商数量-->
+    <select id="listMediaSupplierCountByPlateId" resultType="java.util.Map">
+        SELECT
+          tma.plate_id AS plateId,
+          IFNULL(COUNT(DISTINCT tmsra.media_id, tmsra.supplier_id), 0) AS mediaTotal
+        FROM
+        t_media_audit tma
+        INNER JOIN t_media_supplier_relate_audit tmsra ON tma.id = tmsra.media_id
+        WHERE tma.is_delete = 0
+        <if test="state != null">
+            AND tmsra.state = #{state}
+        </if>
+        <!--媒体关系管理页面需要排除掉删除的-->
+        <if test="autitFlag != 1">
+            AND tmsra.is_delete <![CDATA[<>]]> 1
+        </if>
+        and tma.create_date <![CDATA[>=]]> #{onlineTime}
+        GROUP BY
+        tma.plate_id
+    </select>
+
+    <!--获取老媒体表所有媒体数据（数据迁移使用）-->
+    <select id="listAllOldMedia" resultType="com.qinfei.qferp.entity.media.Media">
+        SELECT * from t_media
+    </select>
+
+    <!--处理媒体审核的公司名称数据-->
+    <update id="editMediaAuditCompanyName">
+        update t_media_audit set company_code_name = #{companyCodeName} where company_code = #{companyCode}
+    </update>
+
+    <!--根据ID获取媒体详细信息-用户媒体异动-->
+    <select id="listMediaDetailByIds" resultMap="mediaChangeMap">
+        SELECT
+        <include refid="selectColumn"/>,
+        <include refid="mediaExtendColumn"/>
+        FROM
+        t_media_audit tm
+        LEFT JOIN t_media_extend_audit tme ON tm.id = tme.media_id AND tme.is_delete = 0
+        WHERE tm.id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--更新媒体责任人-->
+    <update id="updateMediaUserId">
+        update t_media_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            user_id = #{userId},
+            updated_id = #{updatedId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--历史稿件列表-->
+    <select id="listHistoryArtByParam" resultType="java.util.Map">
+        SELECT
+        tba.media_type_id as mediaTypeId,
+        tba.media_type_name as mediaTypeName,
+        tba.media_id as mediaId,
+        tba.media_name as mediaName,
+        tba.supplier_id as supplierId,
+        tba.supplier_name as supplierName,
+        tba.supplier_contactor as supplierContactor,
+        COUNT(tba.id) as artNum,
+        GROUP_CONCAT(tba.id) as artIds
+        FROM
+        t_biz_article tba
+        WHERE
+        tba.create_time <![CDATA[<]]> #{onlineTime}
+        AND tba.media_type_id = #{mediaTypeId}
+        <if test="keyword != null and keyword != ''">
+            AND (
+            tba.media_name LIKE CONCAT(#{keyword}, '%')
+            OR tba.supplier_name LIKE CONCAT(#{keyword}, '%')
+            OR tba.supplier_contactor LIKE CONCAT(#{keyword}, '%')
+            )
+        </if>
+        GROUP BY
+        tba.media_id,
+        tba.supplier_id
+        ORDER BY
+        tba.create_time DESC
+    </select>
+
+    <!--根据稿件ID获取请款ID集合-->
+    <select id="listOutgoIdByArtIds" resultType="java.lang.String">
+        SELECT
+        GROUP_CONCAT(foa.outgo_id) AS outgoIdList
+        FROM
+        fee_outgo_article foa
+        WHERE
+        foa.article_id IN
+        <foreach collection="artIds" item="artId" index="index" open="(" close=")" separator=",">
+            #{artId}
+        </foreach>
+    </select>
+
+    <!--根据稿件ID获取删稿ID集合-->
+    <select id="listDropIdByArtIds" resultType="java.lang.String">
+        SELECT
+        GROUP_CONCAT(fda.drop_id) AS dropIdList
+        FROM
+        fee_drop_article fda
+        WHERE
+        fda.article_id IN
+        <foreach collection="artIds" item="artId" index="index" open="(" close=")" separator=",">
+            #{artId}
+        </foreach>
+    </select>
+
+    <!--更新稿件表媒体供应商信息-->
+    <update id="updateArtByArtIds">
+        UPDATE t_biz_article tba
+        <set>
+            tba.update_time = now(),
+            tba.update_user_id = #{updateUserId},
+            tba.media_id = #{mediaId},
+            tba.media_name = #{mediaName},
+            tba.supplier_id = #{supplierId},
+            tba.supplier_name = #{supplierName},
+            tba.supplier_contactor = #{supplierContactor},
+            tba.media_person_id = #{mediaPersonId},
+            tba.supplier_person_id = #{supplierPersonId}
+        </set>
+        WHERE
+        tba.id IN
+        <foreach collection="artIds" item="artId" index="index" open="(" close=")" separator=",">
+            #{artId}
+        </foreach>
+    </update>
+
+    <!--更新稿件历史表媒体供应商信息-->
+    <update id="updateArtHistoryByArtIds">
+        UPDATE t_biz_article_history tba
+        <set>
+            tba.update_time = now(),
+            tba.update_user_id = #{updateUserId},
+            tba.media_id = #{mediaId},
+            tba.media_name = #{mediaName},
+            tba.supplier_id = #{supplierId},
+            tba.supplier_name = #{supplierName},
+            tba.supplier_contactor = #{supplierContactor},
+            tba.media_person_id = #{mediaPersonId},
+            tba.supplier_person_id = #{supplierPersonId}
+        </set>
+        WHERE
+        tba.id IN
+        <foreach collection="artIds" item="artId" index="index" open="(" close=")" separator=",">
+            #{artId}
+        </foreach>
+    </update>
+
+    <!--更新请款供应商信息-->
+    <update id="updateOutgoByIds">
+        UPDATE fee_outgo fo
+        <set>
+            fo.update_time = now(),
+            fo.update_user_id = #{updateUserId},
+            fo.supplier_id = #{supplierId},
+            fo.supplier_name = #{supplierName},
+            fo.supplier_contactor = #{supplierContactor}
+        </set>
+        WHERE
+        fo.id IN
+        <foreach collection="outgoIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--更新删稿供应商信息-->
+    <update id="updateDropByIds">
+        UPDATE fee_drop fd
+        <set>
+            fd.update_time = now(),
+            fd.update_user_id = #{updateUserId},
+            fd.supplier_id = #{supplierId},
+            fd.supplier_name = #{supplierName},
+            fd.supplier_contactor = #{supplierContactor}
+        </set>
+        WHERE
+        fd.id IN
+        <foreach collection="dropIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+    <!--查询所有从媒体-->
+    <select id="selectMediaList" resultType="com.qinfei.qferp.entity.media1.Media1">
+        SELECT
+         <include refid="selectColumn"/>
+        FROM
+        t_media1 tm
+        WHERE
+        tm.master_media_id IS NOT NULL
+        AND tm.create_date <![CDATA[>=]]> #{onlineTime}
+        and tm.is_delete  = 0
+    </select>
+
+    <!--查询主媒体-->
+    <select id="selectMediaName" resultType="com.qinfei.qferp.entity.media1.Media1">
+        select
+        <include refid="selectColumn"/>
+        from
+        t_media1 tm
+        where tm.id in
+        <foreach collection="mediaIds" item="mediaId" index="index" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+        and tm.is_delete  = 0
+        AND tm.create_date <![CDATA[>=]]> #{onlineTime}
+        group by tm.id
+    </select>
+    <insert id="updateSlaveMediaRelace" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO  t_slave_media_replace
+        (
+        art_content,
+        media_relate_audit_content,
+        media_relate_content,
+        create_date
+        )
+        VALUES
+       (
+       <if test="artContent != null">
+           #{artContent},
+       </if>
+        <if test="mediaRelateAuditContent != null">
+            #{mediaRelateAuditContent},
+        </if>
+        <if test="mediaRelateContent != null">
+            #{mediaRelateContent},
+        </if>
+         now()
+       )
+    </insert>
+
+    <!--批量更新稿件主媒体-->
+    <update id="batchUpdateArtMedia" parameterType="java.util.List">
+        update t_biz_article
+        <trim prefix="set" suffixOverrides=",">
+            update_time = now(),
+            update_user_id = 1,
+            <trim prefix="media_name = case " suffix="else media_name end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.masterMediaName != null and media.masterMediaName != ''">
+                        when media_id = #{media.oldMediaId} then #{media.masterMediaName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="media_id = case " suffix="else media_id end,">
+                <foreach collection="mediaList" item="media" index="index">
+                    <if test="media.masterMediaId != null and media.masterMediaId != ''">
+                        when media_id = #{media.oldMediaId} then #{media.masterMediaId}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        media_id in
+        <foreach item="media" collection="mediaList" index="index" open="(" close=")" separator=",">
+            #{media.oldMediaId}
+        </foreach>
+        and state <![CDATA[!=]]> -9
+        AND create_time <![CDATA[>=]]> #{onlineTime}
+    </update>
+    <select id="masterSupplierList"  resultType="java.lang.Integer">
+        SELECT supplier_id FROM t_media_supplier_relate where media_id=#{masterMediaId} and is_delete <![CDATA[=]]> 0 and  create_date <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <select id="masterSupplierListAudit"  resultType="java.lang.Integer">
+        SELECT supplier_id FROM t_media_supplier_relate_audit where media_id=#{masterMediaId} and is_delete <![CDATA[=]]> 0 and  create_date <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <update id="updateMediaSupplier">
+        UPDATE t_media_supplier_relate
+        SET media_id =#{masterMediaId}
+        WHERE
+        is_delete = 0
+        <if test="masterSupplierList !=null and masterSupplierList.size()>0 ">
+            and supplier_id NOT IN
+            <foreach collection="masterSupplierList" item="supplierId" index="index" open="(" close=")" separator=",">
+                #{supplierId}
+            </foreach>
+        </if>
+        and media_id =#{mediaId}
+        and create_date <![CDATA[>=]]> #{onlineTime}
+    </update>
+
+    <update id="updateMediaSupplierAudit">
+        UPDATE t_media_supplier_relate_audit
+        SET media_id =#{masterMediaId}
+        WHERE
+        is_delete = 0
+        <if test="masterSupplierList !=null  and masterSupplierList.size()>0 ">
+        and  supplier_id NOT IN
+        <foreach collection="masterSupplierList" item="supplierId" index="index" open="(" close=")" separator=",">
+            #{supplierId}
+        </foreach>
+        </if>
+        and media_id =#{mediaId}
+        and create_date <![CDATA[>=]]> #{onlineTime}
+    </update>
+
+    <select id="selectArtList" resultType="java.util.Map">
+        select media_id as mediaId, media_name as mediaName, id
+        from t_biz_article
+        where media_id IN
+        <foreach item="media" collection="mediaList" index="index" open="(" close=")" separator=",">
+            #{media.id}
+        </foreach>
+        and create_time <![CDATA[>=]]> #{onlineTime}
+        and state <![CDATA[!=]]> -9
+
+    </select>
+    <select id="selectSupplierList" resultType="java.util.Map">
+        select media_id as mediaId , id , supplier_id as supplierId
+        FROM  t_media_supplier_relate
+        WHERE
+        media_id IN
+        <foreach item="media" collection="mediaList" index="index" open="(" close=")" separator=",">
+            #{media.id}
+        </foreach>
+        and create_date <![CDATA[>=]]> #{onlineTime}
+        and is_delete = 0
+    </select>
+
+    <select id="selectSupplierAuditList" resultType="java.util.Map">
+        select id  ,media_id as mediaId,supplier_id as supplierId
+        FROM  t_media_supplier_relate_audit
+        WHERE
+        media_id IN
+        <foreach item="media" collection="mediaList" index="index" open="(" close=")" separator=",">
+            #{media.id}
+        </foreach>
+        and create_date <![CDATA[>=]]> #{onlineTime}
+        and is_delete =0
+    </select>
+
+    <!--根据供应商id查询绑定媒体对应的板块id-->
+    <select id="selectPlateIdsForSupplierId" resultType="java.lang.String">
+       SELECT GROUP_CONCAT(DISTINCT tma.plate_id) plateIds FROM t_media_supplier_relate_audit tmsra
+       LEFT JOIN  t_media_audit tma on tma.id = tmsra.media_id
+       where tmsra.supplier_id=#{supplierId}
+       and tmsra.create_date <![CDATA[>=]]> #{onlineTime}
+       and tmsra.is_delete =0
+       GROUP BY tmsra.supplier_id
+    </select>
+</mapper>

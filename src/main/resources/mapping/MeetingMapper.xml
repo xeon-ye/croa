@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingMapper">
+    <sql id="selectColumn">
+        tm.id,
+        tm.meet_type as meetType,
+        tm.title,
+        tm.content,
+        tm.meet_room_id as meetRoomId,
+        tm.start_time as startTime,
+        tm.end_time as endTime,
+        tm.relate_meet_id as relateMeetId,
+        tm.meet_summary_id as meetSummaryId,
+        tm.address,
+        tm.other_organizer as otherOrganizer,
+        tm.other_host as otherHost,
+        tm.other_park as otherPark,
+        tm.attachment_name as attachmentName,
+        tm.attachment_link as attachmentLink,
+        tm.create_date as createDate,
+        tm.create_id as createId,
+        tm.update_date as updateDate,
+        tm.update_id as updateId,
+        tm.state,
+        tm.company_code as companyCode
+    </sql>
+    <sql id="meetingRoomColumn">
+        tmr.id as roomId,
+        tmr.name as roomName,
+        tmr.pic_path as picPath,
+        tmr.address as meetRoomAddress,
+        tmr.people_num as peopleNum,
+        tmr.other_device as otherDevice,
+        tmr.enabled,
+        tmr.audit_flag as auditFlag,
+        tmr.audit_user_id as auditUserId,
+        tmr.open_time_start as openTimeStart,
+        tmr.open_time_end as openTimeEnd,
+        tmr.meet_unit as meetUnit,
+        tmr.once_time as onceTime,
+        tmr.apply_range as applyRange,
+        tmr.remarks as roomRemarks,
+        tmr.state as roomState,
+        tmr.company_code as roomCompanyCode
+    </sql>
+
+    <resultMap id="applyResultMap" type="com.qinfei.qferp.entity.meeting.Meeting">
+        <id column="id" property="id"/>
+        <result column="meetType" property="meetType"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="meetRoomId" property="meetRoomId"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="relateMeetId" property="relateMeetId"/>
+        <result column="meetSummaryId" property="meetSummaryId"/>
+        <result column="address" property="address"/>
+        <result column="otherOrganizer" property="otherOrganizer"/>
+        <result column="otherHost" property="otherHost"/>
+        <result column="otherPark" property="otherPark"/>
+        <result column="attachmentName" property="attachmentName"/>
+        <result column="attachmentLink" property="attachmentLink"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="taskId" property="taskId"/>
+        <result column="meetSummaryName" property="meetSummaryName"/>
+        <result column="relateMeetName" property="relateMeetName"/>
+        <association property="meetingRoom" javaType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+            <id column="id" property="id"/>
+            <result column="roomName" property="name"/>
+            <result column="picPath" property="picPath"/>
+            <result column="meetRoomAddress" property="address"/>
+            <result column="peopleNum" property="peopleNum"/>
+            <result column="otherDevice" property="otherDevice"/>
+            <result column="enabled" property="enabled"/>
+            <result column="auditFlag" property="auditFlag"/>
+            <result column="openTimeStart" property="openTimeStart"/>
+            <result column="openTimeEnd" property="openTimeEnd"/>
+            <result column="meetUnit" property="meetUnit"/>
+            <result column="onceTime" property="onceTime"/>
+            <result column="applyRange" property="applyRange"/>
+            <result column="roomRemarks" property="remarks"/>
+            <result column="roomState" property="state"/>
+            <result column="roomCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+<!--添加会议-->
+    <insert id="addMeeting" parameterType="com.qinfei.qferp.entity.meeting.Meeting" useGeneratedKeys="true" keyProperty="id">
+        insert into t_meeting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="meetType != null">meet_type,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="meetRoomId != null">meet_room_id,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="relateMeetId != null">relate_meet_id,</if>
+            <if test="meetSummaryId != null">meet_summary_id,</if>
+            <if test="address != null">address,</if>
+            <if test="otherOrganizer != null">other_organizer,</if>
+            <if test="otherHost != null">other_host,</if>
+            <if test="otherPark != null">other_park,</if>
+            <if test="attachmentName != null">attachment_name,</if>
+            <if test="attachmentLink != null">attachment_link,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="state != null">state,</if>
+            <if test="companyCode != null">company_code</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="meetType != null">#{meetType},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="meetRoomId != null">#{meetRoomId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="relateMeetId != null">#{relateMeetId},</if>
+            <if test="meetSummaryId != null">#{meetSummaryId},</if>
+            <if test="address != null">#{address},</if>
+            <if test="otherOrganizer != null">#{otherOrganizer},</if>
+            <if test="otherHost != null">#{otherHost},</if>
+            <if test="otherPark != null">#{otherPark},</if>
+            <if test="attachmentName != null">#{attachmentName},</if>
+            <if test="attachmentLink != null">#{attachmentLink},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="state != null">#{state},</if>
+            <if test="companyCode != null">#{companyCode}</if>
+        </trim>
+    </insert>
+<!--根据会议id ，查询会议详情-->
+    <select id="editMeeting" resultMap="applyResultMap">
+      select
+        tmra.task_id as taskId ,
+        su.`name` as meetSummaryName ,
+        (select tm1.title from t_meeting tm1 where tm.relate_meet_id = tm1.id) AS relateMeetName ,
+        <include refid="selectColumn"/> ,<include refid="meetingRoomColumn"/>
+      from t_meeting tm
+        LEFT JOIN  t_meeting_room tmr on tm.meet_room_id= tmr.id
+        LEFT JOIN  t_meeting_room_apply tmra on tm.id = tmra.meet_id
+        LEFT JOIN sys_user su on su.id = tm.meet_summary_id
+        where tm.state <![CDATA[<>]]> -9 and tm.id = #{id}
+    </select>
+<!--根据会议id，删除会议  state =-9-->
+    <update id="delMeeting" parameterType="java.lang.Integer">
+        UPDATE t_meeting
+          <set>
+              <if test="updateId !=null">update_id=#{updateId},</if>
+              <if test="updateDate !=null">update_date=#{updateDate},</if>
+              <if test="state !=null">state=#{state},</if>
+          </set>
+        where id=#{id}
+    </update>
+    <!--根据会议id，更改会议详情-->
+    <update id="updateMeeting" parameterType="com.qinfei.qferp.entity.meeting.Meeting">
+        UPDATE  t_meeting
+        <set>
+        <if test="meetType !=null">meet_type = #{meetType},</if>
+        <if test="title !=null">title = #{title},</if>
+        <if test="content !=null">content = #{content},</if>
+        <if test="meetRoomId !=null">meet_room_id = #{meetRoomId},</if>
+        <if test="startTime !=null">start_time = #{startTime},</if>
+        <if test="endTime !=null">end_time = #{endTime},</if>
+        <if test="relateMeetId !=null">relate_meet_id = #{relateMeetId},</if>
+        <if test="meetSummaryId !=null">meet_summary_id = #{meetSummaryId},</if>
+        <if test="address !=null">address = #{address},</if>
+         other_organizer = #{otherOrganizer},
+         other_host = #{otherHost},
+            other_park = #{otherPark},
+        <if test="attachmentName !=null">attachment_name = #{attachmentName},</if>
+        <if test="attachmentLink !=null">attachment_link = #{attachmentLink},</if>
+        <if test="createDate !=null">create_date = #{createDate},</if>
+        <if test="createId !=null">create_id = #{createId},</if>
+        <if test="updateDate !=null">update_date = #{updateDate},</if>
+        <if test="updateId !=null">update_id = #{updateId},</if>
+        <if test="state !=null">state = #{state},</if>
+        <if test="companyCode !=null">company_code = #{companyCode},</if>
+        </set>
+        where id= #{id}
+    </update>
+
+    <!--根据会议id将该会议的用户状态改为-9     0-会议参与人员、1-会议组织者、2-会议主持人-->
+    <update id="deleteMeetingUser" parameterType="java.lang.Integer">
+        UPDATE t_meeting_user
+        <set>
+            state =-9
+        </set>
+        where meet_id=#{meetingId} and user_type in(0,1,2)
+    </update>
+
+    <!--用户是否接受同意会议-->
+    <update id="meetingFlag"  parameterType="java.lang.Integer">
+      UPDATE  t_meeting_user
+       <set>
+           <if test="meetId !=null"> meet_id = #{meetId},</if>
+           <if test="meetTaskId !=null">meet_task_id = #{meetTaskId},</if>
+           <if test="userId !=null">user_id = #{userId},</if>
+           <if test="userType !=null">user_type = #{userType},</if>
+           <if test="acceptFlag !=null">accept_flag = #{acceptFlag},</if>
+           <if test="createId !=null">create_id = #{createId},</if>
+           <if test="meetId !=null">meet_id = #{meetId},</if>
+           <if test="createDate !=null">create_date = #{createDate},</if>
+           <if test="updateId !=null">update_id = #{updateId},</if>
+           <if test="updateDate !=null">update_date = #{updateDate},</if>
+           <if test="state !=null">state = #{state} </if>
+       </set>
+        where meet_id =#{meetId} and user_id= #{userId}
+    </update>
+
+    <select id="meetingAllList" resultType="com.qinfei.qferp.entity.meeting.Meeting">
+        select
+        DISTINCT
+        su.name AS userName,
+        tmra.audit_flag AS auditFlag,
+        tmra.approver_user_id AS auditUserId,
+        su1.name as auditUserName,
+        tmr.name as meetRoomName,
+        tmr.address as meetRoomAddress,
+        <include refid="selectColumn"/>
+        from  t_meeting tm
+        left JOIN t_meeting_user tmu on tm.id=tmu.meet_id
+        LEFT JOIN sys_user su on su.id= tm.create_id
+        LEFT JOIN t_meeting_room_apply tmra on tmra.meet_id=tm.id
+        LEFT JOIN sys_user su1 ON su1.id = tmra.approver_user_id
+        LEFT JOIN t_meeting_room tmr on tm.meet_room_id = tmr.id
+        where tm.state>-2  and  tm.state <![CDATA[<>]]> 2
+        <if test="meetType != null and meetType !=''">
+            and tm.meet_type  = #{meetType}
+        </if>
+        <if test="title != null and title !=''">
+            and tm.title  like '%${title}%'
+        </if>
+        <if test="userName != null and userName !=''">
+            and su.name  like '%${userName}%'
+        </if>
+        <if test="content != null and content !=''">
+            and tm.content  = #{content}
+        </if>
+        <if test="address != null and address !=''">
+            and (tm.address  like '%${address}%' or tmr.address  like '%${address}%')
+        </if>
+        <if test="endTime !=null and startTime !=''">
+            AND tm.end_time &lt;= #{endTime}
+        </if>
+        <if test="startTime !=null and startTime !=''">
+            AND tm.start_time &gt;= #{startTime}
+        </if>
+        <if test="meetSummaryId != null and meetSummaryId !=''">
+            and tm.meetSummaryId  = #{meetSummaryId}
+        </if>
+        <if test="otherOrganizer != null and otherOrganizer !=''">
+            and tm.other_organizer  = #{otherOrganizer}
+        </if>
+        <if test="otherHost != null and otherHost !=''">
+            and tm.other_host  = #{otherHost}
+        </if>
+        <if test="companyCode!=null and companyCode != '' ">
+            and tm.company_code = #{companyCode}
+        </if>
+        <if test="meetRoomId != null">
+            and tm.meet_room_id = #{meetRoomId}
+        </if>
+    </select>
+
+<!--会议列表查询-->
+    <select id="meetingListPg"  resultType="com.qinfei.qferp.entity.meeting.Meeting">
+        select
+        DISTINCT
+        su.name AS userName,
+        tmra.audit_flag AS auditFlag,
+        tmra.approver_user_id AS auditUserId,
+        su1.name as auditUserName,
+        tmr.name as meetRoomName,
+        tmr.address as meetRoomAddress,
+        <include refid="selectColumn"/>
+        from  t_meeting tm
+        left JOIN t_meeting_user tmu on tm.id=tmu.meet_id
+        LEFT JOIN sys_user su on su.id= tm.create_id
+        LEFT JOIN t_meeting_room_apply tmra on tmra.meet_id=tm.id
+        LEFT JOIN sys_user su1 ON su1.id = tmra.approver_user_id
+        LEFT JOIN t_meeting_room tmr on tm.meet_room_id = tmr.id
+        where tm.state>-2   and (tmu.user_id =#{userId} or tm.create_id=#{userId})
+        <if test="meetType != null and meetType !=''">
+            and tm.meet_type  = #{meetType}
+        </if>
+        <if test="title != null and title !=''">
+            and tm.title  like '%${title}%'
+        </if>
+        <if test="userName != null and userName !=''">
+            and su.name  like '%${userName}%'
+        </if>
+        <if test="content != null and content !=''">
+            and tm.content  = #{content}
+        </if>
+        <if test="address != null and address !=''">
+            and (tm.address  like '%${address}%' or tmr.address  like '%${address}%')
+        </if>
+        <if test="endTime !=null and startTime !=''">
+            AND tm.end_time &lt;= #{endTime}
+        </if>
+        <if test="startTime !=null and startTime !=''">
+            AND tm.start_time &gt;= #{startTime}
+        </if>
+        <if test="meetSummaryId != null and meetSummaryId !=''">
+            and tm.meetSummaryId  = #{meetSummaryId}
+        </if>
+        <if test="otherOrganizer != null and otherOrganizer !=''">
+            and tm.other_organizer  = #{otherOrganizer}
+        </if>
+        <if test="otherHost != null and otherHost !=''">
+            and tm.other_host  = #{otherHost}
+        </if>
+        <if test="companyCode!=null and companyCode != '' ">
+            and tm.company_code = #{companyCode}
+        </if>
+        <if test="meetRoomId != null">
+            and tm.meet_room_id = #{meetRoomId}
+        </if>
+        order by tm.create_date desc
+    </select>
+    <!--关联会议  查询组织者为自己的会议-->
+    <select id="meetingorganization" resultType="com.qinfei.qferp.entity.meeting.Meeting">
+        select  <include refid="selectColumn"/>
+        from t_meeting tm LEFT JOIN t_meeting_user tmu on tm.id= tmu.meet_id  where tm.state>-2 and tmu.user_type = 1 and tmu.user_id=#{userId}
+    </select>
+
+
+    <!--根据会议室ID获取会议总数-->
+    <select id="listMeetingByRoomId" resultType="java.util.Map">
+        SELECT
+          tm.id AS meetId,
+          tm.meet_type AS meetType,
+          tm.title AS title,
+          tm.state AS meetState,
+          tm.start_time AS startTime,
+          tm.end_time AS endTime,
+          tm.create_id AS createId,
+          tm.other_host AS otherHost,
+          tm.other_organizer AS otherOrganizer,
+          tm.other_park AS otherPark,
+          tm.relate_meet_id AS relateMeetId,
+          su.`name` AS createName,
+          tmra.create_date AS meetRoomCreateTime,
+          tmra.audit_flag AS auditFlag,
+          tmra.approver_user_id AS approverUserId,
+          su1.name as approverUserName,
+          tmr.id as roomId,
+          tmr.name as roomName,
+          tmr.create_date as roomCreateTime
+        FROM
+        t_meeting tm
+        INNER JOIN t_meeting_room_apply tmra ON tm.id = tmra.meet_id
+        INNER JOIN t_meeting_room tmr ON tmra.meet_room_id = tmr.id
+        INNER JOIN sys_user su ON su.id = tm.create_id
+        LEFT JOIN sys_user su1 ON su1.id = tmra.approver_user_id
+        WHERE
+        tm.state <![CDATA[<>]]> -9
+        <if test="meetType != null and meetType !=''">
+            and tm.meet_type  = #{meetType}
+        </if>
+        <if test="companyCode!=null and companyCode != '' ">
+            and tm.company_code = #{companyCode}
+        </if>
+        <if test="meetRoomId != null">
+            and tm.meet_room_id = #{meetRoomId}
+        </if>
+    </select>
+
+    <!--根据会议室ID获取会议总数-->
+    <select id="getMeetingTotal" resultType="java.lang.Integer">
+        select
+            count(*)
+        from t_meeting tm
+        where tm.state <![CDATA[<>]]> -9
+        <if test="meetType != null and meetType !=''">
+            and tm.meet_type  = #{meetType}
+        </if>
+        <if test="companyCode!=null and companyCode != '' ">
+            and tm.company_code = #{companyCode}
+        </if>
+        <if test="meetRoomId != null">
+            and tm.meet_room_id = #{meetRoomId}
+        </if>
+    </select>
+
+    <!--根据会议ID查询会议记录-->
+    <select id="getMeetingById" resultType="com.qinfei.qferp.entity.meeting.Meeting">
+        select
+        <include refid="selectColumn"/>
+        from t_meeting tm
+        where tm.state <![CDATA[<>]]> -9 and tm.id = #{id}
+    </select>
+    <!--根据会议id，更改会议详情-->
+    <update id="updateStateById" parameterType="com.qinfei.qferp.entity.meeting.Meeting">
+        UPDATE  t_meeting
+        <set>
+            <if test="updateDate !=null">update_date = #{updateDate},</if>
+            <if test="updateId !=null">update_id = #{updateId},</if>
+            <if test="state !=null">state = #{state},</if>
+        </set>
+        where id= #{id}
+    </update>
+    <!--根据用户id 查用户名-->
+    <select id="getUser" resultType="java.lang.String">
+        select name from sys_user where id=#{userId} and state>-9
+    </select>
+
+</mapper>

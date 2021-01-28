@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>客户信息</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/layui/layui.js"></script>
+
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/crm/commonOperate.js"></script>
+    <script src="/js/crm/statistics/custom_information.js"></script>
+
+    <style>
+        .right0 {
+            margin-right: -23px;
+        }
+
+        .option_button {
+            width: 60px;
+            float: left;
+            margin-left: 10px;
+            display: block;
+            background: rgb(24, 144, 255);
+            color: white;
+            border-width: 1px;
+            border-radius: 4px;
+        }
+
+        .option_button_head {
+            height: 25px;
+            margin-left: 5px;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .layui-form-select dl {
+            max-height: 333px;
+        }
+
+        #transfer_bottom .layui-form-select dl {
+            max-height: 100px;
+        }
+
+        .trans {
+            background-image: url(/img/transfer.png);
+            /*width:100px;*/
+            /*height:100px;*/
+            background-repeat: no-repeat;
+            float: left;
+        }
+    </style>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        Cust = {
+            init: function () {
+                Views.loadDistrict("area");
+            }
+        };
+
+        Cust.init();
+
+        $(function () {
+//            $('body').bind('keyup', function (event) {
+//                if (event.keyCode == "13") {
+//                    //回车执行查询
+//                    $("#searchButton").click();
+//                }
+//            });
+            $("body").keydown(function (evt) {
+                evt = (evt) ? evt : ((window.event) ? window.event : "");
+                var curKey = evt.keyCode ? evt.keyCode : evt.which;
+                if (curKey == 13) {//keyCode=13是回车键
+                    $("#searchButton").click();
+                }
+            });
+            //创建表格对象
+            custGrid = new dataGrid("custTable", gridObject, "custPager", "cust");
+            custGrid1 = new dataGrid("custTable1", gridObject1, "custPager1", "cust");
+            //加载表格
+            custGrid.loadGrid();
+            //设置下面的按钮
+            custGrid.setNavGrid();
+            //添加上面的操作按钮
+            custGrid1.loadGrid();
+            //设置下面的按钮
+            custGrid1.setNavGrid();
+        });
+
+
+    </script>
+
+</head>
+
+<body>
+<!--批量交接弹出框-->
+<div id="batchTransfer" style="width:725px;height:320px;display:none;padding-left:10px;">
+    <div id="transfer_top" style="width:708px;height:30%;padding-left:10px;">
+        <table style="margin-top:10px;">
+            <tr style="height:40px;">
+                <td style="width:100px;">
+                    <label for="transferCount">对接人数量：</label>
+                </td>
+                <td>
+                    <input style="border:none" name="transferCount" id="transferCount" value="0">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="transferWorker">负责人：</label>
+                </td>
+                <td>
+                    <input style="border:none" name="transferWorker" id="transferWorker" value="">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="transfer_bottom" style="width:708px;height:65%;margin-top:5px;" ;>
+        <table style="margin-top:10px;">
+            <tr style="height:40px;" valign="top">
+                <td style="width:100px;">
+                    <label for="transferDepartment">选择交接部门：</label>
+                    <label for="transferTransferWorker" style="margin-top:35px;">选择交接人：</label>
+                </td>
+                <td style="width:150px;">
+                    <select name="transferDepartment" id="transferDepartment"
+                            onchange="DockingPeople.setSelectPeople()" class="form-control height18">
+                    </select>
+                    <div style="margin-top:10px;">
+                        <select name="transferTransferWorker" id="transferTransferWorker"
+                                style="margin-top:30px;z-index:-1" class="form-control height18">
+                        </select>
+                    </div>
+                </td>
+                <td style="width:80px;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;<label for="transferComment">交接备注：</label>
+                </td>
+                <td>
+                        <textarea name="transferComment" rows="3" cols="35"
+                                  id="transferComment" style="height:100px;" class="form-control">
+                        </textarea>
+                </td>
+            </tr>
+        </table>
+        <div class="form-group" style="width:100%;text-align:center;margin-top:15px;">
+            <div style="margin-left: 50%">
+                <div style="margin-left:-90px;">
+                    <input type="button" class="form-control height18 option_button" value="交接"
+                           onclick="DockingPeople.batchTransferq()">
+                    <input type="button" class="form-control height18 option_button" value="关闭"
+                           onclick="layer.closeAll();">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!--批量交接弹出确认框-->
+<div id="batchTransferq" style="width:725px;height:250px;display:none;padding-left:10px;">
+    <div id="transfer_bottomq" style="width:708px;height:200px;margin-top:5px;" ;>
+        <div style="width:48%;height:70%;line-height: 35px;float:left">
+            确认要将<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:red;"
+                                                                                          id="transferWorkerq">谢席珍</span>&nbsp;&nbsp;&nbsp;&nbsp;负责的<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:red;" id="transferCountq"></span>&nbsp;&nbsp;&nbsp;&nbsp;个客户对接人全部交给<br/>
+            &nbsp;&nbsp;<span style="color:red" id="transferTransferWorkerq"></span>&nbsp;&nbsp;&nbsp;吗
+        </div>
+
+        <div style="width:50%;height:70%;line-height: 35px;float:left">
+            <span style="vertical-align: top;">交接备注如下：</span>
+            <textarea style="height:100px;width:250px;" readonly="readonly" id="transferCommentq"></textarea>
+        </div>
+
+        <div class="form-group" style="width:100%;text-align:center;margin-top:15px;">
+            <div style="margin-left: 50%">
+                <div style="margin-left:-90px;">
+                    <input type="button" class="form-control height18 option_button" value="确认"
+                           onclick="DockingPeople.batchBindDocking(DockingPeople.totalList)">
+                    <input type="button" class="form-control height18 option_button" value="取消"
+                           onclick="layer.closeAll();">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<form id="cust" onsubmit="return false;">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label right0">客户公司名称:</label>
+                            <div class="col-sm-2">
+                                <input type="text" id="custcompanyName" name="custcompanyName" placeholder="至少输入两个字符"
+                                       class="form-control height18">
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" id="searchButton" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!--查询条件结束-->
+
+<div class="col-sm-12" style="padding-left: 0px;padding-right: 0px;">
+    <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+        <div class="ibox-title" style="margin-left:8px;" id="custButtons">
+            <!--<h5 style="font-weight: bold">客户列表</h5>-->
+            <!--<button type="button" class="btn btn-primary">默认按钮</button>-->
+            <!--<button id="exportButton" class="btn btn-success" type="button" onclick="exportData()">-->
+                <!--<i class="fa fa-download"></i>&nbsp;&nbsp;导出表格-->
+            <!--</button>-->
+        </div>
+        <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+            <div class="form-horizontal">
+                <div class="jqGrid_wrapper">
+                    <table id="custTable"></table>
+                    <div id="custPager"></div>
+                </div>
+
+                <div class="jqGrid_wrapper">
+                    <table id="custTable1"></table>
+                    <div id="custPager1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--查看不建议合作理由-->
+<div id="editModal" class="modal inmodal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px;">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h5>查看不建议理由</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <form id="editReason" class="form-horizontal">
+                            <div class="row">
+                                <div>
+                                    <table id="od" class="table table-bordered " style="text-align: center;table-layout:fixed;word-wrap:break-word;word-break:break-all;">
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align:center;vertical-align:middle;" class="hide">用户id
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="8%">业务员
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="12%">不建议合作理由
+                                            </th>
+                                            <th style="text-align:center;vertical-align:middle;" width="10%">修改时间
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="order">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-danger" type="button" data-dismiss="modal" id="close" style="margin-bottom:5px">
+                                        <i class="fa fa-close"></i>&nbsp; 关闭
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--</div>-->
+
+</body>
+
+</html>

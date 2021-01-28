@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title >退款管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script th:src="@{/js/process/approveTask.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/common_util.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/fee/commonFee.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/fee/queryRefund.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script type="text/javascript" th:src="@{//js/fee/commonPreviewFile.js(v=${version})}"></script>
+    <style>
+        .companyWrap {
+            border: 1px solid #eeeeee;
+            width: 95.6%;
+            height: 212px;
+            position: absolute;
+            top: 34px;
+            background-color: white;
+            z-index: 999;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .companyNameItem {
+            border-bottom: 1px solid #eeeeee;
+            width: 100%;
+            height: 30px;
+            float: left;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0 12px;
+        }
+        .companyNameItem:hover{
+            background-color: #DFF0D8;
+        }
+
+        .companyNameItem > span{
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .text-green {
+            color: #18a689;
+        }
+        .companyPanelCancel {
+            display: none;
+        }
+    </style>
+    <script>
+        $(function () {
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+            var startTimeQc = {
+                elem: '#startTimeQc',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // endTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // endTimeQc.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#startTimeQc").val();
+                    var endTime = $("#endTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+            var endTimeQc = {
+                elem: '#endTimeQc',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                //max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // startTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#startTimeQc").val();
+                    var endTime = $("#endTimeQc").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#endTimeQc").val("")
+                        return;
+                    }
+                }
+            };
+
+            var startTime = {
+                elem: '#startTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                // max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // endTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    // endTime.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#startTime").val();
+                    var endTime = $("#endTime").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#startTime").val("")
+                        return;
+                    }
+                }
+            };
+            var endTime = {
+                elem: '#endTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // startTime.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#startTime").val();
+                    var endTime = $("#endTime").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#endTime").val("")
+                        return;
+                    }
+                }
+            };
+            var applyTimeStart = {
+                elem: '#applyTimeStart',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                //max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // endTimeQc.min = datas; //开始日选好后，重置结束日的最小日期
+                    // endTimeQc.start = datas //将结束日的初始值设定为开始日
+                    var startTime = $("#applyTimeStart").val();
+                    var endTime = $("#applyTimeEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyTimeStart").val("")
+                        return;
+                    }
+                }
+            };
+            var applyTimeEnd = {
+                elem: '#applyTimeEnd',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    // startTimeQc.max = datas; //结束日选好后，重置开始日的最大日期
+                    var startTime = $("#applyTimeStart").val();
+                    var endTime = $("#applyTimeEnd").val();
+                    if(startTime && endTime && startTime > endTime){
+                        layer.msg("开始时间不能大于结束时间");
+                        $("#applyTimeEnd").val("")
+                        return;
+                    }
+                }
+            };
+            laydate(applyTimeStart);
+            laydate(applyTimeEnd);
+
+            laydate(startTimeQc);
+            laydate(endTimeQc);
+            laydate(startTime);
+            laydate(endTime);
+
+            var expertStartTime = {
+                elem: '#expertStartTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    endTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    endTime.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var expertEndTime = {
+                elem: '#expertEndTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: false,
+                istoday: false,
+                choose: function (datas) {
+                    startTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+
+            laydate(expertStartTime);
+            laydate(expertEndTime);
+            $('#imgModal').on('hidden.bs.modal', function () {
+                $("body").addClass("modal-open");
+            });
+            //回车提交事件
+            $('#queryDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#querySearch").click();
+                }
+            });
+            $('#firstDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#custSearch").click();
+                }
+            });
+            $('#secondDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#articleSearch").click();
+                }
+            });
+            $('#accountDiv').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#accountSearch").click();
+                }
+            });
+            $( "#editModal" ).draggable();
+        });
+    </script>
+</head>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="margin-bottom: 0px">
+            <div class="ibox-title" style="padding-left: 20px">
+                <h5 style="font-weight: bold">查询条件</h5>
+            </div>
+            <div class="ibox-content" style="padding: 15px 20px 0px 20px">
+                <div class="form-horizontal" id="queryDiv">
+                    <form id="queryForm">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">申请日期:</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="applyTimeStart" name="applyTimeStart" startTime="startTime">
+                                    <!--<span style="display:inline-block;padding:0 10px;">至</span>-->
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="applyTimeEnd" name="applyTimeEnd" startTime="startTime">
+                                </div>
+                                <label class="col-sm-1 control-label">期望付款日期:</label>
+                                <div class="col-sm-2" style="min-width: 240px;">
+                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon " id="expertStartTime" name="expertStartTime" startTime="startTime">
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="expertEndTime" name="expertEndTime" startTime="startTime">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="custCompanyNameQc" name="custCompanyNameQc"   class="form-control"
+                                           placeholder="客户公司名称">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="custNameQc" name="custNameQc"   class="form-control"
+                                           placeholder="客户联系人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="codeQc" name="codeQc" class="form-control" placeholder="退款编号">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="accountNameQc" name="accountNameQc"    class="form-control" placeholder="收款人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <select class="form-control" name="typeQc">
+                                        <option value="">类型</option>
+                                        <option value="0">直接退款</option>
+                                        <option value="1">稿件退款</option>
+                                        <option value="2">其他支出</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">出款日期:</label>
+                                <div class="col-sm-2" style="min-width:240px;">
+                                    <input placeholder="开始日期"style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="startTimeQc"  name="startTimeQc" readonly="readonly">
+                                    <!--<span style="display:inline-block;padding:0 10px;">至</span>-->
+                                    <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                           class="form-control layer-date laydate-icon" id="endTimeQc"  name="endTimeQc" readonly="readonly">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="outAccountNameQc" name="outAccountNameQc"    class="form-control" placeholder="出款账户">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="payAmountQc" name="payAmountQc"    class="form-control" placeholder="出款金额">
+                                </div>
+                                <div class="col-sm-1">
+                                    <select class="form-control" name="stateQc">
+                                        <option value="">状态</option>
+                                        <option value="-1">已驳回</option>
+                                        <option value="0">已保存</option>
+                                        <option value="3">审核中</option>
+                                        <option value="2">出款中</option>
+                                        <option value="4">确认中</option>
+                                        <option value="1">已完成</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="applyNameQc" name="applyNameQc"    class="form-control" placeholder="申请人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="querytitle" name="titleQc"    class="form-control" placeholder="标题" >
+                                </div>
+                                <div class="col-sm-2" id="deptDiv" style="display:none">
+                                    <div class="input-group m-b" style="margin-bottom: 0">
+                                        <input type="hidden" id="deptId" name="deptId" class="height18">
+                                        <input type="text" id="chooseDeptName" class="form-control height18" readonly="readonly">
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF" id="selDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="选择部门"></span>
+                                        <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF" id="cleanDept"
+                                              data-toggle="tooltip" data-placement="top" data-html="true" title="清除选择的部门"></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="querySearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-content">
+                <div class="form-horizontal" id="tj">
+                    <div class="col-sm-offset-3 col-sm-3">
+                        <label>申请金额合计: ￥ </label><label id="applyAmount1" class="text-danger">0</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>实际出款金额合计: ￥ </label><label id="payAmount1" class="text-danger">0</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-title" style="padding-left: 20px">
+                <button id="addFullRefund"  class="btn btn-primary addBtn" type="button" onclick="navObj.initCust(0)"><i class="fa fa-plus"></i>&nbsp;申请直接退款
+                </button>&nbsp;&nbsp;
+                <button id="addPartRefund" class="btn btn-info addBtn" type="button" onclick="navObj.initCust(1)"><i class="fa fa-plus"></i>&nbsp;申请稿件退款
+                </button>&nbsp;&nbsp;
+                <button id="addOtherPay" class="btn btn-default addBtn" type="button" onclick="navObj.initCust(2)"><i class="fa fa-plus"></i>&nbsp;申请其他支出
+                </button>&nbsp;&nbsp;
+                <button id="exportBtn" class="btn btn-success" type="button"><i class="glyphicon glyphicon-export"></i>&nbsp;导出全部
+                </button>
+                <button  class="btn btn-info" type="button" id="batchDownload" onclick="downLoadAndPrintObj.batchDownloadData();" style="display: none;">
+                    <i class="fa fa-download"></i>&nbsp;批量下载
+                </button>
+                <button  class="btn btn-info" type="button" id="batchPrint" onclick="downLoadAndPrintObj.batchPrintData();" style="display: none;">
+                    <i class="fa fa-print"></i>&nbsp;批量打印
+                </button>
+            </div>
+            <div class="ibox-content" style="padding: 5px 0px 0px 5px">
+                <div class="jqGrid_wrapper">
+                    <table id="query_table_logs"></table>
+                    <div id="query_pager_logs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--新增编辑页面-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document" style="width: 100%">
+        <div class="modal-content">
+            <div class="fa fa-refresh" id="refresh" style="margin-left: 20px; margin-top: 20px;cursor: pointer"
+                 title="刷新"></div>
+            <div class="modal-header" style="padding-top: 0px; padding-bottom: 5px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">退款或其他支出信息</h1>
+            </div>
+            <div class="modal-body" style="padding:5px">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs" id="navTabs">
+                        <li class="active firstDiv"><a data-toggle="tab" id="firstStep" href="#firstDiv"
+                                                       aria-expanded="true">第一步选择客户</a>
+                        </li>
+                        <li class="secondDiv"><a data-toggle="tab" id="secondStep" href="#secondDiv"
+                                                 aria-expanded="false">第二步选择稿件</a>
+                        </li>
+                        <li class="thirdDiv"><a data-toggle="tab" id="thirdStep" href="#thirdDiv"
+                                                aria-expanded="false">第三步完善发票信息</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content ">
+                        <div id="firstDiv" class="tab-pane active" style="margin-top:15px;">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="ibox" style="margin-bottom: 0">
+                                        <div>
+                                            <form id="firstForm" class="form-horizontal">
+                                                <div class="form-group" >
+                                                    <label class="col-sm-2 control-label">客户公司名称:</label>
+                                                    <div class="col-sm-3">
+                                                        <input type="text" id="companyNameQc1" name="companyName" class="form-control" >
+                                                    </div>
+                                                    <label class="col-sm-2 control-label">客户联系人:</label>
+                                                    <div class="col-sm-3">
+                                                        <input type="text" id="custNameQc1" name="custName" class="form-control" >
+                                                    </div>
+                                                    <div class="col-sm-1">
+                                                        <button type="button" id="custSearch" class="btn btn-primary">
+                                                            <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="ibox-content" style="padding: 15px 0 0 0">
+                                            <div class="jqGrid_wrapper">
+                                                <table id="select_cust_table_logs"></table>
+                                                <div id="select_cust_pager_logs"></div>
+                                            </div>
+                                            <div style="padding: 5px">
+                                                <span class="text-red">温馨提示：1、企业客户必须是强保护类型才能退款；2、个体工商户手机号码规范才能退款。</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <input type="hidden" id="chooseRefundType" value="">
+                                        <button type="button" class="btn btn-primary" id="selectSupplier" onclick="navObj.initArticle(this)">下一步</button>
+                                        <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="secondDiv" class="tab-pane" style="margin-top:15px;">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="ibox" style="margin-bottom: 0">
+                                        <form id="secondForm" class="form-horizontal">
+                                            <div>
+                                                <div class="form-group">
+                                                    <label class="col-sm-1 control-label">发布日期:</label>
+                                                    <div class="col-sm-3" style="min-width:240px;">
+                                                        <input placeholder="开始日期" style="width:48%;vertical-align: middle"
+                                                               class="form-control layer-date laydate-icon " id="startTime"
+                                                               name="startTime" readonly="readonly">
+                                                        <input placeholder="结束日期" style="width:48%;vertical-align: middle"
+                                                               class="form-control layer-date laydate-icon " id="endTime" name="endTime" readonly="readonly">
+                                                    </div>
+                                                    <div class="col-sm-1">
+                                                        <input type="text" id="mediaUserNameQc" name="mediaUserNameQc" class="form-control" placeholder="媒介">
+                                                    </div>
+                                                    <div class="col-sm-1">
+                                                        <input type="text" id="mediaNameQc" name="mediaNameQc" class="form-control" placeholder="媒体">
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <input type="text" id="titleQc" name="titleQc" class="form-control" placeholder="标题">
+                                                    </div>
+                                                    <input type="hidden" id="custCompanyIdSec" name="custCompanyIdSec" >
+                                                    <input type="hidden" id="custCompanyNameSec" name="custCompanyNameSec" >
+                                                    <input type="hidden" id="custIdSec" name="custIdSec" >
+                                                    <input type="hidden" id="custNameSec" name="custNameSec" >
+                                                    <input type="hidden" id="articleIdsSec" name="articleIdsSec" >
+                                                    <input type="hidden" id="typeSec" name="typeSec" >
+                                                    <!--客户有效期开始时间和结束时间，只能选择在有效期内的稿件-->
+                                                    <input type="hidden" id="startTimeSec" name="startTimeSec">
+                                                    <input type="hidden" id="endTimeSec" name="endTimeSec">
+                                                    <div class="col-sm-1">
+                                                        <button type="button" id="articleSearch" class="btn btn-primary">
+                                                            <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ibox-content" style="padding: 0;">
+                                                <div>
+                                                    <h3>未退款的稿件列表</h3>
+                                                </div>
+                                                <div class="jqGrid_wrapper">
+                                                    <table id="select_article_table_logs"></table>
+                                                    <div id="select_article_pager_logs"></div>
+                                                </div>
+                                                <div style="padding: 5px">
+                                                    <span>温馨提示：发布日期在客户有效期内的稿件才会显示在列表中，该客户有效期：</span>
+                                                    <span class="text-red" id="startTimeText"></span>
+                                                    <span>&nbsp;~&nbsp;</span>
+                                                    <span class="text-red" id="endTimeText"></span>
+                                                </div>
+                                                <div>
+                                                    <h3>选中的稿件</h3>
+                                                </div>
+                                                <table id="od" class="table table-bordered" style="text-align: center;table-layout:fixed;word-wrap:break-word;word-break:break-all;">
+                                                    <thead>
+                                                    <tr>
+                                                        <th style="text-align:center;vertical-align:middle;" class="hide">ID
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="8%">发布日期
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">客户公司
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="6%">联系人</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="8%">品牌</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="8%">媒体板块
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">媒体名称
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">内外部
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">频道
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">标题</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="6%">数量</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="6%">媒介</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="8%">报价/应收</th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="8%">已分款金额
+                                                        </th>
+                                                        <th style="text-align:center;vertical-align:middle;" width="10%">申请金额
+                                                        </th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="order">
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="backStepOne" onclick="navObj.initCust();">
+                                            <i class="fa fa-backward"></i>上一步
+                                        </button>
+                                        <button type="button" class="btn btn-success" id="selectArticle" onclick="navObj.selectArticle(this);">
+                                            <i class="fa fa-forward"></i>下一步
+                                        </button>
+                                        <button type="button" class="btn btn-white"
+                                                data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="thirdDiv" class="tab-pane" style="margin-top:15px;">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <form id="editForm" class="form-horizontal" enctype="multipart/form-data">
+                                        <div>
+                                            <input type="hidden" id="flag" name="flag">
+                                            <input type="hidden" id="id" name="id">
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">客户公司<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="hidden" id="custCompanyId" name="custCompanyId"    class="form-control" >
+                                                    <input type="text" id="custCompanyName" name="custCompanyName"    class="form-control"  required="" readonly="readonly">
+                                                </div>
+                                                <label class="col-sm-1 control-label">联系人<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="hidden" id="custId" name="custId"    class="form-control" >
+                                                    <input type="text" id="custName" name="custName"    class="form-control"  required="" readonly="readonly">
+                                                </div>
+                                                <label class="col-sm-1 control-label">类型<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <select id="type" name="type" class="form-control" disabled="disabled">
+                                                        <option value="0">直接退款</option>
+                                                        <option value="1">稿件退款</option>
+                                                        <option value="2">其他支出</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">编号<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="code" name="code" class="form-control" readonly="readonly" required="">
+                                                </div>
+                                                <label class="col-sm-1 control-label">标题<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="title" name="title" class="form-control" required="">
+                                                </div>
+                                                <label class="col-sm-1 control-label">申请金额<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="applyAmount" name="applyAmount" class="form-control" required=""
+                                                           onkeyup="value=value.replace(/[^\d\.\-]/g,'')" readonly="readonly">
+                                                </div>
+
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">收款人<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-2  changeOnView">
+                                                    <input type="hidden" id="accountId" name="accountId"  class="form-control"  required="">
+                                                    <input type="text" id="accountName" name="accountName"  class="form-control"  required="">
+                                                </div>
+                                                <div class="col-sm-1" id="selectAccountBtnDiv">
+                                                    <button type="button" class="btn btn-primary btn-circle glyphicon  glyphicon-search selAccount" id="selAccount" onclick="accountObj.selAccount()"></button>
+                                                    <button type="button" class="btn btn-warning btn-circle glyphicon  glyphicon-remove cleanAccount"></button>
+                                                </div>
+                                                <label class="col-sm-1 control-label">收款账号<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="accountBankNo" name="accountBankNo" class="form-control" required="">
+                                                </div>
+                                                <label class="col-sm-1 control-label">收款开户行<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="accountBankName" name="accountBankName"    class="form-control" required="">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">期望付款日期<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" placeholder="期望付款日期" name="expertPayTime" id="expertPayTime" class="form-control layer-date laydate-icon"
+                                                           onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss', min: laydate.now() })" required=""/>
+                                                </div>
+                                                <label class="col-sm-1 control-label">申请人<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="hidden" id="applyId" name="applyId"    class="form-control"  readonly="readonly">
+                                                    <input type="text" id="applyName" name="applyName"    class="form-control"  readonly="readonly">
+                                                </div>
+                                                <label class="col-sm-1 control-label">所在部门<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="hidden" id="deptId1" name="deptId"    class="form-control"  readonly="readonly">
+                                                    <input type="text" id="deptName" name="deptName"    class="form-control"  readonly="readonly">
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="viewAndConfirm">
+                                                <label class="col-sm-1 control-label">实际出款账户<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3 showOnView">
+                                                    <input type="hidden" id="outAccountId" name="outAccountId" class="form-control" style="border-width: 0;">
+                                                    <input type="text" id="outAccountName" name="outAccountName" class="form-control" style="border-width: 0;">
+                                                </div>
+                                                <div class="col-sm-3 layui-form showOnConfirm">
+                                                    <select id="outAccountSelect" lay-filter="test" lay-verify="" lay-search name="outAccountIds"
+                                                            style="margin-top:30px;z-index:-1" class="form-control height18" required="">
+                                                    </select>
+                                                    <input type="hidden" id="outAccountIds" value="">
+                                                </div>
+                                                <label class="col-sm-1 control-label">实际出款日期:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" placeholder="实际出款日期" name="payTime" id="payTime"  class="form-control layer-date laydate-icon"
+                                                           onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})" />
+                                                </div>
+                                                <label class="col-sm-1 control-label">实际出款金额<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="text" id="payAmount" name="payAmount" class="form-control" required="">
+                                                </div>
+                                            </div>
+                                            <div class="form-group hideOnEdit">
+                                                <label class="col-sm-1 control-label">状态<span class="text-red">*</span>:</label>
+                                                <div class="col-sm-3">
+                                                    <input type="hidden" id="state" name="state" value="0">
+                                                    <input type="text" id="state1" name="state1" class="form-control" style="border-width: 0;">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">备注:</label>
+                                                <div class="col-sm-11">
+                                                    <textarea id="remark" name="remark" class="form-control"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-1 control-label">附件:</label>
+                                                <input type="hidden" name="affixLink">
+                                                <input type="hidden" name="affixName">
+                                                <div class="col-sm-3">
+                                                    <div id="affixDiv" ></div>
+                                                    <input type="file" id="file" name="file" class="form-control showOnEdit" multiple>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="selRow" name="selRow">
+                                            <!--taskId如果是null，则是第一次提交，taskId有值，则表示是驳回后提交，走的审核流程不一样-->
+                                            <input type="hidden" id="taskId" name="taskId">
+                                            <input type="hidden" id="companyCode" name="companyCode" >
+                                        </div>
+                                        <div class="ibox-content"  id="hideByType">
+                                            <div>
+                                                <h3>选中的退款稿件</h3>
+                                            </div>
+                                            <div class="jqGrid_wrapper">
+                                                <table id="selected_article_table_logs"></table>
+                                                <div id="selected_article_pager_logs"></div>
+                                                <!--<input type="hidden" name="selectedIds" id="selectIds">-->
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer" style="padding: 10px">
+                                            <div class="" id="editFooter">
+                                                <button type="button" class="btn btn-success" id ="update" onclick="businessObj.submitHander(this,'/refund/edit',0)" >保存</button>
+                                                <button type="button" class="btn btn-primary" id="save" onclick="businessObj.submitHander(this,'/refund/edit',4)" >提交审核</button>
+                                                <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+                                            </div>
+                                            <div class="" id="viewFooter">
+                                                <div id="auditTrue" align="center" class="">
+                                                    <div class="col-sm-9"><div class="col-sm-4"></div>
+                                                        <button type="button" class="btn btn-info" id="details" onclick="showHistory($('#details').data('id'))"  >审核详情</button>
+                                                        <button type="button" class="btn btn-success " id="pass" onclick="approve(this)" >审核通过</button>
+                                                        <button type="button" class="btn btn-danger " id="reject1" onclick="reject(this)" >审核驳回</button>
+                                                        <button type="button" class="btn btn-primary glyphicon glyphicon-chevron-left" onclick="goBackProcess()">返回</button>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <label class="col-sm-3 control-label">审核意见:</label>
+                                                        <div class="col-sm-7">
+                                                            <input type="text" id="desc" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="auditFalse" class="">
+                                                    <button type="button" class="btn btn-success glyphicon glyphicon-ok" id="review" onclick="businessObj.checkBtoB()" >确认出款
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger glyphicon glyphicon-repeat " id="rejected"  onclick="reject(this)">撤回
+                                                    </button>
+                                                    <button type="button" class="btn btn-white" id="closeModal" data-dismiss="modal">关闭
+                                                    </button>
+                                                    <button type="button" id="goback" class="btn btn-white" onclick="goBackHtml()">返回
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="" id="confirmFooter">
+                                                <label class="col-sm-1 control-label">审核意见:</label>
+                                                <div class="col-sm-2">
+                                                    <input type="text" id="desc1" class="form-control" >
+                                                </div>
+                                                <button type="button" class="btn btn-success glyphicon glyphicon-ok" id="confirm" onclick="businessObj.submitHanderCW(this,'/refund/confirm')" >出纳出款</button>
+                                                <button type="button" class="btn btn-success glyphicon glyphicon-ok" id="changeAccountBtn" onclick="businessObj.changeAccount()" >
+                                                    更改出款账户
+                                                </button>
+                                                <button type="button" class="btn btn-danger glyphicon glyphicon-repeat" id="CWReject2" onclick="reject(this)">撤回</button>
+                                                <button type="button" class="btn btn-white" data-dismiss="modal" id="cancel2">关闭</button>
+                                            </div>
+                                        </div>
+                                        <!--解决ie10兼容性问题，删除可能会导致报错Stream ended unexpectedly-->
+                                        <input type="hidden" name="test">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--选择客户银行账号-->
+<div class="modal inmodal" id="accountModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">选择客户银行账户</h4>
+            </div>
+            <div class="">
+                <div class="wrapper wrapper-content  animated fadeInRight">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox " id="accountDiv">
+                                <form id="accountForm" class="form-horizontal">
+                                    <div class="form-group" >
+                                        <label class="col-sm-1 control-label">账户户主:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="ownerQc" class="form-control" >
+                                        </div>
+                                        <label class="col-sm-1 control-label">开户行:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="bankNameQc" class="form-control" >
+                                        </div>
+                                        <label class="col-sm-1 control-label">银行账号:</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="bankNoQc" class="form-control" >
+                                        </div>
+                                        <input type="hidden" name="custId" id="chooseCustId">
+                                        <div class="col-sm-1">
+                                            <button type="button" id="accountSearch" class="btn btn-primary">
+                                                <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="ibox-content">
+                                    <div class="jqGrid_wrapper">
+                                        <table id="account_table_logs"></table>
+                                        <div id="account_pager_logs"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary selectAccount" id="selectAccount">选择</button>
+                                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--审核流程详情-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight" >
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--审核流程详情-->
+<div class="modal inmodal" id="docPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1300px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content" style="min-height: 900px">
+                <iframe style="min-height: 900px" width='100%' height='100%' frameborder='1'></iframe>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+<!--预览页面-->
+<div id="refundViewModal" style="display: none;">
+    <div id="modalContentWrap" style="width: 100%;padding: 5px 0;display: flex;flex-direction: column;float:left;page-break-after: always;">
+        <style type="text/css">
+            *{
+                box-sizing: border-box;
+                word-break: break-all;
+            }
+            #modalContentWrap{
+                font-size: 10px;
+            }
+            .modalTitle{
+                width: 100%;height: 40px;display: flex;align-items: center;justify-content: center;font-weight: bold;
+            }
+            .modalContentWrap{
+                width: 100%;
+                flex: 1;
+            }
+            .modalContentItem{
+                width: 100%;padding: 5px 15px;display: flex;align-items: center;
+            }
+            .modalLabel{
+                width: 15%;height: 34px;padding-right: 15px;display: flex;align-items: center;justify-content: flex-end;
+            }
+            .spaceDiv{
+                width: 15%;height: 34px;
+            }
+            .col-12{
+                width: 70%;min-height: 34px;padding: 5px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .col-6-1{
+                width: 35%;padding: 5px;min-height: 34px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .col-6-2{
+                width: 20%;padding: 5px;min-height: 34px;display: flex;justify-content: flex-start;align-items: center;
+            }
+            .radioSpan{
+                display: inline-flex;align-items: center;
+            }
+            .radioInput{
+                width: 16px;height: 16px;flex-shrink: 0;
+            }
+            .modalContentItem table{
+                width: 90%;
+                border-top: 1px solid #999;
+                border-left: 1px solid #999;
+                border-spacing: 0;/*去掉单元格间隙*/
+            }
+            .modalContentItem table tr{
+                height: 30px;
+            }
+            .modalContentItem table tr th,  .modalContentItem table tr td{
+                text-align: center;
+                border-bottom: 1px solid #999;
+                border-right: 1px solid #999;
+            }
+        </style>
+        <div class="modalTitle">
+            <!--[退款]编号-发起人-发起时间-->
+        </div>
+        <div class="modalContentWrap">
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    退款标题:
+                </div>
+                <div class="col-12 title">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    退款编号:
+                </div>
+                <div class="col-6-1 code">
+
+                </div>
+                <div class="modalLabel">
+                    退款类型:
+                </div>
+                <div class="col-6-2 type">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    退款人:
+                </div>
+                <div class="col-6-1 applyName">
+
+                </div>
+                <div class="modalLabel">
+                    退款人部门:
+                </div>
+                <div class="col-6-2 deptName">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    客户公司:
+                </div>
+                <div class="col-6-1 custCompanyName">
+
+                </div>
+                <div class="modalLabel">
+                    联系人:
+                </div>
+                <div class="col-6-2 custName">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    收款人:
+                </div>
+                <div class="col-6-1 accountName">
+
+                </div>
+                <div class="modalLabel">
+                    收款人账号:
+                </div>
+                <div class="col-6-2 accountBankNo">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    收款人开户行:
+                </div>
+                <div class="col-6-1 accountBankName">
+
+                </div>
+                <div class="modalLabel">
+                    期望付款日期:
+                </div>
+                <div class="col-6-2 expertPayTime">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    申请金额:
+                </div>
+                <div class="col-6-1 applyAmount">
+
+                </div>
+                <div class="modalLabel">
+                    退款状态:
+                </div>
+                <div class="col-6-2 state">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    实际出款账户:
+                </div>
+                <div class="col-6-1 outAccountName">
+
+                </div>
+                <div class="modalLabel">
+                    实际出款日期:
+                </div>
+                <div class="col-6-2 payTime">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    实际出款金额:
+                </div>
+                <div class="col-6-1 payAmount">
+
+                </div>
+                <div class="modalLabel">
+                    附件:
+                </div>
+                <div class="col-6-2 affixName">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem">
+                <div class="modalLabel">
+                    退款备注:
+                </div>
+                <div class="col-12 remark">
+
+                </div>
+                <div class="spaceDiv"></div>
+            </div>
+            <div class="modalContentItem auditTable" style="justify-content: center;">
+                <table>
+                    <colgroup>
+                        <col width="25%">
+                        <col width="25%">
+                        <col width="25%">
+                        <col width="25%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>审核节点</th>
+                        <th>审核人</th>
+                        <th>操作详情</th>
+                        <th>操作时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--<tr>
+                        <td>直属领导审核</td>
+                        <td>邹丽</td>
+                        <td>正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核正在审核</td>
+                        <td>2020-01-15 14:57:25</td>
+                    </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 修改公司名 -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document" style="width: 800px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center" >修改客户</h1>
+            </div>
+            <div class="modal-body" style="padding: 10px 10px 5px 10px">
+                <div class="row" id="addCompanyDiv">
+                    <div class="col-sm-12">
+                        <form id="addCompanyForm" class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">客户性质:<span class="text-red">*</span></label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="custProperty" id="custProperty" value="1"/>
+                                    <button type="button" id="enterpriseBtn" class="btn btn-info">&nbsp;企业客户&nbsp;
+                                    </button>&nbsp;&nbsp;
+                                    <button type="button" id="personalBtn" class="btn btn-white">&nbsp;个人客户&nbsp;
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="position: relative;">
+                                <label class="col-sm-2 control-label">公司名称:<span class="text-red">*</span></label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="companyId"/>
+                                    <input type="text" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control"
+                                           name="companyName" autocomplete="off" required
+                                           oninput="companyObj.search(this);"
+                                           onblur="companyObj.checkCompany(this);"
+                                           onkeydown="companyObj.enterEvent(this, event);"
+                                           onmouseout="companyObj.mourseOut(this);"
+                                           onmouseover="companyObj.mourseOver(this);"/>
+                                    <div class="companyWrap companyPanelCancel" onmouseover="companyObj.mourseOver(this);" onmouseout="companyObj.mourseOut(this);"></div>
+                                </div>
+                                <div class="col-sm-2 control-label2">
+                                    <span data-toggle="tooltip" data-placement="left" data-html="true"
+                                          title="填写客户公司名称之后判定分为标准和非标准两类，企业客户有标准类型和非标准类型，个人客户都是非标准类型并且公司名称统一为个体工商户">
+                                        <i class="fa fa-question-circle"></i>
+                                    </span>
+                                    <input type="hidden" name="standardize" id="standardize">
+                                    <span id="companyTipsYes" class="companyTipsYes" style="display:none"><span class="text-green">&nbsp;<i
+                                            class="fa fa-check-circle"></i>&nbsp;标准</span></span>
+                                    <span id="companyTipsNo" class="companyTipsNo" style="display:none"><span class="text-red">&nbsp;<i
+                                            class="fa fa-times-circle"></i>&nbsp;非标准</span></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">对接人名字:<span class="text-red">*</span></label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="userId"/>
+                                    <input type="text" class="form-control" name="userName" autocomplete="off"
+                                           required="required">
+                                </div>
+                                <label class="col-sm-2 control-label">手机号:<span class="text-red">*</span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="mobile" autocomplete="off"
+                                           required="required" oninput="value=value.replace(/[^\d]/g,'');companyObj.regexPhone(this)">
+                                </div>
+                                <div class="col-sm-2 control-label2">
+                                    <span data-toggle="tooltip" data-placement="left" data-html="true"
+                                          title="填写手机号码之后判定分为规范和非规范两类">
+                                        <i class="fa fa-question-circle"></i>
+                                    </span>
+                                    <input type="hidden" name="normalize" id="normalize">
+                                    <span id="companyUserTipsYes" style="display: none"><span
+                                            class="text-green">&nbsp;<i
+                                            class="fa fa-check-circle"></i>&nbsp;规范</span></span>
+                                    <span id="companyUserTipsNo" style="display: none"><span
+                                            class="text-red">请输入正确的手机号</span></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">微信号:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" autocomplete="off" name="wechat">
+                                </div>
+                                <label class="col-sm-2 control-label">QQ号:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" autocomplete="off" name="qq" oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group" style="margin-bottom: 0">
+                                <label class="col-sm-2 control-label"><span class="text-red">提示：</span></label>
+                                <div class="col-sm-10">
+                                    <span>1、企业客户必须是强保护类型才能退款。<br/></span>
+                                    <span>2、个人客户手机号码规范才能退款。</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="updateCompanyBasicBtn" onclick="companyObj.updateCompanyBasic(this,'/crm/company/updateCompanyBasic')"><i
+                        class="fa fa-save"></i>&nbsp;修改
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

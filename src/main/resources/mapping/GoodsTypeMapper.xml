@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.GoodsTypeMapper">
+    <sql id="selectColumn">
+       gt.id,
+       gt.`name`,
+       gt.parent_id parentId,
+       gt.code,
+       gt.state,
+       gt.specs,
+       gt.unit,
+       gt.price,
+       gt.create_id createId,
+       gt.create_name createName,
+       gt.create_time createTime,
+       gt.update_user_id updateUserId,
+       gt.update_time updateTime,
+       gt.description,
+       gt.company_code companyCode
+    </sql>
+
+    <!--新增产品分类信息-->
+    <insert id="saveGoodsType" parameterType="com.qinfei.qferp.entity.inventory.GoodsType" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_goods_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="code != null and code != ''">code,</if>
+            <if test="state != null">state,</if>
+            <if test="specs != null and specs!=''">specs,</if>
+            <if test="unit != null and unit!=''">unit,</if>
+            <if test="price != null">price,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createName != null and createName != ''">create_name,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="description != null">description,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="parentId!=null">#{parentId},</if>
+            <if test="code != null and code != ''">#{code},</if>
+            <if test="state != null">#{state},</if>
+            <if test="specs != null and specs!=''">#{specs},</if>
+            <if test="unit != null and unit!=''">#{unit},</if>
+            <if test="price != null">#{price},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createName != null and createName != ''">#{createName},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="description != null">#{description},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--修改产品分类信息-->
+    <update id="updateGoodsType" parameterType="com.qinfei.qferp.entity.inventory.GoodsType">
+        update t_saves_goods_type
+        <set>
+            <if test="name != null and name != ''">name=#{name},</if>
+            <if test="parentId != null">parent_id=#{parentId},</if>
+            <if test="code != null and code != ''">code=#{code},</if>
+            <if test="state != null">state=#{state},</if>
+            <if test="specs != null and specs!=''">specs=#{specs},</if>
+            <if test="unit != null and unit!=''">unit=#{unit},</if>
+            <if test="price != null">price=#{price},</if>
+            <if test="createId != null">create_id=#{createId},</if>
+            <if test="createName != null and createName != ''">create_name=#{createName},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime != null">update_time=#{updateTime},</if>
+            <if test="description != null">description=#{description},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--修改产品分类状态-->
+    <update id="del" parameterType="java.lang.Integer">
+        update t_saves_goods_type set state = #{state} where id =#{id}
+    </update>
+
+    <!--修改产品分类状态-->
+    <update id="editStockAmount" parameterType="java.util.Map">
+        update t_saves_goods_type
+         <set>
+             <if test="stockMaxAmount!=null and stockMaxAmount!=''">
+                 stock_max_amount=#{stockMaxAmount}
+             </if>
+             <if test="stockMinAmount!=null and stockMinAmount!=''">
+                 stock_min_amount=#{stockMinAmount}
+             </if>
+         </set>
+         where id =#{id}
+    </update>
+
+    <!--根据id查询产品信息-->
+    <select id="getById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.GoodsType">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.id = #{id}
+    </select>
+
+    <!--根据id查询产品信息及库存数量（物品领用）-->
+    <select id="getStockDataById" parameterType="java.util.Map" resultType="java.util.Map">
+        select gt.id,gt.unit,gt.price,
+        (SELECT count(*) FROM t_saves_goods g where g.goods_id=gt.id and g.warehouse_id=#{wareId} and g.company_code=#{companyCode} and g.state=0) stockAmount
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.id=#{id}
+    </select>
+
+    <!--判断是否存在相同的产品分类名称-->
+    <select id="getSameNameList" resultType="com.qinfei.qferp.entity.inventory.GoodsType" parameterType="java.util.Map">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode}
+        <if test="name!=null and name!=''">
+            and gt.name = #{name}
+        </if>
+        <if test="typeFlag==1">
+            and gt.parent_id =0
+        </if>
+        <if test="id!=null">
+            and gt.id != #{id}
+        </if>
+    </select>
+
+    <select id="checkGoodsTypeData" resultType="com.qinfei.qferp.entity.inventory.GoodsType" parameterType="java.util.Map">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode}
+        <if test="parentId!=null">
+            and gt.parent_id=#{parentId}
+        </if>
+    </select>
+
+    <!--查询产品分类数量-->
+    <select id="getPageCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*) from t_saves_goods_type gt
+        where gt.state>-2 and gt.parent_id=0 and gt.company_code=#{companyCode}
+        <if test="nameQc!=null and nameQc!=''">
+            and gt.name like concat('%',#{nameQc},'%')
+        </if>
+    </select>
+
+    <!--查询产品分类信息-->
+    <select id="getGoodsTypeInfo" resultType="com.qinfei.qferp.entity.inventory.GoodsType" parameterType="java.util.Map">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.parent_id=0 and gt.company_code=#{companyCode}
+        <if test="nameQc!=null and nameQc!=''">
+            and gt.name like concat('%',#{nameQc},'%')
+        </if>
+        order by gt.create_time desc
+    </select>
+
+    <!--加载产品分页数量-->
+    <select id="getGoodsPageCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*) from t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode} and gt.parent_id!=0
+        <if test="typeIdQc!=null and typeIdQc!=''">
+            and gt.parent_id=#{typeIdQc}
+        </if>
+        <if test="nameQc!=null and nameQc!=''">
+            and gt.name like concat('%',#{nameQc},'%')
+        </if>
+    </select>
+
+    <!--加载产品分页数据-->
+    <select id="getGoodsInfo" resultType="com.qinfei.qferp.entity.inventory.GoodsType" parameterType="java.util.Map">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode} and gt.parent_id!=0
+        <if test="typeIdQc!=null and typeIdQc!=''">
+            and gt.parent_id=#{typeIdQc}
+        </if>
+        <if test="nameQc!=null and nameQc!=''">
+            and gt.name like concat('%',#{nameQc},'%')
+        </if>
+        order by gt.create_time desc
+    </select>
+
+    <!--加载产品分类信息-->
+    <select id="loadGoodsTypeInfo" resultType="java.util.Map">
+        select id,name from t_saves_goods_type
+        where state>-2 and parent_id=0 and company_code=#{companyCode}
+    </select>
+
+    <!--根据父级id加载产品分类信息-->
+    <select id="loadGoodsTypeByParentId" resultType="java.util.Map">
+        select id,name from t_saves_goods_type
+        where state>-2 and parent_id=#{parentId} and company_code=#{companyCode}
+    </select>
+
+    <!--查询产品库存id集合-->
+    <select id="getStockIds" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select g.goods_id goodsId from t_saves_goods g
+        where g.state=0 and g.company_code=#{companyCode}
+        <if test="wareId!=null and wareId!=''">
+            and g.warehouse_id =#{wareId}
+        </if>
+        group by g.goods_id
+    </select>
+
+    <!--库存最大值预警-->
+    <select id="getStockMaxWarnData" parameterType="java.util.Map" resultType="java.util.Map">
+        select gt.id goodsId,gt.code,gt.parent_id typeId,gt.name goodsName,gt.specs,gt.unit,
+        gt.stock_max_amount stockMaxAmount,gt.stock_min_amount stockMinAmount,
+        (
+          SELECT count(*) from t_saves_goods g
+          where g.goods_id=gt.id and g.state=0
+          <if test="wareId!=null and wareId!=''">
+              and g.warehouse_id=#{wareId}
+          </if>
+        ) amount
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        HAVING amount>=stockMaxAmount and stockMaxAmount>0
+    </select>
+
+    <!--库存最小值预警-->
+    <select id="getStockMinWarnData" parameterType="java.util.Map" resultType="java.util.Map">
+        select gt.id goodsId,gt.code,gt.parent_id typeId,gt.name goodsName,gt.specs,gt.unit,
+        gt.stock_max_amount stockMaxAmount,gt.stock_min_amount stockMinAmount,
+        (
+        SELECT count(*) from t_saves_goods g
+        where g.goods_id=gt.id and g.state=0
+        <if test="wareId!=null and wareId!=''">
+            and g.warehouse_id=#{wareId}
+        </if>
+        ) amount
+        from t_saves_goods_type gt
+        where gt.state>-2 and gt.id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+         HAVING stockMinAmount>=amount and stockMinAmount>0
+    </select>
+</mapper>

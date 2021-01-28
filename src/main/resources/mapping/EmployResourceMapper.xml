@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 常用的信息库； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployResourceMapper">
+    <!-- 获取民族信息 -->
+    <select id="listNation" resultType="java.util.Map" useCache="true">
+        select id, name from sys_nation
+    </select>
+
+    <!-- 获取指定ID的民族名称； -->
+    <select id="getNationNameById" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        select name from sys_nation where id = #{nationId}
+    </select>
+
+    <!-- 获取地区信息； -->
+    <select id="listDistrict" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select area_id, name from sys_district where state &lt;&gt; -9 and area_id &lt;&gt; 0
+        <if test="areaId != null">
+            and parent_id = #{areaId}
+        </if>
+    </select>
+
+    <!-- 获取部门信息； -->
+    <select id="listDept" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select id, name, code from sys_dept where state &lt;&gt; -9
+        <if test="companyCode != null and companyCode !='' and companyCode !='XH'">
+            and company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!-- 获取指定ID的部门名称； -->
+    <select id="getDeptNameById" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        select name from sys_dept where id = #{deptId} and state &lt;&gt; -9
+    </select>
+
+    <!-- 获取职位信息； -->
+    <select id="listPost" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select id, name from sys_post where state &lt;&gt; -9
+        <if test="deptId != null">
+            and id in (select post_id from sys_dept_post where dept_id = #{deptId})
+        </if>
+    </select>
+
+    <!-- 获取职位信息； -->
+    <select id="listPostByCompanyCode" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select id, name from sys_post where state &lt;&gt; -9 and company_code=#{companyCode}
+    </select>
+
+    <!--根据公司代码和一级部门获取职位信息-->
+    <select id="listPostByCompanyAndDept" resultType="java.util.Map" useCache="true">
+        SELECT DISTINCT
+        sp.id,sp.`name`
+        FROM
+        sys_dept sd
+        INNER JOIN sys_dept_post sdp on sdp.dept_id = sd.id
+        INNER JOIN sys_post sp on sdp.post_id = sp.id and sp.state = 0
+        WHERE sd.company_code = #{companyCode}
+        <choose>
+            <when test="companyCode != 'JT'">
+                AND sd.`level` <![CDATA[<>]]> 1
+            </when>
+            <otherwise>
+                AND sd.`level` <![CDATA[<>]]> 0
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="firstDept == 0">
+                AND sd. CODE = 'YW'
+            </when>
+            <when test="firstDept == 1">
+                AND sd. CODE = 'MJ'
+            </when>
+            <otherwise>
+                AND sd. CODE <![CDATA[<>]]> 'YW'
+                AND sd.`code` <![CDATA[<>]]> 'MJ'
+            </otherwise>
+        </choose>
+        AND sd.state > -2
+    </select>
+
+    <!--根据公司代码获取职位信息-->
+    <select id="listPostByCompany" resultType="java.util.Map" useCache="true">
+        SELECT DISTINCT
+        	sdp.dept_id AS deptId,
+        	sdp.post_id AS postId,
+        	sp.`name` AS postName
+        FROM
+        	sys_dept_post sdp
+        INNER JOIN sys_post sp ON sdp.post_id = sp.id
+        WHERE
+        	sp.company_code = #{companyCode}
+        AND sp.state = 0
+    </select>
+
+    <!--根据公司代码和一级部门获取部门信息-->
+    <select id="listDeptByFirstDept" resultType="java.util.Map" useCache="true">
+        SELECT DISTINCT
+        sd.id,sd.`name`
+        FROM
+        sys_dept sd
+        WHERE sd.company_code = #{companyCode}
+        <choose>
+            <when test="companyCode != 'JT'">
+                AND sd.`level` <![CDATA[<>]]> 1
+            </when>
+            <otherwise>
+                AND sd.`level` <![CDATA[<>]]> 0
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="firstDept == 0">
+                AND sd. CODE = 'YW'
+            </when>
+            <when test="firstDept == 1">
+                AND sd. CODE = 'MJ'
+            </when>
+            <otherwise>
+                AND sd. CODE <![CDATA[<>]]> 'YW'
+                AND sd.`code` <![CDATA[<>]]> 'MJ'
+            </otherwise>
+        </choose>
+        AND sd.state > -2
+    </select>
+
+    <!-- 获取指定ID的职位名称； -->
+    <select id="getPostNameById" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        select name from sys_post where id = #{postId} and  state &lt;&gt; -9
+    </select>
+
+    <select id="getCompanyCode" parameterType="java.lang.Integer" resultType="java.lang.String" useCache="true">
+        select company_code from sys_dept where id = #{deptId} and  state &lt;&gt; -9
+    </select>
+</mapper>

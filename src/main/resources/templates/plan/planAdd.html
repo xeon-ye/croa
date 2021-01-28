@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>每日计划总结</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plan/planAdd.js"></script>
+    <style type="text/css">
+        .mainTitle{
+            height: 100px;
+            line-height: 100px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            float: left;
+        }
+        .subTitle{
+            height: 40px;
+            line-height: 40px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            float: left;
+            margin-top: 25px;
+        }
+        .subContent{
+            border:1px solid #eee;
+            padding: 0px;
+            padding-top: 10px;
+            float: left;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="ibox col-md-12">
+    <div class="ibox-content col-md-12">
+        <form id="plateFrom" autocomplete="off" class="form-horizontal" method="post">
+            <div class="mainTitle">
+                每日计划总结录入
+            </div>
+            <div class="col-md-12 subContent">
+                <div class="col-md-12">
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            录入人:
+                        </label>
+                        <div class="col-sm-7">
+                            <input id="userName" readonly type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            所属部门:
+                        </label>
+                        <div class="col-sm-7">
+                            <input id="userDept" readonly type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            当前日期:
+                        </label>
+                        <div class="col-sm-7">
+                            <input id="currentDate" readonly type="text" class="form-control"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="subTitle" style="background-color: #f2f5ee;">
+                昨天总结
+            </div>
+            <div class="col-md-12 subContent">
+                <div class="col-md-12">
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>业绩（元):
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="perfoSummary" type="number" onkeypress="return inPrice(event);" placeholder="业绩（元)" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>利润业绩（元）:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="profitSummary" type="number" onkeypress="return inPrice(event);" placeholder="利润业绩（元）" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>有效客户量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="yxCustomSummary" min="0" type="number" onkeypress="return inPrice(event);" placeholder="有效客户量" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>新成交客户量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="xcjCustomSummary" min="0" type="number" onkeypress="return inPrice(event);" placeholder="新成交客户量" class="form-control" required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>跟进客户数量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="gjCustomSummary" min="0" type="number" onkeypress="return inPrice(event);" placeholder="跟进客户数量" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>推资源客户数量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="tzyCustomSummary" min="0" type="number" onkeypress="return inPrice(event);" placeholder="推资源客户数量" class="form-control" required/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="subTitle" style="background-color: #f3efe6;">
+                今日计划
+            </div>
+            <div class="col-md-12 subContent">
+                <div class="col-md-12">
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>业绩（元):
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="perfoPlan" type="number" onkeypress="return inPrice(event);" placeholder="业绩（元)" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>利润业绩（元）:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="profitPlan" type="number" onkeypress="return inPrice(event);" placeholder="利润业绩（元）" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>有效客户量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="yxCustomPlan" min="0" type="number" onkeypress="return inPrice(event);" placeholder="有效客户量" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>新成交客户量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="xcjCustomPlan" min="0" type="number" onkeypress="return inPrice(event);" placeholder="新成交客户量" class="form-control" required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>跟进客户数量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="gjCustomPlan" min="0" type="number" onkeypress="return inPrice(event);" placeholder="跟进客户数量" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label class="col-sm-5 control-label">
+                            <span class="text-red"> * </span>推资源客户数量:
+                        </label>
+                        <div class="col-sm-7">
+                            <input name="tzyCustomPlan" min="0" type="number" onkeypress="return inPrice(event);" placeholder="推资源客户数量" class="form-control" required/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="footer col-md-12" style="display: table;background-color:#F0F0F0;position: fixed;bottom: 0px;z-index: 1000;">
+        <div class="col-sm-12" style="text-align: right;">
+            <button id="saveBtn" class="btn btn-danger" type="button"  btn-type="admin" onclick="savePlan()">
+                <i class="fa fa-save"></i>&nbsp;保存
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

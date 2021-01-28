@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.VersionHintRelateMapper">
+    <sql id="selectColumn">
+      tvhr.id,
+      tvhr.hint_id as hintId,
+      tvhr.user_id as userId,
+      tvhr.read_flag as readFlag,
+      tvhr.state
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_version_hint_relate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hintId != null">hint_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="readFlag != null">read_flag,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hintId != null">#{hintId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="readFlag != null">#{readFlag},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_version_hint_relate (
+        hint_id,
+        user_id,
+        read_flag,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="versionHintRelate" index="index" separator=",">
+            (
+            #{versionHintRelate.hintId},
+            #{versionHintRelate.userId},
+            #{versionHintRelate.readFlag},
+            #{versionHintRelate.state}
+            )
+        </foreach>
+    </insert>
+
+    <!--修改-->
+    <update id="updateReadFlagById">
+        update t_version_hint_relate
+        SET
+          read_flag = #{readFlag}
+        where user_id = #{userId}
+    </update>
+
+    <!--修改-->
+    <update id="updateStateByHintId">
+        update t_version_hint_relate
+        SET
+          state = #{state}
+        where hint_id = #{hintId}
+    </update>
+
+    <!--修改-->
+    <update id="updateStateById">
+        update t_version_hint_relate
+        SET
+          state = #{state}
+        where id = #{id}
+    </update>
+
+    <!--修改-->
+    <update id="batchUpdateStateByIds">
+        update t_version_hint_relate
+        SET
+          state = #{state}
+        where id in
+        <foreach item="id" collection="ids" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据hintId获取列表-->
+    <select id="listRelateByHintId" resultType="com.qinfei.qferp.entity.sys.VersionHintRelate">
+      select <include refid="selectColumn"/>
+      from t_version_hint_relate tvhr
+      where state = 0 and hint_id = #{hintId}
+    </select>
+</mapper>

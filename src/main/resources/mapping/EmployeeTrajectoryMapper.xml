@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 员工轨迹； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployeeTrajectoryMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployeeTrajectory">
+        <id column="traj_id" jdbcType="INTEGER" property="trajId"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="emp_num" jdbcType="VARCHAR" property="empNum"/>
+        <result column="emp_name" jdbcType="VARCHAR" property="empName"/>
+        <result column="emp_dept" jdbcType="INTEGER" property="empDept"/>
+        <result column="emp_dept_name" jdbcType="VARCHAR" property="empDeptName"/>
+        <result column="emp_profession" jdbcType="INTEGER" property="empProfession"/>
+        <result column="emp_profession_name" jdbcType="VARCHAR" property="empProfessionName"/>
+        <result column="emp_content" jdbcType="VARCHAR" property="empContent"/>
+        <result column="emp_transaction" jdbcType="INTEGER" property="empTransaction"/>
+        <result column="emp_operate" jdbcType="INTEGER" property="empOperate"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        traj_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_content,
+        emp_transaction,
+        emp_operate,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_employee_trajectory
+        where
+        traj_id = #{trajId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据父表ID查询ID集合； -->
+    <select id="selectIdsByParentId" parameterType="java.lang.Integer" resultType="java.util.Map" useCache="true">
+        select traj_id from e_employee_trajectory where entry_id = #{entryId} and state &lt;&gt; -1
+    </select>
+
+    <!-- 员工轨迹列表； -->
+    <select id="selectPageTrajectory" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_employee_trajectory
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            traj_id desc
+        </if>
+    </select>
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="empNum != null">
+            and emp_num like '%${empNum}%'
+        </if>
+        <if test="empName != null">
+            and emp_name like '%${empName}%'
+        </if>
+        <if test="empDept != null">
+            and emp_dept = #{empDept}
+        </if>
+        <if test="companyCode != null">
+            and emp_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="empDeptName != null">
+            and emp_dept_name like '%${empDeptName}%'
+        </if>
+        <if test="empProfession != null">
+            and emp_profession = #{empProfession}
+        </if>
+        <if test="empProfessionName != null">
+            and emp_profession_name like '%${empProfessionName}%'
+        </if>
+        <if test="empContent != null">
+            and emp_content like '%${empContent}%'
+        </if>
+        <if test="empTransaction != null">
+            and emp_transaction = #{empTransaction}
+        </if>
+        <if test="empOperate != null">
+            and emp_operate = #{empOperate}
+        </if>
+        <if test="createTimeStart != null">
+            and create_time &gt;= #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            and create_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="state != null">
+            and state = #{state}
+        </if>
+        <if test="trajIds != null">
+            and traj_id in
+            <foreach item="trajId" collection="trajIds" index="index" open="(" close=")" separator=",">
+                #{trajId}
+            </foreach>
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployeeTrajectory" useGeneratedKeys="true"
+            keyProperty="trajId">
+        insert into e_employee_trajectory (
+        traj_id,
+        entry_id,
+        emp_id,
+        emp_num,
+        emp_name,
+        emp_dept,
+        emp_dept_name,
+        emp_profession,
+        emp_profession_name,
+        emp_content,
+        emp_transaction,
+        emp_operate,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{trajId,jdbcType=INTEGER},
+        #{entryId,jdbcType=INTEGER},
+        #{empId,jdbcType=INTEGER},
+        #{empNum,jdbcType=VARCHAR},
+        #{empName,jdbcType=VARCHAR},
+        #{empDept,jdbcType=INTEGER},
+        #{empDeptName,jdbcType=VARCHAR},
+        #{empProfession,jdbcType=INTEGER},
+        #{empProfessionName,jdbcType=VARCHAR},
+        #{empContent,jdbcType=VARCHAR},
+        #{empTransaction,jdbcType=INTEGER},
+        #{empOperate,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeTrajectory"
+            useGeneratedKeys="true"
+            keyProperty="trajId">
+        insert into e_employee_trajectory
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="trajId != null">traj_id,</if>
+            <if test="entryId != null">entry_id,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="empNum != null">emp_num,</if>
+            <if test="empName != null">emp_name,</if>
+            <if test="empDept != null">emp_dept,</if>
+            <if test="empDeptName != null">emp_dept_name,</if>
+            <if test="empProfession != null">emp_profession,</if>
+            <if test="empProfessionName != null">emp_profession_name,</if>
+            <if test="empContent != null">emp_content,</if>
+            <if test="empTransaction != null">emp_transaction,</if>
+            <if test="empOperate != null">emp_operate,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="trajId != null">#{trajId,jdbcType=INTEGER},</if>
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">#{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">#{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">#{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">#{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">#{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">#{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empContent != null">#{empContent,jdbcType=VARCHAR},</if>
+            <if test="empTransaction != null">#{empTransaction,jdbcType=INTEGER},</if>
+            <if test="empOperate != null">#{empOperate,jdbcType=INTEGER},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeTrajectory">
+        update e_employee_trajectory
+        <include refid="EmployCommon.deleteInfo"/>
+        where traj_id = #{trajId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByIds" parameterType="java.util.Map">
+        update e_employee_trajectory
+        <set>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        state &lt;&gt; -1
+        <if test="entryId != null">
+            and entry_id = #{entryId}
+        </if>
+        <if test="trajIds != null">
+            and traj_id in
+            <foreach item="trajId" collection="trajIds" index="index" open="(" close=")" separator=",">
+                #{trajId}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployeeTrajectory">
+        update e_employee_trajectory
+        <set>
+            <if test="entryId != null">entry_id = #{entryId,jdbcType=INTEGER},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="empNum != null">emp_num = #{empNum,jdbcType=VARCHAR},</if>
+            <if test="empName != null">emp_name = #{empName,jdbcType=VARCHAR},</if>
+            <if test="empDept != null">emp_dept = #{empDept,jdbcType=INTEGER},</if>
+            <if test="empDeptName != null">emp_dept_name = #{empDeptName,jdbcType=VARCHAR},</if>
+            <if test="empProfession != null">emp_profession = #{empProfession,jdbcType=INTEGER},</if>
+            <if test="empProfessionName != null">emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},</if>
+            <if test="empContent != null">emp_content = #{empContent,jdbcType=VARCHAR},</if>
+            <if test="empTransaction != null">emp_transaction = #{empTransaction,jdbcType=INTEGER},</if>
+            <if test="empOperate != null">emp_operate = #{empOperate,jdbcType=INTEGER},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        traj_id = #{trajId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployeeTrajectory">
+        update
+        e_employee_trajectory
+        set
+        entry_id = #{entryId,jdbcType=INTEGER},
+        emp_id = #{empId,jdbcType=INTEGER},
+        emp_num = #{empNum,jdbcType=VARCHAR},
+        emp_name = #{empName,jdbcType=VARCHAR},
+        emp_dept = #{empDept,jdbcType=INTEGER},
+        emp_dept_name = #{empDeptName,jdbcType=VARCHAR},
+        emp_profession = #{empProfession,jdbcType=INTEGER},
+        emp_profession_name = #{empProfessionName,jdbcType=VARCHAR},
+        emp_content = #{empContent,jdbcType=VARCHAR},
+        emp_transaction = #{empTransaction,jdbcType=INTEGER},
+        emp_operate = #{empOperate,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        traj_id = #{trajId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.propose.ProposeRemarkMapper">
+    <insert id="saveProposeRemark" parameterType="com.qinfei.qferp.entity.propose.ProposeRemark" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_propose_remark
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="adviceId != null">advice_id,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createName != null and createName!=''">create_name,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="handleResult != null and handleResult!=null">handle_result,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="adviceId != null">#{adviceId},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createName != null and createName!=''">#{createName},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="handleResult != null and handleResult!=null">#{handleResult},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+        </trim>
+    </insert>
+    <select id="queryProposeRemark" resultType="com.qinfei.qferp.entity.propose.ProposeRemark">
+        select id,advice_id,remark,create_id,create_name,create_date,handle_result,update_id,update_date from t_propose_remark
+        where advice_id = #{id}
+        order by create_date ${sort}
+    </select>
+</mapper>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>考核细则</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link rel="stylesheet" href="/js/performance/tree/css/tree.style.css"/>
+
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.addition.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/jquery.validate.cn.js"></script>
+    <script type="text/javascript" src="/js/employ/utils/entry.util.js"></script>
+    <script type="text/javascript" src="/js/performance/performancePlate.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight:bold">查询条件</h5>
+                </div>
+                <div class="ibox-content">
+                    <form id="queryForm">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">考核内容：</label>
+                                <div class="col-sm-10">
+                                    <input id="hiddenText" type="text" style="display:none"/>
+                                    <input type="text" name="plateContent" class="form-control"
+                                           placeholder="请输入考核内容" maxlength="30" special="true"/>
+                                </div>
+                                <div class="col-sm-1" style="float:right;">
+                                    <button type="button" id="dataSearch" class="btn btn-warning">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8" id="listElement">
+            <div class="ibox">
+                <div class="ibox-content tree" id="plateTree">
+                    <div style="text-align:center;">查询无结果</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4" id="formElement">
+            <div class="ibox">
+                <div class="ibox-content tree">
+                    <form id="plateForm">
+                        <input type="hidden" name="plateId"/>
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">
+                                    <span style="color: red;">*&nbsp;</span>细则层级：
+                                </label>
+                                <div class="col-sm-10" id="plateLevel">
+                                    <input type="hidden" id="oldLevel"/>
+                                    <span class="radio-inline i-checks">
+                                        <input type="radio" name="plateLevel" value="0" checked/>板块
+                                    </span>
+                                    <span class="radio-inline i-checks">
+                                        <input type="radio" name="plateLevel" value="1"/>项目
+                                    </span>
+                                    <span class="radio-inline i-checks">
+                                        <input type="radio" name="plateLevel" value="2"/>细则
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group plateParent">
+                                <label class="col-sm-1 control-label">
+                                    <span style="color: red;">*&nbsp;</span>所属上级：
+                                </label>
+                                <div class="col-sm-10 layui-form">
+                                    <input type="hidden" id="plateParent"/>
+                                    <select name="plateParent" class="form-control height18" lay-verify=""
+                                            lay-search lay-filter="plateParent">
+                                        <option value="">请选择所属上级</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group plateParent">
+                                <label class="col-sm-1 control-label">上级内容：</label>
+                                <div class="col-sm-10">
+                                        <textarea class="form-control" data="plateContent" placeholder="请输入考核内容"
+                                                  maxlength="500" style="resize:none;" disabled></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">
+                                    <span style="color: red;">*&nbsp;</span>排序编号：
+                                </label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="plateOrder" class="form-control"
+                                           placeholder="请输入排序编号" maxlength="6" required="true" digits="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group" id="scoreLeft">
+                                <label class="col-sm-1 control-label">剩余权重：</label>
+                                <div class="col-sm-10">
+                                    <input type="hidden" id="plateProportion"/>
+                                    <input type="text" data="scoreLeft" class="form-control" placeholder="请输入权重分值"
+                                           maxlength="6" disabled/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">
+                                    <span style="color: red;">*&nbsp;</span>权重分值：
+                                </label>
+                                <div class="col-sm-10">
+                                    <input type="hidden" id="oldProportion"/>
+                                    <input type="text" name="plateProportion" class="form-control"
+                                           onblur="checkScore(this)" placeholder="请输入权重分值" maxlength="6" required="true"
+                                           number="true"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">
+                                    <span style="color: red;">*&nbsp;</span>考核内容：
+                                </label>
+                                <div class="col-sm-10">
+                                        <textarea class="form-control" name="plateContent" placeholder="请输入考核内容"
+                                                  maxlength="500" required="true" special="true"
+                                                  style="resize:none;"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12" style="text-align: center;">
+                                    <button type="button" class="btn btn-primary" id="savePlate"
+                                            onclick="savePlateData()">
+                                        <i class="fa fa-check"></i>&nbsp;&nbsp;保存
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

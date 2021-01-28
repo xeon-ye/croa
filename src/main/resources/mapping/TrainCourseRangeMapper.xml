@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainCourseRangeMapper">
+    <sql id="selectColumn">
+      tcr.id,
+      tcr.course_id as courseId,
+      tcr.course_enroll_flag as courseEnrollFlag,
+      tcr.range_id as rangeId,
+      tcr.create_id as createId,
+      tcr.create_date as createDate,
+      tcr.update_id as updateId,
+      tcr.update_date as updateDate,
+      tcr.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_course_range
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="courseEnrollFlag != null">course_enroll_flag,</if>
+            <if test="rangeId != null">range_id,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="courseEnrollFlag != null">#{courseEnrollFlag},</if>
+            <if test="rangeId != null">#{rangeId},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_train_course_range (
+        course_id,
+        course_enroll_flag,
+        range_id,
+        create_id,
+        create_date,
+        update_id,
+        update_date,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="trainSignRange" index="index" separator=",">
+            (
+            #{trainSignRange.courseId},
+            #{trainSignRange.courseEnrollFlag},
+            #{trainSignRange.rangeId},
+            #{trainSignRange.createId},
+            now(),
+            #{trainSignRange.updateId},
+            now(),
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_course_range
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="courseEnrollFlag != null">course_enroll_flag = #{courseEnrollFlag},</if>
+            <if test="rangeId != null">range_id = #{rangeId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--修改状态-->
+    <update id="updateStateByCourseId">
+        update t_train_course_range
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            state = #{state}
+        </set>
+        where course_id = #{courseId}
+    </update>
+
+</mapper>

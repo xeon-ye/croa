@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media.SupplierMapper">
+    <!--供应商列-->
+    <sql id="supplierColumn">
+      su.id,
+      su.media_type_id,
+      su.supplier_nature,
+      su.name,
+      su.standar_company_flag,
+      su.contactor,
+      su.phone,
+      su.standar_phone_flag,
+      su.qqwechat,
+      su.qq,
+      su.desc,
+      su.contactor_desc,
+      su.creator,
+      su.create_time,
+      su.state,
+      su.update_user_id,
+      su.update_time,
+      su.company_code,
+      su.is_copy,
+      su.copy_remarks
+    </sql>
+    <sql id="userColumn">
+        sysUser.id as userId,
+        sysUser.name as userName,
+        sysUser.dept_id as deptId,
+        sysUser.dept_name as deptName,
+        sysUser.company_code as userCompanyCode
+    </sql>
+
+    <resultMap id="SupplierMap" type="com.qinfei.qferp.entity.media.Supplier">
+        <id column="id" property="id"/>
+        <result column="media_type_id" property="mediaTypeId"/>
+        <result column="supplier_nature" property="supplierNature"/>
+        <result column="name" property="name"/>
+        <result column="standar_company_flag" property="standarCompanyFlag"/>
+        <result column="contactor" property="contactor"/>
+        <result column="phone" property="phone"/>
+        <result column="standar_phone_flag" property="standarPhoneFlag"/>
+        <result column="qqwechat" property="qqwechat"/>
+        <result column="qq" property="qq"/>
+        <result column="desc" property="desc"/>
+        <result column="contactor_desc" property="contactorDesc"/>
+        <result column="state" property="state"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="company_code" property="companyCode"/>
+        <result column="is_copy" property="isCopy"/>
+        <result column="copy_remarks" property="copyRemarks"/>
+        <result column="plateIds" property="plateIds"/>
+        <result column="deptId" property="deptId"/>
+    </resultMap>
+
+    <!--供应商管理：分页查询供应商信息-->
+    <resultMap id="listSupplierMap" type="com.qinfei.qferp.entity.media.Supplier">
+        <id column="id" property="id"/>
+        <result column="media_type_id" property="mediaTypeId"/>
+        <result column="supplier_nature" property="supplierNature"/>
+        <result column="name" property="name"/>
+        <result column="standar_company_flag" property="standarCompanyFlag"/>
+        <result column="contactor" property="contactor"/>
+        <result column="phone" property="phone"/>
+        <result column="standar_phone_flag" property="standarPhoneFlag"/>
+        <result column="qqwechat" property="qqwechat"/>
+        <result column="qq" property="qq"/>
+        <result column="desc" property="desc"/>
+        <result column="contactor_desc" property="contactorDesc"/>
+        <result column="state" property="state"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="company_code" property="companyCode"/>
+        <result column="companyName" property="companyName"/>
+        <result column="is_copy" property="isCopy"/>
+        <result column="copy_remarks" property="copyRemarks"/>
+        <result column="plateIds" property="plateIds"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="userId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_media_supplier
+        (
+        `media_type_id`,
+        `supplier_nature`,
+        `name`,
+        `standar_company_flag`,
+        `contactor`,
+        `phone`,
+        `standar_phone_flag`,
+        `qqwechat`,
+        `qq`,
+        `desc`,
+        `contactor_desc`,
+        `creator`,
+        `create_time`,
+        `company_code`,
+        `is_copy`,
+        `copy_remarks`
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.mediaTypeId},
+            #{item.supplierNature},
+            #{item.name},
+            #{item.standarCompanyFlag},
+            #{item.contactor},
+            #{item.phone},
+            #{item.standarPhoneFlag},
+            #{item.qqwechat},
+            #{item.qq},
+            #{item.desc},
+            #{item.contactorDesc},
+            #{item.creator},
+            now(),
+            #{item.companyCode},
+            0,
+            #{item.copyRemarks}
+            )
+        </foreach>
+    </insert>
+
+    <select id="listPage" parameterType="java.util.Map" resultMap="listSupplierMap" useCache="true">
+        select <include refid="supplierColumn"/>, <include refid="userColumn"/>, sd.company_code_name as companyName ,GROUP_CONCAT(DISTINCT tma.plate_id) AS plateIds
+        from sys_user sysUser, sys_dept sd , t_media_supplier su
+        LEFT JOIN t_media_supplier_relate_audit tmsra ON  su.id = tmsra.supplier_id
+        LEFT JOIN t_media_audit tma ON tmsra.media_id = tma.id
+        <where>
+            <include refid="condition"/>
+            AND su.create_time <![CDATA[>=]]> #{onlineTime}
+        </where>
+        GROUP BY
+        su.id
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                su.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="listAllSupplier" parameterType="java.util.Map" resultType="map">
+        select su.*,sysUser.name userName,sd.company_code_name as companyName,sysUser.dept_id as deptId,GROUP_CONCAT(DISTINCT tma.plate_id) AS plateIds
+        from sys_user sysUser,sys_dept sd,t_media_supplier su
+        LEFT JOIN t_media_supplier_relate_audit tmsra ON  su.id = tmsra.supplier_id
+        LEFT JOIN t_media_audit tma ON tmsra.media_id = tma.id
+        <where>
+            <include refid="condition2"/>
+            AND su.create_time <![CDATA[>=]]> #{onlineTime}
+        </where>
+        GROUP BY
+        su.id
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            su.update_time desc
+        </if>
+    </select>
+
+    <select id="listSupplierByPlateCompany" parameterType="java.util.Map" resultMap="SupplierMap" useCache="true">
+        select su.id, su.name, su.contactor, su.phone, su.qqwechat, su.company_code as companyCode, su.creator, s.dept_id as deptId ,GROUP_CONCAT(DISTINCT tma.plate_id) AS plateIds
+        from t_media_supplier su
+        LEFT JOIN sys_user s on s.id = su.creator
+        LEFT JOIN t_media_supplier_relate_audit tmsra ON  su.id = tmsra.supplier_id
+        LEFT JOIN t_media_audit tma ON tmsra.media_id = tma.id
+        <where>
+            su.state = 0
+            <if test="companyCode != null and companyCode != ''">
+                AND su.company_code = #{companyCode}
+            </if>
+            <if test="name != null and name != ''">
+                and (su.name like CONCAT('%',#{name},'%') or su.contactor like CONCAT('%',#{name},'%'))
+            </if>
+            <if test="mediaTypeId != null">
+                and su.media_type_id = #{mediaTypeId}
+            </if>
+            <if test="standarPhoneFlag != null">
+                and su.standar_phone_flag = #{standarPhoneFlag}
+            </if>
+            and su.create_time <![CDATA[>=]]> #{onlineTime}
+        </where>
+        group by su.id
+        order by su.update_time desc
+    </select>
+
+    <sql id="condition">
+        su.creator = sysUser.id and sd.id = sysUser.dept_id
+        <if test="name != null and name != ''">
+            and su.name = #{name}
+        </if>
+        <if test="mediaPlateId != null and mediaPlateId !=''">
+            AND tma.plate_id = #{mediaPlateId}
+        </if>
+        <if test="contactor != null and contactor != ''">
+            and su.contactor = #{contactor}
+        </if>
+        <if test="phone != null and phone != ''">
+            and su.phone = #{phone}
+        </if>
+        <if test="qqwechat != null and qqwechat != ''">
+            and su.qqwechat = #{qqwechat}
+        </if>
+        <if test="qq != null and qq != ''">
+            and su.qq = #{qq}
+        </if>
+        <if test="state != null">
+            and su.state <![CDATA[<>]]> #{state}
+        </if>
+        <if test="createUsers != null">
+            and su.creator in
+            <foreach item="userId" collection="createUsers" index="index" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        <if test="creator != null and creator != ''">
+            and sysUser.name = #{creator}
+        </if>
+        <if test="mediaTypes != null">
+            and su.media_type_id in
+            <foreach item="mediaTypeId" collection="mediaTypes" index="index" open="(" close=")" separator=",">
+                #{mediaTypeId}
+            </foreach>
+        </if>
+        <if test="mediaTypeId != null">
+            and su.media_type_id = #{mediaTypeId}
+        </if>
+        <if test="currentUserId != null">
+            and sysUser.id = #{currentUserId}
+        </if>
+    </sql>
+
+    <sql id="condition2">
+        su.creator = sysUser.id and sd.id = sysUser.dept_id
+        <if test="name != null and name != ''">
+            and su.name = #{name}
+        </if>
+        <if test="contactor != null and contactor != ''">
+            and su.contactor = #{contactor}
+        </if>
+        <if test="phone != null and phone != ''">
+            and su.phone = #{phone}
+        </if>
+        <if test="qqwechat != null">
+            and su.qqwechat = #{qqwechat}
+        </if>
+        <if test="state != null">
+            and su.state <![CDATA[<>]]> #{state}
+        </if>
+
+        <if test="createUsers != null">
+            and su.creator in
+            <foreach item="userId" collection="createUsers" index="index" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        <if test="creator != null and creator != ''">
+            and sysUser.name = #{creator}
+        </if>
+        <if test="mediaTypes != null">
+            and su.media_type_id in
+            <foreach item="mediaTypeId" collection="mediaTypes" index="index" open="(" close=")" separator=",">
+                #{mediaTypeId}
+            </foreach>
+        </if>
+        <if test="mediaTypeId != null">
+            and su.media_type_id = #{mediaTypeId}
+        </if>
+        <if test="mediaPlateId != null">
+            and tma.plate_id = #{mediaPlateId}
+        </if>
+        <if test="currentUserId != null">
+            and sysUser.id = #{currentUserId}
+        </if>
+    </sql>
+
+    <!--权限功能：currentUserId为指定人员，不选默认全部-->
+    <sql id="currentUserQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--根据媒介或媒介部门查询供应商列表-->
+    <select id="listSupplierByMediaUser" resultType="java.util.Map">
+        SELECT
+	      tms.id,
+	      tms.contactor,
+          tms.name,
+          tms.phone,
+          tms.create_time as createTime
+        FROM t_media_supplier tms
+        <include refid="currentUserQX">
+            <property name="userTj" value=" su.id = tms.creator"/>
+        </include>
+        WHERE tms.state = 0
+        <!--媒体类型ID-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tms.media_type_id = #{mediaType}
+        </if>
+        and tms.create_time <![CDATA[>=]]> #{onlineTime}
+        ORDER BY tms.id ASC
+    </select>
+
+    <select id="oldlistSupplierByMediaUser" resultType="java.util.Map">
+        SELECT
+        tms.id,
+        tms.contactor,
+        tms.name,
+        tmp.name as plateName,
+        tms.create_time as createTime
+        FROM t_media_supplier tms
+        LEFT JOIN t_media_plate tmp on tms.media_type_id = tmp.id
+        <include refid="currentUserQX">
+            <property name="userTj" value=" su.id = tms.creator"/>
+        </include>
+        WHERE tms.state = 0
+        <!--媒体类型ID-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tms.media_type_id = #{mediaType}
+        </if>
+        and tms.create_time <![CDATA[<=]]> #{onlineTime}
+        ORDER BY tms.id ASC
+    </select>
+
+    <!--检查同一板块同一个公司下是否存在相同名称的供应商-->
+    <select id="checkSupplierForParam" resultType="java.lang.Integer">
+        SELECT
+          tms.id
+        FROM
+          t_media_supplier tms
+        WHERE
+          tms.state <![CDATA[<>]]> -9
+          <if test="name != null and name != ''">
+              and tms.`name` = #{name}
+          </if>
+          <if test="contactor != null and contactor != ''">
+              and tms.contactor = #{contactor}
+          </if>
+          <if test="phone != null and phone != ''">
+              and tms.phone = #{phone}
+          </if>
+          <if test="qqwechat != null and qqwechat != ''">
+              and tms.qqwechat = #{qqwechat}
+          </if>
+          and tms.company_code = #{companyCode}
+          and tms.media_type_id = #{mediaTypeId}
+          <if test="id != null">
+              AND tms.id <![CDATA[<>]]> #{id}
+          </if>
+    </select>
+
+    <!--判断指定供应商Id是否存在稿件-->
+    <select id="getArtCountBySupplierId" resultType="java.lang.Integer">
+        SELECT
+          COUNT(*)
+        FROM
+          t_biz_article tba
+        WHERE
+          tba.supplier_id = #{supplierId}
+        AND tba.state <![CDATA[<>]]> -9
+    </select>
+
+    <!--更新媒体供应商状态-->
+    <update id="updateMediaSupplierState">
+        update t_media_supplier
+        <set>
+            update_time = now(),
+            state = #{state},
+            update_user_id = #{updateUserId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--供应商联系人标准化校验-->
+    <select id="checkSupplier" resultType="java.lang.Integer">
+        SELECT
+          tms.id
+        FROM
+        t_media_supplier tms
+        WHERE
+        tms.state <![CDATA[<>]]> -9
+        and tms.`name` = #{name}
+        and tms.phone = #{phone}
+        <if test="id != null">
+            AND tms.id <![CDATA[<>]]> #{id}
+        </if>
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+        LIMIT 1
+    </select>
+
+    <!--供应商公司标准化校验-->
+    <select id="checkSupplierByPhoneList" resultType="java.lang.Integer">
+        SELECT
+        tms.id
+        FROM
+        t_media_supplier tms
+        WHERE
+        tms.state <![CDATA[<>]]> -9
+        and tms.`name` = #{name}
+        and tms.phone in
+        <foreach collection="phoneList" item="phone" index="index" open="(" close=")" separator=",">
+            #{phone}
+        </foreach>
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+        LIMIT 1
+    </select>
+
+    <!--供应商公司标准化校验-->
+    <select id="checkSupplierCompany" resultType="java.lang.Integer">
+        SELECT
+            1
+        FROM
+        t_media_supplier tms
+        WHERE
+        tms.state <![CDATA[<>]]> -9
+        AND tms.`name` = #{name}
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+        LIMIT 1
+    </select>
+
+    <!--更新供应商信息-->
+    <update id="updateSupplier" parameterType="java.util.Map">
+        update t_media_supplier
+        <set>
+            update_time = now(),
+            update_user_id = #{updateUserId},
+            `supplier_nature` = #{supplierNature},
+            `name` = #{name},
+            `standar_company_flag` = #{standarCompanyFlag},
+            `contactor` = #{contactor},
+            `phone` = #{phone},
+            `standar_phone_flag` = #{standarPhoneFlag},
+            `qqwechat` = #{qqwechat},
+            `qq` = #{qq},
+            `contactor_desc` = #{contactorDesc},
+        </set>
+        where `id` = #{id}
+    </update>
+
+    <!--更新供应商名称-->
+    <update id="editSupplierCompany">
+        update t_media_supplier
+        <set>
+            update_time = now(),
+            update_user_id = #{updateUserId},
+            `name` = #{name},
+            standar_company_flag = #{standarCompanyFlag}
+        </set>
+        where `name` = #{oldCompanyName}
+        and create_time <![CDATA[>=]]> #{onlineTime}
+    </update>
+
+    <!--更新供应商账户-->
+    <update id="updateSupplierAccountByCompanyName">
+      UPDATE fee_account fa
+        SET fa.company_name = #{companyName},
+        fa.`name` = #{companyName}
+      WHERE fa.type = 2
+      AND EXISTS (
+      	SELECT
+      		tms.id
+      	FROM
+      		t_media_supplier tms
+      	WHERE
+      		fa.company_id = tms.id
+      	AND tms. NAME = #{companyName}
+      	AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+      )
+    </update>
+
+    <!--更新供应商账户-->
+    <update id="updateSupplierArtByCompanyName">
+      UPDATE t_biz_article tba
+        SET tba.supplier_name = #{companyName}
+      WHERE EXISTS (
+      	SELECT
+      		tms.id
+      	FROM
+      		t_media_supplier tms
+      	WHERE
+      		tba.supplier_id = tms.id
+      	AND tms. NAME = #{companyName}
+      	AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+      )
+    </update>
+
+    <!--获取供应商账户列表-->
+    <select id="supplierAccountList" resultType="java.util.Map">
+        SELECT
+	      fa.id,
+	      fa.type,
+	      fa.company_id AS companyId,
+	      fa.company_name AS companyName,
+	      fa.contactor AS contactor,
+          fa.`name` ,
+	      fa.bank_no AS bankNo,
+	      fa.bank_name bankName,
+          fa.`owner`,
+	      fa.phone,
+	      fa.balance,
+	      fa.remark,
+	      fa.state AS state,
+	      fa.account_type AS accountType,
+	      fa.creator AS creator,
+	      fa.create_time AS createTime,
+	      fa.update_user_id AS updateUserId,
+	      fa.update_time AS updateTime,
+          tms.creator as supplierUserId,
+          fa.creator as createUserId
+        FROM
+        	fee_account fa
+        INNER JOIN t_media_supplier tms ON fa.company_id = tms.id
+        AND fa.type = 2
+        WHERE fa.state > -2
+        and tms.state <![CDATA[<>]]> -9
+        <if test="name != null and name != ''">
+            AND tms.`name` = #{name}
+        </if>
+        <if test="companyId != null">
+            AND tms.id = #{companyId}
+        </if>
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+        ORDER BY
+        	fa.update_time DESC
+    </select>
+
+    <!--请款、退稿供应商选择-->
+    <select id="querySupplierListByTypeNew" resultType="java.util.Map">
+        SELECT
+          tms.id,
+          tms.media_type_id as mediaTypeId,
+          tms.supplier_nature as supplierNature,
+          tms.`name`,
+          tms.standar_company_flag as standarCompanyFlag,
+          tms.contactor,
+          tms.phone,
+          tms.standar_phone_flag as standarPhoneFlag,
+          tms.qqwechat,
+          tms.qq,
+          tms.contactor_desc as contactorDesc,
+          tms.creator,
+          tma.company_code as companyCode,
+          su.dept_id as deptId,
+          GROUP_CONCAT(DISTINCT tma.plate_id) AS plateIds
+        FROM
+        	t_media_supplier tms
+        LEFT JOIN t_media_supplier_relate_audit tmsra ON  tms.id = tmsra.supplier_id
+        LEFT JOIN t_media_audit tma ON tmsra.media_id = tma.id
+        left join sys_user su on tms.creator = su.id
+        WHERE
+        	tms.state = 0
+        <if test="supplierNameQc != null and supplierNameQc != ''">
+            AND tms.`name` = #{supplierNameQc}
+        </if>
+        <if test="supplierContactorQc != null and supplierContactorQc != ''">
+            AND tms.contactor = #{supplierContactorQc}
+        </if>
+        <choose>
+            <when test="isOldSupplier != null">
+                AND tms.create_time <![CDATA[<]]> #{onlineTime}
+            </when>
+            <otherwise>
+                AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+            </otherwise>
+        </choose>
+        group by tms.id
+        ORDER BY tms.update_time DESC
+    </select>
+
+    <!--更新媒体责任人-->
+    <update id="updateSupplierUserId">
+        update t_media_supplier
+        <set>
+            update_time = now(),
+            creator = #{userId},
+            update_user_id = #{updatedId},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--获取所有供应商-->
+    <select id="listSupplier" resultType="com.qinfei.qferp.entity.media.Supplier">
+        SELECT
+          tms.id,
+          tms.media_type_id as mediaTypeId,
+          tms.supplier_nature as supplierNature,
+          tms.`name`,
+          tms.standar_company_flag as standarCompanyFlag,
+          tms.contactor,
+          tms.phone,
+          tms.standar_phone_flag as standarPhoneFlag,
+          tms.qqwechat,
+          tms.qq,
+          tms.contactor_desc as contactorDesc,
+          tms.creator
+        FROM
+        	t_media_supplier tms
+        WHERE
+        	tms.state = 0
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <!--根据ID获取供应商详细信息-供应商异动-->
+    <select id="listSupplierByIdsOrName" resultType="com.qinfei.qferp.entity.media.Supplier">
+        SELECT
+          <include refid="supplierColumn"/>
+        FROM
+          t_media_supplier su
+        WHERE su.state <![CDATA[<>]]> -9 and su.create_time <![CDATA[>=]]> #{onlineTime}
+        <if test="ids != null and ids.size() > 0">
+            AND su.id in
+            <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="name != null and name != ''">
+            AND su.`name` = #{name}
+        </if>
+    </select>
+
+    <!--根据供应商ID获取供应商账号详细信息-供应商账户异动-->
+    <select id="listAccountBySupplierIds" resultType="com.qinfei.qferp.entity.fee.Account">
+        SELECT
+          fa.id,
+          fa.type,
+          fa.company_id AS companyId,
+          fa.company_name AS companyName,
+          fa.contactor AS contactor,
+          fa.`name` ,
+          fa.bank_no AS bankNo,
+          fa.bank_name bankName,
+          fa.`owner`,
+          fa.phone,
+          fa.balance,
+          fa.remark,
+          fa.state AS state,
+          fa.account_type AS accountType,
+          fa.creator AS creator,
+          fa.create_time AS createTime,
+          fa.update_user_id AS updateUserId,
+          fa.update_time AS updateTime
+        FROM
+          fee_account fa
+        INNER JOIN t_media_supplier tms ON fa.company_id = tms.id
+        AND fa.type = 2
+        WHERE fa.state > -2
+        AND tms.id in
+        <foreach collection="companyIds" item="companyId" index="index" open="(" close=")" separator=",">
+            #{companyId}
+        </foreach>
+        AND tms.create_time <![CDATA[>=]]> #{onlineTime}
+    </select>
+
+    <!--由于name 和 phone 需要建立唯一所以，所以需要处理历史供应商手机号码相同问题，以及现在被删除的供应商重复问题-->
+    <select id="listSameSupplierId" resultType="com.qinfei.qferp.entity.media.Supplier" useCache="false">
+        SELECT
+        tms.id,
+        tms.phone
+        FROM
+        t_media_supplier tms
+        WHERE
+        tms.create_time <![CDATA[<]]> #{onlineTime}
+    </select>
+    <update id="batchUpdateSameSupplier">
+        update t_media_supplier
+        <trim prefix="set" suffixOverrides=",">
+            update_time = now(),
+            update_user_id = 1,
+            standar_phone_flag = 0,
+            <trim prefix="phone = case " suffix="else phone end,">
+                <foreach collection="supplierList" item="supplier" index="index">
+                    <if test="supplier.phone != null and supplier.phone != ''">
+                        when id = #{supplier.id} then #{supplier.phone}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where id in
+        <foreach item="supplier" collection="supplierList" index="index" open="(" close=")" separator=",">
+            #{supplier.id}
+        </foreach>
+    </update>
+</mapper>

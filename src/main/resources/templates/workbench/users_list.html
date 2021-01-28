@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>通讯录</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/css/ias/ias.css" rel="stylesheet">
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <style></style>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/js/plugins/ias/nprogress.js"></script>
+    <script src="/js/plugins/ias/jquery.lazyload.min.js"></script>
+    <script src="/js/plugins/ias/jquery.ias.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script src="/js/workbench/users_list.js"></script>
+</head>
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form id="user_form">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight:bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label">小伙伴信息：</label>
+                                <div class="col-sm-10">
+                                    <input id="hiddenText" type="text" style="display:none"/>
+                                    <input type="hidden" id="pageNum" name="pageNum" value="1"/>
+                                    <input type="text" id="dataName" name="queryContent" class="form-control"
+                                           placeholder="请输入查询内容">
+                                </div>
+                                <div class="col-sm-1" style="float:right;">
+                                    <button type="button" id="dataSearch" onclick="seachData()" class="btn btn-warning">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row" id="user_list"></div>
+</div>
+</body>
+</html>

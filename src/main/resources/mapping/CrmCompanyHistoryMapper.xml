@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.CrmCompanyHistoryMapper">
+
+    <resultMap type="com.qinfei.qferp.entity.crm.CrmCompanyHistory" id="CrmCompanyHistoryMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="companyId" column="company_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="industry" column="industry" jdbcType="VARCHAR"/>
+        <result property="product" column="product" jdbcType="VARCHAR"/>
+        <result property="structure" column="structure" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="purpose" column="purpose" jdbcType="VARCHAR"/>
+        <result property="scale" column="scale" jdbcType="VARCHAR"/>
+        <result property="advVolume" column="adv_volume" jdbcType="VARCHAR"/>
+        <result property="area" column="area" jdbcType="VARCHAR"/>
+        <result property="experience" column="experience" jdbcType="VARCHAR"/>
+        <result property="publicMedia" column="public_media" jdbcType="VARCHAR"/>
+        <result property="channel" column="channel" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="creator" column="creator" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUserId" column="update_user_id" jdbcType="INTEGER"/>
+        <result property="typeCode" column="type_code" jdbcType="VARCHAR"/>
+        <result property="typeName" column="type_name" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="standardize" column="standardize" jdbcType="INTEGER"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="deleteFlag" column="delete_flag" jdbcType="INTEGER"/>
+        <result property="protectLevel" column="protect_level" jdbcType="INTEGER"/>
+        <result property="auditFlag" column="audit_flag" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 通用查询结果列-->
+    <sql id="Base_Column_List">
+    id as id,
+    company_id as companyId,
+    name as name,
+    industry as industry,
+    product as product,
+    structure as structure,
+    brand as brand,
+    purpose as purpose,
+    scale as scale,
+    adv_volume as advVolume,
+    area as area,
+    experience as experience,
+    public_media as publicMedia,
+    channel as channel,
+    create_time as createTime,
+    creator as creator,
+    update_time as updateTime,
+    update_user_id as updateUserId,
+    type_code as typeCode,
+    type_name as typeName,
+    type as type,
+    standardize as standardize,
+    image as image,
+    delete_flag as deleteFlag,
+    protect_level as protectLevel,
+    audit_flag as auditFlag
+    </sql>
+    
+    <!--查询列表-->
+    <select id="listPg" resultType="map">
+        SELECT
+        a.id as id,
+        a.name as name,
+        b.name as industry,
+        a.product as product,
+        a.structure as structure,
+        a.brand as brand,
+        a.purpose as purpose,
+        a.scale as scale,
+        a.adv_volume as advVolume,
+        c.name as area,
+        a.experience as experience,
+        a.public_media as publicMedia,
+        a.channel as channel,
+        a.type_code as typeCode,
+        a.type_name as typeName,
+        case when a.type=1 then '公司客户' else '个人客户' end as type,
+        a.standardize as standardize,
+        a.image as image,
+        a.delete_flag as deleteFlag,
+        a.protect_level as protectLevel,
+        a.audit_flag as auditFlag,
+        d.name as creator,
+        DATE_FORMAT(a.create_time,"%Y-%m-%d %H:%i") as createTime
+        FROM t_crm_company_history a
+        left join sys_dict b on a.industry = b.code and b.type_code = 'industry'
+        left join sys_district c on c.id = a.area
+        left join sys_user d on a.creator = d.id
+        where a.company_id = #{companyId}
+        order by a.create_time desc
+    </select>
+    
+    <!--查询单个-->
+    <select id="getById" resultMap="CrmCompanyHistoryMap">
+        select
+          <include refid="Base_Column_List"/>
+        from t_crm_company_history
+        where id = #{id}
+    </select>
+
+</mapper>

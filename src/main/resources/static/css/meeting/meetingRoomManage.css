@@ -1,0 +1,292 @@
+.ui-jqgrid{
+    width: 99% !important;
+}
+.ui-jqgrid-bdiv{/*表格展示滚动条*/
+    overflow: auto !important;
+}
+/*上传图片窗口样式*/
+.layui-layer-content{
+    overflow: hidden !important;
+    /*background-color: #f7f7f7 !important;*/
+}
+
+.oneTimeCls{
+    border:none;
+    border-bottom: 1px solid;
+    width: 30px;
+    background-color: unset;
+    text-align: center;
+}
+
+/*预定会议室样式*/
+.meetingTime{
+    border:0px solid red;width: 100%;height: 50px;line-height: 50px;padding: 0 15px;
+}
+.meetingRoomContent{
+    border:0px solid red;width: 100%;height: 80px;display: flex;margin-bottom: 15px;
+}
+.meetingRoomBg{
+    border:1px solid #c5e2c6;width: 80px;height: 80px;float: left;
+}
+.meetingRoomDetail{
+    border:0px solid yellow;height: 80px;float: left;flex: 1;padding-left: 15px;
+}
+.meetingRoomName{
+    border: 0px solid red;
+    width: 100%;
+    height: 20px;
+    line-height: 20px;
+    float: left;
+    font-size: 16px;
+    color: #222222;
+}
+.auditFlagCls{
+    font-size: 12px;
+    padding: 2px 6px;
+    background-color: #FDEAE4;
+    color: #F36D57;
+}
+.meetingRoomAddress{
+    border:0px solid red;width:100%;height: 20px;float: left;
+}
+.meetingRoomAddress img, .meetingRoomDevice img{
+   margin-top: -3px;
+}
+.meetingRoomAddress span, .meetingRoomDevice span{
+    font-size: 12px;
+    display: inline-block;
+    padding-left: 6px;
+    margin-top: 3px;
+}
+.meetingRoomDevice{
+    border:0px solid red;width:100%;height: 20px;float: left;
+}
+.meetingRoomRemark{
+    border: 0px solid red;
+    width: 100%;
+    height: 20px;
+    line-height: 28px;
+    float: left;
+    font-size: 12px;
+}
+.meetingRoomTimeSlotContent{
+    width: 100%;height: 55px;
+}
+.meetingRoomTimeSlotDiv{
+    border:0px solid red;width: 100%;height: 50px;line-height: 50px;float: left;
+}
+.meetingRoomTimeSlotUl{
+    border: 1px solid #c9c9c9;width: 100%;height: 30px;float: left;list-style: none;border-right: 0px;
+}
+.meetingRoomTimeSlotUl > li{
+    float: left;height: 28px;border-right: 1px solid #c9c9c9;
+}
+.passTimeBg{
+    background-color: #e1dfdf;
+}
+.chooseTimeBg{
+    background-color: #00a2d4;
+}
+.edgeTimeBg{
+    background-color: #0b95d4;
+}
+.timeSpanLeft{
+    border: 0px solid yellow;
+    text-align: center;
+    width: 20px;
+    height: 16px;
+    line-height: 16px;
+    display: inline-block;
+    position: relative;
+    left: -11px;
+    top: 29px;
+    font-size: 10px;
+    font-family: cursive;
+    float: left;
+}
+.timeSpanRight{
+    border: 0px solid yellow;
+    text-align: center;
+    width: 20px;
+    height: 16px;
+    line-height: 16px;
+    display: inline-block;
+    position: relative;
+    right: -11px;
+    top: 12px;
+    font-size: 10px;
+    font-family: cursive;
+}
+.meetingRoomTimeSlotUl > li:hover{
+    background-color: #00a2d4;
+}
+/*气泡弹窗里面的按钮*/
+.popover-content  button{
+    height: 25px;
+    line-height: 28px;
+    border-radius: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.bubbleDiv{
+    width: 100%;
+}
+.bubbleContent{
+    width: 100%;float: left;text-align: left;padding-bottom: 15px;
+}
+.bubbleBtn{
+    width: 100%;float: left;text-align: right;padding-bottom: 5px;
+}
+
+/*我的预定*/
+.myApplyMeetingRoomTitle{
+    border: 0px solid red;height: 40px;line-height: 40px;width: 100%;padding-left: 10px;color: #525252;font-size: 18px;font-weight: bold;
+}
+.myApplyMeetingRoomTitleIcon{
+    height: 24px;
+    width: 8px;
+    background-color: #555555;
+    float: left;
+    margin-top: 8px;
+    margin-right: 7px;
+}
+.applyMeetingRoomDiv{
+    border: 0px solid #c9c9c9;list-style: none;width: 100%;padding: 10px;padding-right: 25px;flex: 1;overflow: auto;
+}
+.applyMeetingRoomDiv > li{
+    border: 1px solid #c9c9c9;padding: 10px;height: 100px;display: flex;margin-bottom: 10px;
+}
+.applyMeetingRoomBg{
+    border:1px solid #c5e2c6;width: 80px;height: 80px;float: left;
+}
+.applyMeetingRoomContent{
+    border:0px solid #c9c9c9;height: 80px;float: left;flex: 1;padding-left: 15px;
+}
+.applyMeetingRoomDetail{
+    border:0px solid #c9c9c9;height: 80px;float: left;width: 65%;
+}
+.applyMeetingRoomName{
+    border:0px solid #c9c9c9;height: 30px;line-height: 30px;float: left;width: 100%;
+}
+.applyMeetingRoomTitle{
+    float: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 30%;
+    padding-right: 10px;
+    font-size: 16px;
+    color: #222222;
+}
+.applyMeetingRoomAddress{
+    float: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 50%;
+    padding-right: 10px;
+    font-size: 12px;
+    color: #2B2B2B;
+}
+.applyMeetingRoomState{
+    float: left;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;min-width: 40px;max-width: 70px;
+    height: 20px;line-height: 20px;margin-top: 5px;padding-left: 5px;padding-right: 5px;margin-right: 10px;
+}
+.successState{
+    color: #57CAA1;
+    background-color: #DCF6ED;
+    max-width: 80px;
+}
+.progressState{
+    color: #71B4FA;
+    background-color: #E5F1FC;
+}
+.lockState{
+    color: #F68D81;
+    background-color: #FCEBE4;
+}
+.lockStateDesc{
+    height: 20px;line-height: 20px;margin-top: 5px;float: left; color: #F68D81;
+}
+.applyMeetingRoomTime{
+    border:0px solid #c9c9c9;height: 25px;line-height: 25px;float: left;width: 100%;
+}
+.applyMeetingRoomTime img{
+    margin-top: -4px;
+}
+.applyMeetingRoomTime span{
+    display: inline-block;
+    padding-left: 6px;
+    margin-top: 3px;
+}
+.applyMeetingRoomOp{
+    border:0px solid #c9c9c9;height: 80px;line-height: 80px;float: right;width: 30%;text-align: right;padding-right: 15px;
+}
+
+/*会议室管理*/
+.tdContent{
+    width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;
+}
+.meetingRoomManaeDiv{
+    border: 0px solid red;height: 40px;line-height: 40px;width: 100%;background-color: #ECEFF4;
+}
+.meetingRoomManaeTitle{
+    border: 0px solid red;float:left;height: 40px;line-height: 40px;width: 30%;padding-left: 15px;font-weight: bold;font-size: 18px;color: #73767A;
+}
+.meetingRoomManaeBtn{
+    border: 0px solid red;float:right;text-align:right;height: 40px;line-height: 40px;width: 60%;padding-right: 30px;font-weight: bold;font-size: 18px;color: #75B3F2;
+}
+.meetingRoomManaeBtn > button{
+    height: 30px !important;line-height: 33px !important;margin-top: -7px !important;color: #75B3F2;border-color: #6CA1EA;
+}
+/*添加用户样式*/
+.userDivClass{
+    border: 1px solid #C7C7CD;
+    height: 100%;
+    width: 21%;
+    float: left;
+    height: 30px;
+    margin-top: 5px;
+    margin-left: 5px;
+    padding-right: 10px;
+    padding-left: 10px;
+    background-color: #f2f5ee;
+    cursor: pointer;
+}
+.userClass{
+    width: 75%;
+    text-align: center;
+    float: left;
+    font-weight:bold;
+    height: 30px;
+    line-height: 30px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.deleteClass{
+    margin-left: 3%;
+    width: 17%;
+    float:right;
+    height: 30px;
+    line-height: 30px;
+    font-size: 18px;
+    text-align: center;
+}
+.deleteClass:hover{
+    color: red;
+}
+
+/*滚动条控制*/
+#applyList::-webkit-scrollbar {
+    width: 2px;
+}
+.applyMeetingRoomDiv::-webkit-scrollbar {
+    width: 2px;
+}
+.tbodyWrap{
+    border: 0px solid red;
+    width: 100%;
+    flex:1;
+    overflow: auto;
+}

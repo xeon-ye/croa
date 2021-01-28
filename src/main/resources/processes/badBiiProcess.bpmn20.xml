@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="accountsMessProcess" name="烂账流程" isExecutable="true">
+    <documentation>烂账审核流程</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <sequenceFlow id="sid-8DE632DB-AD3C-4D04-9DDC-C538C41153DA" name="开始" sourceRef="startEvent" targetRef="departmentHead"></sequenceFlow>
+
+    <userTask id="departmentHead" name="部门负责人">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.accountsMess.DepartmentHeadTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-093145D7-72EF-4014-8CAC-C1A3A0B0891E" name="通过" sourceRef="departmentHead" targetRef="businessDirector"></sequenceFlow>
+
+    <userTask id="businessDirector" name="业务总监">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.accountsMess.SalesDirectorHeadTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-A52ADB7B-4D6C-4E77-B2AF-D66962BCE9FB" name="通过" sourceRef="businessDirector" targetRef="financialDirector"></sequenceFlow>
+
+    <userTask id="financialDirector" name="财务总监">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.accountsMess.FinanceDirectorHeadTaskHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.accountsMess.ProcessFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-AF379FC0-995A-470D-8E07-4C3B3A994C32" name="通过" sourceRef="financialDirector" targetRef="endEvent"></sequenceFlow>
+
+    <endEvent id="endEvent" name="完成"></endEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_accountsMessProcess">
+    <bpmndi:BPMNPlane bpmnElement="accountsMessProcess" id="BPMNPlane_accountsMessProcess">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="100.0" y="163.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="departmentHead" id="BPMNShape_departmentHead">
+        <omgdc:Bounds height="80.0" width="100.0" x="175.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="businessDirector" id="BPMNShape_businessDirector">
+        <omgdc:Bounds height="80.0" width="100.0" x="320.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="financialDirector" id="BPMNShape_financialDirector">
+        <omgdc:Bounds height="80.0" width="100.0" x="465.0" y="138.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_sid-E5261377-2EF2-46AC-A061-F0EB4CBDB9D5">
+        <omgdc:Bounds height="28.0" width="28.0" x="610.0" y="164.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-AF379FC0-995A-470D-8E07-4C3B3A994C32" id="BPMNEdge_sid-AF379FC0-995A-470D-8E07-4C3B3A994C32">
+        <omgdi:waypoint x="564.95" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="610.0" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-093145D7-72EF-4014-8CAC-C1A3A0B0891E" id="BPMNEdge_sid-093145D7-72EF-4014-8CAC-C1A3A0B0891E">
+        <omgdi:waypoint x="274.9499999999907" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="319.9999999999807" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-A52ADB7B-4D6C-4E77-B2AF-D66962BCE9FB" id="BPMNEdge_sid-A52ADB7B-4D6C-4E77-B2AF-D66962BCE9FB">
+        <omgdi:waypoint x="419.94999999999067" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="464.9999999999807" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-8DE632DB-AD3C-4D04-9DDC-C538C41153DA" id="BPMNEdge_sid-8DE632DB-AD3C-4D04-9DDC-C538C41153DA">
+        <omgdi:waypoint x="129.9499984899576" y="178.0"></omgdi:waypoint>
+        <omgdi:waypoint x="174.9999999999917" y="178.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

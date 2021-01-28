@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaSupplierPriceAuditMapper">
+    <sql id="selectColumn">
+        tmspa.id,
+        tmspa.media_supplier_relate_id as mediaSupplierRelateId,
+        tmspa.cell,
+        tmspa.cell_name as cellName,
+        tmspa.cell_value as cellValue,
+        tmspa.create_date as createDate,
+        tmspa.update_date as updateDate,
+        tmspa.versions,
+        tmspa.cell_type as cellType,
+        tmspa.cell_value_text as cellValueText
+    </sql>
+
+    <!--根据关系ID获取供应商价格-->
+    <select id="listSupplierPriceByRelateId" resultType="com.qinfei.qferp.entity.media1.MediaSupplierPriceAudit">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_media_supplier_price_audit tmspa
+        WHERE tmspa.media_supplier_relate_id = #{relateId}
+    </select>
+
+    <!--批量插入媒体扩展表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_media_supplier_price_audit (
+           media_supplier_relate_id,
+           cell,
+           cell_name,
+           cell_value,
+           create_date,
+           update_date,
+           versions,
+           cell_type,
+           cell_value_text
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierPrice" index="index" separator=",">
+            (
+            #{mediaSupplierPrice.mediaSupplierRelateId},
+            #{mediaSupplierPrice.cell},
+            #{mediaSupplierPrice.cellName},
+            #{mediaSupplierPrice.cellValue},
+            now(),
+            now(),
+            0,
+            #{mediaSupplierPrice.cellType},
+            #{mediaSupplierPrice.cellValueText}
+            )
+        </foreach>
+    </insert>
+
+    <!--批量插入媒体扩展表（含ID，数据迁移使用）-->
+    <insert id="saveBatchForId" parameterType="java.util.List">
+        INSERT INTO t_media_supplier_price_audit (
+        id,
+        media_supplier_relate_id,
+        cell,
+        cell_name,
+        cell_value,
+        create_date,
+        update_date,
+        versions,
+        cell_type,
+        cell_value_text
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierPrice" index="index" separator=",">
+            (
+            #{mediaSupplierPrice.id},
+            #{mediaSupplierPrice.mediaSupplierRelateId},
+            #{mediaSupplierPrice.cell},
+            #{mediaSupplierPrice.cellName},
+            #{mediaSupplierPrice.cellValue},
+            now(),
+            now(),
+            0,
+            #{mediaSupplierPrice.cellType},
+            #{mediaSupplierPrice.cellValueText}
+            )
+        </foreach>
+    </insert>
+
+    <!--批量更新媒体扩展表-->
+    <update id="updateBatch" parameterType="java.util.List">
+        update t_media_supplier_price_audit
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="cell = case " suffix="else cell end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cell != null and mediaSupplierPrice.cell != ''">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cell}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_name = case " suffix="else cell_name end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellName != null and mediaSupplierPrice.cellName != ''">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value = case " suffix="else cell_value end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellValue != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_type = case " suffix="else cell_type end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellType != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellType}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value_text = case " suffix="else cell_value_text end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellValueText != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellValueText}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where media_supplier_relate_id in
+        <foreach item="mediaSupplierPrice" collection="mediaSupplierPriceList" index="index" open="(" close=")" separator=",">
+            #{mediaSupplierPrice.mediaSupplierRelateId}
+        </foreach>
+    </update>
+
+    <!--批量更新媒体扩展表-->
+    <update id="updateBatchForMap" parameterType="java.util.List">
+        update t_media_supplier_price_audit
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="cell = case " suffix="else cell end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cell != null and mediaSupplierPrice.cell != ''">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cell}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_name = case " suffix="else cell_name end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellName != null and mediaSupplierPrice.cellName != ''">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value = case " suffix="else cell_value end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellValue != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellValue}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_type = case " suffix="else cell_type end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellType != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellType}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="cell_value_text = case " suffix="else cell_value_text end,">
+                <foreach collection="mediaSupplierPriceList" item="mediaSupplierPrice" index="index">
+                    <if test="mediaSupplierPrice.cellValueText != null">
+                        when media_supplier_relate_id = #{mediaSupplierPrice.mediaSupplierRelateId} and cell = #{mediaSupplierPrice.cell} then #{mediaSupplierPrice.cellValueText}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where media_supplier_relate_id in
+        <foreach item="mediaSupplierPrice" collection="mediaSupplierPriceList" index="index" open="(" close=")" separator=",">
+            #{mediaSupplierPrice.mediaSupplierRelateId}
+        </foreach>
+    </update>
+
+    <!--根据关系ID和价格类型更新指定供应商价格-->
+    <update id="updateOnePrice" parameterType="com.qinfei.qferp.entity.media1.MediaSupplierPriceAudit">
+        UPDATE t_media_supplier_price_audit tmspa
+        SET tmspa.update_date = NOW(),
+         tmspa.versions = tmspa.versions + 1,
+         tmspa.cell_value = #{cellValue}
+        WHERE
+        	tmspa.cell = #{cell}
+        AND tmspa.media_supplier_relate_id = #{mediaSupplierRelateId}
+    </update>
+
+    <!--根据媒体ID删除扩展表-->
+    <delete id="deleteByRelateId">
+        DELETE
+        FROM
+        	t_media_supplier_price_audit
+        WHERE
+        media_supplier_relate_id in
+        <foreach item="mediaSupplierRelateId" collection="mediaSupplierRelateIds" index="index" open="(" close=")" separator=",">
+            #{mediaSupplierRelateId}
+        </foreach>
+    </delete>
+
+    <!--拷贝t_media_supplier_price表数据到该表-->
+    <insert id="copySupplierPriceByRelateIds" parameterType="java.util.List">
+        insert into
+        t_media_supplier_price_audit
+        select
+          NULL AS id,
+          tmspa.media_supplier_relate_id,
+          tmspa.cell,
+          tmspa.cell_name,
+          tmspa.cell_value,
+          tmspa.create_date,
+          tmspa.update_date,
+          tmspa.state,
+          tmspa.versions,
+          tmspa.cell_type,
+          tmspa.cell_value_text
+        from t_media_supplier_price tmspa where tmspa.media_supplier_relate_id in
+        <foreach collection="mediaSupplierRelateIds" item="mediaSupplierRelateId" open="(" close=")" separator=",">
+            #{mediaSupplierRelateId}
+        </foreach>
+    </insert>
+
+</mapper>

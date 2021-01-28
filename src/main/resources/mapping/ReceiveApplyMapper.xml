@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.ReceiveApplyMapper">
+    <resultMap id="applyMapper" type="com.qinfei.qferp.entity.inventory.ReceiveApply">
+        <id column="id" property="id"/>
+        <result column="apply_code" property="applyCode"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="title" property="title"/>
+        <result column="state" property="state"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="purpose" property="purpose"/>
+        <result column="money" property="money"/>
+        <result column="ware_id" property="wareId"/>
+        <result column="desc" property="desc"/>
+        <result column="item_id" property="itemId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="affix_link" property="affixLink"/>
+        <result column="affix_name" property="affixName"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
+
+    <sql id="selectColumn">
+        a.id,
+        a.apply_code applyCode,
+        a.user_id userId,
+        a.user_name userName,
+        a.update_user_id updateUserId,
+        a.title,
+        a.state,
+        DATE_FORMAT(a.create_time,"%Y-%m-%d") createTime,
+        a.update_time updateTime,
+        a.purpose,
+        a.money,
+        a.ware_id wareId,
+        a.`desc`,
+        a.item_id itemId,
+        a.task_id taskId,
+        a.affix_link affixLink,
+        a.affix_name affixName,
+        a.company_code companyCode
+    </sql>
+
+    <!--根据id查询领用信息-->
+    <select id="getById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.ReceiveApply">
+        select
+         <include refid="selectColumn"/>
+         from t_saves_receive_apply a
+         where a.state>-2 and a.id=#{id}
+    </select>
+
+    <!--获取分页数量-->
+    <select id="getApplyCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select COUNT(*) from t_saves_receive_apply a
+        where a.state >-2 and a.user_id=#{userId} and a.company_code=#{companyCode}
+        <if test="codeQc!=null and codeQc!=''">
+            and a.apply_code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="createTimeQc!=null">
+            and a.create_time>=#{createTimeQc}
+        </if>
+        <if test="stateQc==-1">
+            and a.state=-1
+        </if>
+        <if test="stateQc==0">
+            and a.state=0
+        </if>
+        <if test="stateQc==1">
+            and a.state=1
+        </if>
+        <if test="stateQc==2">
+            and a.state in(4,14)
+        </if>
+        <if test="stateQc==6">
+            and a.state=6
+        </if>
+        <if test="stateQc==7">
+            and a.state =7
+        </if>
+    </select>
+
+    <!--获取领用分页数据-->
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        select <include refid="selectColumn"/>
+        from t_saves_receive_apply a
+        where a.state >-2 and a.user_id=#{userId} and a.company_code=#{companyCode}
+        <if test="codeQc!=null and codeQc!=''">
+            and a.apply_code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="createTimeQc!=null and createTimeQc!=''">
+            and a.create_time>=#{createTimeQc}
+        </if>
+        <if test="stateQc==-1">
+            and a.state=-1
+        </if>
+        <if test="stateQc==0">
+            and a.state=0
+        </if>
+        <if test="stateQc==1">
+            and a.state=1
+        </if>
+        <if test="stateQc==2">
+            and a.state in(4,14)
+        </if>
+        <if test="stateQc==6">
+            and a.state=6
+        </if>
+        <if test="stateQc==7">
+            and a.state =7
+        </if>
+        order by a.create_time desc
+    </select>
+
+    <!--新增领用信息-->
+    <insert id="saveApply" parameterType="com.qinfei.qferp.entity.inventory.ReceiveApply" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_receive_apply
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="applyCode !=null and applyCode !=''">apply_code,</if>
+            <if test="userId !=null">user_id,</if>
+            <if test="userName !=null and userName !=''">user_name,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="title !=null and title !=''">title,</if>
+            <if test="state !=null">state,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="purpose !=null">purpose,</if>
+            <if test="money !=null">money,</if>
+            <if test="wareId !=null">ware_id,</if>
+            <if test="desc !=null">`desc`,</if>
+            <if test="itemId !=null">item_id,</if>
+            <if test="taskId !=null">task_id,</if>
+            <if test="affixName !=null and affixName !=''">affix_name,</if>
+            <if test="affixLink !=null and affixLink !=''">affix_link,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="applyCode !=null and applyCode !=''">#{applyCode},</if>
+            <if test="userId !=null">#{userId},</if>
+            <if test="userName !=null and userName !=''">#{userName},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="title !=null and title !=''">#{title},</if>
+            <if test="state !=null">#{state},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="updateTime !=null">#{updateTime},</if>
+            <if test="purpose !=null">#{purpose},</if>
+            <if test="money !=null">#{money},</if>
+            <if test="wareId !=null">#{wareId},</if>
+            <if test="desc !=null">#{desc},</if>
+            <if test="itemId !=null">#{itemId},</if>
+            <if test="taskId !=null">#{taskId},</if>
+            <if test="affixName !=null and affixName !=''">#{affixName},</if>
+            <if test="affixLink !=null and affixLink !=''">#{affixLink},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--编辑领用信息-->
+    <update id="editApply" parameterType="com.qinfei.qferp.entity.inventory.ReceiveApply">
+        update t_saves_receive_apply
+        <set>
+            <if test="applyCode !=null and applyCode !=''">apply_code=#{applyCode},</if>
+            <if test="userId !=null">user_id=#{userId},</if>
+            <if test="userName !=null and userName !=''">user_name=#{userName},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="title !=null and title !=''">title=#{title},</if>
+            <if test="state !=null">state=#{state},</if>
+            <if test="createTime !=null">create_time=#{createTime},</if>
+            <if test="updateTime !=null">update_time=#{updateTime},</if>
+            <if test="purpose !=null">purpose=#{purpose},</if>
+            <if test="money !=null">money=#{money},</if>
+            <if test="wareId !=null">ware_id=#{wareId},</if>
+            <if test="desc !=null">`desc`=#{desc},</if>
+            <if test="itemId !=null">item_id=#{itemId},</if>
+            <if test="taskId !=null">task_id=#{taskId},</if>
+            <if test="affixName !=null and affixName !=''">affix_name=#{affixName},</if>
+            <if test="affixLink !=null and affixLink !=''">affix_link=#{affixLink},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--领用出库选择领用订单所需数据-->
+    <select id="orderList" parameterType="java.util.Map" resultType="java.util.Map"  useCache="true">
+        SELECT <include refid="selectColumn"/>
+        from t_saves_receive_apply a
+        where a.state = 1 and a.company_code=#{companyCode}
+        <if test="code !=null and code!=''">
+            AND a.apply_code =#{code}
+        </if>
+    </select>
+
+    <!--编辑查看领用出库选择领用订单所需数据-->
+    <select id="orderList2" parameterType="java.util.Map" resultType="java.util.Map"  useCache="true">
+        SELECT <include refid="selectColumn"/>
+        from t_saves_receive_apply a
+        where a.state >-2 and a.company_code=#{companyCode} and a.id=#{id}
+        <if test="code !=null and code!=''">
+            AND a.apply_code =#{code}
+        </if>
+    </select>
+
+    <!--删除物品领用信息-->
+    <update id="delApply" parameterType="java.lang.Integer">
+        update t_saves_receive_apply set state = -9 where id=#{id}
+    </update>
+
+    <!--修改物品领用状态-->
+    <update id="editApplyState">
+        update t_saves_receive_apply set state=#{state} where id=#{id}
+    </update>
+</mapper>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <meta charset="UTF-8">
+    <script src="/js/template-web.js"></script>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/accountsMess/accountsMess.js"></script>
+    <link href="/css/accountsMess/accountsMess.css" rel=" stylesheet">
+    <script src="/js/process/approveTask.js"></script>
+    <title>烂账管理</title>
+</head>
+<body>
+<div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                <div class="ibox-title">
+                    <h5 style="font-weight: bold">查询条件</h5>
+                </div>
+                <div class="ibox-content layui-form" id="queryDiv">
+                    <form id="queryForm">
+                        <div class="form-horizontal">
+                            <div class="col-sm-12 from-group" style="margin-bottom: 10px">
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        申请日期:
+                                    </label>
+                                    <div class="col-sm-4" >
+                                        <input id="applyStateTime" style="width: 116%;; font-size: 14px;" name="applyStateTime" class="form-control" readonly/>
+                                    </div>
+                                    <div class="col-sm-4" >
+                                        <input id="applyEndTime"  style="width: 116%;; margin-left: -13px;font-size: 14px;" name="applyStateTime" class="form-control" readonly/>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        烂账编号:
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input id="code" name="codeQc" class="form-control" onkeydown="commonObj.enterEvent(event)">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        申请人:
+                                    </label>
+                                    <div class="col-sm-8 layui-form">
+                                        <select name="releaseUser" id="releaseUser1" class="form-control"  lay-filter="releaseUser" lay-search>
+                                            <option date-deptid="" value="" selected>请选择</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        标题:
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input id="title1" name="titleQC" class="form-control"  onkeydown="commonObj.enterEvent(event)" >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 from-group" style="margin-bottom: 10px">
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        客户公司名称:
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input id="companyName" name="companyNameQC" class="form-control" onkeydown="commonObj.enterEvent(event)">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        客户联系人:
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input id="custName"  name="custNameQC" class="form-control" onkeydown="commonObj.enterEvent(event)">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="col-sm-3 control-label">
+                                        状态:
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <select name="state" class="form-control" lay-filter="state" lay-search>
+                                            <option value="">请选择</option>
+                                            <option value="-1">已驳回</option>
+                                            <option value="2">已保存</option>
+                                            <option value="1">已完成</option>
+                                            <option value="4">部门领导审核</option>
+                                            <option value="5">业务总监审核</option>
+                                            <option value="6">财务总监审核</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="col-sm-4" style=" margin-right: -19px;"></div>
+                                    <button type="button" id="querySearch" class="btn btn-primary" onclick="pagObj.accountsMessList()">
+                                        <i class="fa fa-search "></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button id="addBtn" class="btn btn-success" type="button" onclick="pagObj.addAccountsMess()">
+                        <i class="fa fa-plus"></i>&nbsp;申请烂账
+                    </button>
+                </div>
+                <div>
+                    <div style="height: 100%;width: 100%;" >
+                        <table class="layui-table"  lay-skin="line" style="table-layout:fixed; margin: auto" id="demo1" lay-filter="test">
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="accountsMessModal" style="display:none;">
+    <div class="stockModalCommon">
+        <div class="stockModalBtnOuter">
+            <div class="stockModalTitle">
+                烂账申请信息
+            </div>
+        </div>
+        <div id="firstDiv" class="tab-pane form-horizontal active" style=" height: 80%;width: 99%">
+            <form id="firstForm" >
+                <div class="row">
+                    <div class="col-sm-12" style=" margin-top: 15px;">
+                        <div class="ibox ">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">客户公司名称:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="companyNameQc1" name="companyName"
+                                               class="form-control">
+                                    </div>
+                                    <label class="col-sm-2 control-label">对接人:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="custNameQc1" name="custName"
+                                               class="form-control">
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button type="button" id="custSearch"
+                                                class="btn btn-primary">
+                                            <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                                <table class="layui-table"  lay-skin="line" style="table-layout:fixed;margin-top: -5px" id="dockingListTable" lay-filter="test1"></table>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="button" class="btn btn-primary selectSupplier"
+                                id="selectSupplier">下一步
+                        </button>
+                        <button type="button" class="btn btn-white" onclick="pagObj.putStockModalClose();"
+                                data-dismiss="modal">关闭
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="accountsMessArtic" class="tab-pane form-horizontal" style="margin-top:18px; height: 80%; ">
+        <div class="col-sm-12">
+        <form id="accountsMessArticForm" class=" form-horizontal layui-form">
+            <div class="col-sm-12 from-group" style="margin-bottom: 10px">
+                <div class="col-sm-3">
+                    <label class="col-sm-4 control-label">
+                        发布时间:
+                    </label>
+                    <div class="col-sm-4" >
+                        <input id="releaseTime" style="width: 116%;; font-size: 14px;" name="releaseStateTime1" class="form-control" readonly/>
+                    </div>
+                    <div class="col-sm-4" >
+                        <input id="releaseTime1"  style="width: 116%;; margin-left: -13px;font-size: 14px;" name="releaseEndTime1" class="form-control" readonly/>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-sm-4 control-label">
+                        品牌:
+                    </label>
+                    <div class="col-sm-8" >
+                        <input name="brand" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-sm-4 control-label">
+                        媒介:
+                    </label>
+                    <div class="col-sm-8" >
+                        <input name="mediaUserName" class="form-control"  />
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <label class="col-sm-4 control-label">
+                        媒体:
+                    </label>
+                    <div class="col-sm-8" >
+                        <input name="mediaName" class="form-control"  />
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <label class="col-sm-3 control-label">
+                        标题:
+                    </label>
+                    <div class="col-sm-6" >
+                        <input name="title" class="form-control"   required/>
+                    </div>
+
+                    <button type="button" class="btn btn-primary  fa fa-search" id="search">搜索
+                    </button>
+                </div>
+
+            </div>
+        </form>
+        </div>
+        <div class="ibox-content" style="">
+            <div class="text-right">
+                <label style="margin-left: 52px">选中报价合计:￥</label>
+                <span id="saleSum2" class="text-danger">0</span>
+                <label style="margin-left: 52px">选中进账合计：￥</label>
+                <span id="incomeSum2" class=" text-danger">0</span>
+                <label style="margin-left: 52px">选中成本合计:￥</label>
+                <span id="outgoSum2" class="text-danger">0</span>
+                <label style="margin-left: 52px">选中烂账金额合计:￥</label>
+                <span id="messSum" class="text-danger">0</span>
+            </div>
+            <div class="articleForm" style="width: 100%;" >
+                <table class="layui-table"  lay-skin="line" style="table-layout:fixed;" id="articleTable" lay-filter="test1"></table>
+            </div>
+        </div>
+            <div class="modal-footer" id="messFooter">
+                <button type="button" class="btn btn-primary " id="backStepOne">上一步</button>
+
+                <button type="button" class="btn btn-primary selectSupplier" id="invoice">下一步
+                </button>
+            </div>
+        </div>
+
+        <div id="messDetails" class="layui-form" style="margin-top:18px; height: 80%;overflow-y: auto">
+                <div class="col-sm-12">
+                    <form id="messDetailsForm" class="form-horizontal layui-form"  action="" method="post" style="margin-top: 10px ;overflow-y: auto">
+                        <div class="col-md-12 form-group">
+                            <input name="id" type="hidden">
+                            <input name="taskId" type="hidden">
+                            <input name="companyCode" type="hidden">
+                            <input name="itemId" type="hidden">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    客户公司名称:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="custCompanyName" class="form-control"  readonly/>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    对接人名称:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="custName" class="form-control"  readonly/>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    稿件发布筛选时间:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="articleTime" class="form-control"  readonly/>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    烂账编号:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="code" class="form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    <span class="text-red">*</span> 标题:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input id="title" name="title" class="form-control"  />
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    申请人:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="applyName" class="form-control" readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    状态:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="state" type="hidden" class="form-control"  readonly />
+                                    <input name="stateQC" class="form-control"  readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    备注:
+                                </label>
+                                <div class="col-sm-8" >
+                                  <textarea id="note" name="note" class="form-control" style="width: 275%;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            <div class="ibox-content" style="">
+                <h3>选中的烂账稿件</h3>
+                <div class="text-right">
+                    <label>报价合计:￥</label>
+                    <span name="offerSum" class="text-danger">0</span>
+                    <label style="margin-left: 52px">进账合计：￥</label>
+                    <span name="sessionSum" class=" text-danger">0</span>
+                    <label style="margin-left: 52px">成本合计:￥</label>
+                    <span name="costSum" class="text-danger">0</span>
+                    <label style="margin-left: 52px">烂账金额合计:￥</label>
+                    <span name="messSum" class="text-danger">0</span>
+                </div>
+                <div class="articleForm" style="height: 100%;width: 99%;margin-left: 22px" >
+                    <table class="layui-table"  lay-skin="line" style="table-layout:fixed;" id="checkedArticleTable" lay-filter="test2"></table>
+                </div>
+        </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-primary " id="btnSubmitAudit">提交审核</button>
+                <button type="button" class="btn btn-danger" id="reject1">审核驳回</button>
+                <button type="button" class="btn btn-success" id="pass1" >审核通过</button>
+                <button type="button" class="btn btn-white" onclick="pagObj.closeModal()">关闭</button>
+            </div>
+    </div>
+</div>
+</div>
+
+<!--审核流程详情-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

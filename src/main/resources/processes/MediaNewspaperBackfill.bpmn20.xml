@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="newspaperOutgo" name="报纸板块媒介请款" isExecutable="true">
+    <documentation>报纸媒介请款的流程。</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <sequenceFlow id="sid-27C30011-7FEF-41B3-93E3-AEE05B7C4265" name="开始" sourceRef="startEvent" targetRef="sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9"></sequenceFlow>
+    <exclusiveGateway id="sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9" name="是否金额小于等于2000"></exclusiveGateway>
+    <sequenceFlow id="sid-70143F9A-6340-4D4D-A9B6-D7FF636FD87C" name="是" sourceRef="sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9" targetRef="groupLeaderApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-1E081D81-921D-486F-A841-D1694A001198" name="否" sourceRef="sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9" targetRef="leaderApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="groupLeaderApprove" name="媒介组长审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.GroupLeaderHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-0760E606-CF68-47C0-A7D7-DBDB041F849A" name="通过" sourceRef="groupLeaderApprove" targetRef="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A"></sequenceFlow>
+    <userTask id="leaderApprove" name="媒介部长审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.MinisterHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-1881776B-6DAF-4C13-A172-64BAB19EEAB0" name="通过" sourceRef="leaderApprove" targetRef="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A"></sequenceFlow>
+    <exclusiveGateway id="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A" name="是否金额大于5000"></exclusiveGateway>
+    <sequenceFlow id="sid-8EF633B5-B6D4-4976-BCE0-DEB84F874578" name="是" sourceRef="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A" targetRef="financeApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckB}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-F89C02A9-0F7B-4BE0-B6C9-B7069ABCBF17" name="否" sourceRef="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A" targetRef="cashierParagraph">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckB}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="financeApprove" name="财务总监审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.FinanceDirectorHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-3545BFA1-E4CB-497D-B4E1-21A75DD133B0" name="通过" sourceRef="financeApprove" targetRef="cashierParagraph"></sequenceFlow>
+    <userTask id="cashierParagraph" name="财务出纳出款">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.TreasurerHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.outgo.CNProcessCompleteHanadler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-ACD02BFB-F245-4839-8159-83E2FF4F2F7A" name="通过" sourceRef="cashierParagraph" targetRef="accounting"></sequenceFlow>
+    <exclusiveGateway id="accounting" name="是否对公账户"></exclusiveGateway>
+    <sequenceFlow id="sid-0BAF105C-A983-4283-9322-880F2449137A" name="是" sourceRef="accounting" targetRef="accountingRecognition">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckD}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-89897609-2A19-4C36-833B-8C224F6EB23C" name="否" sourceRef="accounting" targetRef="sid-F2716B59-0552-47C8-B496-01F6A453120F">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckD}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="accountingRecognition" name="会计确认出款">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.FinancialAccountingHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.outgo.KJProcessCompleteHandler"></flowable:taskListener>
+
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-62F44E91-F016-4B29-A76F-34189F6FB078" name="通过" sourceRef="accountingRecognition" targetRef="sid-F2716B59-0552-47C8-B496-01F6A453120F"></sequenceFlow>
+
+    <exclusiveGateway id="sid-F2716B59-0552-47C8-B496-01F6A453120F" name="是否回填"></exclusiveGateway>
+
+    <sequenceFlow id="sid-BE19C95B-85C2-4D91-BD82-E2BF363DC529" name="否" sourceRef="sid-F2716B59-0552-47C8-B496-01F6A453120F" targetRef="endEvent">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckE}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-EEE68DBF-E588-463C-A6CF-32307434FC16" name="是" sourceRef="sid-F2716B59-0552-47C8-B496-01F6A453120F" targetRef="mediumBackfill">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckE}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="mediumBackfill" name="媒介回填">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.outgo.MediumBackfillHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.outgo.ReviewCompletedHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-286DCD92-5902-41B3-8024-60499D00D2A2" name="通过" sourceRef="mediumBackfill" targetRef="endEvent">
+    </sequenceFlow>
+    <endEvent id="endEvent" name="结束流程"></endEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_newspaperOutgo1">
+    <bpmndi:BPMNPlane bpmnElement="newspaperOutgo" id="BPMNPlane_newspaperOutgo">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="285.0" y="375.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9" id="BPMNShape_sid-C302D8AB-59D4-4F8C-A33D-F09AE49F4EE9">
+        <omgdc:Bounds height="40.0" width="40.0" x="391.11656492790667" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="groupLeaderApprove" id="BPMNShape_groupLeaderApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="544.1621772910006" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="544.1621772910006" y="465.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A" id="BPMNShape_sid-36CBA81A-9471-4BAF-85FB-4FA210035C5A">
+        <omgdc:Bounds height="40.0" width="40.0" x="765.0000000000001" y="360.00000000000017"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="financeApprove" id="BPMNShape_financeApprove">
+        <omgdc:Bounds height="79.99999999999997" width="99.99999999999989" x="960.0000000000001" y="225.00000000000003"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="cashierParagraph" id="BPMNShape_cashierParagraph">
+        <omgdc:Bounds height="80.0" width="100.0" x="1170.0000000000002" y="340.0000000000001"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="accounting" id="BPMNShape_accounting">
+        <omgdc:Bounds height="40.0" width="40.0" x="1350.0000000000002" y="360.0000000000001"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="accountingRecognition" id="BPMNShape_accountingRecognition">
+        <omgdc:Bounds height="80.0" width="100.0" x="1320.0" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="1695.0000000000002" y="366.00000000000017"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-F2716B59-0552-47C8-B496-01F6A453120F" id="BPMNShape_sid-F2716B59-0552-47C8-B496-01F6A453120F">
+        <omgdc:Bounds height="40.0" width="40.0" x="1545.0000000000002" y="360.0000000000002"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="mediumBackfill" id="BPMNShape_mediumBackfill">
+        <omgdc:Bounds height="80.0" width="100.0" x="1515.0000000000005" y="465.0000000000001"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-0BAF105C-A983-4283-9322-880F2449137A" id="BPMNEdge_sid-0BAF105C-A983-4283-9322-880F2449137A">
+        <omgdi:waypoint x="1370.0000000000002" y="360.0000000000001"></omgdi:waypoint>
+        <omgdi:waypoint x="1370.0" y="304.95000000000005"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-286DCD92-5902-41B3-8024-60499D00D2A2" id="BPMNEdge_sid-286DCD92-5902-41B3-8024-60499D00D2A2">
+        <omgdi:waypoint x="1614.9500000000005" y="505.0000000000001"></omgdi:waypoint>
+        <omgdi:waypoint x="1709.0000000000002" y="505.0000000000001"></omgdi:waypoint>
+        <omgdi:waypoint x="1709.0000000000002" y="393.94993072353554"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-70143F9A-6340-4D4D-A9B6-D7FF636FD87C" id="BPMNEdge_sid-70143F9A-6340-4D4D-A9B6-D7FF636FD87C">
+        <omgdi:waypoint x="411.09793191508794" y="370.01064897726866"></omgdi:waypoint>
+        <omgdi:waypoint x="411.0" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="544.1621772909788" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-F89C02A9-0F7B-4BE0-B6C9-B7069ABCBF17" id="BPMNEdge_sid-F89C02A9-0F7B-4BE0-B6C9-B7069ABCBF17">
+        <omgdi:waypoint x="804.947707423177" y="380.00000000000017"></omgdi:waypoint>
+        <omgdi:waypoint x="1169.9999999994488" y="380.0000000000001"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-8EF633B5-B6D4-4976-BCE0-DEB84F874578" id="BPMNEdge_sid-8EF633B5-B6D4-4976-BCE0-DEB84F874578">
+        <omgdi:waypoint x="785.0000000000001" y="360.00000000000017"></omgdi:waypoint>
+        <omgdi:waypoint x="785.0" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="960.0000000000001" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-1E081D81-921D-486F-A841-D1694A001198" id="BPMNEdge_sid-1E081D81-921D-486F-A841-D1694A001198">
+        <omgdi:waypoint x="410.9242469879814" y="409.7581628549246"></omgdi:waypoint>
+        <omgdi:waypoint x="410.0" y="505.0"></omgdi:waypoint>
+        <omgdi:waypoint x="544.1621772910006" y="505.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-3545BFA1-E4CB-497D-B4E1-21A75DD133B0" id="BPMNEdge_sid-3545BFA1-E4CB-497D-B4E1-21A75DD133B0">
+        <omgdi:waypoint x="1059.9499999999503" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1220.0" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1220.0000000000002" y="340.0000000000001"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-62F44E91-F016-4B29-A76F-34189F6FB078" id="BPMNEdge_sid-62F44E91-F016-4B29-A76F-34189F6FB078">
+        <omgdi:waypoint x="1419.95" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1565.5000000000002" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1565.5000000000002" y="360.5000000000002"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-ACD02BFB-F245-4839-8159-83E2FF4F2F7A" id="BPMNEdge_sid-ACD02BFB-F245-4839-8159-83E2FF4F2F7A">
+        <omgdi:waypoint x="1269.9500000000003" y="380.0000000000001"></omgdi:waypoint>
+        <omgdi:waypoint x="1350.0000000000002" y="380.0000000000001"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-BE19C95B-85C2-4D91-BD82-E2BF363DC529" id="BPMNEdge_sid-BE19C95B-85C2-4D91-BD82-E2BF363DC529">
+        <omgdi:waypoint x="1584.5095911949688" y="380.4335664335667"></omgdi:waypoint>
+        <omgdi:waypoint x="1695.0000829380099" y="380.04860604497986"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-EEE68DBF-E588-463C-A6CF-32307434FC16" id="BPMNEdge_sid-EEE68DBF-E588-463C-A6CF-32307434FC16">
+        <omgdi:waypoint x="1565.4233870967744" y="399.51871474617263"></omgdi:waypoint>
+        <omgdi:waypoint x="1565.1604417670687" y="465.0000000000001"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-0760E606-CF68-47C0-A7D7-DBDB041F849A" id="BPMNEdge_sid-0760E606-CF68-47C0-A7D7-DBDB041F849A">
+        <omgdi:waypoint x="644.1121772910005" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="725.0" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="778.1428571428572" y="366.8432324386067"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-1881776B-6DAF-4C13-A172-64BAB19EEAB0" id="BPMNEdge_sid-1881776B-6DAF-4C13-A172-64BAB19EEAB0">
+        <omgdi:waypoint x="644.1121772910005" y="505.0"></omgdi:waypoint>
+        <omgdi:waypoint x="725.0" y="505.0"></omgdi:waypoint>
+        <omgdi:waypoint x="778.5135135135135" y="393.4797297297299"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-89897609-2A19-4C36-833B-8C224F6EB23C" id="BPMNEdge_sid-89897609-2A19-4C36-833B-8C224F6EB23C">
+        <omgdi:waypoint x="1389.894046404892" y="380.050892857143"></omgdi:waypoint>
+        <omgdi:waypoint x="1545.4487179487182" y="380.4487179487182"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-27C30011-7FEF-41B3-93E3-AEE05B7C4265" id="BPMNEdge_sid-27C30011-7FEF-41B3-93E3-AEE05B7C4265">
+        <omgdi:waypoint x="314.94999852013893" y="390.0"></omgdi:waypoint>
+        <omgdi:waypoint x="391.11656492790667" y="390.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

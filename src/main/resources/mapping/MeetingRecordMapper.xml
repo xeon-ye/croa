@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingRecordMapper">
+    <sql id="selectColumn">
+        tmd.id,
+        tmd.meet_id as meetId,
+        tmd.record_type as recordType,
+        tmd.content,
+        tmd.state,
+        tmd.create_id as createId,
+        tmd.create_date as createDate,
+        tmd.update_id as updateId,
+        tmd.update_date as updateDate,
+        tmd.company_code as companyCode
+    </sql>
+
+    <!--添加会议记录-->
+    <insert id="addMeetingRecord" parameterType="com.qinfei.qferp.entity.meeting.MeetingRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_meeting_record
+        <trim prefix=" (" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="meetId != null">meet_id,</if>
+            <if test="recordType != null">record_type,</if>
+            <if test="content != null">content,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="meetId != null">#{meetId},</if>
+            <if test="recordType != null">#{recordType},</if>
+            <if test="content != null">#{content},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+
+    </insert>
+<!--根据会议id 查询会议记录-->
+    <select id="getById" resultType="com.qinfei.qferp.entity.meeting.MeetingRecord">
+        select
+        <include refid="selectColumn"/>
+        FROM
+        t_meeting_record tmd
+        where tmd.state = 0
+        <if test="recordType != null and recordType != ''">
+            AND tmd.record_type = #{recordType}
+        </if>
+        <if test="meetId != null and meetId !=''">
+            and  tmd.meet_id=#{meetId}
+        </if>
+
+    </select>
+
+    <update id="delMeetingRecord">
+
+    </update>
+
+
+    <select id="meetingRecordListPg" resultType="com.qinfei.qferp.entity.meeting.MeetingRecord">
+        select
+        tm.title AS title,
+        <include refid="selectColumn"/>,
+        <choose>
+            <when test="recordType != null and recordType == 1">
+                '会议所有人' AS NAME
+            </when>
+            <otherwise>
+                GROUP_CONCAT(su.name) AS NAME
+            </otherwise>
+        </choose>
+        FROM
+        t_meeting_record tmd
+        INNER JOIN t_meeting tm ON tmd.meet_id = tm.id
+        <choose>
+            <when test="recordType != null and recordType == 1">
+
+            </when>
+            <otherwise>
+                INNER JOIN t_meeting_record_view_user tmrvu on tmrvu.meet_record_id = tmd.id
+                INNER JOIN sys_user su on tmrvu.user_id = su.id
+            </otherwise>
+        </choose>
+        WHERE
+        tmd.state = 0
+        AND tmd.meet_id = #{id}
+        <choose>
+            <when test="recordType != null and recordType == 1">
+                AND tmd.record_type = #{recordType}
+            </when>
+            <otherwise>
+                AND tmd.record_type = #{recordType}
+                AND EXISTS (SELECT t.id FROM t_meeting_record_view_user t WHERE t.meet_record_id = tmd.id AND t.user_id = #{userId})
+                GROUP BY
+                tm.id,tmd.id
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--获取记录总数，与上面方法参数同步-->
+    <select id="getMeetingRecordTotal" resultType="java.lang.Integer">
+        SELECT
+        	count(*)
+        FROM
+        	(
+        		select
+                 tm.id
+                FROM
+                t_meeting_record tmd
+                INNER JOIN t_meeting tm ON tmd.meet_id = tm.id
+                <choose>
+                    <when test="recordType != null and recordType == 1">
+
+                    </when>
+                    <otherwise>
+                        INNER JOIN t_meeting_record_view_user tmrvu on tmrvu.meet_record_id = tmd.id
+                        INNER JOIN sys_user su on tmrvu.user_id = su.id
+                    </otherwise>
+                </choose>
+                WHERE
+                tmd.state = 0
+                AND tmd.meet_id = #{id}
+                <choose>
+                    <when test="recordType != null and recordType == 1">
+                        AND tmd.record_type = #{recordType}
+                    </when>
+                    <otherwise>
+                        AND tmd.record_type = #{recordType}
+                        AND tmrvu.user_id = #{userId}
+                        GROUP BY
+                        tm.id,tmd.id
+                    </otherwise>
+                </choose>
+        	) t
+    </select>
+</mapper>

@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>业务查询</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <!--统计概况模态框Css-->
+    <link href="/css/statisticsModal/statisticsModal.css" rel="stylesheet">
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css"/>
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <!--统计概况模态框Js-->
+    <script src="/js/statisticsModal/statisticsModal.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script th:src="@{/js/crm/common_util.js(v=${version})}" data-th-inline="javascript"></script>
+    <script th:src="@{/js/fee/commonFee.js(v=${version})}" data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/commonDatagrid.js(v=${version})}" data-th-inline="javascript"></script>
+    <script th:src="@{/js/biz/article_list_common.js(v=${version})}" data-th-inline="javascript"></script>
+    <script th:src="@{/js/biz/business_list.js(v=${version})}" data-th-inline="javascript"></script>
+    <style>
+        .narrow {
+            padding-left: 3px;
+            padding-right: 3px;
+        }
+
+        .ui-jqgrid .ui-jqgrid-bdiv {
+            border-top: 1px solid #E1E1E1;
+            overflow-x: auto;
+        }
+
+        /*.ui-jqgrid-bdiv {*/
+        /*    overflow-x: scroll !important;*/
+        /*}*/
+
+        .companyWrap {
+            border: 1px solid #eeeeee;
+            width: 95.6%;
+            height: 212px;
+            position: absolute;
+            top: 34px;
+            background-color: white;
+            z-index: 999;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .companyNameItem {
+            border-bottom: 1px solid #eeeeee;
+            width: 100%;
+            height: 30px;
+            float: left;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0 12px;
+        }
+
+        .companyNameItem:hover {
+            background-color: #DFF0D8;
+        }
+
+        .companyNameItem > span {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .text-green {
+            color: #18a689;
+        }
+
+        .companyPanelCancel {
+            display: none;
+        }
+    </style>
+    <script th:inline="javascript">
+        $(function () {
+            $('#queryDiv').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#searchButton").click();
+                }
+            });
+            $('#custDiv').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#custSearch").click();
+                }
+            });
+            /*            $('#projectDiv').bind('keyup', function (event) {
+                            if (event.keyCode == "13") {
+                                //回车执行查询
+                                $("#projectSearch").click();
+                            }
+                        });*/
+
+            //加载时间控件
+            var issuedDateStart = {
+                elem: '#issuedDateStart',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                //max: laydate.now(),//最大日期
+                istime: false,
+                istoday: false,
+                /* choose: function (datas) {
+                     issuedDateEnd.min = datas; //开始日选好后，重置结束日的最小日期
+                     issuedDateEnd.start = datas //将结束日的初始值设定为开始日
+                 },*/
+            };
+            var issuedDateEnd = {
+                elem: '#issuedDateEnd',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+//                choose: function (datas) {
+//                    issuedDateStart.max = datas; //结束日选好后，重置开始日的最大日期
+//
+//                },
+            };
+            laydate(issuedDateStart);
+            laydate(issuedDateEnd);
+
+            var promiseDate = {
+                elem: '#promiseDate',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: false,
+                istoday: false,
+                // choose: function (datas) {
+                //     promiseDate.max = datas; //结束日选好后，重置开始日的最大日期
+                // }
+            };
+            laydate(promiseDate);
+            //
+            // $("input").change(function () {
+            //     $(this).css({color: "#00796a"})
+            // });
+            // $("select").change(function () {
+            //     $(this).css({color: "#00796a"})
+            // });
+        });
+    </script>
+</head>
+<body>
+<!--查询条件-->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-title">
+                <h5 style="font-weight: bold">查询条件</h5>
+            </div>
+            <div class="ibox-content" id="queryDiv">
+                <form id="searchForm">
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label narrow">媒体板块:</label>
+                            <div class="col-sm-1 narrow">
+                                <select name="mType" class="form-control height18">
+                                    <option value="">请选择</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 layui-form narrow">
+                                <select lay-verify="" lay-search id="mediaUserId" name="mediaUserId"
+                                        class="form-control height18">
+                                    <option value="">媒介</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2 narrow">
+                                <input type="text" name="mediaName"
+                                       class="form-control height18" placeholder="媒体" autocomplete="off">
+                            </div>
+                            <div class="col-sm-2 narrow">
+                                <input type="text" name="title"
+                                       class="form-control height18" placeholder="稿件标题" autocomplete="off">
+                            </div>
+                            <!--                            <div class="col-sm-1">-->
+                            <!--                                <input type="text" name="projectCode"-->
+                            <!--                                       class="form-control height18" placeholder="项目编号">-->
+                            <!--                            </div>-->
+                            <!--                            <div class="col-sm-1">-->
+                            <!--                                <input type="text" name="projectName"-->
+                            <!--                                       class="form-control height18" placeholder="项目名称">-->
+                            <!--                            </div>-->
+                            <div class="col-sm-1 narrow">
+                                <select name="refundStates" class="form-control height18">
+                                    <option value="">退款状态</option>
+                                    <option value="0">未退款</option>
+                                    <option value="1">已退款</option>
+                                    <option value="2">退款中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="otherPayStates" class="form-control height18">
+                                    <option value="">其他支出状态</option>
+                                    <option value="0">无支出</option>
+                                    <option value="1">已支出</option>
+                                    <option value="2">支出中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="commissionStates" class="form-control height18">
+                                    <option value="">提成状态</option>
+                                    <option value="0">未提成</option>
+                                    <option value="1">已提成</option>
+                                    <option value="2">已登记</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="year" class="form-control height18">
+                                    <option value="">提成年</option>
+                                    <option value="2019">2019</option>
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="month" class="form-control height18">
+                                    <option value="">提成月</option>
+                                    <option value="1">一月</option>
+                                    <option value="2">二月</option>
+                                    <option value="3">三月</option>
+                                    <option value="4">四月</option>
+                                    <option value="5">五月</option>
+                                    <option value="6">六月</option>
+                                    <option value="7">七月</option>
+                                    <option value="8">八月</option>
+                                    <option value="9">九月</option>
+                                    <option value="10">十月</option>
+                                    <option value="11">十一月</option>
+                                    <option value="12">十二月</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label narrow">发布时间：</label>
+                            <div class="col-sm-2 narrow">
+                                <input placeholder="开始日期"
+                                       style="width:48%;vertical-align: middle; padding-left:5px; padding-right:5px"
+                                       class="form-control layer-date " id="issuedDateStart"
+                                       name="issuedDateStart" readonly="readonly">
+                                <input placeholder="结束日期"
+                                       style="width:48%;vertical-align: middle; padding-left:5px; padding-right:5px"
+                                       class="form-control layer-date " id="issuedDateEnd"
+                                       name="issuedDateEnd" readonly="readonly">
+                            </div>
+                            <div class="col-sm-2 narrow">
+                                <input type="text" id="brand" name="brand"
+                                       class="form-control height18" placeholder="品牌" autocomplete="off">
+                            </div>
+                            <div class="col-sm-2 narrow">
+                                <input type="text" name="companyName"
+                                       class="form-control height18" placeholder="客户公司名称" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <input type="text" id="dockingPeopleName" name="dockingPeopleName"
+                                       class="form-control height18" placeholder="对接人" autocomplete="off">
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="custCompanyCode" id="custCompanyCode"
+                                        class="form-control height18"> </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="typeCode" id="typeCode" class="form-control height18"> </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <input type="text" name="electricityBusinesses"
+                                       class="form-control height18" placeholder="电商商家">
+                            </div>
+                            <div class="col-sm-1  narrow">
+                                <input type="text" name="channel"
+                                       class="form-control height18" placeholder="频道" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label narrow">状态:</label>
+                            <div class="col-sm-2 narrow">
+                                <select name="completeStatus" class="form-control height18">
+                                    <option value="">客户状态</option>
+                                    <option value="0">未完善客户</option>
+                                    <option value="1">已完善客户</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="incomeStates" class="form-control height18">
+                                    <option value="">回款状态</option>
+                                    <option value="0">未回款</option>
+                                    <option value="1">已回款</option>
+                                    <option value="2">部分回款</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="invoiceStates" class="form-control height18">
+                                    <option value="">开票状态</option>
+                                    <option value="0">未开票</option>
+                                    <option value="1">已开票</option>
+                                    <option value="2">开票中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="messState" class="form-control height18">
+                                    <option value="">烂账状态</option>
+                                    <option value="0">无烂账</option>
+                                    <option value="1">已烂账</option>
+                                    <option value="2">烂账中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1 narrow">
+                                <select name="outgoStates" class="form-control height18">
+                                    <option value="">请款状态</option>
+                                    <option value="0">未请款</option>
+                                    <option value="1">已请款</option>
+                                    <option value="2">请款中</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1  narrow">
+                                <select name="innerOuter" class="form-control height18">
+                                    <option value="">内外部</option>
+                                    <option value="内部">内部</option>
+                                    <option value="外部">外部</option>
+                                </select>
+                            </div>
+
+                            <!--                            <div id="deptDiv" style="display:none">-->
+                            <!--                                <div class="col-sm-1" style="text-align:center">-->
+                            <!--                                    <input type="hidden" id="deptId" name="deptId" class="form-control">-->
+                            <!--                                    <input type="text" id="deptName" class="form-control height18" readonly="readonly"-->
+                            <!--                                           style="width:120%">-->
+                            <!--                                </div>-->
+                            <!--                                <div class="col-sm-2" style="text-align:center">-->
+                            <!--                                    <button type="button" class="btn btn-primary  glyphicon glyphicon-search"-->
+                            <!--                                            id="selDept"></button>-->
+                            <!--                                    <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"-->
+                            <!--                                            id="cleanDept"></button>-->
+                            <!--                                </div>-->
+                            <!--                            </div>-->
+                            <div class="col-sm-2 narrow" id="deptDiv" style="display:none">
+                                <div class="input-group m-b" style="margin-bottom: 0">
+                                    <input type="hidden" id="deptId" name="deptId" class="height18">
+                                    <input type="text" id="deptName" class="form-control height18" readonly="readonly">
+                                    <span class="input-group-addon btn btn-primary glyphicon glyphicon-search"
+                                          style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF"
+                                          id="selDept"
+                                          data-toggle="tooltip" data-placement="top" data-html="true"
+                                          title="选择部门"></span>
+                                    <span class="input-group-addon btn btn-primary glyphicon glyphicon-remove"
+                                          style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF"
+                                          id="cleanDept"
+                                          data-toggle="tooltip" data-placement="top" data-html="true"
+                                          title="清除选择的部门"></span>
+                                </div>
+                            </div>
+                            <div class="col-sm-1 layui-form narrow">
+                                <select lay-verify="" lay-search name="userId" id="userId" lay-filter="userId"
+                                        class="form-control height18">
+                                    <option value="">业务员</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-1">
+                                <button type="button" id="searchButton" class="btn btn-primary"
+                                        onclick="gridObj.reloadTable()">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!--统计-->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-content" id="tj" style="padding: 5px 0px 0px 5px">
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label>应收（报价）合计:￥</label><span id="saleAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>回款合计:￥</label><span id="incomeAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>成本（请款）合计:￥</label><span id="outgoAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>税金合计:￥</label><span id="taxesSum" class="text-danger">0</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label>退款合计:￥</label><span id="refundAmountSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>其它支出合计:￥</label><span id="otherPaySum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>利润合计:￥</label><span id="profitSum" class="text-danger">0</span>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>提成合计:￥</label><span id="commissionSum" class="text-danger">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--表格-->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-title" style="padding-left: 20px">
+                <button class="btn btn-success" type="button" onclick="completeObj.completeModalBtn()">
+                    <i class="fa fa-edit"></i>&nbsp;完善客户
+                </button>
+                <button class="btn btn-info" type="button" onclick="Business.exportArt()"
+                        title="选中稿件后只导出选中的部分，没选中时导出全部">
+                    <i class="fa fa-external-link"></i>&nbsp;导出稿件
+                </button>
+                <button class="btn btn-warning" type="button" onclick="Business.importModal()">
+                    <i class="fa fa-sign-in"></i>&nbsp;导入报价
+                </button>
+            </div>
+            <div class="ibox-content" style="padding: 0px 0px 0px 5px">
+                <div>
+                    <ul class="nav nav-tabs" id="tabList">
+                        <li class="custState" id="tab0"><a data-toggle="tab" aria-expanded="true"><span
+                                class="text-success">客户状态</span></a></li>
+                        <li class="custState active" id="tab1"><a data-toggle="tab" aria-expanded="true"><span
+                                style="color: red">未完善客户</span></a></li>
+                        <li class="custState" id="tab2"><a data-toggle="tab"
+                                                           aria-expanded="false"><span>已完善客户</span></a></li>
+                        <li><a style="background-color: #FFFFFF; padding-left: 0;padding-right: 0" disabled="true">&nbsp;</a>
+                        </li>
+                        <li class="incomeState" id="tab3"><a data-toggle="tab" aria-expanded="true"><span
+                                class="text-success">回款状态</span></a></li>
+                        <li class="incomeState" id="tab4"><a data-toggle="tab" aria-expanded="true"><span>未回款</span></a>
+                        </li>
+                        <li class="incomeState" id="tab5"><a data-toggle="tab"
+                                                             aria-expanded="true"><span>部分回款</span></a></li>
+                        <li class="incomeState" id="tab6"><a data-toggle="tab" aria-expanded="true"><span>已回款</span></a>
+                        </li>
+                        <li><a style="background-color: #FFFFFF; padding-left: 0;padding-right: 0" disabled="true">&nbsp;</a>
+                        </li>
+                        <li class="invoiceState" id="tab7"><a data-toggle="tab" aria-expanded="true"><span
+                                class="text-success">开票状态</span></a></li>
+                        <li class="invoiceState" id="tab8"><a data-toggle="tab"
+                                                              aria-expanded="true"><span>未开票</span></a></li>
+                        <li class="invoiceState" id="tab9"><a data-toggle="tab"
+                                                              aria-expanded="true"><span>开票中</span></a></li>
+                        <li class="invoiceState" id="tab10"><a data-toggle="tab"
+                                                               aria-expanded="true"><span>已开票</span></a></li>
+                    </ul>
+                </div>
+                <div class="jqGrid_wrapper">
+                    <table id="table"></table>
+                    <div id="pager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--编辑查看-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" style="width:100%">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header" style="padding-top: 10px; padding-bottom: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">稿件信息</h1>
+            </div>
+            <div class="modal-body" style="padding: 0">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0px">
+                            <div class="ibox-content" style="padding: 15px 10px 0px 10px">
+                                <form id="editForm" class="form-horizontal">
+                                    <input type="hidden" id="id" name="id" class="form-control">
+                                    <input type="hidden" name="userId" class="form-control">
+                                    <input type="hidden" name="supplierId" class="form-control">
+                                    <input type="hidden" name="supplierName" class="form-control">
+                                    <input type="hidden" name="supplierContactor" class="form-control">
+                                    <div class="form-group">
+                                        <input type="text" id="artId" name="artId" style="display:none"
+                                               class="form-control ">
+                                        <label class="col-sm-1 control-label narrow">客户公司:</label>
+                                        <div class="col-sm-2 layui-form narrow">
+                                            <input type="text" name="companyName" id="companyName" class="form-control "
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">对接人:</label>
+                                        <div class="col-sm-2 layui-form narrow">
+                                            <input type="text" name="dockingName" id="dockingName" class="form-control "
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">业务员<span class="text-red">*</span>:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="userName" id="userName" class="form-control "
+                                                   readonly="readonly" required="">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">媒介:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" id="mediaUserName1" name="mediaUserName"
+                                                   class="form-control " readonly="readonly">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">媒体板块:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="mTypeName" id="mTypeName" class="form-control "
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">媒体:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="mediaName"
+                                                   class="form-control " readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">价格类型:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="priceType" class="form-control "
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">数量:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="num" class="form-control ">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">标题:</label>
+                                        <div class="col-sm-11 narrow">
+                                            <input type="text" name="title" class="form-control" readonly="readonly">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">链接:</label>
+                                        <div class="col-sm-11 narrow">
+                                            <input type="text" name="link"
+                                                   class="form-control" readonly="readonly">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">发布时间：</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input class="form-control" id="issuedDate" name="issuedDate"
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">客户答应到款时间<span
+                                                class="text-red">*</span>：</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input placeholder="开始日期" style="width:100%;vertical-align: middle"
+                                                   class="form-control layer-date laydate-icon" id="promiseDate"
+                                                   name="promiseDate" required="" readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">应收金额（含税）<span
+                                                class="text-red">*</span>:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" id="saleAmount" name="saleAmount" class="form-control "
+                                                   oninput="Business.calcuteTax();"
+                                                   onkeyup="value=value.replace(/[^\d\.\-]/g,'')"
+                                                   required="">
+                                            <input type="hidden" id="incomeAmount" name="incomeAmount"
+                                                   class="form-control " readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">品牌:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="brand" class="form-control ">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">稿件行业类型<span
+                                                class="text-red">*</span>:</label>
+                                        <div class="col-sm-2 narrow ">
+                                            <select name="typeCode" id="typeCodeEdit" class="form-control height18"
+                                                    required="">
+                                            </select>
+                                            <input type="hidden" name="typeName" id="typeNameEdit">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">税种:</label>
+                                        <div id="tax" class="col-sm-2 narrow">
+                                            <input type="hidden" id="taxType" name="taxType" class="form-control "
+                                                   readonly="readonly">
+                                            <input type="hidden" id="taxTypeName" name="taxTypeName"
+                                                   class="form-control "
+                                                   readonly="readonly">
+                                            <select name="taxSelect" id="taxSelect" class="form-control "
+                                                    onchange="Business.taxChange(this)">
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">税点:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" id="taxpoint" name="taxpoint" class="form-control "
+                                                   readonly="readonly">
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">税金:<span class="text-red">*</span></label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="taxes" id="taxes" class="form-control "
+                                                   readonly="readonly" required="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group htOption" style="margin-top: 20px">
+                                        <label class="col-sm-1 control-label narrow ">内外部:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <select id="innerOuter" name="innerOuter" class="form-control height18"
+                                                    readonly="readonly" disabled="disabled">
+                                                <option value="">请选择</option>
+                                                <option value="内部">内部</option>
+                                                <option value="外部">外部</option>
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-1 control-label narrow ">频道:</label>
+                                        <div class="col-sm-2 narrow">
+                                            <input type="text" name="channel" class="form-control height18"
+                                                   readonly="readonly">
+                                        </div>
+                                        <!--                                    <label class="col-sm-1 control-label ">电商商家:</label>
+                                                                            <div class="col-sm-2">
+                                                                                <input type="text" name="electricityBusinesses" class="form-control height18"
+                                                                                       readonly="readonly">
+                                                                            </div>-->
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-1 control-label narrow ">备注:</label>
+                                        <div class="col-sm-11 narrow">
+                                        <textarea type="text" id="remarks" name="remarks"
+                                                  class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="saveButton"
+                        onclick="Business.update()"><i class="fa fa-save"></i>&nbsp;更新
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--进账-->
+<div class="modal inmodal" id="incomeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="width: 800px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <h1>进账信息</h1>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div class="jqGrid_wrapper">
+                        <table id="incomeTable"></table>
+                        <div id="incomePager"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger backButton" id="cancel2"
+                        data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--完善客户-->
+<div class="modal inmodal" id="orderModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document" style="width: 100%">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 10px">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">完善客户</h1>
+            </div>
+            <div class="modal-body" style="padding: 10px 20px 10px 20px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <form id="orderForm" class="form-horizontal" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <input type="hidden" name="ids" id="ids">
+                                <label class="col-sm-1 control-label narrow">客户信息<span
+                                        class="text-red">*</span>:</label>
+                                <div class="col-sm-3 narrow">
+                                    <input type="hidden" id="companyId" name="companyId" class="form-control"
+                                           readonly="readonly">
+                                    <input type="text" id="companyName1" name="companyName" class="form-control"
+                                           readonly="readonly" required="" placeholder="客户公司名称">
+                                </div>
+                                <div class="col-sm-2 narrow">
+                                    <div class="input-group m-b">
+                                        <input type="hidden" id="custId" name="custId" readonly="readonly">
+                                        <input type="text" id="custName" name="custName" class="form-control"
+                                               readonly="readonly" required="" placeholder="对接人">
+                                        <span class="input-group-addon btn btn-primary btn-circle glyphicon  glyphicon-search"
+                                              style="top: 0px;border: 1px solid #1ab394;border-radius: 3px;background-color: #1ab394;color: #FFFFFF"
+                                              id="custModalBtn" onclick="custObj.custModalBtn()" data-toggle="tooltip"
+                                              data-placement="top" data-html="true" title="选择客户"></span>
+                                        <span class="input-group-addon btn btn-warning btn-circle glyphicon  glyphicon-remove"
+                                              style="top: 0px;border: 1px solid #f8ac59;border-radius: 3px;background-color: #f8ac59;color: #FFFFFF"
+                                              id="cleanCust" onclick="custObj.cleanCust()" data-toggle="tooltip"
+                                              data-placement="top" data-html="true" title="清除选择的客户"></span>
+                                    </div>
+                                </div>
+                                <label class="col-sm-1 control-label narrow">品牌:</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" id="brand2" name="brand" class="form-control" autocomplete="off">
+                                </div>
+                                <label class="col-sm-1 control-label  narrow">稿件行业类型<span
+                                        class="text-red">*</span>:</label>
+                                <div class="col-sm-2  narrow">
+                                    <select name="typeCode" id="typeCodeComplete" class="form-control height18"
+                                            required="">
+                                    </select>
+                                    <input type="hidden" name="typeName" id="typeNameComplete">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label narrow">客户答应到款天数<span id = "promiseDaySpan"
+                                        class="text-red">*</span>:</label>
+                                <div class="col-sm-2 narrow">
+                                    <div class="input-group m-b">
+                                        <input type="text" id="promiseDay" name="promiseDay" class="form-control"
+                                               maxlength="4" onkeyup="this.value=this.value.replace(/[^(\-)0-9]/g,'')"
+                                               placeholder="发稿后多少天打款" required autocomplete="off">
+                                        <span id="promiseDaySpan2" class="input-group-addon text-danger">天</span>
+                                    </div>
+                                </div>
+                                <label class="col-sm-1 control-label narrow">税种<span class="text-red">*</span>:</label>
+                                <div class="col-sm-2 narrow" id="taxesDiv">
+                                </div>
+                                <label class="col-sm-1 control-label narrow">均价:<span class="text-red"
+                                                                                      id="avgPriceSpan">￥</span></label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" id="avgPrice" name="avgPrice" class="form-control"
+                                           onkeypress="return inNum(event)">
+                                </div>
+                                <label class="col-sm-1 control-label narrow" style="padding-left: 0; padding-right: 0">税点<span
+                                        class="text-red">*</span>:</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" id="taxPoint2" name="taxPoint2" class="form-control"
+                                           readonly="readonly" required="">
+
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label narrow">发布日期开始<span
+                                        class="text-red">*</span>：</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" name="startTime" id="startTime" class="form-control"
+                                           readonly="readonly" required="">
+                                </div>
+                                <label class="col-sm-1 control-label narrow">发布日期结束<span
+                                        class="text-red">*</span>：</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" name="endTime" id="endTime" class="form-control"
+                                           readonly="readonly" required="">
+                                </div>
+                                <div class="col-sm-1 narrow">
+                                    <button type="button" class="btn btn-info " id="reset"
+                                            onclick="javascript:completeObj.resetModel()">重置表格
+                                    </button>
+                                </div>
+                                <label class="col-sm-5 control-label narrow" style="text-align: left">提示：点击重置表格会把上面两行框里的内容清空</label>
+                            </div>
+                            <!--<div class="form-group">
+                                <label class="col-sm-1 control-label" style="padding-left: 0 ;">项目信息:</label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" id="projectId" name="projectId" class="form-control"
+                                           readonly="readonly">
+                                    <input type="text" id="projectCode" name="projectCode" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                                <div class="col-sm-3">
+                                    <input type="text" id="projectName" name="projectName" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button"
+                                            class="btn btn-primary btn-circle glyphicon  glyphicon-search"
+                                            id="projectModalBtn" title="选择项目"></button>
+                                    <button type="button"
+                                            class="btn btn-warning btn-circle glyphicon  glyphicon-remove"
+                                            id="cleanProject" title="清空项目"></button>
+                                </div>
+                            </div>-->
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label narrow">订单标题：</label>
+                                <div class="col-sm-11 narrow">
+                                    <input name="title" id="title2" class="form-control"
+                                           placeholder="请输入订单标题" autocomplete="off"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label narrow">订单说明：</label>
+                                <div class="col-sm-11 narrow">
+                                        <textarea class="form-control" id="desc" name="desc"
+                                                  style="resize:none;"
+                                                  placeholder="请输入备注信息"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label narrow"><span class="text-red">温馨提示：</span></label>
+                                <div class="col-sm-11 narrow">
+                                    <strong>1、均价：填写后选中的稿件报价都将修改为均价，选中的稿件如果有报价为0的稿件，则必填！<br/>
+                                    2、客户答应到款时间：填写后选中的稿件如果都有客户答应到款时间则不必填，否则必填！<br/>
+                                    3、发布日期开始：选中的稿件最早发布时间；发布日期结束：选中稿件的最晚发布日期，根据时间不同可选的客户可能不一样。</strong></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-horizontal pull-right" id="selectedtj">
+                            <label>报价合计:￥</label>
+                            <span id="saleSum" class="text-danger">0</span>
+                            <label style="margin-left: 52px">成本合计：￥</label>
+                            <span id="outgoSum" class=" text-danger">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="jqGrid_wrapper">
+                            <table id="selected_article_table_logs"></table>
+                            <div id="selected_article_pager_logs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success " id="complete1"
+                        onclick="javascript:completeObj.complete()"><i class="fa fa-save"></i>&nbsp;确&nbsp;认&nbsp;
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关&nbsp;&nbsp;闭&nbsp;
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--选择客户-->
+<div class="modal inmodal" id="custModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document" style="width: 100%">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 10px">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">选择客户信息</h1>
+            </div>
+            <div class="modal-body" style="padding: 20px 30px 0px 30px">
+                <div class="row" id="custDiv">
+                    <div class="col-sm-12">
+                        <form id="custForm" class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label  narrow">发布日期开始:</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" name="startTime" id="custStartTime" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label narrow">发布日期结束:</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" name="endTime" id="custEndTime" class="form-control"
+                                           readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label narrow">客户信息:</label>
+                                <div class="col-sm-2 narrow">
+                                    <input type="text" id="companyNameQc1" name="companyName"
+                                           class="form-control" autocomplete="off" placeholder="客户公司名称">
+                                </div>
+                                <div class="col-sm-1 narrow">
+                                    <input type="text" id="custNameQc1" name="custName"
+                                           class="form-control" autocomplete="off" placeholder="对接人">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="custSearch" onclick="custObj.custSearch()"
+                                            class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="jqGrid_wrapper">
+                            <table id="select_cust_table_logs"></table>
+                            <div id="select_cust_pager_logs"></div>
+                        </div>
+                        <div style="padding: 5px"><span class="text-red">温馨提示：1、手机号码规范的客户才能完善稿件。</span></div>
+                        <div style="padding: 5px"><span
+                                class="text-red">温馨提示：2、客户开始时间必须在发布日期开始时间之前，客户结束时间必须在发布日期结束时间之后</span></div>
+                        <div style="padding: 5px"><span>开票规则：1、企业客户开票：开票公司名称必须是客户公司名称；2、个人客户开票：开票公司名称必须是对接人名字。</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="selectCust" onclick="custObj.selectCust()"><i
+                        class="fa fa-check"></i>&nbsp;选择
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--批量导入报价-->
+<div class="modal inmodal" id="importModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="importForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">批量导入应收/报价</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <span>操作步骤：1、导出需要修改的稿件列表，<br/>
+                                            2、在表格中修改【品牌】、【应收（报价）】，只允许修改这两列，<br/>
+                                            3、修改后上传，点击【批量导入报价】按钮更新数据！
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">上传excel:</label>
+                                    <div class="col-sm-10">
+                                        <a id="" href="">
+                                            <span id="affixName"></span>
+                                        </a>
+                                        <input type="file" id="file" name="file" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="batchImportSaleAmount"
+                            onclick="javascript:Business.importSaleAmount()">批量导入报价
+                    </button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div style="display:none">
+    <a onfocus="this.blur();" download="导入失败详情.txt" id="createInvote" class="ipt-todo hide">进账导入失败详情</a>
+</div>
+</body>
+<!--统计模态框导入-->
+<div th:include="statisticsmodal/statisticsModal"></div>
+<!--审核流程详情-->
+<div class="modal inmodal" id="historyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:900px">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header" style="padding: 10px">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">审核流程详情</h4>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div>
+                        <div class="row">
+                            <div id="history" class="col-sm-12"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 10px; position:relative;z-index:2;">
+                <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1>选择业务部门</h1>
+            </div>
+            <div class="modal-body" style="padding: 0px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox" style="margin-bottom: 0">
+                            <div class="ibox-content">
+                                <div id="treeview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 修改公司名 -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document" style="width: 800px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h1 class="modal-title" style="text-align: center">修改客户</h1>
+            </div>
+            <div class="modal-body" style="padding: 10px 10px 5px 10px">
+                <div class="row" id="addCompanyDiv">
+                    <div class="col-sm-12">
+                        <form id="addCompanyForm" class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">客户性质:<span class="text-red">*</span></label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="custProperty" id="custProperty" value="1"/>
+                                    <button type="button" id="enterpriseBtn" class="btn btn-info">&nbsp;企业客户&nbsp;
+                                    </button>&nbsp;&nbsp;
+                                    <button type="button" id="personalBtn" class="btn btn-white">&nbsp;个人客户&nbsp;
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="position: relative;">
+                                <label class="col-sm-2 control-label">公司名称:<span class="text-red">*</span></label>
+                                <div class="col-sm-8">
+                                    <input type="hidden" name="companyId"/>
+                                    <input type="text" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control"
+                                           name="companyName" autocomplete="off" required
+                                           oninput="companyObj.search(this);"
+                                           onblur="companyObj.checkCompany(this);"
+                                           onkeydown="companyObj.enterEvent(this, event);"
+                                           onmouseout="companyObj.mourseOut(this);"
+                                           onmouseover="companyObj.mourseOver(this);"/>
+                                    <div class="companyWrap companyPanelCancel"
+                                         onmouseover="companyObj.mourseOver(this);"
+                                         onmouseout="companyObj.mourseOut(this);"></div>
+                                </div>
+                                <div class="col-sm-2 control-label2">
+                                    <span data-toggle="tooltip" data-placement="left" data-html="true"
+                                          title="填写客户公司名称之后判定分为标准和非标准两类，企业客户有标准类型和非标准类型，个人客户都是非标准类型并且公司名称统一为个体工商户">
+                                        <i class="fa fa-question-circle"></i>
+                                    </span>
+                                    <input type="hidden" name="standardize" id="standardize">
+                                    <span id="companyTipsYes" class="companyTipsYes" style="display:none"><span
+                                            class="text-green">&nbsp;<i
+                                            class="fa fa-check-circle"></i>&nbsp;标准</span></span>
+                                    <span id="companyTipsNo" class="companyTipsNo" style="display:none"><span
+                                            class="text-red">&nbsp;<i
+                                            class="fa fa-times-circle"></i>&nbsp;非标准</span></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">对接人名字:<span class="text-red">*</span></label>
+                                <div class="col-sm-3">
+                                    <input type="hidden" name="userId"/>
+                                    <input type="text" class="form-control" name="userName" autocomplete="off"
+                                           required="required">
+                                </div>
+                                <label class="col-sm-2 control-label">手机号:<span class="text-red">*</span></label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" name="mobile" autocomplete="off"
+                                           required="required"
+                                           oninput="value=value.replace(/[^\d]/g,'');companyObj.regexPhone(this)">
+                                </div>
+                                <div class="col-sm-2 control-label2">
+                                    <span data-toggle="tooltip" data-placement="left" data-html="true"
+                                          title="填写手机号码之后判定分为规范和非规范两类">
+                                        <i class="fa fa-question-circle"></i>
+                                    </span>
+                                    <input type="hidden" name="normalize" id="normalize">
+                                    <span id="companyUserTipsYes" style="display: none"><span
+                                            class="text-green">&nbsp;<i
+                                            class="fa fa-check-circle"></i>&nbsp;规范</span></span>
+                                    <span id="companyUserTipsNo" style="display: none"><span
+                                            class="text-red">请输入正确的手机号</span></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">微信号:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" autocomplete="off" name="wechat">
+                                </div>
+                                <label class="col-sm-2 control-label">QQ号:</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" autocomplete="off" name="qq"
+                                           oninput="value=value.replace(/[^\d]/g,'')">
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group" style="margin-bottom: 0">
+                                <label class="col-sm-2 control-label"><span class="text-red">提示：</span></label>
+                                <div class="col-sm-8">
+                                    <span>1、公司名称标准且手机号规范的客户是强保护客户，强保护客户才受系统保护。<br/></span>
+                                    <span>2、企业客户：公司名称请填写完整公司名字，系统以企查查能查询到的公司名称为标准。<br/></span>
+                                    <span>3、个人客户：公司名称统一默认为个体工商户且无法更改，个人客户都是非标准的。<br/></span>
+                                    <span>4、手机号码规范的客户才能用于完善稿件。</span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="updateCompanyBasicBtn"
+                        onclick="companyObj.updateCompanyBasic(this,'/crm/company/updateCompanyBasic')"><i
+                        class="fa fa-save"></i>&nbsp;修改
+                </button>
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--<div class="modal inmodal" id="projectModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width:1000px">
+        <div class="modal-content animated bounceInRight" style="height:100%">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                </button>
+                <h5 class="modal-title">项目信息</h5>
+            </div>
+            <div class="modal-body" style="overflow: hidden;">
+                <div class="row">
+                    <div class="col-sm-12" id="projectDiv">
+                        <form id="projectForm" class="form-horizontal">
+                            <div class="form-group ">
+                                <label class="col-sm-2 control-label">项目编号:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="code" class="form-control"
+                                           placeholder="项目编号">
+                                </div>
+                                <label class="col-sm-2 control-label">项目名称:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" name="name" class="form-control"
+                                           placeholder="项目名称">
+                                </div>
+                                <input type="hidden" name="state" value="1">
+                                <input type="hidden" name="disabled" value="0">
+                                <input type="hidden" name="currentUserId" value="">
+                                <div class="col-sm-1">
+                                    <button type="button" id="projectSearch" class="btn btn-primary">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="jqGrid_wrapper">
+                        <table id="project_table_logs"></table>
+                        <div id="project_pager_logs"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="editFooter">
+                <button type="button" class="btn btn-primary" id="selectProject"><i class="fa fa-submit"></i>&nbsp;选择
+                </button>
+                <button type="button" class="btn btn-danger" id="cancelProject" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>-->
+</html>

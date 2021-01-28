@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.word.MenuWordsMapper">
+    <select id="queryMenuWords" parameterType="java.util.Map" resultType="java.util.Map">
+          select g.*,GROUP_CONCAT(t.name) keyword from t_permission_word_group g left join t_permission_word t on g.id = t.group_id
+          where g.state > -2 and t.state> -2 and g.company_code = #{companyCode}
+          <if test="wordsName!=null and wordsName!=''">
+             and g.menu_name like '%${wordsName}%'
+          </if>
+          <if test="groupTypeId!=null and groupTypeId!=''">
+              and g.menu_id = #{groupTypeId}
+          </if>
+          group by g.id
+    </select>
+
+    <select id="getById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.word.MenuWords">
+        select * from t_permission_word_group
+        where state > -2 and id = #{id}
+    </select>
+
+    <select id="checkRepeat" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.word.MenuWords">
+        select * from t_permission_word_group
+        where state > -2 and company_code = #{companyCode} and
+        menu_id = #{menuId} and permission_type=#{permissionType}
+    </select>
+
+
+    <insert id="saveMenuWords" parameterType="com.qinfei.qferp.entity.word.MenuWords">
+        insert into t_permission_word_group
+        (menu_id,menu_name,permission_type,state,remarks,create_date,create_id,company_code)
+        values{#{menuId},#{menuName},#{permissionType},#{state},#{remarks},#{createDate},#{createId},#{companyCode})
+    </insert>
+
+    <update id="editMenuWords" parameterType="com.qinfei.qferp.entity.word.MenuWords">
+        update t_permission_word_group
+        set
+        <if test="menuId != null">
+            menu_id =#{menuId,jdbcType=INTEGER},
+        </if>
+        <if test="menuName != null">
+            menu_name =#{menuName,jdbcType=INTEGER},
+        </if>
+        <if test="permissionType != null">
+            permission_type =#{permissionType,jdbcType=INTEGER},
+        </if>
+        <if test="state != null">
+            state =#{state,jdbcType=INTEGER},
+        </if>
+        <if test="remarks != null">
+            remarks =#{remarks,jdbcType=INTEGER},
+        </if>
+        <if test="createDate != null">
+            create_date =#{createDate,jdbcType=INTEGER},
+        </if>
+        <if test="createId != null">
+            create_id =#{createId,jdbcType=INTEGER},
+        </if>
+        <if test="companyCode != null">
+            company_code =#{companyCode,jdbcType=INTEGER}
+        </if>
+        where id = #{id}
+    </update>
+
+    <update id="deleteMenuWords" parameterType="java.lang.Integer">
+        update t_permission_word_group set state = -9 where id = #{id}
+    </update>
+
+    <insert id="insertKeyId" parameterType="java.util.List">
+        INSERT  into
+        t_permission_word
+        (group_id, name ,company_code)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.groupId},
+              #{item.name},
+              #{item.companyCode})
+        </foreach>
+    </insert>
+
+    <update id="updateState" parameterType="java.util.List">
+        UPDATE
+        t_permission_word
+        SET state=-9
+        where
+        group_id=#{keyId}
+    </update>
+    <select id="selectShielding"  parameterType="java.util.Map" resultType="java.lang.String">
+    SELECT
+        tpw.`name`
+    FROM
+        t_permission_word_group tpwg
+    LEFT JOIN t_permission_word tpw ON tpwg.id = tpw.group_id
+    WHERE
+        tpw.state >- 2
+    AND tpwg.state >- 2
+    AND tpw.company_code = #{companyCode}
+    and tpwg.company_code=#{companyCode}
+    and tpwg.permission_type = #{permissionType}
+    AND menu_id= #{menuId}
+    </select>
+
+</mapper>

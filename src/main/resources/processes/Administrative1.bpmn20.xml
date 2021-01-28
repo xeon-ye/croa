@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="administrative1" name="请假申请" isExecutable="true">
+    <documentation>一及一天以内请假申请的流程。</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <exclusiveGateway id="zwGateway" name="是否需要政委审核"></exclusiveGateway>
+    <userTask id="zwApprove" name="政委审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.administrative.ZwTaskHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="leaderApprove" name="部门审核">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.administrative.LeaderTaskHandler"></flowable:taskListener>
+        <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.administrative.ProcessFinishHandler"></flowable:taskListener>
+      </extensionElements>
+    </userTask>
+    <endEvent id="endEvent" name="结束流程"></endEvent>
+    <sequenceFlow id="sid-8515E0A5-4C8F-4705-A107-D8A6F2D4B378" name="开始" sourceRef="startEvent" targetRef="zwGateway"></sequenceFlow>
+    <sequenceFlow id="sid-81611453-543B-41D3-AD3A-5D0EE534FC5A" name="否" sourceRef="zwGateway" targetRef="leaderApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-28144948-4685-4466-AFA2-337AEADA8C00" name="是" sourceRef="zwGateway" targetRef="zwApprove">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${gateCheckA}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-2FD48AEE-C014-44A4-B42D-35EB8FF2087B" name="通过" sourceRef="zwApprove" targetRef="leaderApprove"></sequenceFlow>
+    <sequenceFlow id="sid-7D2ADA54-2E35-40CA-94AD-98470C431AFD" name="通过" sourceRef="leaderApprove" targetRef="endEvent"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_administrative1">
+    <bpmndi:BPMNPlane bpmnElement="administrative1" id="BPMNPlane_administrative1">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="150.00000000000003" y="298.00000000000006"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="zwGateway" id="BPMNShape_zwGateway">
+        <omgdc:Bounds height="40.0" width="39.99999999999997" x="255.00000000000003" y="293.00000000000017"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="zwApprove" id="BPMNShape_zwApprove">
+        <omgdc:Bounds height="79.99999999999997" width="99.99999999999997" x="225.00000000000003" y="150.00000000000003"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+        <omgdc:Bounds height="80.0" width="99.99999999999989" x="390.0000000000001" y="273.0000000000002"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="585.0000000000001" y="299.0000000000001"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-8515E0A5-4C8F-4705-A107-D8A6F2D4B378" id="BPMNEdge_sid-8515E0A5-4C8F-4705-A107-D8A6F2D4B378">
+        <omgdi:waypoint x="179.9498188845594" y="313.0676463950092"></omgdi:waypoint>
+        <omgdi:waypoint x="255.4090909090886" y="313.40909090909105"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-28144948-4685-4466-AFA2-337AEADA8C00" id="BPMNEdge_sid-28144948-4685-4466-AFA2-337AEADA8C00">
+        <omgdi:waypoint x="275.41869918699183" y="293.418699186992"></omgdi:waypoint>
+        <omgdi:waypoint x="275.16174089068824" y="229.95000000000002"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-2FD48AEE-C014-44A4-B42D-35EB8FF2087B" id="BPMNEdge_sid-2FD48AEE-C014-44A4-B42D-35EB8FF2087B">
+        <omgdi:waypoint x="324.95000000000005" y="190.0"></omgdi:waypoint>
+        <omgdi:waypoint x="440.00000000000006" y="190.0"></omgdi:waypoint>
+        <omgdi:waypoint x="440.00000000000006" y="273.0000000000002"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-81611453-543B-41D3-AD3A-5D0EE534FC5A" id="BPMNEdge_sid-81611453-543B-41D3-AD3A-5D0EE534FC5A">
+        <omgdi:waypoint x="294.5019652650823" y="313.44207317073193"></omgdi:waypoint>
+        <omgdi:waypoint x="389.99999999998306" y="313.15182370820696"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-7D2ADA54-2E35-40CA-94AD-98470C431AFD" id="BPMNEdge_sid-7D2ADA54-2E35-40CA-94AD-98470C431AFD">
+        <omgdi:waypoint x="489.9499999999838" y="313.00000000000017"></omgdi:waypoint>
+        <omgdi:waypoint x="585.0000000000001" y="313.0000000000001"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

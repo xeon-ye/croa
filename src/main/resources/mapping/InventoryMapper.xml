@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.InventoryMapper">
+    <sql id="selectColumn">
+        tss.id,
+        tss.storage_code as storageCode,
+        tss.purchase_order as purchaseOrder,
+        tss.aggregate_amount as aggregateAmount,
+        tss.state,
+        tss.create_user as createUser,
+        tss.create_time as createTime,
+        tss.create_dept_id as createDeptId,
+        tss.create_dept as createDept,
+        tss.update_time as updateTime
+    </sql>
+
+    <sql id="selectOutBoundColumn">
+        tso.id,
+        tso.code,
+        tso.foreign_id as foreignId,
+        tso.type,
+        tso.state,
+        tso.ware_id as wareId,
+        tso.create_id as createId,
+        tso.create_name as createName,
+        tso.dept_id as deptId,
+        tso.dept_name as deptName,
+        tso.create_time as createTime,
+        tso.remark,
+        tso.company_code as companyCode
+    </sql>
+
+    <!--获取入库分页数量-->
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM t_saves_outbound tso
+        LEFT JOIN t_saves_product_buying b ON b.id = tso.foreign_id
+        LEFT JOIN t_saves_warehouse tw on tso.ware_id = tw.id
+        WHERE tso.state>-9 and tso.type=1 and tso.company_code=#{companyCode}
+        <if test="createTimeQc !=null and createTimeQc !=''">
+            and tso.create_time &gt;=#{createTimeQc}
+        </if>
+        <if test="codeQc !=null and codeQc !=''">
+            and tso.code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="stateQc !=null and stateQc !=''">
+            and tso.state =#{stateQc}
+        </if>
+        <if test="purchaseCodeQc !=null and purchaseCodeQc !=''">
+            and b.purchase_code like concat('%',#{purchaseCodeQc},'%')
+        </if>
+    </select>
+
+    <!--获取入库列表分页数据-->
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT tso.id,
+        tso.code,
+        tso.create_time createTime,
+        tso.create_name createName,
+        tso.state,
+        b.id as purchaseId,
+        b.purchase_code AS outBoundCode,
+        b.money AS totalMoney,
+        tw.name as wareHouseName,
+        tw.id as warehouseId
+        FROM t_saves_outbound tso
+        LEFT JOIN t_saves_product_buying b ON b.id = tso.foreign_id
+        LEFT JOIN t_saves_warehouse tw on tso.ware_id = tw.id
+        WHERE tso.state>-9 and tso.type=1 and tso.company_code=#{companyCode}
+        <if test="createTimeQc !=null and createTimeQc !=''">
+            and tso.create_time &gt;=#{createTimeQc}
+        </if>
+        <if test="codeQc !=null and codeQc !=''">
+            and tso.code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="stateQc !=null and stateQc !=''">
+            and tso.state =#{stateQc}
+        </if>
+        <if test="purchaseCodeQc !=null and purchaseCodeQc !=''">
+            and b.purchase_code like concat('%',#{purchaseCodeQc},'%')
+        </if>
+        order by tso.create_time desc
+    </select>
+
+    <!--获取出库分页数量-->
+    <select id="getOutStockPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM t_saves_outbound tso
+        LEFT JOIN t_saves_receive_apply a ON a.id = tso.foreign_id
+        LEFT JOIN t_saves_warehouse tw on tso.ware_id = tw.id
+        WHERE tso.state>-9 and tso.type=2 and tso.company_code=#{companyCode}
+        <if test="stateQc !=null and stateQc !=''">
+            and tso.state =#{stateQc}
+        </if>
+        <if test="outCodeQc !=null and outCodeQc !=''">
+            and tso.code like concat('%',#{outCodeQc},'%')
+        </if>
+        <if test="applyCodeQc !=null and applyCodeQc !=''">
+            and a.apply_code like concat('%',#{applyCodeQc},'%')
+        </if>
+    </select>
+
+    <!--获取出库分页列表数据-->
+    <select id="getOutStockListPg" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT tso.id,
+        tso.code,
+        tso.create_time createTime,
+        tso.create_name createName,
+        tso.state,
+        tso.dept_name deptName,
+        a.id as applyId,
+        a.apply_code AS outBoundCode
+        FROM t_saves_outbound tso
+        LEFT JOIN t_saves_receive_apply a ON a.id = tso.foreign_id
+        WHERE tso.state>-9 and tso.type=2 and tso.company_code=#{companyCode}
+        <if test="stateQc !=null and stateQc !=''">
+            and tso.state =#{stateQc}
+        </if>
+        <if test="outCodeQc !=null and outCodeQc !=''">
+            and tso.code like concat('%',#{outCodeQc},'%')
+        </if>
+        <if test="applyCodeQc !=null and applyCodeQc !=''">
+            and a.apply_code like concat('%',#{applyCodeQc},'%')
+        </if>
+        <if test="outStockTimeQc !=null">
+            and a.create_time &gt;=#{outStockTimeQc}
+        </if>
+        order by tso.create_time desc
+    </select>
+
+    <update id="editOutbound" parameterType="com.qinfei.qferp.entity.inventoryStock.Outbound">
+        UPDATE t_saves_outbound
+        <set>
+            <if test="code != null">code=#{code},</if>
+            <if test="foreignId != null">foreign_id=#{foreignId},</if>
+            <if test="type != null">`type`=#{type},</if>
+            <if test="state != null">state=#{state},</if>
+            <if test="wareId != null">ware_id=#{wareId},</if>
+            <if test="createId != null">create_id=#{createId},</if>
+            <if test="createName != null and createName!=''">create_name=#{createName},</if>
+            <if test="deptId != null">dept_id=#{deptId},</if>
+            <if test="deptName != null">dept_name=#{deptName},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime != null">update_time=#{updateTime},</if>
+            <if test="remark != null">remark=#{remark},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--添加入库记录-->
+    <insert id="saveOutbound" parameterType="com.qinfei.qferp.entity.inventoryStock.Outbound" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_saves_outbound
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code != null">code,</if>
+            <if test="foreignId != null">foreign_id,</if>
+            <if test="type != null">`type`,</if>
+            <if test="state != null">state,</if>
+            <if test="wareId != null">ware_id,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createName != null and createName!=''">create_name,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="deptName != null">dept_name,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="companyCode != null and companyCode!=''">company_code</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code != null">#{code},</if>
+            <if test="foreignId != null">#{foreignId},</if>
+            <if test="type != null">#{type},</if>
+            <if test="state != null">#{state},</if>
+            <if test="wareId != null">#{wareId},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createName != null and createName!=''">#{createName},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="deptName != null">#{deptName},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode}</if>
+        </trim>
+    </insert>
+
+    <delete id="delOutboundById" parameterType="java.lang.Integer">
+        delete from t_saves_outbound where id=#{id}
+    </delete>
+
+    <update id="editOutboundState">
+        update t_saves_outbound set state=#{state} where id=#{id}
+    </update>
+
+    <!--根据出入库id查询出入库信息-->
+    <select id="getById" resultType="com.qinfei.qferp.entity.inventoryStock.Outbound">
+        SELECT
+        <include refid="selectOutBoundColumn"/>
+        FROM
+        t_saves_outbound tso
+        WHERE
+        tso.id = #{id} and tso.state>-9
+    </select>
+
+    <!--物品入库选择采购订单时，显示物品采购明细信息-->
+    <select id="warehousingDetail" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        d.id,
+        d.amount,
+        d.price,
+        d.total_money as totalMoney,
+        d.warehouse_id wareId,
+        s.name supplierName,
+        b.money,
+        b.purchase_code as purchaseCode,
+        gt.id goodsId,
+        gt.name goodsName,
+        gt.parent_id AS parentId,
+        gt.unit
+        FROM t_saves_product_buying b
+        LEFT JOIN t_saves_product_details d on b.id=d.purchase_id
+        LEFT JOIN t_saves_goods_type gt ON gt.id=d.goods_id
+        left join t_saves_product_supplier s on d.supplier_id=s.id
+        where d.purchase_id=#{id}
+    </select>
+
+    <!--物品出库选择领用订单时，显示物品领用明细信息（出库状态：-1）-->
+    <select id="applyDetailsData" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+             d.id,
+             d.amount,
+             d.out_amount outAmount,
+             a.apply_code AS applyCode,
+             d.user_id userId,
+             u.name userName,
+             a.user_name applyName,
+             a.ware_id wareId,
+             gt.id goodsId,
+             gt.NAME goodsName,
+             gt.specs,
+             gt.unit,
+             gt.parent_id AS typeId,
+             (
+             	SELECT count(*)
+             	FROM t_saves_goods g
+             	WHERE g.goods_id = d.goods_id and g.state=0
+             	and g.warehouse_id=#{wareId}
+             	and g.company_code=#{companyCode}
+             ) AS goodsAmount
+             FROM
+	         t_saves_receive_apply a
+             LEFT JOIN t_saves_receive_details d ON a.id = d.apply_id
+             LEFT JOIN t_saves_goods_type gt ON gt.id = d.goods_id
+             LEFT JOIN sys_user u on d.user_id=u.id
+             WHERE a.id =#{id}
+    </select>
+</mapper>

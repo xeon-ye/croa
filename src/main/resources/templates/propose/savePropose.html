@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{})">
+    <title>录入建议</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/propose/queryPropose.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+</head>
+
+<body>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <form id="savePropose" action="">
+                <div class="ibox float-e-margins">
+                    <!--<div class="ibox-title">-->
+                        <!--<h4 style="font-weight:bold">建议录入</h4>-->
+                    <!--</div>-->
+                    <div class="ibox-content">
+                        <div class="form-horizontal" style="margin-top: 8px">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">录入人:</label>
+                                <div class="col-sm-2">
+                                    <input type="hidden" name="userId" id ="userId">
+                                    <input type="text" id="name" name="name" placeholder="录入人" class="form-control" readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label">录入部门:</label>
+                                <div class="col-sm-2">
+                                    <input type="hidden" name="deptId" id ="deptId">
+                                    <input type="text" id="deptName" name="deptName" placeholder="录入部门" class="form-control" readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label">录入年/月:</label>
+                                <div class="col-sm-1">
+                                    <input type="text" id="year" name="year" placeholder="录入年" class="form-control" readonly="readonly">&nbsp;&nbsp;
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" id="month" name="month" placeholder="录入月" class="form-control" readonly="readonly">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-horizontal" style="margin-top: -10px">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">录入时间:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="entryTime" name="entryTime" class="form-control" readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label">修改时间:</label>
+                                <div class="col-sm-2">
+                                    <input type="text" id="updateTime" name="updateTime" class="form-control" readonly="readonly">
+                                </div>
+                                <label class="col-sm-1 control-label">建议类型<span class="text-red">*</span>:</label>
+                                <div class="col-sm-2">
+                                    <select name="proposeType" id="proposeType" required="" class="form-control height18">
+                                        <option value="">请选择</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-horizontal" style="margin-top: 22px">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">问题描述<span class="text-red">*</span>:</label>
+                                <div class="col-sm-8">
+                                    <textarea cols="30" rows="13" id="problemDescription" name="problemDescription" placeholder="问题描述" required="" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-horizontal" style="margin-top: 22px">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">期望的解决方案:</label>
+                                <div class="col-sm-8">
+                                    <textarea cols="30" rows="13" id="expectSolution" name="expectSolution" placeholder="期望的解决方案" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title" style="margin-top: -35px;">
+                    <div class="form-horizontal">
+                        <div class="col-sm-12" style="text-align: center;">
+                            <button type="button" class="btn btn-primary" id="save" onclick="submitHander(this,'/propose/addPropose')">
+                                <i class="fa fa-save"></i>&nbsp;保存
+                            </button>
+                            <button type="button" class="btn btn-danger" id="cancel" onclick="goBackProcess()">
+                                <i class="fa fa-close"></i>&nbsp;返回
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

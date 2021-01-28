@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>首页</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/animate.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/homePage/homePage.css" rel="stylesheet">
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/js/homePage.js"></script>
+    <style>
+          .text_space{
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+          }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]];
+    </script>
+    <script>
+
+    </script>
+</head>
+
+<body>
+    <div class="col-sm-12 topDiv">
+        <!--资源推荐-->
+        <div class="resourceRecomm">
+            <!--标题-->
+            <div class="resourceTitleDiv">
+               <div>
+                    <div class="resourceTitleIcon"></div>
+                    <div class="resourceTitle">
+                        资源推荐
+                    </div>
+                   <div class="" style="float: right;margin-right: 10px;margin-top: 3px;">
+                       <a href="/news/recommedResList">更多</a>
+                   </div>
+               </div>
+            </div>
+            <!--内容-->
+            <div class="resourceContentDiv" id="resourceContentDiv">
+                <!--<ul>
+                    <li>
+                        <span class="plate text_space" style="display: block;float: left;max-width: 22%;">今日</span>
+                        <span class="text_space" style="display: block;float: left;max-width: 50%;padding-left: 5px;">资源退</span>
+                        <span class="resourceTitle1 text_space" style="display: block;float: left;max-width: 25%;">
+                        <img src="/img/home/lianjie.png" height="12" width="12"/><a href="" target='_blank'>313</a>
+                    </span>
+                    </li>
+                    <li>
+                        <span class="plate text_space" style="display: block;float: left;max-width: 22%;">今日头条313131313</span>
+                        <span class="text_space" style="display: block;float: left;max-width: 50%;padding-left: 5px;">资源退阿娇的哦啊剑哦网软件完全哦诶我去</span>
+                        <span class="resourceTitle1 text_space" style="display: block;float: left;max-width: 25%;">
+                        <img src="/img/home/lianjie.png" height="12" width="12"/><a href="" target='_blank'>31331313131313131311</a>
+                    </span>
+                    </li>
+                </ul>-->
+            </div>
+        </div>
+
+        <div class="topRight">
+            <!--轮播图-->
+            <div class="wheel">
+                <div class="layui-carousel" id="wheel" >
+                    <div carousel-item style="height: 300px !important;" id="images">
+<!--                        <div><img src="/img/home/wheel.png"></div>-->
+<!--                        <div><img src="/img/p1.jpg"></div>-->
+<!--                        <div><img src="/img/p2.jpg"></div>-->
+<!--                        <div><img src="/img/p3.jpg"></div>-->
+                    </div>
+                </div>
+            </div>
+            <div class="wheelBottom">
+                <!--企业文化宣讲-->
+                <div class="corpCultrue">
+                    <!--标题-->
+                    <div class="corpCultrueDiv">
+                        <div class="corpCultrueTitleDiv">
+                            <div class="corpCultrueTitle"></div>
+                            <div class="corpCultrueTitleText">
+                                企业文化宣讲
+                            </div>
+                        </div>
+                    </div>
+                    <!--内容-->
+                    <div class="corpCultrueContentDiv">
+                        <ul>
+                            <li>一、使命：以卓越的服务成就客户，为祥和所有奋斗者圆梦！</li>
+                            <li>二、愿景：打造国内领先的创新型传播集团！</li>
+                            <li>三、价值观：正直、善良、积极、感恩、利他！</li>
+                            <li>四、核心思想：感恩为人、专业尽责、携手并进、共创祥和！</li>
+                        </ul>
+                    </div>
+                </div>
+                <!--公告通知-->
+                <div class="annNotice">
+                    <!--标题-->
+                    <div>
+                        <div class="annNoticeTitleDiv">
+                            <div class="annNoticeTitleIcon"></div>
+                            <div class="annNoticeTitle">
+                                公告通知
+                            </div>
+                        </div>
+                    </div>
+                    <!--内容-->
+                    <div class="annNoticeContentDiv">
+                        <ul class="layui-timeline" id="announcements">
+                            <!--<li class="layui-timeline-item timeLineCss">
+                                <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                                <div class="layui-timeline-content layui-text timeCss">
+                                    <span class="layui-timeline-title">2019.08.26</span>
+                                    <div class="timeContent">
+                                        <div class="timeContentTitle">
+                                            <a href="javascript:;" target="_blank">发布人-胡春丽</a>
+                                        </div>
+                                        <div class="timeContent1">
+                                            <a href="javascript:;" target="_blank">食堂管理制度</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>-->
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12 bottomDiv">
+        <!--优秀事迹-->
+        <div class="fineThing">
+            <!--标题-->
+            <div class="fineThingDiv">
+                <div class="fineThingTitleDiv">
+                    <div class="fineThingTitleIcon"></div>
+                    <div class="fineThingTitle">
+                        优秀事迹
+                    </div>
+                </div>
+            </div>
+            <!--内容-->
+            <div class="fineThingContentDiv" id="fineThingContentDiv">
+
+            </div>
+        </div>
+
+        <!--集团新闻-->
+        <div class="groupNews">
+            <!--标题-->
+            <div class="groupNewsDiv">
+                <div class="groupNewsTitleDiv">
+                    <div class="groupNewsTitleIcon"></div>
+                    <div class="groupNewsTitle">
+                        集团新闻
+                    </div>
+                </div>
+            </div>
+            <!--内容-->
+            <div class="groupNewsContentDiv" id="groupNewsContentDiv">
+
+            </div>
+        </div>
+
+        <!--公司新闻-->
+        <div class="companyNews">
+            <!--标题-->
+            <div class="companyNewsDiv">
+                <div class="companyNewsTitleDiv">
+                    <div class="companyNewsTitleIcon"></div>
+                    <div class="companyNewsTitle">
+                        公司新闻
+                    </div>
+                </div>
+            </div>
+            <!--内容-->
+            <div class="companyNewsContentDiv" id="companyNewsContentDiv">
+
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+
+
+    $(function () {
+        initFineThing();
+        initGroupNews();
+        initCompanyNews();
+        initRes();
+        initImgaes();
+    })
+
+    //初始化优秀事迹
+    function initFineThing(){
+        $.ajax({
+            type : 'get',
+            url :  baseUrl + "/news/search/4",
+            dataType : 'json',
+            success : function(data) {
+                $("#fineThingContentDiv").empty();
+                var html="<ul>";
+                $(data.list).each(function(i,item){
+
+                    html+="<li class='text_space'><a href=/news/view/"+item.id+">"+item.title+"</a></li>";
+
+                });
+                html+="</ul>";
+                $("#fineThingContentDiv").prepend(html);
+            }
+        });
+    }
+    //集团新闻
+    function initGroupNews(){
+        $.ajax({
+            type : 'get',
+            url :  baseUrl + "/news/search/1",
+            dataType : 'json',
+            success : function(data) {
+                $("#groupNewsContentDiv").empty();
+                var html="<ul>";
+                $(data.list).each(function(i,item){
+
+                    html+="<li class='text_space'><a href=/news/view/"+item.id+">"+item.title+"</a></li>";
+
+                });
+                html+="</ul>";
+                $("#groupNewsContentDiv").prepend(html);
+            }
+        });
+    }
+
+    //公司新闻
+    function initCompanyNews(){
+        $.ajax({
+            type : 'get',
+            url :  baseUrl + "/news/search/2",
+            dataType : 'json',
+            success : function(data) {
+                $("#companyNewsContentDiv").empty();
+                var html="<ul>";
+                $(data.list).each(function(i,item){
+
+                    html+="<li class='text_space'><a href=/news/view/"+item.id+">"+item.title+"</a></li>";
+
+                });
+                html+="</ul>";
+                $("#companyNewsContentDiv").prepend(html);
+            }
+        });
+    }
+    //资源推荐
+    function initRes(){
+        $.ajax({
+            type : 'post',
+            url :  baseUrl + "/recommendRes/index",
+            dataType : 'json',
+            success : function(data) {
+                $("#resourceContentDiv").empty();
+                var html="<ul>";
+                $(data).each(function(i,item){
+                    html += "<li>\n" +
+                        "        <span title='"+item.plateName+"' class=\"plate text_space\" style='display: block;float: left;max-width: 22%;'>"+item.plateName+"</span>\n" +
+                        "        <span title='"+item.resourceTitle+"' class='text_space' style='display: block;float: left;max-width: 50%;padding-left: 5px;padding-right: 5px;'>" +
+                        "           <a href='/recommendRes/view/"+item.id+"/false'>"+item.resourceTitle+"</a></span>\n" +
+                        "        <span title='"+item.title+"' class=\"resourceTitle1 text_space\" style='display: block;float: left;max-width: 25%;'>\n" +
+                        "            <img src='/img/home/lianjie.png' height='12' width='12' /><a href=\""+item.href+"\" target='_blank'>"+item.title+"</a>\n" +
+                        "        </span>\n" +
+                        "    </li>";
+                });
+                html+="</ul>";
+                $("#resourceContentDiv").html(html);
+            }
+        });
+    }
+function imageHref(id) {
+    window.location.href=baseUrl+"/news/view/"+id;
+}
+function initImgaes() {
+        $.ajax({
+            type : 'get',
+            url :  baseUrl + "/news/search/3?size=4",
+            dataType : 'json',
+            success : function(data) {
+                $("#images").empty();
+                var html="";
+                if(data.list.length === 0){
+                    html+= "<div><img src='/img/home/wheel.png'></div>";
+                }
+                $(data.list).each(function(i,item){
+                    html+= "<div onclick=imageHref("+item.id+")><img src='"+item.imageUrl+"'></div>";
+                });
+                $("#images").prepend(html);
+                layui.use('carousel', function(){
+                    var carousel = layui.carousel;
+                    //建造实例
+                    var ins = carousel.render({
+                        elem: '#wheel',
+                        width: '100%', //设置容器宽度
+                        arrow: 'always', //始终显示切换箭头
+                        anim: 'default', //切换动画方式,
+                        autoplay: true, //自动切换
+                        indicator:'inside'
+                    });
+
+
+                });
+            }
+        });
+        /*轮播图效果*/
+
+        // ins.reload({
+        //     elem: '#wheel',
+        //     width: '100%', //设置容器宽度
+        //     arrow: 'always', //始终显示切换箭头
+        //     anim: 'default', //切换动画方式,
+        //     autoplay: true, //自动切换
+        //     indicator:'inside'
+        // });
+    }
+
+</script>
+</html>

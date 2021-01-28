@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>出差管理</title>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/administrative/businessPlan.js"></script>
+    <style type="text/css">
+        .mainTitle{
+            height: 40px;
+            line-height: 40px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            float: left;
+        }
+        .subContent{
+            border:1px solid #eee;
+            padding: 0px;
+            padding-top: 10px;
+            float: left;
+        }
+        .manNum{
+            width: 60px;
+            text-align:center;
+            line-height:30px;
+            display: inline-block;
+            height: 30px;
+            border: none;
+            border-bottom: 1px solid;
+        }
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+            //加载时间控件
+            var issuedDateStart = {
+                elem: '#issuedDateStart',
+                format: 'YYYY/MM/DD',
+                istime: true,
+                istoday: false,
+                choose:function () {
+                    searchForm.search();//刷新数据
+                }
+            };
+            laydate(issuedDateStart);
+            issuedDateStart.elem = '#issuedDateEnd';
+            laydate(issuedDateStart);
+
+        });
+    </script>
+</head>
+<body>
+<div class="ibox">
+    <div class="ibox-title">
+        <button id="addBtn" class="btn btn-danger" type="button">
+            <i class="fa fa-plus"></i>&nbsp;&nbsp;新&nbsp;&nbsp;增&nbsp;
+        </button>
+        <button id="tableExportBtn" class="btn btn-info" type="button">
+            <i class="glyphicon glyphicon-export"></i>&nbsp;&nbsp;导&nbsp;&nbsp;出&nbsp;
+        </button>
+    </div>
+    <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 0px !important;">
+        <div class="jqGrid_wrapper">
+            <table id="planTable"></table>
+            <div id="planTablePaper"></div>
+        </div>
+    </div>
+</div>
+<div class="ibox col-md-12">
+    <div class="ibox-content col-md-12">
+        <!--<form id="plateFrom" autocomplete="off" class="form-horizontal" method="post">-->
+            <!--<div class="mainTitle">-->
+                <!--新增出差-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--所属部门:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--<input readonly id="deptName" name="deptName" type="text" class="form-control"/>-->
+                <!--</div>-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--日期:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--<input readonly id="applicationDate" name="applicationDate" type="text" class="form-control"/>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>出差地点:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2 control-label" style="text-align: left;">-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="1">省内</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="2">省外</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="3">国外</span>-->
+                <!--</div>-->
+                <!--<div class="form-group col-sm-4">-->
+                    <!--<input id="place" name="place" type="text" class="form-control"/>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>出差事由:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-11 control-label" style="text-align: left;">-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="1">公司派遣</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="2">公司派遣</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="3">客户谈判</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="4">公司派遣</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="5">其他</span>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>交通工具:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-11 control-label" style="text-align: left;">-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="1">公司派车</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="2">飞机(经济舱)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="3">飞机(商务舱)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="4">高铁(一等座)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="5">高铁(二等座)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="6">高铁(特等座)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="7">火车(硬座)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="8">火车(硬卧)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="9">火车(软卧)</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="10">轮船</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="11">汽车</span>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>出差时间:-->
+                <!--</label>-->
+                <!--<div class="col-sm-5">-->
+                    <!--<input placeholder="开始日期" style="width: 150px;margin-left:0;vertical-align: middle"-->
+                           <!--class="form-control layer-date" id="issuedDateStart" name="travelStateTime">-->
+                    <!--<span style="display:inline-block;padding:0 10px;">至</span>-->
+                    <!--<input placeholder="结束日期" style="width: 150px;vertical-align: middle"-->
+                           <!--class="form-control layer-date" id="issuedDateEnd" name="travelEndTime">-->
+                    <!--<span style="display:inline-block;padding:0 10px;">共</span>-->
+                    <!--<input type="text" name="numberDay" class="form-control manNum" />天-->
+                <!--</div>-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>出差责任人:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-1">-->
+                    <!--<input type="text" name="travelUser" class="form-control" style="width: 120px;"/>-->
+                <!--</div>-->
+                <!--<div class="form-group col-sm-2 control-label" style="text-align: center;">-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="1">单独出差</span>-->
+                    <!--<span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="2">团体出差</span>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent" id="peerPerson">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>同行人员:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-5">-->
+                    <!--<input type="text" name="fieldUser" class="form-control"/>-->
+                <!--</div>-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>合计:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--男<input type="text" name="boy" class="form-control manNum"/>人、-->
+                    <!--女<input type="text" name="female" class="form-control manNum"/>人-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>原因及目标:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-8">-->
+                    <!--<textarea name="target" class="form-control"></textarea>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>详细行程:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-8">-->
+                    <!--<textarea name="trip" class="form-control"></textarea>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>费用预算:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-8">-->
+                    <!--<textarea name="costBudget" class="form-control" placeholder="（主要包括：交通费、住宿费、通信费、业务招待费及其他杂费）"></textarea>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>备注:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-8">-->
+                    <!--<textarea class="form-control" name="note" placeholder="（若携带公司物品需备注）"></textarea>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="col-md-12 subContent">-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>申请人:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--<input type="text" id="applyName" name="applyName" class="form-control">-->
+                <!--</div>-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>审核:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--<input type="text" id="reviewerUser" name="reviewerUser" class="form-control">-->
+                <!--</div>-->
+                <!--<label class="col-sm-1 control-label">-->
+                    <!--<span class="text-red"> * </span>批准:-->
+                <!--</label>-->
+                <!--<div class="form-group col-sm-2">-->
+                    <!--<input type="text" id="approverUser" name="approverUser" class="form-control">-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</form>-->
+    <!--</div>-->
+    <div class="footer col-md-12" style="display: table;background-color:#F0F0F0;position: fixed;bottom: 0px;z-index: 1000;">
+        <div class="col-sm-12" style="text-align: right;">
+            <button id="saveBtn" class="btn btn-danger" type="button"  btn-type="admin" onclick="saveBusinessPlan()">
+                <i class="fa fa-save"></i>&nbsp;保存
+            </button>
+        </div>
+    </div>
+</div>
+<div class="modal inmodal fade" id="addPlan" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>新增出差计划</h2>
+            </div>
+            <div class="modal-body" style="display: table">
+                <form id="plateFrom" autocomplete="off" class="form-horizontal" method="post">
+                    <div class="mainTitle">
+                        新增出差
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            所属部门:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="deptName" name="deptName" type="text" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label">
+                            日期:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input readonly id="applicationDate" name="applicationDate" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>出差地点:
+                        </label>
+                        <div class="form-group col-sm-2 control-label" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="1">省内</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="2">省外</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="placeType" class="radio-inline i-checks form-control" value="3">国外</span>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <input id="place" name="place" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>出差事由:
+                        </label>
+                        <div class="form-group col-sm-11 control-label" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="1">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="2">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="3">客户谈判</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="4">公司派遣</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="reason" class="radio-inline i-checks form-control" value="5">其他</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>交通工具:
+                        </label>
+                        <div class="form-group col-sm-11 control-label" style="text-align: left;">
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="1">公司派车</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="2">飞机(经济舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="3">飞机(商务舱)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="4">高铁(一等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="5">高铁(二等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="6">高铁(特等座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="7">火车(硬座)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="8">火车(硬卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="9">火车(软卧)</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="10">轮船</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="traffic" class="radio-inline i-checks form-control" value="11">汽车</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>出差时间:
+                        </label>
+                        <div class="col-sm-5">
+                            <input placeholder="开始日期" style="width: 150px;margin-left:0;vertical-align: middle"
+                                   class="form-control layer-date" id="issuedDateStart" name="travelStateTime">
+                            <span style="display:inline-block;padding:0 10px;">至</span>
+                            <input placeholder="结束日期" style="width: 150px;vertical-align: middle"
+                                   class="form-control layer-date" id="issuedDateEnd" name="travelEndTime">
+                            <span style="display:inline-block;padding:0 10px;">共</span>
+                            <input type="text" name="numberDay" class="form-control manNum" />天
+                        </div>
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>出差责任人:
+                        </label>
+                        <div class="form-group col-sm-1">
+                            <input type="text" name="travelUser" class="form-control" style="width: 120px;"/>
+                        </div>
+                        <div class="form-group col-sm-2 control-label" style="text-align: center;">
+                            <span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="1">单独出差</span>
+                            <span style="margin-right: 5px;"><input type="radio" name="separate" class="radio-inline i-checks form-control" value="2">团体出差</span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent" id="peerPerson">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>同行人员:
+                        </label>
+                        <div class="form-group col-sm-5">
+                            <input type="text" name="fieldUser" class="form-control"/>
+                        </div>
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>合计:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            男<input type="text" name="boy" class="form-control manNum"/>人、
+                            女<input type="text" name="female" class="form-control manNum"/>人
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>原因及目标:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="target" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>详细行程:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="trip" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>费用预算:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea name="costBudget" class="form-control" placeholder="（主要包括：交通费、住宿费、通信费、业务招待费及其他杂费）"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>备注:
+                        </label>
+                        <div class="form-group col-sm-8">
+                            <textarea class="form-control" name="note" placeholder="（若携带公司物品需备注）"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 subContent">
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>申请人:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input type="text" id="applyName" name="applyName" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>审核:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input type="text" id="reviewerUser" name="reviewerUser" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label">
+                            <span class="text-red"> * </span>批准:
+                        </label>
+                        <div class="form-group col-sm-2">
+                            <input type="text" id="approverUser" name="approverUser" class="form-control">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media.MediaMapper">
+    <resultMap id="MediaMap" type="com.qinfei.qferp.entity.media.Media">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="remarks" property="remarks"/>
+        <result property="creatorId" column="creator_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="picPath" column="pic_path"/>
+        <result property="commStart" column="comm_start"/>
+        <result property="mType" column="m_type"/>
+        <result column="state" property="state"/>
+        <result column="discount" property="discount"/>
+        <result column="d1" property="d1"/>
+        <result column="d2" property="d2"/>
+        <result column="c1" property="c1"/>
+        <result column="c2" property="c2"/>
+        <result column="c3" property="c3"/>
+        <result column="c4" property="c4"/>
+        <result column="c5" property="c5"/>
+        <result column="c6" property="c6"/>
+        <result column="c7" property="c7"/>
+        <result column="c8" property="c8"/>
+        <result column="n1" property="n1"/>
+        <result column="n2" property="n2"/>
+        <result column="n3" property="n3"/>
+        <result column="n4" property="n4"/>
+        <result column="n5" property="n5"/>
+        <result column="n6" property="n6"/>
+        <result column="n7" property="n7"/>
+        <result column="n8" property="n8"/>
+        <result column="f1" property="f1"/>
+        <result column="f2" property="f2"/>
+        <result column="f3" property="f3"/>
+        <result column="f4" property="f4"/>
+        <result column="f5" property="f5"/>
+        <result column="f6" property="f6"/>
+        <result column="f7" property="f7"/>
+        <result column="f8" property="f8"/>
+        <result column="f9" property="f9"/>
+        <result column="f10" property="f10"/>
+    </resultMap>
+
+    <!--<insert id="saveBatch" parameterType="java.util.List">
+        insert into t_media
+        (
+        `m_type`,
+        `name`,
+        `remarks`,
+        `user_id`,
+        `supplier_id`,
+        `supplier_name`,
+        `pic_path`,
+        `discount`,
+        `state`,
+        `creator_id`,
+        `create_date`,
+        `d1`,
+        `c1`,
+        `c2`,
+        `c3`,
+        `c4`,
+        `c5`,
+        `c6`,
+        `c7`,
+        `c8`,
+        `n1`,
+        `n2`,
+        `n3`,
+        `n4`,
+        `n5`,
+        `n6`,
+        `n7`,
+        `n8`,
+        `f1`,
+        `f2`,
+        `f3`,
+        `f4`,
+        `f5`,
+        `f6`,
+        `f7`,
+        `f8` ,
+        `f9`,
+        `f10`
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.mType},
+            #{item.name},
+            #{item.remarks},
+            #{item.userId},
+            #{item.supplierId},
+            #{item.supplierName},
+            #{item.picPath},
+            #{item.discount},
+            #{item.state},
+            #{item.creatorId},
+            #{item.createDate},
+            #{item.d1},
+            #{item.c1},
+            #{item.c2},
+            #{item.c3},
+            #{item.c4},
+            #{item.c5},
+            #{item.c6},
+            #{item.c7},
+            #{item.c8},
+            #{item.n1},
+            #{item.n2},
+            #{item.n3},
+            #{item.n4},
+            #{item.n5},
+            #{item.n6},
+            #{item.n7},
+            #{item.n8},
+            #{item.f1},
+            #{item.f2},
+            #{item.f3},
+            #{item.f4},
+            #{item.f5},
+            #{item.f6},
+            #{item.f7},
+            #{item.f8},
+            #{item.f9},
+            #{item.f10}
+            )
+        </foreach>
+    </insert>-->
+
+   <!-- <update id="stateBatchUpdate" parameterType="java.util.Map">
+        update
+        t_media
+        set
+        state = #{state}
+        where
+        id in
+        <foreach collection="ids" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </update>-->
+<!--当state>1在审核中，不需要查询出来，需要查询的是等于1-->
+    <!--<select id="listPage" parameterType="java.util.Map" resultMap="MediaMap" useCache="true">
+        select a.* from t_media a LEFT join t_media_supplier b on a.supplier_id = b.id
+        <where>
+            <include refid="condition"/>
+
+        </where>
+        order by
+        <choose>
+            <when test="sidx != null and sidx!=''">
+                ${sidx}
+            </when>
+            <otherwise>
+                a.id
+            </otherwise>
+        </choose>
+        <if test="sord != null">
+            ${sord}
+        </if>
+    </select>-->
+
+    <!--<select id="listNormalData" parameterType="com.qinfei.qferp.entity.media.Media" resultMap="MediaMap" useCache="true">-->
+        <!--select * from t_media a-->
+        <!--<where>-->
+            <!--<include refid="condition"/>-->
+        <!--</where>-->
+    <!--</select>-->
+
+   <!-- <select id="checkRepeat" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select count(*) from t_media
+        <where>
+            and state &lt;&gt; -9
+            <if test="id != null">
+                and id &lt;&gt; #{id}
+            </if>
+            <if test="name != null">
+                and upper(name) = upper(#{name})
+            </if>
+            <if test="mType != null">
+                and m_type = #{mType}
+            </if>
+        </where>
+    </select>-->
+
+    <sql id="condition">
+        <if test="name != null">
+            and upper(a.name) like upper('%${name}%')
+        </if>
+        <if test="supplierName!=null">
+            and b.name like '%${supplierName}%'
+        </if>
+        <if test="remarks != null">
+            and a.remarks like '%${remarks}%'
+        </if>
+        <if test="userId != null">
+            and a.user_id = #{userId}
+        </if>
+        <if test="supplierId != null">
+            and a.supplier_id = #{supplierId}
+        </if>
+        <if test="mType != null">
+            and a.m_type = #{mType}
+        </if>
+        <if test="state == 0">
+            and (a.state = -1 or a.state = 0 or a.state = 1)
+        </if>
+        <if test="state == 1">
+            and (a.state &gt; 1 or a.state = 0)
+            <choose>
+                <when test="companyCode != 'XH'">
+                    AND b.company_code = #{companyCode}
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+        </if>
+        <if test="state == 9">
+            and a.state &lt;&gt; -9
+        </if>
+        <if test="commStart != null">
+            and a.comm_start &gt;= #{commStart}
+        </if>
+        <if test="commStart_max != null">
+            and a.comm_start &lt;= #{commStart_max}
+        </if>
+        <if test="n1 != null">
+            and a.n1 = #{n1}
+        </if>
+        <if test="c2 != null and c2!=''">
+            and c2 like '%${c2}%'
+        </if>
+        <choose>
+            <when test="mType == 5">
+                <if test="n2 != null">
+                    and a.n2 &gt;= #{n2}
+                </if>
+                <if test="n2_max != null">
+                    and a.n2 &lt;= #{n2_max}
+                </if>
+            </when>
+            <otherwise>
+                <if test="n2 != null">
+                    and a.n2 = #{n2}
+                </if>
+            </otherwise>
+        </choose>
+        <if test="n3 != null">
+            and a.n3 = #{n3}
+        </if>
+        <choose>
+            <when test="mType == 11 || mType == 12 || mType == 306">
+                <if test="n4 != null">
+                    and a.n4 &gt;= #{n4}
+                </if>
+                <if test="n4_max != null">
+                    and a.n4 &lt;= #{n4_max}
+                </if>
+            </when>
+            <otherwise>
+                <if test="n4 != null">
+                    and a.n4 = #{n4}
+                </if>
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="mType == 2 || mType == 4 || mType == 12 || mType == 306">
+                <if test="n5 != null">
+                    and a.n5 &gt;= #{n5}
+                </if>
+                <if test="n5_max != null">
+                    and a.n5 &lt;= #{n5_max}
+                </if>
+            </when>
+            <otherwise>
+                <if test="n5 != null">
+                    and a.n5 = #{n5}
+                </if>
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="mType == 9 || mType == 10">
+                <if test="n6 != null">
+                    and a.n6 &gt;= #{n6}
+                </if>
+                <if test="n6_max != null">
+                    and a.n6 &lt;= #{n6_max}
+                </if>
+            </when>
+            <otherwise>
+                <if test="n6 != null">
+                    and a.n6 = #{n6}
+                </if>
+            </otherwise>
+        </choose>
+        <if test="n7 != null">
+            <choose>
+                <when test="mType == 1">
+                    <if test="n7 != null">
+                        and a.n7 &gt;= #{n7[0]}
+                    </if>
+                    <if test="n7_max != null">
+                        and a.n7 &lt;= #{n7_max}
+                    </if>
+                </when>
+                <when test="mType == 3 || mType == 4">
+                    <foreach item="day" collection="n7" index="index">
+                        and a.n7 like '%${day}%'
+                    </foreach>
+                </when>
+                <otherwise>
+                    and a.n7 = #{n7[0]}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="n8 != null">
+            and a.n8 &gt;= #{n8}
+        </if>
+        <if test="n8_max != null">
+            and a.n8 &lt;= #{n8_max}
+        </if>
+        <if test="n9 != null">
+            and a.n9 = #{n9}
+        </if>
+        <if test="f1 != null">
+            and a.f1 &gt;= #{f1}
+        </if>
+        <if test="f1_max != null">
+            and a.f1 &lt;= #{f1_max}
+        </if>
+        <if test="f2 != null">
+            and a.f2 &gt;= #{f2}
+        </if>
+        <if test="f2_max != null">
+            and a.f2 &lt;= #{f2_max}
+        </if>
+        <if test="f3 != null">
+            and a.f3 &gt;= #{f3}
+        </if>
+        <if test="f3_max != null">
+            and a.f3 &lt;= #{f3_max}
+        </if>
+        <if test="f4 != null">
+            and a.f4 &gt;= #{f4}
+        </if>
+        <if test="f4_max != null">
+            and a.f4 &lt;= #{f4_max}
+        </if>
+        <if test="f5 != null">
+            and a.f5 &gt;= #{f5}
+        </if>
+        <if test="f5_max != null">
+            and a.f5 &lt;= #{f5_max}
+        </if>
+        <if test="f6 != null">
+            and a.f6 &gt;= #{f6 !=}
+        </if>
+        <if test="f6_max != null">
+            and a.f6 &lt;= #{f6_max}
+        </if>
+        <if test="f7 != null">
+            and a.f7 &gt;= #{f7}
+        </if>
+        <if test="f7_max != null">
+            and a.f7 &lt;= #{f7_max}
+        </if>
+        <if test="f8 != null">
+            and a.f8 &gt;= #{f8}
+        </if>
+        <if test="f8_max != null">
+            and a.f8 &lt;= #{f8_max}
+        </if>
+        <if test="f9 != null">
+            and a.f9 &gt;= #{f9}
+        </if>
+        <if test="f9_max != null">
+            and a.f9 &lt;= #{f9_max}
+        </if>
+        <if test="f10 != null">
+            and a.f10 &gt;= #{f10}
+        </if>
+        <if test="f10_max != null">
+            and a.f10 &lt;= #{f10_max}
+        </if>
+    </sql>
+</mapper>

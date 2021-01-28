@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.PurchaseMapper">
+    <resultMap id="purchaseMapper" type="com.qinfei.qferp.entity.inventory.Purchase">
+        <id column="id" property="id"/>
+        <result column="purchaseCode" property="purchaseCode"/>
+        <result column="title" property="title"/>
+        <result column="userId" property="userId"/>
+        <result column="userName" property="userName"/>
+        <result column="state" property="state"/>
+        <result column="deptId" property="deptId"/>
+        <result column="createTime" property="createTime"/>
+        <result column="buyerId" property="buyerId"/>
+        <result column="buyTime" property="buyTime"/>
+        <result column="desc" property="desc"/>
+        <result column="itemId" property="itemId"/>
+        <result column="taskId" property="taskId"/>
+        <result column="rejectReason" property="rejectReason"/>
+        <result column="affixName" property="affixName"/>
+        <result column="affixLink" property="affixLink"/>
+        <result column="money" property="money"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="reimbursementId" property="reimbursementId"/>
+        <collection property="purchaseDetails" ofType="com.qinfei.qferp.entity.inventory.PurchaseDetails">
+            <id column="id" property="detailId"/>
+            <result column="purchase_id" property="purchaseId"/>
+            <result column="type" property="type"/>
+            <result column="goods_id" property="goodsId"/>
+            <result column="supplier_id" property="supplierId"/>
+            <result column="warehouse_id" property="warehouseId"/>
+            <result column="state" property="state"/>
+            <result column="amount" property="amount"/>
+            <result column="price" property="price"/>
+            <result column="total_money" property="totalMoney"/>
+        </collection>
+    </resultMap>
+
+    <sql id="selectColumn">
+        pb.id,
+        pb.purchase_code AS purchaseCode,
+        pb.title,
+        pb.user_id as userId,
+        pb.user_name as userName,
+        pb.state,
+        pb.reimbursement_id as reimbursementId,
+        pb.dept_id as deptId,
+        pb.create_time as createTime,
+        pb.buyer_id as buyerId,
+        pb.buy_time as buyTime,
+        pb.money,
+        pb.affix_name as affixName,
+        pb.affix_link as affixLink,
+        pb.reject_reason as rejectReason,
+        pb.task_id as taskId,
+        pb.`desc`,
+        pb.company_code as companyCode
+    </sql>
+
+    <sql id="purchaseInfo">
+        id,
+        purchase_code,
+        reimbursement_id,
+        title,user_id,
+        user_name,
+        state,
+        reimbursement_id,
+        dept_id,
+        create_time,
+        buyer_id,
+        buy_time,
+        `desc`,
+        item_id,
+        task_id,
+        reject_reason,
+        affix_name,
+        affix_link,
+        money,
+        company_code
+    </sql>
+
+    <sql id="selectDetailsColumn">
+        d.id detailId,
+        d.purchase_id,
+        d.goods_id,
+        d.state,
+        d.amount,
+        d.price,
+        d.total_money,
+        d.supplier_id,
+        d.pay_method,
+        d.warehouse_id
+    </sql>
+
+    <!--根据id查询物品采购信息-->
+    <select id="getById" resultType="com.qinfei.qferp.entity.inventory.Purchase" parameterType="java.lang.Integer">
+        select
+         <include refid="purchaseInfo"/>
+         from t_saves_product_buying
+        where state>-9 and id=#{id}
+    </select>
+
+    <!--物品采购-->
+    <select id="getPageCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*) FROM t_saves_product_buying p
+        left join sys_user u on p.buyer_id = u.id
+        left join fee_reimbursement fr on p.reimbursement_id=fr.id
+        where p.state>-9 and p.company_code=#{companyCode}
+        <if test="userId!=null and userId!=''">
+            and p.user_id =#{userId}
+        </if>
+        <if test="buyingTime!=null and buyingTime!=''">
+            and p.buy_time &gt;= #{buyingTime}
+        </if>
+        <if test="buyingName!=null and buyingName!=''">
+            and u.name like CONCAT('%',#{buyingName},'%')
+        </if>
+        <if test="bxCode!=null and bxCode!=''">
+            and fr.code like CONCAT('%',#{bxCode},'%')
+        </if>
+        <if test="stateQc==-5">
+            and p.state=-5
+        </if>
+        <if test="stateQc==-1">
+            and p.state=-1
+        </if>
+        <if test="stateQc==0">
+            and p.state=0
+        </if>
+        <if test="stateQc==1">
+            and p.state=1
+        </if>
+        <if test="stateQc==3">
+            and p.state in(4,14)
+        </if>
+        <if test="stateQc==6">
+            and p.state=6
+        </if>
+        <if test="stateQc==7">
+            and p.state=7
+        </if>
+        <if test="keyWords!=null and keyWords!=''">
+            and p.purchase_code like concat('%',#{keyWords},'%')
+        </if>
+    </select>
+
+    <!--判断供应商下是否有采购明细记录-->
+    <select id="getCountBySupplierId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(*) from t_saves_product_details where supplier_id=#{supplierId} and state>-9
+    </select>
+
+    <!--物品采购分页查询-->
+    <select id="getPurchasePage" resultType="java.util.Map" parameterType="java.util.Map">
+        select p.id,p.purchase_code purchaseCode,p.title,p.user_id userId,p.user_name userName,p.state,p.reimbursement_id reimbursementId,
+        fr.code BXCode,p.dept_id deptId,DATE_FORMAT(p.create_time,"%Y-%m-%d") createTime,p.buyer_id buyerId,
+        DATE_FORMAT(p.buy_time,"%Y-%m-%d") buyTime,p.desc,p.item_id itemId,p.task_id taskId,p.reject_reason rejectReason,
+        p.affix_name affixName,p.affix_link affixLink,p.money,p.company_code companyCode,u.name buyerName
+        from t_saves_product_buying p
+        left join sys_user u on p.buyer_id = u.id
+        left join fee_reimbursement fr on p.reimbursement_id=fr.id
+        where p.state>-9 and p.company_code=#{companyCode}
+        <if test="userId!=null and userId!=''">
+            and p.user_id =#{userId}
+        </if>
+        <if test="buyingTime!=null and buyingTime!=''">
+            and p.buy_time &gt;=#{buyingTime}
+        </if>
+        <if test="buyingName!=null and buyingName!=''">
+            and u.name like CONCAT('%',#{buyingName},'%')
+        </if>
+        <if test="bxCode!=null and bxCode!=''">
+            and fr.code like CONCAT('%',#{bxCode},'%')
+        </if>
+        <if test="stateQc==-5">
+            and p.state=-5
+        </if>
+        <if test="stateQc==-1">
+            and p.state=-1
+        </if>
+        <if test="stateQc==0">
+            and p.state=0
+        </if>
+        <if test="stateQc==1">
+            and p.state=1
+        </if>
+        <if test="stateQc==3">
+            and p.state in(4,14)
+        </if>
+        <if test="stateQc==6">
+            and p.state=6
+        </if>
+        <if test="stateQc==7">
+            and p.state=7
+        </if>
+        <if test="keyWords!=null and keyWords!=''">
+            and p.purchase_code like concat('%',#{keyWords},'%')
+        </if>
+        order by p.create_time desc
+    </select>
+
+    <select id="getPurchaseByCode" resultType="com.qinfei.qferp.entity.inventory.Purchase">
+        SELECT
+        <include refid="purchaseInfo"/>
+        from t_saves_product_buying
+        where state>-9 and company_code=#{companyCode} and purchase_code=#{purchaseCode}
+    </select>
+
+    <!--删除物品采购记录-->
+    <update id="delPurchase" parameterType="java.lang.Integer">
+        update t_saves_product_buying set state=-9 where id=#{id}
+    </update>
+
+    <!--删除物品采购记录-->
+    <update id="editPurchaseState">
+        update t_saves_product_buying
+        <set>
+            <if test="state!=null">state=#{state},</if>
+            <if test="rejectReason!=null">reject_reason=#{rejectReason},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <update id="editPurchase" parameterType="com.qinfei.qferp.entity.inventory.Purchase">
+        update t_saves_product_buying
+        <set>
+            <if test="purchaseCode!=null and purchaseCode!=''">purchase_code=#{purchaseCode},</if>
+            <if test="title!=null and title!=''">title=#{title},</if>
+            <if test="userId!=null and userId!=''">user_id=#{userId},</if>
+            <if test="userName!=null and userName!=''">user_name=#{userName},</if>
+            <if test="state!=null and state!=''">state=#{state},</if>
+            <if test="reimbursementId!=null">reimbursement_id=#{reimbursementId},</if>
+            <if test="deptId!=null and deptId!=''">dept_id=#{deptId},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            <if test="buyerId!=null and buyerId!=''">buyer_id=#{buyerId},</if>
+            <if test="updateUserId!=null">update_user_id=#{updateUserId},</if>
+            <if test="buyTime!=null">buy_time=#{buyTime},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="desc!=null and desc!=''">`desc`=#{desc},</if>
+            <if test="itemId!=null">item_id=#{itemId},</if>
+            <if test="taskId!=null and taskId!=''">task_id=#{taskId},</if>
+            <if test="affixName!=null and affixName!=''">affix_name=#{affixName},</if>
+            <if test="affixLink!=null and affixLink!=''">affix_link=#{affixLink},</if>
+            <if test="money!=null and money!=''">money=#{money},</if>
+            <if test="companyCode!=null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id=#{id}
+    </update>
+    <!--批量新增采购-->
+    <insert id="addPurchaseBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_product_buying(
+           purchase_code,
+           title,
+           user_id,
+           user_name,
+           state,
+           dept_id,
+           create_time,
+           buyer_id,
+           buy_time,
+           `desc`,
+            company_code
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+              #{item.purchaseCode},
+              #{item.title},
+              #{item.userId},
+              #{item.userName},
+              #{item.state},
+              #{item.deptId},
+              #{item.createTime},
+              #{item.buyerId},
+              #{item.buyTime},
+              #{item.desc},
+              #{item.companyCode}
+            )
+        </foreach>
+    </insert>
+
+    <!--删除物品采购明细记录-->
+    <update id="editPurchaseDetailsState" parameterType="java.lang.Integer">
+        update t_saves_product_details set state=-9 where purchase_id = #{id}
+    </update>
+
+    <!--批量添加物品明细信息-->
+    <insert id="addPurchaseDetailsBatch" parameterType="java.util.List">
+        insert into
+        t_saves_product_details(
+        purchase_id,
+        `type`,
+        goods_id,
+        state,
+        amount,
+        price,
+        total_money,
+        supplier_id,
+        pay_method,
+        create_id,
+        create_time
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.purchaseId},
+            #{item.type},
+            #{item.goodsId},
+            #{item.state},
+            #{item.amount},
+            #{item.price},
+            #{item.totalMoney},
+            #{item.supplierId},
+            #{item.payMethod},
+            #{item.createId},
+            #{item.createTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--根据采购编号查询物品明细信息-->
+    <select id="getPurchaseDetailsById" resultType="com.qinfei.qferp.entity.inventory.PurchaseDetails" parameterType="java.lang.Integer">
+        select
+        gt.name goodsName,gt.parent_id type,gt.specs,gt.unit,
+        <include refid="selectDetailsColumn"/>
+        from t_saves_product_details d
+        left join t_saves_goods_type gt on d.goods_id=gt.id
+        where d.purchase_id = #{id} and d.state>-9
+    </select>
+
+    <!--删除物品明细关联信息-->
+    <delete id="delPurchaseDetailsBatch" parameterType="java.lang.Integer">
+        delete from t_saves_product_details where purchase_id=#{id}
+    </delete>
+
+    <delete id="delPurchaseDetailsByIds" parameterType="java.util.Map">
+        delete from t_saves_product_details where create_id = #{userId} and purchase_id
+        <foreach collection="list" item="item" open="in (" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!--采购入库选择采购订单展示的数据-->
+    <select id="orderList" parameterType="java.util.Map" resultType="java.util.Map"  useCache="true">
+        SELECT <include refid="selectColumn"/>
+        from t_saves_product_buying pb
+        where pb.state = 1 and pb.company_code=#{companyCode}
+        <if test="code !=null and code!=''">
+            AND pb.purchase_code=#{code}
+        </if>
+    </select>
+
+    <!--编辑查看采购入库采购订单展示的数据-->
+    <select id="orderList2" parameterType="java.util.Map" resultType="java.util.Map"  useCache="true">
+        SELECT <include refid="selectColumn"/>
+        from t_saves_product_buying pb
+        where pb.state = 1 and pb.company_code=#{companyCode}
+        <if test="code !=null and code!=''">
+            AND pb.purchase_code =#{code}
+        </if>
+        union
+        SELECT <include refid="selectColumn"/>
+        from t_saves_product_buying pb
+        where pb.state >-9 and pb.company_code=#{companyCode} and pb.id=#{id}
+        <if test="code !=null and code!=''">
+            AND pb.purchase_code =#{code}
+        </if>
+    </select>
+
+    <select id="getPurchaseByCondition" parameterType="java.util.Map" resultMap="purchaseMapper">
+        SELECT
+        <include refid="purchaseInfo"/>
+        from t_saves_product_buying
+        where state>-9 and company_code=#{companyCode}
+        <if test="title!=null and title!=''">
+            and title=#{title}
+        </if>
+        <if test="buyerId!=null">
+            and buyer_id=#{buyerId}
+        </if>
+        <if test="supplierId!=null">
+            and supplier_id=#{supplierId}
+        </if>
+    </select>
+
+    <!--删除产品时判断产品id是否被采购明细使用-->
+    <select id="getPurchaseDetailsByGoodsId" resultType="java.lang.Integer">
+        SELECT count(*)
+        from t_saves_product_details td
+        LEFT JOIN t_saves_goods_type gt ON td.goods_id = gt.id
+        where td.state>-9 and gt.state>-9 and gt.company_code=#{companyCode} and gt.id=#{id}
+    </select>
+
+    <!--物品入库时绑定仓库id-->
+    <update id="editPurchaseDetailsByParam" parameterType="java.util.Map">
+        update t_saves_product_details
+        <set>
+            <if test="wareId!=null">warehouse_id=#{wareId},</if>
+            <if test="updateUserId!=null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--根据采购id置空采购明细的仓库id-->
+    <update id="editWarehouseByPurchaseId" parameterType="java.lang.Integer">
+        update t_saves_product_details set warehouse_id=null where purchase_id=#{id}
+    </update>
+
+    <!--采购关联报销-->
+    <select id="relatedReimbursement" parameterType="java.util.List" resultType="java.util.Map">
+        select id,state,title,money from t_saves_product_buying
+         where state>-9 and id in
+         <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+             #{item}
+         </foreach>
+    </select>
+
+    <!--判断该报销id是否关联采购-->
+    <select id="getPurchaseByReimbursementId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.Purchase">
+        select * from t_saves_product_buying
+        where state>-9 and reimbursement_id=#{id}
+    </select>
+
+    <!--确认选中采购单中是否关联报销-->
+    <select id="checkRelatedReimbursement" parameterType="java.util.List" resultType="java.util.Map">
+        SELECT * from t_saves_product_buying b where b.state=7 and b.reimbursement_id is not null and b.id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--删除报销时，置空报销id-->
+    <update id="editReimbursementId" parameterType="java.lang.Integer">
+        update t_saves_product_buying set reimbursement_id=null where reimbursement_id=#{id}
+    </update>
+
+    <!--采购关联报销id-->
+    <update id="editPurchaseReimbursementId" parameterType="java.util.Map">
+        update t_saves_product_buying set reimbursement_id=#{id} where id in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

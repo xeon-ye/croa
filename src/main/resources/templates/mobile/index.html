@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>首页</title>
+    <!--插件样式-->
+    <link href="../css/mobile/common.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(function () {
+            $.ajax({
+                type: "post",
+                url: baseUrl + "/Mediapass/notificationlist",
+                dataType: "json",
+                success: function (data) {
+                    var html = '';
+                    for (var i = 0; i < data.list.length; i++) {
+                        html += "<li>" +
+                            "<span>"+ data.list[i].releaseUser +" - </span>" +
+                            "<span>"+ data.list[i].title +"</span>" +
+                            "</li>"
+                    }
+                    $("#gonggao ul").html(html);
+                    (function (win){
+                        var callboarTimer;
+                        var callboard = $('#gonggao');
+                        var callboardUl = callboard.find('ul');
+                        var callboardLi = callboard.find('li');
+                        var liLen = callboard.find('li').length;
+                        var initHeight = callboardLi.first().outerHeight(true);
+                        win.autoAnimation = function (){
+                            if (liLen <= 1) return;
+                            var self = arguments.callee;
+                            var callboardLiFirst = callboard.find('li').first();
+                            callboardLiFirst.animate({
+                                marginTop:-initHeight
+                            }, 500, function (){
+                                clearTimeout(callboarTimer);
+                                callboardLiFirst.appendTo(callboardUl).css({marginTop:0});
+                                callboarTimer = setTimeout(self, 5000);
+                            });
+                        }
+                        callboard.mouseenter(
+                            function (){
+                                clearTimeout(callboarTimer);
+                            }).mouseleave(function (){
+                            callboarTimer = setTimeout(win.autoAnimation, 5000);
+                        });
+                    }(window));
+                    setTimeout(window.autoAnimation, 5000);
+                }
+            });
+            $.ajax({
+                type: "post",
+                url: baseUrl + "/process/list",
+                data: {
+                    size: 10,
+                    page: 1,
+                    sidx: 'taskId',
+                    sord: 'desc'
+                },
+                dataType: "json",
+                success: function (data) {
+                    if (data.total == 0) return
+                    $('#approve span').text(data.total).show();
+                }
+            });
+        })
+    </script>
+    <style>
+        #serach-box {
+            /*display: flex;*/
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+        }
+        #serach-box div {
+            flex: 1;
+            position: relative;
+        }
+        #serach-box div input {
+            width: 100%;
+            height: 35px;
+            border-radius: 35px;
+            background: #f0f0f0;
+            border: none;
+            padding-left: 30px;
+        }
+        #serach-box div img {
+            width: 15px;
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+        .banner {
+            margin-top: 5px;
+            padding: 0 15px;
+        }
+        .banner img {
+            width: 100%;
+        }
+        .bulletin {
+            display: flex;
+            padding: 10px 15px;
+            align-items: center;
+        }
+        .bulletin .left {
+            font-family: m-title;
+            color: #333;
+            position: relative;
+        }
+        .bulletin .left span {
+            font-size: 13px;
+        }
+        .bulletin .left img {
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 40px;
+            z-index: -1;
+        }
+        .bulletin #gonggao {
+            flex: 1;
+            padding-left: 20px;
+            height: 24px;
+            line-height: 24px;
+            overflow: hidden;
+        }
+        .bulletin #gonggao ul {
+            padding: 0;
+            margin: 0;
+        }
+        .bulletin #gonggao ul li{
+            overflow: hidden;
+            text-overflow:ellipsis;
+            white-space: nowrap;
+            color: #333;
+        }
+        .features {
+            padding: 0 15px;
+            border-top: 10px solid #f0f0f0;
+        }
+        .features .fe-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 20px;
+        }
+        .features .fe-box .item {
+            text-align: center;
+            margin-bottom: 20px;
+            width: max-content;
+            color: #333;
+            position: relative;
+        }
+        .features .fe-box .item span{
+            position: absolute;
+            background: #ff2c49;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px;
+            border-radius: 2px;
+            top: -5px;
+            right: 0;
+            display: none;
+            min-width: 20px;
+        }
+        .features .fe-box .item img {
+            width: 40px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="m-content">
+    <div id="serach-box">
+        <div>
+            <img src="/img/mobile/sousuo@2x.png" alt="">
+            <input type="text" id="serach-input" placeholder="请输入搜索内容">
+        </div>
+        <!--<img class="saomao" src="/img/mobile/saoma@2x.png" alt="">-->
+    </div>
+    <div class="banner">
+        <img src="/img/mobile/banner.png" alt="">
+    </div>
+    <div class="bulletin">
+        <div class="left">
+            <span>通知<br>公告</span>
+            <img src="/img/mobile/ggbg.png" alt="">
+        </div>
+        <div id="gonggao">
+            <ul>
+            </ul>
+        </div>
+    </div>
+    <div class="features">
+        <div class="fe-box">
+            <a href="/mobile/approve">
+                <div class="item" id="approve">
+                    <img src="/img/mobile/spgl@2x.png" alt="">
+                    <p>审批管理</p>
+                    <span></span>
+                </div>
+            </a>
+            <a href="/mobile/approved">
+                <div class="item">
+                    <img src="/img/mobile/ysp@2x.png" alt="">
+                    <p>已审批</p>
+                </div>
+            </a>
+            <a>
+                <div class="item" >
+                    <img src="/img/mobile/jqqd@2x.png" alt="">
+                    <p>敬请期待</p>
+                </div>
+            </a>
+            <div class="item">
+
+            </div>
+        </div>
+    </div>
+</div>
+<div id="m-bottom">
+    <a>
+        <div class="item active">
+            <i class="fa fa-home"></i>
+            <p>首页</p>
+        </div>
+    </a>
+    <a>
+        <div class="item">
+            <i class="fa fa-rmb"></i>
+            <p>财务管理</p>
+        </div>
+    </a>
+    <a>
+        <div class="item">
+            <i class="fa fa-area-chart"></i>
+            <p>统计信息</p>
+        </div>
+    </a>
+    <a href="/logout">
+        <div class="item on" id="logout">
+            <i class="fa fa-sign-out"></i>
+            <p>退出</p>
+        </div>
+    </a>
+</div>
+</body>
+</html>

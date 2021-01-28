@@ -1,0 +1,209 @@
+/*------表格控件样式------开始------*/
+#statisticsFTModal .ui-jqgrid{
+    width: 99% !important;
+}
+#statisticsFTModal  .ui-jqgrid-bdiv{/*表格展示滚动条*/
+    overflow: auto !important;
+}
+/*#statisticsFTModal  .ui-jqgrid-pager tbody tr{  !*表格工具栏居中*!
+    display: flex;
+    justify-content:center;
+    align-items:center;
+}*/
+/*------模态框样式------开始------*/
+#statisticsFTModal  #modalDialog{
+    width: 1400px;
+    min-width: 1200px;
+}
+
+#statisticsFTModal  #modalHeader{
+    padding: 0px !important;
+}
+
+#statisticsFTModal  .titleStyle{
+    border-bottom: 1px solid #c1c1c1;
+    width: 100%;
+    height:40px;
+    display: block;
+    float: left;
+}
+
+#statisticsFTModal  .dialogTitle{
+    border: 0px solid yellow;
+    display: block;
+    float: left;
+    width: 98%;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: 20px !important;
+}
+
+#statisticsFTModal  .dialogBtn{
+    height: 40px;
+    line-height: 40px;
+    width: 2%;
+    display: block;
+    float: left;
+}
+
+#statisticsFTModal  .dialogBtn > button{
+    width: 100%;
+    height: 100%;
+    margin: 0px !important;
+    padding: 0px !important;
+    text-align: center;
+    font-size: 25px;
+}
+
+/*------查询条件样式------开始------*/
+#statisticsFTModal  #selectCondition{
+    border-bottom: 1px solid #c1c1c1;
+    padding: 5px 15px !important;
+    width: 100%;
+    display: block;
+    float: left;
+}
+
+#statisticsFTModal  .paramDiv{
+    height: 100%;
+    width: 20%;
+    margin-top: 1px;
+    display: block;
+    float: left;
+}
+
+#statisticsFTModal  .paramDiv > .labelName > button{
+    height: 30px !important;
+    padding: 0px 12px !important;
+    margin-top: -2px !important;
+}
+
+#statisticsFTModal  .labelName{
+    border: 0px solid red;
+    height: 40px;
+    line-height: 40px;
+    text-align: right;
+    width: 40%;
+    margin: 0px;
+    padding: 0px;
+    float: left;
+}
+
+#statisticsFTModal  .paramInputDiv{
+    height: 40px;
+    line-height: 40px;
+    text-align: left;
+    border: 0px solid red;
+    width: 60%;
+    margin: 0px;
+    padding: 0px;
+    float: left;
+}
+
+#statisticsFTModal  .paramInputDiv > :first-child{
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+}
+
+#statisticsFTModal  .paramInputDiv > input{
+    margin-top: 5px;
+}
+
+
+/*输入框的样式*/
+#statisticsFTModal  .form-param{
+    outline-style: none; /*将外部样式禁用，这样才能实现获取焦点改变颜色*/
+    border-radius: 1px;
+    padding-left: 6px;
+    border: 1px solid rgb(169,169,169) !important;
+}
+#statisticsFTModal  .form-param:focus{
+    border-color:#1ab394 !important;
+}
+
+#statisticsFTModal  .modalIssuedDate{
+    display: none; /*发布日期样式*/
+}
+
+/*------tab样式------开始------*/
+#statisticsFTModal  .navStyle{
+    border-bottom: 1px solid #c1c1c1;
+    width: 100%;
+    height:40px;
+    display: block;
+    float: left;
+}
+
+#statisticsFTModal  .selectType{
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    display: block;
+    color: #676A6C;
+    font-size: 14px !important;
+    float: left;
+    cursor: pointer;
+}
+
+#statisticsFTModal  #modalBody{
+    border:0px solid red;
+    padding: 0px !important;
+    width: 100%;
+    height: 300px;
+    min-height: 300px;
+}
+
+#statisticsFTModal  #main{
+    border: 0px solid yellow;
+    height:100%;
+    width:100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#statisticsFTModal  #scrollContent{
+    border: 0px solid blue;
+    height:100%;
+}
+
+#statisticsFTModal  .statisticsContent{
+    border: 0px solid red;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: block;
+    float:left;
+}
+
+
+#statisticsFTModal  .middle{
+    border-top: 1px solid #C7C7CD;
+    border-bottom: 1px solid #C7C7CD;
+    width: 100%;
+    height: 100%;
+    display: block;
+    float:left;
+}
+
+/*有饼图时：趋势图*/
+#modalChartByDate{
+    border-right:1px solid #C7C7CD;
+    width: 100%;
+    height: 100%;
+    display: block;
+    float: left;
+    margin-right: 1%;
+}
+
+
+#statisticsFTModal  .bottom{
+    border-top: 0px solid #C7C7CD;
+    padding-top: 2px;
+    width: 100%;
+    height: 50%;
+    display: block;
+    float: left;
+}
+

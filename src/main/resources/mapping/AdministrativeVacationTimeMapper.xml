@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.administrative.AdministrativeVacationTimeMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.administrative.AdministrativeVacationTime">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="emp_id" jdbcType="INTEGER" property="empId" />
+    <result column="emp_name" jdbcType="VARCHAR" property="empName" />
+    <result column="vacation_time" jdbcType="DOUBLE" property="vacationTime" />
+    <result column="change_time" jdbcType="DOUBLE" property="changeTime" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <result column="leave_id" jdbcType="INTEGER" property="leaveId" />
+
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, emp_id, emp_name, vacation_time, change_time, create_id, create_time, update_id, 
+    update_time, state, version, leave_id
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_administrative_vacation_time
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectByEmpId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative_vacation_time t
+    where emp_id = #{id,jdbcType=INTEGER}
+    ORDER BY create_time DESC LIMIT 1
+  </select>
+
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_administrative_vacation_time
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeVacationTime">
+    insert into t_administrative_vacation_time (id, emp_id, emp_name, 
+      vacation_time, change_time, create_id, 
+      create_time, update_id, update_time, 
+      state, version, leave_id)
+    values (#{id,jdbcType=INTEGER}, #{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, 
+      #{vacationTime,jdbcType=DOUBLE}, #{changeTime,jdbcType=DOUBLE}, #{createId,jdbcType=INTEGER},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateId,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{state,jdbcType=INTEGER}, #{version,jdbcType=INTEGER}, #{leaveId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeVacationTime">
+    insert into t_administrative_vacation_time
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="empId != null">
+        emp_id,
+      </if>
+      <if test="empName != null">
+        emp_name,
+      </if>
+      <if test="vacationTime != null">
+        vacation_time,
+      </if>
+      <if test="changeTime != null">
+        change_time,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="version != null">
+        leave_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="vacationTime != null">
+        #{vacationTime,jdbcType=DOUBLE},
+      </if>
+      <if test="changeTime != null">
+        #{changeTime,jdbcType=DOUBLE},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{leaveId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeVacationTime">
+    update t_administrative_vacation_time
+    <set>
+      <if test="empId != null">
+        emp_id = #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        emp_name = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="vacationTime != null">
+        vacation_time = #{vacationTime,jdbcType=DOUBLE},
+      </if>
+      <if test="changeTime != null">
+        change_time = #{changeTime,jdbcType=DOUBLE},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="leaveId != null">
+        leave_id = #{leaveId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeVacationTime">
+    update t_administrative_vacation_time
+    set emp_id = #{empId,jdbcType=INTEGER},
+      emp_name = #{empName,jdbcType=VARCHAR},
+      vacation_time = #{vacationTime,jdbcType=DOUBLE},
+      change_time = #{changeTime,jdbcType=DOUBLE},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER},
+      version = #{version,jdbcType=INTEGER},
+      leave_id = #{leaveId,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

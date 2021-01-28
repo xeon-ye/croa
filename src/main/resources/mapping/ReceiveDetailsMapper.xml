@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.ReceiveDetailsMapper">
+    <resultMap id="purchaseSupplierMapper" type="com.qinfei.qferp.entity.inventory.ReceiveDetails">
+        <id column="id" property="id"/>
+        <result column="apply_id" property="applyId"/>
+        <result column="type" property="type"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="price" property="price"/>
+        <result column="total_money" property="totalMoney"/>
+        <result column="unit" property="unit"/>
+        <result column="amount" property="amount"/>
+        <result column="state" property="state"/>
+        <result column="user_id" property="userId"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="return_time" property="returnTime"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
+
+    <sql id="selectColumn">
+        d.id,
+        d.apply_id applyId,
+        d.type,
+        d.goods_id goodsId,
+        d.unit,
+        d.amount,
+        d.out_amount outAmount,
+        d.price,
+        d.total_money totalMoney,
+        d.state,
+        d.user_id userId,
+        d.update_user_id updateUserId,
+        d.create_time createTime,
+        d.update_time updateTime,
+        d.return_time returnTime,
+        d.company_code companyCode
+    </sql>
+    <!--根据领用id查询领用明细记录-->
+    <select id="getReceiveDetailById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.ReceiveDetails">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_receive_details d
+        where d.state>-2 and d.apply_id=#{id}
+    </select>
+
+    <select id="getStockDetailByWareId" resultType="com.qinfei.qferp.entity.inventory.ReceiveDetails">
+        select
+        (SELECT count(*) FROM t_saves_goods g where
+         g.goods_id=d.goods_id and g.company_code=#{companyCode} and g.state=0
+        <if test="wareId!=null">
+            and g.warehouse_id=#{wareId}
+        </if>
+        ) stockAmount,
+        <include refid="selectColumn"/>
+        from t_saves_receive_details d
+        where d.state>-2 and d.apply_id=#{id}
+    </select>
+
+    <select id="getById" resultType="com.qinfei.qferp.entity.inventory.ReceiveDetails">
+        select <include refid="selectColumn"/>
+        from t_saves_receive_details d
+        where state>-2 and d.id=#{id}
+    </select>
+
+    <insert id="saveReceiveDetailsBatch" parameterType="com.qinfei.qferp.entity.inventory.ReceiveDetails" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_receive_details
+        (
+        apply_id,
+        type,
+        goods_id,
+        unit,
+        amount,
+        price,
+        total_money,
+        state,
+        user_id,
+        update_user_id,
+        create_time,
+        update_time,
+        return_time,
+        company_code
+        )
+        values
+        <foreach collection="list" separator="," item="item">
+            (
+            #{item.applyId},
+            #{item.type},
+            #{item.goodsId},
+            #{item.unit},
+            #{item.amount},
+            #{item.price},
+            #{item.totalMoney},
+            #{item.state},
+            #{item.userId},
+            #{item.updateUserId},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.returnTime},
+            #{item.companyCode}
+            )
+        </foreach>
+    </insert>
+
+    <!--修改领用明细信息-->
+    <update id="editReceiveDetailsByParam">
+        update t_saves_receive_details
+        <set>
+            <if test="outAmount!=null">
+                out_amount=#{outAmount},
+            </if>
+            <if test="updateUserId!=null">
+                update_user_id=#{updateUserId},
+            </if>
+            <if test="updateTime!=null">
+                update_time=#{updateTime},
+            </if>
+            <if test="state!=null">
+                state=#{state},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--删除物品领用明细信息-->
+    <update id="delReceiveDetails" parameterType="java.lang.Integer">
+        update t_saves_receive_details set state = -9 where apply_id = #{id}
+    </update>
+
+    <delete id="deleteReceiveDetails" parameterType="java.lang.Integer">
+        delete from t_saves_receive_details where apply_id = #{id}
+    </delete>
+</mapper>

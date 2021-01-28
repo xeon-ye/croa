@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{},~{::script},~{::style})">
+    <title data-th-text="'扫码登录'+${AppName}">扫码登录</title>
+
+    <style>
+        button{
+          width:100%;
+        }
+
+        #login{
+            margin: 100px 0px;
+            padding: 5px;
+        }
+    </style>
+    <script>
+        $(function () {
+            var token = localStorage.getItem('token');
+            alert(token);
+            if(!token){
+              alert("请使用app进行扫码！")
+            }
+            $("#authLogin").click(function () {
+                window.location.href="http://192.168.2.121/code/authLogin?code="+$("#authLogin").val();
+            })
+        })
+
+
+
+
+    </script>
+
+</head>
+
+
+<body>
+
+<div id="login">
+       <div class="row col-sm-12"><button type="button" class="btn btn-success" id="authLogin" th:value="${code}">确定授权登陆网页版</button></div>
+       <div class="row  col-sm-12"><button type="button" class="btn btn-danger" id="authLogin" th:value="${code}">确定授权登陆网页版</button></div>
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.biz.ArticleHistoryMapper">
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        INSERT INTO `t_biz_article_history` (
+        `art_id`,
+        `media_id`,
+        `media_name`,
+        `supplier_id`,
+        `supplier_name`,
+        `supplier_contactor`,
+        `media_user_id`,
+        `media_user_name`,
+        `brand`,
+        `issued_date`,
+        `title`,
+        `link`,
+        `num`,
+        `sale_amount`,
+        `income_amount`,
+        `tax_type`,
+        `taxes`,
+        `price_column`,
+        `price_type`,
+        `pay_amount`,
+        `outgo_amount`,
+        `promise_date`,
+        `income_date`,
+        `income_total_amount`,
+        `outgo_id`,
+        `outgo_code`,
+        `outgo_total_amount`,
+        `other_pay`,
+        `refund_amount`,
+        `remarks`,
+        `commission`,
+        `commission_date`,
+        `outgo_states`,
+        `commission_states`,
+        `invoice_states`,
+        `income_states`,
+        `issue_states`,
+        `file_path`,
+        `state`,
+        `refund_states`,
+        `other_pay_states`,
+        `year`,
+        `month`,
+        `profit`,
+        `creator`,
+        `create_time`,
+        `update_user_id`,
+        `update_time`,
+        `media_type_id`,
+        `media_type_name`,
+        `unit_price`,
+        `income_id`,
+        `income_code`,
+        `income_account`,
+        `income_man`,
+        `inner_outer`,
+        `channel`,
+        `electricity_businesses`,
+        `other_expenses`,
+        `type_code`,
+        `type_name`,
+        `edit_desc`,
+        `alter_sale`,
+        `alter_income`,
+        `alter_outgo`,
+        `alter_tax`,
+        `alter_profit`,
+        `alter_label`,
+        `assign_date`,
+        `company_code`,
+        `user_id`,
+        `dept_id`
+        )
+
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.artId},
+            #{item.mediaId},
+            #{item.mediaName},
+            #{item.supplierId},
+            #{item.supplierName},
+            #{item.supplierContactor},
+            #{item.mediaUserId},
+            #{item.mediaUserName},
+            #{item.brand},
+            #{item.issuedDate},
+            #{item.title},
+            #{item.link},
+            #{item.num},
+            #{item.saleAmount},
+            #{item.incomeAmount},
+            #{item.taxType},
+            #{item.taxes},
+            #{item.priceColumn},
+            #{item.priceType},
+            #{item.payAmount},
+            #{item.outgoAmount},
+            #{item.promiseDate},
+            #{item.incomeDate},
+            #{item.incomeTotalAmount},
+            #{item.outgoId},
+            #{item.outgoCode},
+            #{item.outgoTotalAmount},
+            #{item.otherPay},
+            #{item.refundAmount},
+            #{item.remarks},
+            #{item.commission},
+            #{item.commissionDate},
+            #{item.outgoStates},
+            #{item.commissionStates},
+            #{item.invoiceStates},
+            #{item.incomeStates},
+            #{item.issueStates},
+            #{item.filePath},
+            #{item.state},
+            #{item.refundStates},
+            #{item.otherPayStates},
+            #{item.year},
+            #{item.month},
+            #{item.profit},
+            #{item.creator},
+            #{item.createTime},
+            #{item.updateUserId},
+            #{item.updateTime},
+            #{item.mediaTypeId},
+            #{item.mediaTypeName},
+            #{item.unitPrice},
+            #{item.incomeId},
+            #{item.incomeCode},
+            #{item.incomeAccount},
+            #{item.incomeMan},
+            #{item.innerOuter},
+            #{item.channel},
+            #{item.electricityBusinesses},
+            #{item.otherExpenses},
+            #{item.typeCode},
+            #{item.typeName},
+            #{item.editDesc},
+            #{item.alterSale},
+            #{item.alterIncome},
+            #{item.alterOutgo},
+            #{item.alterTax},
+            #{item.alterProfit},
+            #{item.alterLabel},
+            #{item.assignDate},
+            #{item.companyCode},
+            #{item.userId},
+            #{item.deptId}
+            )
+        </foreach>
+    </insert>
+
+    <sql id="queryArticleChangeCommon">
+        SELECT
+        <if test="type==1">
+            year(a.create_time) createYear,
+            month(a.create_time) createMonth,
+            max(year(a.issued_date)) issuedYear,
+            max(month(a.issued_date)) issuedMonth,
+        </if>
+        <if test="type==2">
+            year(a.issued_date) issuedYear,
+            month(a.issued_date) issuedMonth,
+            max(year(a.create_time)) createYear,
+            max(month(a.create_time)) createMonth,
+        </if>
+        sum(a.alter_sale) alterSale,
+        sum(a.alter_income) alterIncome,
+        sum(a.alter_outgo) alterOutgo,
+        sum(a.alter_tax) alterTax,
+        sum(a.alter_refund) alterRefund,
+        sum(a.alter_other_pay) alterOtherPay,
+        sum(a.alter_profit) alterProfit,
+        sum(a.alter_comm) alterComm
+        FROM
+        t_biz_article_history a
+        LEFT JOIN sys_user b ON a.user_id = b.id
+        left join sys_dept c on a.dept_id = c.id
+        WHERE
+        a.alter_label = 1
+        <include refid="articleHistoryCondition"/>
+        <if test="type==1">
+            AND YEAR (a.issued_date) = #{year}
+            AND MONTH (a.issued_date) = #{month}
+            group by year(a.create_time),month(a.create_time)
+        </if>
+        <if test="type==2">
+            AND YEAR (a.create_time) = #{year}
+            AND MONTH (a.create_time) = #{month}
+            group by year(a.issued_date),month(a.issued_date)
+        </if>
+    </sql>
+    <select id="queryArticleChange" parameterType="java.util.Map"  resultType="java.util.Map">
+        select * from (
+        <include refid="queryArticleChangeCommon"/>
+        ) t order by
+        <if test="type==1">
+            <choose>
+                <when test="sidx != null and sidx != ''">
+                    ${sidx} ${sord}
+                </when>
+                <otherwise>
+                    createYear desc,createMonth desc
+                </otherwise>
+            </choose>
+        </if>
+        <if test="type==2">
+            <choose>
+                <when test="sidx != null and sidx != ''">
+                    ${sidx} ${sord}
+                </when>
+                <otherwise>
+                    issuedYear desc,issuedMonth desc
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <select id="queryArticleChangeSum" parameterType="java.util.Map"  resultType="java.util.Map">
+        SELECT sum(c.alterSale) sale,sum(c.alterIncome) income,sum(c.alterOutgo) outgo,sum(c.alterTax) tax,
+        sum(c.alterRefund) refund,sum(c.alterOtherPay) otherPay,sum(c.alterProfit) profit,sum(c.alterComm) comm
+        FROM (
+        <include refid="queryArticleChangeCommon"/>
+        )c
+    </select>
+
+    <select id="queryArticleSaleAmountSum" parameterType="java.util.Map"  resultType="java.util.Map">
+        SELECT sum(a.sale_amount) saleSum
+        FROM t_biz_article a
+        left join t_biz_order b on a.order_id=b.id
+        left join sys_user c on b.user_id=c.id
+        where a.state > -2
+        AND YEAR (a.issued_date) = #{year}
+        AND MONTH (a.issued_date) = #{month}
+        <choose>
+            <!--0无权限-->
+            <when test="typeQx == 0">
+                AND a.id = 0
+            </when>
+            <!--1、分公司权限-->
+            <when test="typeQx == 1">
+                AND c.company_code=#{companyCode}
+            </when>
+            <!--2集团权限-->
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="queryArticleChangeDetail" parameterType="java.util.Map"  resultType="java.util.Map">
+        select * from (
+        SELECT
+        a.media_type_name mediaTypeName,
+        a.media_name mediaName,
+        a.media_user_name mediaUserName,
+        b.dept_name deptName,
+        b. NAME userName,
+        a.title title,
+        a.link link,
+        a.alter_sale alterSale,
+        a.alter_income alterIncome,
+        a.alter_outgo alterOutgo,
+        a.alter_tax alterTax,
+        a.alter_refund alterRefund,
+        a.alter_other_pay alterOtherPay,
+        a.alter_profit alterProfit,
+        a.alter_comm alterComm,
+        DATE_FORMAT(a.create_time,"%Y-%m-%d %H:%i") createTime,
+        DATE_FORMAT(a.issued_date,"%Y-%m-%d") issuedDate,
+        a.edit_desc editDesc
+        FROM
+        t_biz_article_history a
+        LEFT JOIN sys_user b ON a.user_id = b.id
+        left join sys_dept c on a.dept_id = c.id
+        WHERE
+        a.alter_label = 1
+        <include refid="articleHistoryCondition"/>)t
+        order by
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                issuedDate desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="queryArticleChangeDetailSum" parameterType="java.util.Map"  resultType="java.util.Map">
+        SELECT
+        sum(a.alter_sale) sale,
+        sum(a.alter_income) income,
+        sum(a.alter_outgo) outgo,
+        sum(a.alter_tax) tax,
+        sum(a.alter_refund) refund,
+        sum(a.alter_other_pay) otherPay,
+        sum(a.alter_profit) profit,
+        sum(a.alter_comm) comm
+        FROM
+            t_biz_article_history a
+        LEFT JOIN sys_user b ON a.user_id = b.id
+        left join sys_dept c on a.dept_id = c.id
+        WHERE
+            a.alter_label = 1
+            <include refid="articleHistoryCondition"/>
+    </select>
+
+    <sql id="articleHistoryCondition">
+        <choose>
+            <!--0无权限-->
+            <when test="typeQx == 0">
+                AND a.id = 0
+            </when>
+            <!--1、分公司权限-->
+            <when test="typeQx == 1">
+                AND a.company_code=#{companyCode}
+            </when>
+            <!--2集团权限-->
+            <otherwise>
+            </otherwise>
+        </choose>
+        <if test="issuedStartTime!=null and issuedStartTime!=''">
+            AND a.issued_date &gt;= #{issuedStartTime}
+        </if>
+        <if test="issuedEndTime!=null and issuedEndTime!=''">
+            AND a.issued_date &lt;= #{issuedEndTime}
+        </if>
+        <if test="createStartTime!=null and createStartTime!=''">
+            AND a.create_time &gt;= #{createStartTime}
+        </if>
+        <if test="createEndTime!=null and createEndTime!=''">
+            AND a.create_time &lt;= #{createEndTime}
+        </if>
+        <if test="deptName!=null and deptName!=''">
+            AND c.name like concat('%',#{deptName},'%')
+        </if>
+        <if test="userName!=null and userName!=''">
+            AND b.name like concat('%',#{userName},'%')
+        </if>
+        <if test="mediaUserName!=null and mediaUserName!=''">
+            AND a.media_user_name like concat('%',#{mediaUserName},'%')
+        </if>
+        <if test="mediaName!=null and mediaName!=''">
+            AND a.media_name like concat('%',#{mediaName},'%')
+        </if>
+        <if test="title!=null and title!=''">
+            AND a.title like concat('%',#{title},'%')
+        </if>
+        <if test="editDesc!=null and editDesc!=''">
+            AND a.edit_desc like concat('%',#{editDesc},'%')
+        </if>
+    </sql>
+
+    <select id="queryArticleChangeSingle" parameterType="java.util.Map"  resultType="java.util.Map">
+        select * from (
+        SELECT
+        a.id id,
+        a.media_type_name mediaTypeName,
+        a.media_name mediaName,
+        a.media_user_name mediaUserName,
+        b.dept_name deptName,
+        b. NAME userName,
+        a.title title,
+        a.link link,
+        a.alter_sale alterSale,
+        a.alter_income alterIncome,
+        a.alter_outgo alterOutgo,
+        a.alter_tax alterTax,
+        a.alter_refund alterRefund,
+        a.alter_other_pay alterOtherPay,
+        a.alter_profit alterProfit,
+        a.alter_comm alterComm,
+        DATE_FORMAT(a.create_time,"%Y-%m-%d %H:%i") createTime,
+        DATE_FORMAT(a.issued_date,"%Y-%m-%d") issuedDate,
+        a.edit_desc editDesc
+        FROM
+        t_biz_article_history a
+        LEFT JOIN sys_user b ON a.user_id = b.id
+        left join sys_dept c on a.dept_id = c.id
+        WHERE a.art_id=#{artId}
+        <include refid="articleHistorySingle"/>)t
+        order by
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                id desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="queryArticleChangeSingleSum" parameterType="java.util.Map"  resultType="java.util.Map">
+        SELECT
+        sum(a.alter_sale) sale,
+        sum(a.alter_income) income,
+        sum(a.alter_outgo) outgo,
+        sum(a.alter_tax) tax,
+        sum(a.alter_refund) refund,
+        sum(a.alter_other_pay) otherPay,
+        sum(a.alter_profit) profit,
+        sum(a.alter_comm) comm
+        FROM
+        t_biz_article_history a
+        WHERE a.art_id=#{artId}
+        <include refid="articleHistorySingle"/>
+        order by a.id desc
+    </select>
+
+    <sql id="articleHistorySingle">
+        and a.alter_label = 1
+        <if test="createStartTime!=null and createStartTime!=''">
+            AND a.create_time &gt;= #{createStartTime}
+        </if>
+        <if test="createEndTime!=null and createEndTime!=''">
+            AND a.create_time &lt;= #{createEndTime}
+        </if>
+        <if test="editDesc!=null and editDesc!=''">
+            AND a.edit_desc like concat('%',#{editDesc},'%')
+        </if>
+    </sql>
+</mapper>

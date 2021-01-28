@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.plan.UserPlanMapper">
+    <sql id="selectColumn">
+       tup.id,
+       tup.perfo_summary as perfoSummary,
+       tup.profit_summary as profitSummary,
+       tup.yx_custom_summary as yxCustomSummary,
+       tup.xcj_custom_summary as xcjCustomSummary,
+       tup.gj_custom_summary as gjCustomSummary,
+       tup.tzy_custom_summary as tzyCustomSummary,
+       tup.perfo_plan as perfoPlan,
+       tup.profit_plan as profitPlan,
+       tup.yx_custom_plan as yxCustomPlan,
+       tup.xcj_custom_plan as xcjCustomPlan,
+       tup.gj_custom_plan as gjCustomPlan,
+       tup.tzy_custom_plan as tzyCustomPlan,
+       tup.is_overtime as isOvertime,
+       tup.summary_result as summaryResult,
+       tup.summary_type as summaryType,
+       tup.create_date as createDate,
+       tup.create_id as createId,
+       tup.update_date as updateDate,
+       tup.update_id as updateId,
+       tup.state
+    </sql>
+    <sql id="userColumn">
+        su.id as userId,
+        su.name as userName,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+   <!--权限功能：currentUserId为指定人员，不选默认全部-->
+   <sql id="currentUserQX">
+      inner join sys_user su on ${userTj} AND su.state = 1 and su.handover_state=0
+      <!--根据配置，排除某些特定不需要填写每日计划的用户-->
+      <if test="excludeUserList != null and  excludeUserList.size() > 0">
+         AND su.id NOT IN
+         <foreach collection="excludeUserList" item="userId" index="index" open="(" close=")" separator=",">
+            #{userId}
+         </foreach>
+      </if>
+      <!--根据配置，排除某些特定不需要填写每日计划的部门-->
+      <if test="excludeDeptList != null and  excludeDeptList.size() > 0">
+         AND su.`dept_id` NOT IN
+         <foreach collection="excludeDeptList" item="deptId" index="index" open="(" close=")" separator=",">
+            #{deptId}
+         </foreach>
+      </if>
+      <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+         <choose>
+            <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+               and su.id = #{currentUserId}
+            </when>
+            <otherwise>
+               <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+               <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                  AND su.company_code = #{companyCode}
+               </if>
+               <if test="deptIds != '' and deptIds != null">
+                  AND su.`dept_id` IN (${deptIds})
+               </if>
+            </otherwise>
+         </choose>
+      </if>
+   </sql>
+
+   <!--设置查询时间-->
+   <sql id="recentTime">
+      <choose>
+         <!--本周-->
+         <when test="timeQuantum == 1">
+            and YEARWEEK(${timeField} - INTERVAL 1 DAY) = YEARWEEK(date_format(NOW(),'%Y-%m-%d') - INTERVAL 1 DAY)
+         </when>
+         <!--本月-->
+         <when test="timeQuantum == 2">
+            and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+         </when>
+         <!--时间区间-->
+         <when test="timeQuantum == 3">
+            <choose>
+               <when test="(startDate != null and startDate != '') || (endDate != null and endDate != '')">
+                  <if test="startDate != null and startDate != ''">
+                     AND ${timeField} <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+                  </if>
+                  <if test="endDate != null and endDate != ''">
+                     AND ${timeField} <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+                  </if>
+               </when>
+               <otherwise>
+                  and DATE_FORMAT(${timeField}, '%Y%m%d') = DATE_FORMAT(CURDATE(), '%Y%m%d')
+               </otherwise>
+            </choose>
+         </when>
+         <!--当天-->
+         <otherwise>
+            and DATE_FORMAT(${timeField}, '%Y%m%d') = DATE_FORMAT(CURDATE(), '%Y%m%d')
+         </otherwise>
+      </choose>
+   </sql>
+
+   <!--计划信息-->
+   <resultMap id="planMap" type="com.qinfei.qferp.entity.plan.UserPlan">
+      <id column="id" property="id"/>
+      <result column="perfoSummary" property="perfoSummary"/>
+      <result column="profitSummary" property="profitSummary"/>
+      <result column="yxCustomSummary" property="yxCustomSummary"/>
+      <result column="xcjCustomSummary" property="xcjCustomSummary"/>
+      <result column="gjCustomSummary" property="gjCustomSummary"/>
+      <result column="tzyCustomSummary" property="tzyCustomSummary"/>
+      <result column="perfoPlan" property="perfoPlan"/>
+      <result column="profitPlan" property="profitPlan"/>
+      <result column="yxCustomPlan" property="yxCustomPlan"/>
+      <result column="xcjCustomPlan" property="xcjCustomPlan"/>
+      <result column="gjCustomPlan" property="gjCustomPlan"/>
+      <result column="tzyCustomPlan" property="tzyCustomPlan"/>
+      <result column="isOvertime" property="isOvertime"/>
+      <result column="summaryResult" property="summaryResult"/>
+      <result column="summaryType" property="summaryType"/>
+      <result column="createDate" property="createDate"/>
+      <result column="createId" property="createId"/>
+      <result column="updateDate" property="updateDate"/>
+      <result column="updatedId" property="updateId"/>
+      <result column="state" property="state"/>
+      <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+         <id column="userId" property="id"/>
+         <result column="userName" property="userName"/>
+         <result column="deptId" property="deptId"/>
+         <result column="deptName" property="deptName"/>
+         <result column="userCompanyCode" property="companyCode"/>
+      </association>
+   </resultMap>
+
+   <!--新增计划-->
+   <insert id="save" parameterType="com.qinfei.qferp.entity.plan.UserPlan">
+      insert into t_user_plan
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+         <if test="perfoSummary != null">perfo_summary,</if>
+         <if test="profitSummary != null">profit_summary,</if>
+         <if test="yxCustomSummary != null">yx_custom_summary,</if>
+         <if test="xcjCustomSummary != null">xcj_custom_summary,</if>
+         <if test="gjCustomSummary != null">gj_custom_summary,</if>
+         <if test="tzyCustomSummary != null">tzy_custom_summary,</if>
+         <if test="perfoPlan != null">perfo_plan,</if>
+         <if test="profitPlan != null">profit_plan,</if>
+         <if test="yxCustomPlan != null">yx_custom_plan,</if>
+         <if test="xcjCustomPlan != null">xcj_custom_plan,</if>
+         <if test="gjCustomPlan != null">gj_custom_plan,</if>
+         <if test="tzyCustomPlan != null">tzy_custom_plan,</if>
+         <if test="isOvertime != null">is_overtime,</if>
+         <if test="summaryResult != null">summary_result,</if>
+         <if test="summaryType != null">summary_type,</if>
+         <if test="createDate != null">create_date,</if>
+         <if test="createId != null">create_id,</if>
+         <if test="updateDate != null">update_date,</if>
+         <if test="updateId != null">update_id,</if>
+         <if test="state!= null">state</if>
+      </trim>
+      <trim prefix="values (" suffix=")" suffixOverrides=",">
+         <if test="perfoSummary != null">#{perfoSummary},</if>
+         <if test="profitSummary != null">#{profitSummary},</if>
+         <if test="yxCustomSummary != null">#{yxCustomSummary},</if>
+         <if test="xcjCustomSummary != null">#{xcjCustomSummary},</if>
+         <if test="gjCustomSummary != null">#{gjCustomSummary},</if>
+         <if test="tzyCustomSummary != null">#{tzyCustomSummary},</if>
+         <if test="perfoPlan != null">#{perfoPlan},</if>
+         <if test="profitPlan != null">#{profitPlan},</if>
+         <if test="yxCustomPlan != null">#{yxCustomPlan},</if>
+         <if test="xcjCustomPlan != null">#{xcjCustomPlan},</if>
+         <if test="gjCustomPlan != null">#{gjCustomPlan},</if>
+         <if test="tzyCustomPlan != null">#{tzyCustomPlan},</if>
+         <if test="isOvertime != null">#{isOvertime},</if>
+         <if test="summaryResult != null">#{summaryResult},</if>
+         <if test="summaryType != null">#{summaryType},</if>
+         <if test="createDate != null">#{createDate},</if>
+         <if test="createId != null">#{createId},</if>
+         <if test="updateDate != null">#{updateDate},</if>
+         <if test="updateId != null">#{updateId},</if>
+         <if test="state!= null">#{state}</if>
+      </trim>
+   </insert>
+
+   <!--根据ID修改总结数据-->
+   <update id="updateSummaryById" parameterType="com.qinfei.qferp.entity.plan.UserPlan">
+      UPDATE t_user_plan tup
+      SET
+      <if test="perfoSummary != null">tup.perfo_summary = #{perfoSummary},</if>
+      <if test="profitSummary != null">tup.profit_summary = #{profitSummary},</if>
+      <if test="yxCustomSummary != null">tup.yx_custom_summary = #{yxCustomSummary},</if>
+      <if test="xcjCustomSummary != null">tup.xcj_custom_summary = #{xcjCustomSummary},</if>
+      <if test="gjCustomSummary != null">tup.gj_custom_summary = #{gjCustomSummary},</if>
+      <if test="tzyCustomSummary != null">tup.tzy_custom_summary = #{tzyCustomSummary}</if>
+      WHERE
+      	tup.id = #{id}
+   </update>
+
+   <!--根据用户ID和日期获取指定类型的计划-->
+   <select id="getPlanByUserIdAndDate" resultType="com.qinfei.qferp.entity.plan.UserPlan">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_user_plan tup
+        WHERE tup.state = 0
+        AND tup.create_id = #{userId}
+        AND DATE_FORMAT(tup.create_date, '%Y%m%d') = #{planDate}
+        AND tup.summary_type = #{summaryType}
+   </select>
+
+   <!--获取用户最后一个计划总结-->
+   <select id="getLastPlanByUserId" resultType="com.qinfei.qferp.entity.plan.UserPlan">
+      SELECT
+        <include refid="selectColumn"/>
+      FROM
+      	t_user_plan tup
+      WHERE tup.state = 0
+      AND tup.create_id = #{userId}
+      AND tup.summary_type = #{summaryType}
+      ORDER BY
+      	tup.create_date DESC
+      LIMIT 1
+   </select>
+
+   <!--获取指定用户计划列表-->
+   <select id="listPlanByUserId" resultMap="planMap">
+      SELECT
+        <include refid="selectColumn"/> , <include refid="userColumn"/>
+      FROM
+      t_user_plan tup
+      INNER JOIN sys_user su ON tup.create_id = su.id
+      WHERE
+      tup.summary_type = 0
+      AND tup.create_id = #{userId}
+      <if test="isOvertime != null">
+         AND tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            tup.profit_summary desc, tup.create_date desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--获取指定用户计划列表-->
+   <select id="listPlanMapByUserId" resultType="java.util.Map">
+      SELECT
+      <include refid="selectColumn"/> , <include refid="userColumn"/>
+      FROM
+      t_user_plan tup
+      INNER JOIN sys_user su ON tup.create_id = su.id
+      WHERE
+      tup.summary_type = 0
+      AND tup.create_id = #{userId}
+      <if test="isOvertime != null">
+         AND tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            tup.profit_summary desc, tup.create_date desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--获取指定用户计划列表合计-->
+   <select id="getTotalByUserId" resultType="com.qinfei.qferp.entity.plan.UserPlan">
+      SELECT
+      IFNULL(SUM(tup.perfo_summary),0)  as perfoSummary,
+      IFNULL(SUM(tup.profit_summary),0)  as profitSummary,
+      IFNULL(SUM(tup.yx_custom_summary ),0)  as yxCustomSummary,
+      IFNULL(SUM(tup.xcj_custom_summary),0)  as xcjCustomSummary,
+      IFNULL(SUM(tup.gj_custom_summary ),0)  as gjCustomSummary,
+      IFNULL(SUM(tup.tzy_custom_summary),0)  as tzyCustomSummary,
+      IFNULL(SUM(tup.perfo_plan),0)  as perfoPlan,
+      IFNULL(SUM(tup.profit_plan),0)  as profitPlan,
+      IFNULL(SUM(tup.yx_custom_plan),0)  as yxCustomPlan,
+      IFNULL(SUM(tup.xcj_custom_plan),0)  as xcjCustomPlan,
+      IFNULL(SUM(tup.gj_custom_plan),0)  as gjCustomPlan,
+      IFNULL(SUM(tup.tzy_custom_plan),0)  as tzyCustomPlan
+      FROM
+      t_user_plan tup
+      WHERE
+      tup.summary_type = 0
+      AND tup.create_id = #{userId}
+      <if test="isOvertime != null">
+         AND tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+   </select>
+
+   <!--获取用户计划列表，权限判断-->
+   <select id="listPlanByParam" resultMap="planMap">
+      SELECT
+      <include refid="selectColumn"/> , <include refid="userColumn"/>
+      FROM
+      t_user_plan tup
+      <if test="groupId != null">
+         INNER JOIN t_user_group_relate tugr ON tup.create_id = tugr.user_id  AND tugr.state = 0
+         INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+      </if>
+      <include refid="currentUserQX">
+         <property name="userTj" value=" su.id = tup.create_id"/>
+      </include>
+      WHERE
+      tup.summary_type = 0
+      <if test="groupId != null">
+         and tug.id = #{groupId}
+      </if>
+      <if test="isOvertime != null">
+         and tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            tup.profit_summary desc, tup.create_date desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--获取用户计划列表，权限判断-->
+   <select id="listPlanMapByParam" resultType="java.util.Map">
+      SELECT
+      <include refid="selectColumn"/> , <include refid="userColumn"/>
+      FROM
+      t_user_plan tup
+      <if test="groupId != null">
+         INNER JOIN t_user_group_relate tugr ON tup.create_id = tugr.user_id  AND tugr.state = 0
+         INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+      </if>
+      <include refid="currentUserQX">
+         <property name="userTj" value=" su.id = tup.create_id"/>
+      </include>
+      WHERE
+      tup.summary_type = 0
+      <if test="groupId != null">
+         and tug.id = #{groupId}
+      </if>
+      <if test="isOvertime != null">
+         and tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            tup.profit_summary desc, tup.create_date desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--计划列表合计，权限判断-->
+   <select id="getTotalByParam" resultType="com.qinfei.qferp.entity.plan.UserPlan">
+      SELECT
+          IFNULL(SUM(tup.perfo_summary),0)  as perfoSummary,
+          IFNULL(SUM(tup.profit_summary),0)  as profitSummary,
+          IFNULL(SUM(tup.yx_custom_summary ),0)  as yxCustomSummary,
+          IFNULL(SUM(tup.xcj_custom_summary),0)  as xcjCustomSummary,
+          IFNULL(SUM(tup.gj_custom_summary ),0)  as gjCustomSummary,
+          IFNULL(SUM(tup.tzy_custom_summary),0)  as tzyCustomSummary,
+          IFNULL(SUM(tup.perfo_plan),0)  as perfoPlan,
+          IFNULL(SUM(tup.profit_plan),0)  as profitPlan,
+          IFNULL(SUM(tup.yx_custom_plan),0)  as yxCustomPlan,
+          IFNULL(SUM(tup.xcj_custom_plan),0)  as xcjCustomPlan,
+          IFNULL(SUM(tup.gj_custom_plan),0)  as gjCustomPlan,
+          IFNULL(SUM(tup.tzy_custom_plan),0)  as tzyCustomPlan
+      FROM
+      t_user_plan tup
+      <if test="groupId != null">
+         INNER JOIN t_user_group_relate tugr ON tup.create_id = tugr.user_id  AND tugr.state = 0
+         INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+      </if>
+      <include refid="currentUserQX">
+         <property name="userTj" value=" su.id = tup.create_id"/>
+      </include>
+      WHERE
+      tup.summary_type = 0
+      <if test="groupId != null">
+         and tug.id = #{groupId}
+      </if>
+      <if test="isOvertime != null">
+         and tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+   </select>
+
+   <!--计划统计，summary_type = 1为当天总结和计划记录，用于统计-->
+   <sql id="planStatisticsSql">
+      SELECT
+      <include refid="selectColumn"/> , <include refid="userColumn"/>
+      FROM
+      t_user_plan tup
+      <if test="groupId != null">
+         INNER JOIN t_user_group_relate tugr ON tup.create_id = tugr.user_id  AND tugr.state = 0
+         INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+      </if>
+      <include refid="currentUserQX">
+         <property name="userTj" value=" su.id = tup.create_id"/>
+      </include>
+      WHERE
+      tup.summary_type = 1
+      <if test="groupId != null">
+         and tug.id = #{groupId}
+      </if>
+      <if test="isOvertime != null">
+         and tup.is_overtime = #{isOvertime}
+      </if>
+      <include refid="recentTime">
+         <property name="timeField" value="tup.create_date"/>
+      </include>
+   </sql>
+
+   <!--计划统计-->
+   <select id="listPlanStatisticsByParam" resultMap="planMap">
+      SELECT
+      t.userId,
+      t.userName,
+      IFNULL(SUM(t.perfoSummary),0)  as perfoSummary,
+      IFNULL(SUM(t.profitSummary),0)  as profitSummary,
+      IFNULL(SUM(t.yxCustomSummary ),0)  as yxCustomSummary,
+      IFNULL(SUM(t.xcjCustomSummary),0)  as xcjCustomSummary,
+      IFNULL(SUM(t.gjCustomSummary ),0)  as gjCustomSummary,
+      IFNULL(SUM(t.tzyCustomSummary),0)  as tzyCustomSummary,
+      IFNULL(SUM(t.perfoPlan),0)  as perfoPlan,
+      IFNULL(SUM(t.profitPlan),0)  as profitPlan,
+      IFNULL(SUM(t.yxCustomPlan),0)  as yxCustomPlan,
+      IFNULL(SUM(t.xcjCustomPlan),0)  as xcjCustomPlan,
+      IFNULL(SUM(t.gjCustomPlan),0)  as gjCustomPlan,
+      IFNULL(SUM(t.tzyCustomPlan),0)  as tzyCustomPlan
+      FROM (<include refid="planStatisticsSql"/>) t
+      group by t.userId,t.userName
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            profitSummary desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--计划统计-->
+   <select id="listPlanStatisticsMapByParam" resultType="java.util.Map">
+      SELECT
+      t.userId,
+      t.userName,
+      IFNULL(SUM(t.perfoSummary),0)  as perfoSummary,
+      IFNULL(SUM(t.profitSummary),0)  as profitSummary,
+      IFNULL(SUM(t.yxCustomSummary ),0)  as yxCustomSummary,
+      IFNULL(SUM(t.xcjCustomSummary),0)  as xcjCustomSummary,
+      IFNULL(SUM(t.gjCustomSummary ),0)  as gjCustomSummary,
+      IFNULL(SUM(t.tzyCustomSummary),0)  as tzyCustomSummary,
+      IFNULL(SUM(t.perfoPlan),0)  as perfoPlan,
+      IFNULL(SUM(t.profitPlan),0)  as profitPlan,
+      IFNULL(SUM(t.yxCustomPlan),0)  as yxCustomPlan,
+      IFNULL(SUM(t.xcjCustomPlan),0)  as xcjCustomPlan,
+      IFNULL(SUM(t.gjCustomPlan),0)  as gjCustomPlan,
+      IFNULL(SUM(t.tzyCustomPlan),0)  as tzyCustomPlan
+      FROM (<include refid="planStatisticsSql"/>) t
+      group by t.userId,t.userName
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            profitSummary desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--计划统计合计-->
+   <select id="getStatisticsTotalByParam" resultType="com.qinfei.qferp.entity.plan.UserPlan">
+      SELECT
+        IFNULL(SUM(t.perfoSummary),0)  as perfoSummary,
+        IFNULL(SUM(t.profitSummary),0)  as profitSummary,
+        IFNULL(SUM(t.yxCustomSummary ),0)  as yxCustomSummary,
+        IFNULL(SUM(t.xcjCustomSummary),0)  as xcjCustomSummary,
+        IFNULL(SUM(t.gjCustomSummary ),0)  as gjCustomSummary,
+        IFNULL(SUM(t.tzyCustomSummary),0)  as tzyCustomSummary,
+        IFNULL(SUM(t.perfoPlan),0)  as perfoPlan,
+        IFNULL(SUM(t.profitPlan),0)  as profitPlan,
+        IFNULL(SUM(t.yxCustomPlan),0)  as yxCustomPlan,
+        IFNULL(SUM(t.xcjCustomPlan),0)  as xcjCustomPlan,
+        IFNULL(SUM(t.gjCustomPlan),0)  as gjCustomPlan,
+        IFNULL(SUM(t.tzyCustomPlan),0)  as tzyCustomPlan
+      FROM (<include refid="planStatisticsSql"/>) t
+   </select>
+
+   <!--获取未填写计划人员-->
+   <select id="listNotEnterPlanUserByParam" resultType="java.util.Map">
+      SELECT
+      dayTime,
+      companyCode,
+      companyCodeName,
+      deptId,
+      deptName,
+      userName
+      FROM
+      (
+      SELECT
+      t.dayTime,
+      su.id,
+      sd.company_code AS companyCode,
+      sd.company_code_name AS companyCodeName,
+      sd.id as deptId,
+      sd.`name` AS deptName,
+      su.`name` AS userName
+      FROM
+      (
+      SELECT
+      dayTime,
+      `sum`
+      FROM
+      (
+        SELECT
+          WEEKDAY( DATE_ADD(@cdate, INTERVAL - 1 DAY)) AS weekIndex,
+          @cdate := DATE_ADD(@cdate, INTERVAL - 1 DAY) AS dayTime,
+          0 AS `sum`
+        FROM
+        (
+          SELECT
+          @cdate := DATE_ADD(CURDATE(), INTERVAL + 1 DAY)
+          FROM
+          t_log
+          LIMIT #{dayNum}
+        ) t1
+        WHERE  @cdate > '1997-01-01'
+      ) t0
+        WHERE 1=1
+          <if test="workDateList != null and  workDateList.size() > 0">
+             AND t0.dayTime IN
+             <foreach item="workDate" collection="workDateList" index="index" open="(" close=")" separator=",">
+                #{workDate}
+             </foreach>
+          </if>
+      ) t,
+      sys_user su
+      INNER JOIN sys_dept sd ON su.dept_id = sd.id
+      INNER JOIN sys_user_role sur ON su.id = sur.user_id
+      INNER JOIN sys_role sr ON sr.id = sur.role_id
+      <if test="groupId != null">
+         INNER JOIN t_user_group_relate tugr ON su.id = tugr.user_id  AND tugr.state = 0
+         INNER JOIN t_user_group tug ON tug.id = tugr.group_id AND tug.state = 0
+      </if>
+      WHERE
+      sr.type = 'YW' AND sr.code <![CDATA[<>]]> 'ZW' AND su.state = 1 and su.handover_state=0
+      <if test="groupId != null">
+         and tug.id = #{groupId}
+      </if>
+      <!--根据配置，排除某些特定不需要填写每日计划的用户-->
+      <if test="excludeUserList != null and  excludeUserList.size() > 0">
+         AND su.id NOT IN
+         <foreach collection="excludeUserList" item="userId" index="index" open="(" close=")" separator=",">
+            #{userId}
+         </foreach>
+      </if>
+      <!--根据配置，排除某些特定不需要填写每日计划的部门-->
+      <if test="excludeDeptList != null and  excludeDeptList.size() > 0">
+         AND su.`dept_id` NOT IN
+         <foreach collection="excludeDeptList" item="deptId" index="index" open="(" close=")" separator=",">
+            #{deptId}
+         </foreach>
+      </if>
+      <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+         <choose>
+            <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+               and su.id = #{currentUserId}
+            </when>
+            <otherwise>
+               <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+               <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                  AND su.company_code = #{companyCode}
+               </if>
+               <if test="deptIds != '' and deptIds != null">
+                  AND su.`dept_id` IN (${deptIds})
+               </if>
+            </otherwise>
+         </choose>
+      </if>
+      ) t1
+      LEFT JOIN t_user_plan tup ON t1.id = tup.create_id
+      AND t1.dayTime = DATE_FORMAT(tup.create_date, '%Y-%m-%d')
+      AND tup.summary_type = 0
+      WHERE
+      tup.id IS NULL
+      <include refid="recentTime">
+         <property name="timeField" value="t1.dayTime"/>
+      </include>
+      ORDER BY
+      <choose>
+         <when test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+         </when>
+         <otherwise>
+            dayTime desc
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--获取期号下拉列表值-->
+   <select id="listUserGroupByParam" resultType="com.qinfei.qferp.entity.plan.UserGroup">
+      SELECT DISTINCT
+      	tug.id,
+      	tug.`name`
+      FROM
+      	t_user_group tug
+      INNER JOIN t_user_group_type  tugt ON tug.group_type_id = tugt.id and tugt.is_sys_default = 1
+      INNER JOIN t_user_group_relate tugr ON tugr.group_id = tug.id
+      AND tugr.state = 0
+      WHERE
+      	tug.company_code = #{companyCode}
+      AND tug.state = 0
+      <if test="userId != null">
+         AND tugr.user_id = #{userId}
+      </if>
+   </select>
+
+   <!--个人计划总结排名-->
+   <select id="listUserSummaryRanking" resultType="java.util.Map">
+      SELECT
+        su.id,
+        su.`name`,
+        sd.company_code as companyCode,
+        sd.company_code_name as companyCodeName,
+        IFNULL(SUM(tup.yx_custom_summary),0) AS yxkh,
+        IFNULL(SUM(tup.profit_summary),0) AS profit
+      FROM
+      sys_dept sd
+      INNER JOIN sys_user su ON sd.id = su.dept_id
+        AND su.state > -2
+        AND su.handover_state = 0
+        <!--根据配置，排除某些特定不需要填写每日计划的用户-->
+        <if test="excludeUserList != null and  excludeUserList.size() > 0">
+           AND su.id NOT IN
+           <foreach collection="excludeUserList" item="userId" index="index" open="(" close=")" separator=",">
+              #{userId}
+           </foreach>
+        </if>
+      INNER JOIN sys_user_role sur ON sur.user_id = su.id
+      INNER JOIN sys_role sr ON sur.role_id = sr.id
+        AND sr.type = 'YW'
+        AND sr.`code` <![CDATA[<>]]> 'ZW'
+      LEFT JOIN t_user_plan tup ON su.id = tup.create_id
+        AND tup.summary_type = 1
+        <include refid="recentTime">
+           <property name="timeField" value="tup.create_date"/>
+        </include>
+      WHERE
+        sd.state <![CDATA[<>]]> -9
+        AND sd.`code` = 'YW'
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+           AND sd.company_code = #{companyCode}
+        </if>
+        <!--根据配置，排除某些特定不需要填写每日计划的部门-->
+        <if test="excludeDeptList != null and  excludeDeptList.size() > 0">
+           AND sd.id NOT IN
+           <foreach collection="excludeDeptList" item="deptId" index="index" open="(" close=")" separator=",">
+              #{deptId}
+           </foreach>
+        </if>
+      GROUP BY  su.id
+      ORDER BY
+        <choose>
+         <when test="rankingType == 1">
+            profit DESC, yxkh DESC, id ASC
+         </when>
+         <otherwise>
+            yxkh DESC, profit DESC, id ASC
+         </otherwise>
+      </choose>
+   </select>
+
+   <!--部门每日计划总结列表-->
+   <select id="listDeptSummary" resultType="java.util.Map">
+      SELECT
+        sd.id,
+        sd.`name`,
+        sd.parent_id AS parentId,
+        sd.`level`,
+        sd.company_code as companyCode,
+        sd.company_code_name as companyCodeName,
+        IFNULL(SUM(tup.yx_custom_summary),0) AS yxkh,
+        IFNULL(SUM(tup.profit_summary), 0) AS profit
+      FROM
+        sys_dept sd
+        LEFT JOIN (
+          SELECT
+            su.id,
+            su.dept_id,
+            su.`name`
+          FROM
+            sys_user su
+          INNER JOIN sys_user_role sur ON sur.user_id = su.id
+          INNER JOIN sys_role sr ON sur.role_id = sr.id
+          AND sr.type = 'YW'
+          AND sr.`code` <![CDATA[<>]]> 'ZW'
+          WHERE
+          su.state > -2
+          AND su.handover_state = 0
+          <!--根据配置，排除某些特定不需要填写每日计划的用户-->
+          <if test="excludeUserList != null and  excludeUserList.size() > 0">
+             AND su.id NOT IN
+             <foreach collection="excludeUserList" item="userId" index="index" open="(" close=")" separator=",">
+                #{userId}
+             </foreach>
+          </if>
+        ) t ON t.dept_id = sd.id
+      LEFT JOIN t_user_plan tup ON tup.create_id = t.id
+        AND tup.summary_type = 1
+        <include refid="recentTime">
+           <property name="timeField" value="tup.create_date"/>
+        </include>
+      WHERE
+        sd.state <![CDATA[<>]]> -9
+        AND sd.`level` >= 3
+        AND sd.`code` = 'YW'
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+           AND sd.company_code = #{companyCode}
+        </if>
+        <!--根据配置，排除某些特定不需要填写每日计划的部门-->
+        <if test="excludeDeptList != null and  excludeDeptList.size() > 0">
+           AND sd.id NOT IN
+           <foreach collection="excludeDeptList" item="deptId" index="index" open="(" close=")" separator=",">
+              #{deptId}
+           </foreach>
+        </if>
+      GROUP BY sd.id
+      ORDER BY sd.`level` DESC, sd.id DESC
+   </select>
+
+</mapper>

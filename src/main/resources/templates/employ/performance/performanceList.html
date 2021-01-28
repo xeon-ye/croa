@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/employ/performance/performanceList.js"></script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <title>pk设置</title>
+</head>
+<style>
+    .top7 {
+        margin-top: 7px;
+    }
+
+    .left-10 {
+        margin-left: 10px;
+    }
+
+    .back-set-div-little {
+        height: 185px;
+        border: 1px solid #f0f0f0;
+        width: 45%;
+        background-size: 555px 185px;
+    }
+
+    .top20 {
+        margin-top: 20px;
+    }
+</style>
+<body>
+<div class="row">
+    <input type="hidden" id="selectNode"/>
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+            <div class="ibox-title">
+                <h3 style="font-weight: bold">pk设置</h3>
+            </div>
+            <div class="ibox-content">
+                <div class="col-sm-3" style="">
+                    <div class="col-sm-3" style="">
+                        <button id="schAdd" type="button" class="btn btn-primary">
+                            <i class="fa fa-plus" aria-hidden="true"> </i>&nbsp;新增
+                        </button>
+                    </div>
+                    <div class="col-sm-3" style="">
+                        <button id="schEdit" type="button" class="btn btn-success">
+                            <i class="fa fa-edit" aria-hidden="true"> </i>&nbsp;修改
+                        </button>
+                    </div>
+                    <div class="col-sm-3" style="">
+                        <button type="button" data-toggle="modal"
+                                data-target="#deleteConfirm"
+                                class="btn btn-danger">
+                            <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;删除
+                        </button>
+                    </div>
+                    <div class="col-sm-3" style="">
+                        <button type="button" data-toggle="modal"
+                                data-target="#copyConfirm"
+                                class="btn btn-warning">
+                            <i class="fa fa-copy" aria-hidden="true"></i>&nbsp;拷贝
+                        </button>
+                    </div>
+                    <div class="layui-form">
+                        <div class="col-sm-5">
+                            <span class="form-control">当前年份</span>
+                        </div>
+                        <div class="col-sm-7">
+                            <select lay-filter="yearSelect" id="yearSelect"
+                                    class="form-control height18">
+                                <option value="-1">请选择年份</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="width:100%;text-align:center">
+                        <ul class="col-sm-12 text-left" id="performanceTree">
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm-9 text-left" id="performanceView" style="">
+                    <div class="col-sm-12">
+                        <label class="control-label col-sm-1">pk名称</label>
+                        <div class="col-sm-4">
+                            <span name="name" class="form-control"></span>
+                        </div>
+                        <label class="control-label col-sm-1">pk时间</label>
+                        <div class="col-sm-3">
+                            <span class="form-control" name="startDate"></span>
+                        </div>
+                        <div class="col-sm-3">
+                            <span class="form-control" name="endDate"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 top20" id="backgroundView">
+                        <label class="control-label col-sm-1">背景图</label>
+                        <div class="col-sm-11">
+                            <div class="back-set-div-little" id="backgroundImg"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 top20">
+                        <label class="control-label col-sm-1">pk组合</label>
+                        <div class="col-sm-11">
+                            <div id="peoplePKShowView">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script id="peoplePKShow" type="text/html">
+        <div class="row">
+            <div class="col-sm-2 text-right top7">
+                <span class="height18">{{data.left}}</span>
+            </div>
+            <div class="col-sm-2 text-center">
+                <span><img src="/img/performance/pk.png"/></span>
+            </div>
+            <div class="col-sm-2 text-left top7">
+                <span class="height18">{{data.right}}</span>
+            </div>
+        </div>
+    </script>
+
+    <!-- Modal -->
+    <div class="modal fade" id="deleteConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">删除该pk设置</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    是否确定删除该pk设置
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="schDel">确定删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="copyConfirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="copyConfirmTitle">拷贝该pk设置</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    是否确定拷贝该pk设置
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" id="schCopy">确定拷贝</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

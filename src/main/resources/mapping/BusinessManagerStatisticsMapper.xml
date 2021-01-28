@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.biz.statistics.BusinessManagerStatisticsMapper">
+
+    <!--权限相关-->
+    <!--<sql id="userQxSql">-->
+    <!--<if test="currentDeptQx == 'true'">-->
+    <!--<if test="currentDeptId != null and currentDeptId != ''">-->
+    <!--inner join(-->
+    <!--select u.id uid,d.id did from sys_dept d-->
+    <!--inner join sys_user u-->
+    <!--on u.dept_id = d.id-->
+    <!--where find_in_set(d.id,getChilds(#{currentDeptId}))-->
+    <!--)usersdepts-->
+    <!--${userTj}-->
+    <!--</if>-->
+    <!--</if>-->
+    <!--</sql>-->
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <where>
+                <choose>
+                    <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                        and u.id=#{currentUserId}
+                    </when>
+                    <otherwise>
+                        <if test="companyCode!= null and companyCode != '' and companyCode != 'XH'">
+                            AND u.company_code=#{companyCode}
+                        </if>
+                        <if test="deptIds != ''">
+                            AND u.`dept_id` IN (${deptIds})
+                        </if>
+                    </otherwise>
+                </choose>
+                <if test="userTj != ''">
+                    ${userTj}
+                </if>
+            </where>
+        </if>
+    </sql>
+    <!--权限控制：内连接写法-->
+    <sql id="userQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--当前时间-->
+    <sql id="currentDate">
+        <!--本年度-->
+        <if test="dateSelect == 1">
+            and ${tableField} &gt;= concat(year(now()),'-01-01')
+            and ${tableField} &lt;= concat(year(now()),'-12-31')
+        </if>
+        <!--本月份-->
+        <if test="dateSelect == 3">
+            and year(${tableField}) = year(now())
+            and month(${tableField}) = month(now())
+        </if>
+        <!--当天-->
+        <if test="dateSelect == 4">
+            and year(${tableField}) = year(now())
+            and month(${tableField}) = month(now())
+            and day(${tableField}) = day(now())
+        </if>
+    </sql>
+
+    <!--上期的时间-->
+    <sql id="prevDate">
+        <!--去年-->
+        <if test="dateSelect == 1">
+            and ${tableField} &gt;= concat(year(now())-1,'-01-01')
+            and ${tableField} &lt;= concat(year(now())-1,'-12-31')
+        </if>
+        <!--上月份-->
+        <if test="dateSelect == 3">
+            and DATE_FORMAT((${tableField}), '%Y%m') = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 MONTH), '%Y%m')
+        </if>
+        <!--前一天-->
+        <if test="dateSelect == 4">
+            and DATE_FORMAT((${tableField}), '%Y%m%d') = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d')
+        </if>
+    </sql>
+
+    <!--统计相关基础表-->
+    <sql id="statisticsBusinessBaseTable">
+        SELECT
+        tba.id,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        tba.order_id,
+        tba.media_id,
+        tba.supplier_id,
+        tba.supplier_name,
+        tba.media_user_id,
+        tba.media_user_name,
+        tba.title,
+        tba.sale_amount,
+        tba.income_amount,
+        (tba.sale_amount - tba.income_amount) as noIncomeAmount,
+        tba.pay_amount,
+        tba.outgo_amount,
+        tba.income_total_amount,
+        tba.other_pay,
+        tba.refund_amount,
+        tbo.cust_id AS custId,
+        tbo.cust_name AS custName,
+        tba.profit as profit
+        FROM
+        t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        AND tbo.order_type = 1
+        <!--权限相关,统计当前部门-->
+        <include refid="userQX">
+            <property name="userTj" value=" su.id = tbo.user_id"/>
+        </include>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <choose>
+            <!--是否查询上期的时间-->
+            <when test="prevFlag">
+                <include refid="prevDate">
+                    <property name="tableField" value="tba.issued_date"/>
+                </include>
+            </when>
+            <otherwise>
+                <include refid="currentDate">
+                    <property name="tableField" value="tba.issued_date"/>
+                </include>
+            </otherwise>
+        </choose>
+        <!--根据指定业务员查询-->
+        <if test="businessUserIds != null and businessUserIds != ''">
+            and tbo.user_id in (${businessUserIds})
+        </if>
+        <!--根据指定客户查询-->
+        <if test="custUserIds != null and custUserIds != ''">
+            and tbo.cust_id in (${custUserIds})
+        </if>
+
+    </sql>
+
+    <select id="topOptionSetValue" parameterType="map" resultType="map">
+        <choose>
+            <!--如果是成交客户量则单独统计-->
+            <when test="tjType == 'cjPeoBox'">
+                select a.value,(a.value-b.value)/b.value changeValue
+                FROM (
+                SELECT count(DISTINCT (peo.id)) `value`
+                FROM t_biz_article art
+                INNER JOIN t_biz_order ord
+                ON ord.id = art.order_id
+                INNER JOIN t_crm_docking_people peo
+                ON peo.worker = ord.user_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = peo.worker"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state = 1 and art.issue_states = 4
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and peo.worker = #{currentUserId}
+                </if>
+                <include refid="currentDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                )a,
+                (SELECT count(DISTINCT (peo.id)) `value`
+                FROM t_biz_article art
+                INNER JOIN t_biz_order ord
+                ON ord.id = art.order_id
+                INNER JOIN t_crm_docking_people peo
+                ON peo.worker = ord.user_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = peo.worker"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state &gt;= 0
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and peo.worker = #{currentUserId}
+                </if>
+                <include refid="prevDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                )b
+            </when>
+            <otherwise>
+                select
+                <choose>
+                    <!--如果是统计图，则统计稿件数量和应收金额,以及增长率-->
+                    <when test="tjType == 'middleBox'">
+                        a.sj as sj,
+                        a.artCount as artCount,
+                        a.saleAmount as saleAmount,
+                        a.incomeAmount as incomeAmount,
+                        a.profit as profit
+                    </when>
+                    <otherwise>
+                        a.value,(a.value-b.value)/b.value changeValue
+                    </otherwise>
+                </choose>
+                from (
+                select
+                <if test="tjType == 'artCountBox'">
+                    count(*) `value`
+                </if>
+                <if test="tjType == 'saleAmountBox'">
+                    sum(art.sale_amount) `value`
+                </if>
+                <if test="tjType == 'incomeAmountBox'">
+                    sum(art.income_amount) `value`
+                </if>
+
+                <!--如果是中间的统计图表，则需要统计稿件数量和应收金额-->
+                <if test="tjType == 'middleBox'">
+                    <if test="dateSelect == 1">
+                        year(art.issued_date) sj,
+                    </if>
+                    <!--统计本年12个月-->
+                    <if test="dateSelect == 3">
+                        month(art.issued_date) sj,
+                    </if>
+                    <!--统计当月31天-->
+                    <if test="dateSelect == 4">
+                        day(art.issued_date) sj,
+                    </if>
+                    count(*) as `artCount`,
+                    sum(art.sale_amount) as saleAmount,
+                    sum(art.income_amount) as incomeAmount,
+                    sum((art.sale_amount - art.pay_amount - art.refund_amount - art.other_pay - art.taxes)) as profit
+                </if>
+                from t_biz_article art
+                left join t_media_audit med
+                on art.media_id = med.id
+                left join t_biz_order ord
+                on art.order_id = ord.id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = ord.user_id"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and ord.user_id = #{currentUserId}
+                </if>
+                and art.state = 1 and art.issue_states = 4
+                <choose>
+                    <!--如果是统计图，则统计稿件数量和应付金额,以及增长率-->
+                    <when test="tjType == 'middleBox'">
+                        <!--统计最近5年-->
+                        <if test="dateSelect == 1">
+                            and art.issued_date &gt;= concat(year(now())-5,'-01-01')
+                            and art.issued_date &lt;= concat(year(now()),'-12-31')
+                            group by year(art.issued_date)
+                        </if>
+                        <!--统计本年12个月-->
+                        <if test="dateSelect == 3">
+                            and year(art.issued_date) = year(now())
+                            group by month(art.issued_date)
+                        </if>
+                        <!--统计当月31天-->
+                        <if test="dateSelect == 4">
+                            and year(art.issued_date) = year(now())
+                            and month(art.issued_date) = month(now())
+                            group by day(art.issued_date)
+                        </if>
+                    </when>
+                    <otherwise>
+                        <include refid="currentDate">
+                            <property name="tableField" value="art.issued_date"/>
+                        </include>
+                    </otherwise>
+                </choose>
+                ) a
+                <choose>
+                    <when test="tjType == 'middleBox'">
+                        <!--如果是统计图表，则不需要统计去年的数据-->
+                    </when>
+                    <otherwise>
+                        ,
+                        (
+                        select
+                        <if test="tjType == 'artCountBox'">
+                            count(*) `value`
+                        </if>
+                        <if test="tjType == 'saleAmountBox'">
+                            sum(art.sale_amount) `value`
+                        </if>
+                        <if test="tjType == 'incomeAmountBox'">
+                            sum(art.income_amount) `value`
+                        </if>
+                        from t_biz_article art
+                        left join t_media_audit med
+                        on art.media_id = med.id
+                        left join t_biz_order ord
+                        on art.order_id = ord.id
+                        <!--权限相关,统计当前部门-->
+                        <include refid="userQxSql">
+                            <property name="userTj" value="and u.id = ord.user_id"/>
+                        </include>
+                        <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                            where 1=1
+                        </if>
+                        <!--权限相关，统计当前用户-->
+                        <if test="currentUserId != null and currentUserId != ''">
+                            and ord.user_id = #{currentUserId}
+                        </if>
+                        and art.state &gt;= 1
+                        <include refid="prevDate">
+                            <property name="tableField" value="art.issued_date"/>
+                        </include>
+                        ) b
+                    </otherwise>
+                </choose>
+                <if test="tjType == 'middleBox'">
+                    order by a.sj
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--利润排名-->
+    <select id="profitSort" resultType="java.util.Map">
+        SELECT
+        t.businessUserId,
+        t.businessUserName,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBusinessBaseTable"/>) t
+        GROUP BY t.businessUserId,t.businessUserName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                profit desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--业务员未到款排名-->
+    <select id="businessNoIncomeSort" resultType="java.util.Map">
+        SELECT
+        t.businessUserId,
+        t.businessUserName,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount
+        FROM (<include refid="statisticsBusinessBaseTable"/>) t
+        GROUP BY t.businessUserId,t.businessUserName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                noIncomeAmount desc
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <!--客户应收金额排名-->
+    <select id="custSaleAmountSort" resultType="java.util.Map">
+        SELECT
+        t.custId,
+        t.custName,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.income_amount),0) AS incomeAmount
+        FROM (<include refid="statisticsBusinessBaseTable"/>) t
+        GROUP BY t.custId,t.custName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--客户未到款金额排名-->
+    <select id="custNoIncomeSort" resultType="java.util.Map">
+        SELECT
+        t.custId,
+        t.custName,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount
+        FROM (<include refid="statisticsBusinessBaseTable"/>) t
+        GROUP BY t.custId,t.custName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                noIncomeAmount desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--查询订单排名-->
+    <select id="orderSort" parameterType="map" resultType="map">
+        select ord.cust_name custName,sum(ord.amount) amount,
+        (select count(art.id) artCount
+        from t_biz_article art,t_biz_order ordn
+        where ordn.id = art.order_id
+        and ordn.cust_id = ord.cust_id) artCount,
+        ord.user_name userName
+        from t_biz_order ord
+        <!--权限相关,统计当前部门-->
+        <include refid="userQxSql">
+            <property name="userTj" value="and u.id = ord.user_id"/>
+        </include>
+        <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+            where 1=1
+        </if>
+        and ord.state &gt;= 1
+        <!--权限相关，统计当前用户-->
+        <if test="currentUserId != null and currentUserId != ''">
+            and ord.user_id = #{currentUserId}
+        </if>
+        <include refid="currentDate">
+            <property name="tableField" value="ord.create_date"/>
+        </include>
+        group by ord.cust_id,
+        ord.cust_name,
+        ord.user_id,
+        ord.user_name
+        order by amount desc
+    </select>
+
+    <!--稿件排名-->
+    <select id="articleSort" parameterType="map" resultType="map">
+        <choose>
+            <when test="tjType == 'noIncomeSortBox1'">
+                select a.*,
+                (a.noIncomeAmount-b.noIncomeAmount)/b.saleAmount changeValue
+                FROM (
+                SELECT
+                ord.user_id userId,
+                ord.user_name userName,
+                sum(art.sale_amount) saleAmount,
+                sum(art.sale_amount-art.income_amount) noIncomeAmount
+                FROM t_biz_article art
+                inner join t_biz_order ord
+                on ord.id = art.order_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = ord.user_id"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state &gt;= 1
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and ord.user_id = #{currentUserId}
+                </if>
+                <include refid="currentDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                GROUP BY ord.user_id,
+                ord.user_name
+                )a left join(
+                SELECT
+                ord.user_id userId,
+                ord.user_name userName,
+                sum(art.sale_amount) saleAmount,
+                sum(art.sale_amount-art.income_amount) noIncomeAmount
+                FROM t_biz_article art
+                inner join t_biz_order ord
+                on ord.id = art.order_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = ord.user_id"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state &gt;= 1
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and ord.user_id = #{currentUserId}
+                </if>
+                <include refid="prevDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                GROUP BY ord.user_id,
+                ord.user_name
+                ) b
+                on a.userId = b.userId
+                order by a.noIncomeAmount desc
+            </when>
+            <otherwise>
+                select a.*,
+                <if test="tjType == 'saleAmountSortBox'">
+                    (a.saleAmount-b.saleAmount)/b.saleAmount changeValue
+                </if>
+                <if test="tjType == 'noIncomeSortBox'">
+                    (a.noIncomeAmount-b.noIncomeAmount)/b.noIncomeAmount changeValue
+                </if>
+                FROM (
+                SELECT
+                ord.cust_id custId,
+                ord.cust_name custName,
+                sum(art.sale_amount) saleAmount,
+                <if test="tjType == 'saleAmountSortBox'">
+                    sum(art.income_amount) incomeAmount
+                </if>
+                <if test="tjType == 'noIncomeSortBox'">
+                    sum(art.sale_amount - art.income_amount) noIncomeAmount
+                </if>
+                FROM t_biz_article art inner join
+                t_biz_order ord
+                on ord.id = art.order_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = ord.user_id"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state &gt;= 1
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and ord.user_id = #{currentUserId}
+                </if>
+                <include refid="currentDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                GROUP BY ord.cust_id,
+                ord.cust_name
+                )a left join(
+                SELECT
+                ord.cust_id custId,
+                ord.cust_name custName,
+                sum(art.sale_amount) saleAmount,
+                <if test="tjType == 'saleAmountSortBox'">
+                    sum(art.income_amount) incomeAmount
+                </if>
+                <if test="tjType == 'noIncomeSortBox'">
+                    sum(art.sale_amount - art.income_amount) noIncomeAmount
+                </if>
+                FROM t_biz_article art inner join
+                t_biz_order ord
+                on ord.id = art.order_id
+                <!--权限相关,统计当前部门-->
+                <include refid="userQxSql">
+                    <property name="userTj" value="and u.id = ord.user_id"/>
+                </include>
+                <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+                    where 1=1
+                </if>
+                and art.state &gt;= 1
+                <!--权限相关，统计当前用户-->
+                <if test="currentUserId != null and currentUserId != ''">
+                    and ord.user_id = #{currentUserId}
+                </if>
+                <include refid="prevDate">
+                    <property name="tableField" value="art.issued_date"/>
+                </include>
+                GROUP BY ord.cust_id,
+                ord.cust_name
+                ) b
+                on a.custId = b.custId
+                <if test="tjType == 'saleAmountSortBox'">
+                    order by a.saleAmount desc
+                </if>
+                <if test="tjType == 'noIncomeSortBox'">
+                    order by a.noIncomeAmount desc
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--统计各部门的应收和利润-->
+    <select id="everyDeptBusiness" resultType="map">
+        <foreach collection="list" index="index" item="item" open="" separator=" UNION ALL "
+                 close=" order by deptId asc">
+            SELECT *
+            FROM (
+            SELECT
+            dept.id deptId,
+            dept.name deptName
+            FROM sys_dept dept
+            WHERE id = #{item}
+            ) a
+            LEFT JOIN (
+            SELECT sum(art.sale_amount) saleAmount,
+            sum(profit) profit
+            FROM t_biz_article art
+            INNER JOIN t_biz_order ord
+            ON ord.id = art.order_id
+            <include refid="currentDate">
+                <property name="tableField" value="art.issued_date"/>
+            </include>
+            INNER JOIN
+            (
+            SELECT
+            u.id uid,
+            d.id did
+            FROM sys_dept d
+            INNER JOIN sys_user u
+            ON u.dept_id = d.id
+            WHERE find_in_set(d.id, getChilds(#{deptId}))
+            ) userdepts
+            ON ord.user_id = userdepts.uid
+            ) b
+            ON 1 = 1
+        </foreach>
+    </select>
+    
+    <!--根据部门ID获取该部门（含子部门）的应收和利润-->
+    <select id="getDeptStatisticsByDeptId" resultType="java.util.Map">
+      SELECT
+      	ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.profit),0) AS profit
+      FROM
+      	(
+      		SELECT
+      			tba.id,
+      			tba.sale_amount,
+      			tba.pay_amount,
+      			tba.refund_amount,
+      			tba.other_pay,
+      			tba.taxes,
+      			tba.profit
+      		FROM
+      			t_biz_article tba
+      		INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+      		AND tbo.order_type = 1
+      		INNER JOIN sys_user su ON tbo.user_id = su.id
+      		INNER JOIN sys_dept sd ON sd.id = su.dept_id
+      		AND sd.state > -2
+      		WHERE tba.state = 1 and tba.issue_states = 4
+            <if test="deptIds != null and deptIds != ''">
+               and sd.id in (${deptIds})
+            </if>
+            <include refid="currentDate">
+                <property name="tableField" value="tba.issued_date"/>
+            </include>
+      	) t
+    </select>
+
+    <!--统计业务员的排名-->
+    <select id="businessTop" resultType="map" parameterType="map">
+        select
+        ord.user_id userId,
+        ord.user_name userName,
+        <if test="tjType == 'deptSaleAmountSortBox'">
+            sum(art.sale_amount) saleAmount
+        </if>
+        <if test="tjType == 'deptIncomeSortBox'">
+            sum(art.income_amount) incomeAmount
+        </if>
+        from t_biz_article art
+        inner join t_biz_order ord ON art.order_id = ord.id
+        AND ord.order_type = 1
+        INNER JOIN sys_user su ON ord.user_id = su.id
+        INNER JOIN sys_dept sd ON sd.id = su.dept_id and sd.state > -2
+        WHERE art.state = 1 and art.issue_states = 4
+        <if test="deptIds != null and deptIds != ''">
+            and sd.id in (${deptIds})
+        </if>
+        <include refid="currentDate">
+            <property name="tableField" value="art.issued_date"/>
+        </include>
+        group by ord.user_id, ord.user_name
+        <if test="tjType == 'deptSaleAmountSortBox'">
+            order by saleAmount DESC
+        </if>
+        <if test="tjType == 'deptIncomeSortBox'">
+            order by incomeAmount DESC
+        </if>
+        limit 5
+    </select>
+</mapper>

@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.qinfei.qferp.mapper.accountsMess.accountsMessMapper">
+
+    <sql id="selectField">
+        ord.id id,
+        ord.user_id userId,
+        ord.user_name userName,
+        sd.name deptName,
+        art.id artId,
+        art.media_type_id mTypeId,
+        art.media_type_name mTypeName,
+        art.media_id mediaId,
+        art.media_name mediaName,
+        art.media_user_id mediaUserId,
+        art.media_user_name mediaUserName,
+        art.title title,
+        art.link link,
+        art.num num,
+        art.issued_date issuedDate,
+        art.sale_amount saleAmount,
+        art.issue_states issueStates,
+        art.outgo_amount outgoAmount,
+        art.create_time createTime,
+        art.remarks remarks,
+        ord.company_id companyId,
+        ord.company_name companyName,
+        ord.cust_id dockingId,
+        ord.cust_name dockingName,
+        art.brand brand,
+        art.income_amount incomeAmount,
+        art.taxes taxes,
+        art.promise_date promiseDate,
+        art.income_date incomeDate,
+        art.income_states incomeStates,
+        art.refund_states refundStates,
+        art.other_pay_states otherPayStates,
+        art.commission_states commissionStates,
+        art.invoice_states invoiceStates,
+        art.price_column priceColumn,
+        art.price_type priceType,
+        art.outgo_amount outgoAmount,
+        art.other_pay otherPay,
+        art.commission commission,
+        art.refund_amount refundAmount,
+        art.profit profit,
+        art.year year,
+        art.month month,
+        art.unit_price unitPrice,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.type_name typeName,
+        tms.company_code companyCode
+    </sql>
+
+
+    <select id="selectHaveArticleList" resultType="java.util.Map">
+        SELECT
+       <include refid="selectField"/>
+        FROM t_biz_article art
+        left join t_biz_order ord on ord.id = art.order_id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_media_supplier tms on art.supplier_id = tms.id
+        left join sys_user u on u.id=ord.user_id
+        where art.income_states !=1
+        and art.state > -9
+        <if test="articleIds == null and articleIds == ''">
+            AND ord.user_id=#{userId}
+        </if>
+        and art.commission_states =0
+        and art.invoice_states=0
+        and ord.cust_id is not null
+        <if test="companyId !=null">
+            and ord.company_id = #{companyId}
+        </if>
+        <if test="dockingId !=null">
+            and ord.cust_id = #{dockingId}
+        </if>
+        <if test="messId!=null">
+            and art.id in (
+            select article_id from t_accounts_mess_article  where mess_id =#{messId} and state = 0
+            )
+        </if>
+        <if test="releaseStateTime1 !=null">
+            and art.issued_date &gt;= #{releaseStateTime1}
+        </if>
+        <if test="releaseEndTime1 !=null">
+            and art.issued_date  &lt;=  STR_TO_DATE(concat(#{releaseEndTime1},' 23:59:59'),'%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test="brand !=null">
+            and art.brand like concat('%',#{brand},'%')
+        </if>
+        <if test="mediaUserName !=null">
+            and art.media_user_name like concat('%',#{mediaUserName},'%')
+        </if>
+        <if test="mediaName !=null">
+            and art.media_name like concat('%',#{mediaName},'%')
+        </if>
+    </select>
+
+    <select id="selectArticleList" resultType="java.util.Map">
+        SELECT
+        <include refid="selectField"/>
+        FROM t_biz_article art
+        left join t_biz_order ord on ord.id = art.order_id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_media_supplier tms on art.supplier_id = tms.id
+        left join sys_user u on u.id=ord.user_id
+        where art.income_states !=1
+        and art.state > -9
+        AND art.mess_state=0
+        <if test="articleIds == null and articleIds == ''">
+            AND ord.user_id=#{userId}
+        </if>
+        and art.commission_states =0
+        and art.invoice_states=0
+        and ord.cust_id is not null
+        <if test="companyId !=null">
+           and ord.company_id = #{companyId}
+        </if>
+        <if test="dockingId !=null">
+           and ord.cust_id = #{dockingId}
+        </if>
+        <if test="title !=null">
+            and art.title like CONCAT('%', #{title}, '%')
+        </if>
+        <if test="articleIds !=null">
+            and art.id in ( #{articleIds} );
+        </if>
+        <if test="releaseStateTime1 !=null">
+            and art.issued_date &gt;= #{releaseStateTime1}
+        </if>
+        <if test="releaseEndTime1 !=null">
+            and art.issued_date  &lt;=  STR_TO_DATE(concat(#{releaseEndTime1},' 23:59:59'),'%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test="brand !=null">
+            and art.brand like concat('%',#{brand},'%')
+        </if>
+        <if test="mediaUserName !=null">
+            and art.media_user_name like concat('%',#{mediaUserName},'%')
+        </if>
+        <if test="mediaName !=null">
+            and art.media_name like concat('%',#{mediaName},'%')
+        </if>
+    </select>
+
+    <insert id="saveAccountsMess"  useGeneratedKeys="true" keyProperty="id">
+        INSERT  INTO  t_accounts_mess
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code !=null">code,</if>
+            <if test="title !=null">title,</if>
+            <if test="applyId !=null">apply_id,</if>
+            <if test="applyName !=null">apply_Name,</if>
+            <if test="applyTime !=null and applyTime !='' "> apply_time,</if>
+            <if test="state !=null">state,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="createUser !=null">create_user,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="taskId !=null">task_id,</if>
+            <if test="itemId !=null">item_id,</if>
+            <if test="costSum !=null">costSum,</if>
+            <if test="sessionSum !=null">sessionSum,</if>
+            <if test="offerSum !=null">offerSum,</if>
+            <if test="messSum !=null">mess_sum,</if>
+            <if test="custCompanyId !=null">cust_company_id,</if>
+            <if test="custCompanyName !=null">cust_company_name,</if>
+            <if test="custId !=null">cust_id,</if>
+            <if test="custName !=null">cust_name,</if>
+            <if test="articleTime !=null">article_time,</if>
+            <if test="companyCode !=null">company_code</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code !=null">#{code},</if>
+            <if test="title !=null">#{title},</if>
+            <if test="applyId !=null">#{applyId},</if>
+            <if test="applyName !=null">#{applyName},</if>
+            <if test="applyTime !=null  and applyTime !='' "> now(),</if>
+            <if test="state !=null">#{state},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="createUser !=null">#{createUser},</if>
+            <if test="updateTime !=null">#{updateTime},</if>
+            <if test="taskId !=null">#{taskId},</if>
+            <if test="itemId !=null">#{itemId},</if>
+            <if test="costSum !=null">#{costSum},</if>
+            <if test="sessionSum !=null">#{sessionSum},</if>
+            <if test="offerSum !=null">#{offerSum},</if>
+            <if test="messSum !=null">#{messSum},</if>
+            <if test="custCompanyId !=null">#{custCompanyId},</if>
+            <if test="custCompanyName !=null">#{custCompanyName},</if>
+            <if test="custId !=null">#{custId},</if>
+            <if test="custName !=null">#{custName},</if>
+            <if test="articleTime !=null">#{articleTime},</if>
+            <if test="companyCode !=null">#{companyCode}</if>
+        </trim>
+    </insert>
+
+    <insert id="addArticle" parameterType="java.util.List">
+        INSERT  INTO  t_accounts_mess_article (
+        article_id, mess_id
+        )VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.articleId},
+            #{item.messId}
+            )
+        </foreach>
+    </insert>
+
+
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <choose>
+                <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                    WHERE u.id=#{currentUserId}
+                </when>
+                <otherwise>
+                    <choose>
+                        <when test="companyCode!= null and companyCode != '' and companyCode != 'JT'">
+                            WHERE u.company_code=#{companyCode}
+                            <if test="deptIds!= null ">
+                                AND u.`dept_id` IN (${deptIds})
+                            </if>
+                        </when>
+                        <when test="companyCode!= null and companyCode != '' and companyCode = 'JT' and deptIds!= null">
+                            WHERE u.`dept_id` IN (${deptIds})
+                        </when>
+                        <otherwise>
+                            where 1 = 1
+                        </otherwise>
+                    </choose>
+                </otherwise>
+            </choose>
+            <if test="userTj != ''">
+                ${userTj}
+            </if>
+        </if>
+    </sql>
+
+    <update id="updateArticle" >
+        UPDATE  t_biz_article
+        SET mess_state =#{state}
+        where id = #{id}
+    </update>
+    <select id="getCustdockingPeople" parameterType="map" resultType="map">
+        select a.id as dockingId,
+        a.name as custName,
+        b.id as id,
+        b.name as companyName,
+        b.type as type,
+        b.standardize as standardize,
+        a.promise_day as promiseDay,
+        a.tax_type as taxType,
+        a.normalize as normalize,
+        c.user_id as userId,
+        c.user_name as userName,
+        c.start_time as startTime,
+        c.end_time as endTime,
+        c.state as state,
+        a.protect_level as protectLevel,
+        a.protect_strong as protectStrong
+        from
+        t_crm_company_user a
+        left join t_crm_company b on a.company_id = b.id
+        left join t_crm_company_user_salesman c on a.id = c.company_user_id
+        where a.delete_flag = 0 and c.delete_flag = 0 and c.user_id = #{userId}
+        <!-- 客户公司不能是审核中的-->
+        and b.audit_flag = 0
+        <!-- 如果是已失效的客户，就必须是规范的，因为编辑不了失效的客户，非规范又不能用，所以直接排除掉-->
+        and case when c.state = 0 then a.normalize = 1 else true end
+        <if test="startTime != null">
+            and c.start_time &lt; #{startTime}
+        </if>
+        <if test="endTime != null">
+            and c.end_time &gt; #{endTime}
+        </if>
+        <if test="companyName != null">
+            and b.name like concat('%', #{companyName}, '%')
+        </if>
+        <if test="custName != null">
+            and a.name like concat('%', #{custName}, '%')
+        </if>
+        order by c.id desc
+    </select>
+
+    <select id="selectMessListTable" resultType="com.qinfei.qferp.entity.accountsMess.AccountsMess">
+        SELECT
+        tam.`code` as  code,
+        tam.apply_id as applyId,
+        tam.apply_time as applyTime,
+        tam.costSum as costSum,
+        tam.item_id as itemId,
+        su.`name` as userName,
+        tam.sessionSum as sessionSum,
+        tam.offerSum as offerSum,
+        tam.id as id ,
+        tam.state as state,
+        tam.title as title ,
+        tam.task_id as taskId,
+        tam.apply_name as applyName,
+        tam.cust_company_id as custCompanyId,
+        tam.cust_company_name as custCompanyName,
+        tam.cust_id as custId,
+        tam.mess_sum as messSum,
+        tam.cust_name as custName,
+        tam.article_time AS articleTime
+        FROM
+        t_accounts_mess tam
+        LEFT JOIN sys_user su on tam.apply_id = su.id
+        <choose>
+            <when test="ZJBFlag==1">
+                INNER JOIN act_hi_taskinst aht0 ON tam.task_id = aht0.ID_
+                INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+                left JOIN act_ru_task art on art.ID_=tam.task_id
+            </when>
+        </choose>
+        where  tam.state>-2
+        <choose>
+            <when test="roleType == 'CW'">
+                <choose>
+                    <when test="roleCode == 'ZJ' or roleCode == 'BZ' or roleCode == 'YG'">
+                        and tam.company_code =#{user.companyCode}
+                    </when>
+                    <otherwise>
+                        and tam.apply_id=#{user.id}
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="roleType=='YW'" >
+                <choose>
+                    <when test="roleCode == 'BZ'">
+                        and (
+                        <foreach collection="user.deptIdSet" item="item" open="su.dept_id in (" close =")" separator=",">
+                             #{item}
+                        </foreach>
+                        or tam.apply_id =#{user.id})
+                    </when>
+                    <when test="roleCode == 'ZJ'">
+                        and (
+                        <foreach collection="user.deptIdSet" item="item" open="su.dept_id in (" close =")" separator=",">
+                            #{item}
+                        </foreach>
+                        or tam.apply_id =#{user.id})
+                    </when>
+                    <otherwise>
+                        and tam.apply_id=#{user.id}
+                    </otherwise>
+                </choose>
+            </when>
+            <when test="ZJBFlag == 1">
+                and (aht1.ASSIGNEE_ = #{userId} or art.ASSIGNEE_ = #{userId} or tam.apply_id =#{userId})
+            </when>
+              <otherwise>
+                  and tam.company_code = #{companyCode}
+              </otherwise>
+        </choose>
+      <if test="applyStateTime !=null">
+         and tam.apply_time &gt;= #{applyStateTime}
+      </if>
+        <if test="applyEndTime !=null">
+            and tam.apply_time &lt;= STR_TO_DATE(concat(#{applyEndTime},' 23:59:59'),'%Y-%m-%d %H:%i:%s')
+        </if>
+        <if test="codeQc != null">
+            and tam.code = #{codeQc}
+        </if>
+        <if test="applyNameQC !=null">
+            and tam.apply_name = #{applyNameQC}
+        </if>
+        <if test="titleQC != null">
+            and tam.title  like CONCAT('%', #{titleQC}, '%')
+        </if>
+        <if test="companyNameQC != null">
+            and tam.cust_company_name  like CONCAT('%', #{companyNameQC}, '%')
+        </if>
+        <if test="custNameQC != null">
+            and tam.cust_name  like CONCAT('%', #{custNameQC}, '%')
+        </if>
+        <if test="releaseUser != null">
+            and tam.apply_id  = #{releaseUser}
+        </if>
+        <if test="state != null">
+            and tam.state  = #{state}
+        </if>
+        order By
+        tam.id desc
+    </select>
+
+    <select id="selectAccountMess" resultType="com.qinfei.qferp.entity.accountsMess.AccountsMess">
+        SELECT
+        tam.`code` AS code,
+        tam.apply_id AS applyId,
+        tam.apply_time AS applyTime,
+        tam.costSum AS costSum,
+        tam.item_id AS itemId,
+        tam.sessionSum AS sessionSum,
+        tam.offerSum AS offerSum,
+        tam.id AS id,
+        tam.state AS state,
+        tam.title AS title,
+        tam.task_id AS taskId,
+        tam.apply_name AS applyName,
+        tam.cust_company_id AS custCompanyId,
+        tam.cust_company_name AS custCompanyName,
+        tam.cust_id AS custId,
+        tam.mess_sum AS messSum,
+        tam.cust_name AS custName,
+        tam.note as note,
+        tam.company_code as companyCode,
+        tam.article_time AS articleTime
+        FROM
+        t_accounts_mess tam
+        WHERE
+        tam.id = #{id}
+        and tam.state >-9
+    </select>
+
+    <update id="updateMess">
+        update t_accounts_mess
+        <set>
+            <if test="title !=null and title !=''">
+                title =#{title,jdbcType=VARCHAR},
+            </if>
+            <if test="applyTime != null">
+                apply_time = #{applyTime},
+            </if>
+            <if test="state !=null and state !=''">
+                state =#{state,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime !=null">
+                update_time =#{updateTime},
+            </if>
+            <if test="updateUser !=null and updateUser !=''">
+                update_user =#{updateUser,jdbcType=VARCHAR},
+            </if>
+            <if test="taskId !=null and taskId !=''">
+                task_id =#{taskId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId !=null and itemId !=''">
+                item_id =#{itemId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId !=null and itemId !=''">
+                item_id =#{itemId,jdbcType=VARCHAR},
+            </if>
+            <if test="note !=null and note !=''">
+                note =#{note,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+
+    <update id="updateArt" >
+        UPDATE t_biz_article
+        SET mess_state = #{state}
+        WHERE
+        id IN (
+        SELECT
+        article_id
+        FROM
+        t_accounts_mess_article
+        WHERE
+        state = 0
+        AND mess_id = #{id}
+        )
+    </update>
+
+    <update id="updateMessArt">
+        UPDATE  t_accounts_mess_article SET  state =-9 where mess_id =#{id}
+    </update>
+
+    <select id="selectMessId" resultType="java.lang.Integer">
+        SELECT mess_id FROM t_accounts_mess_article where article_id =#{artId} and state =0
+    </select>
+</mapper>

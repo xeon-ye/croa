@@ -1,0 +1,356 @@
+ul{
+    margin: 0px;
+    padding: 0px;
+}
+/*龙虎榜/服务榜*/
+.businessRankingTab{
+    width: 60px;height: 29px;float: left;cursor: pointer;
+}
+.businessRankingTabText{
+    width: 100%;height: 20px;float: left;text-align: center;
+}
+.businessRankingTabActive{
+    width: 100%;height: 15px;float: left;text-align: center;color: white;font-size: 16px;margin-top: -8px;
+}
+.mediaUserTab{
+    width: 80px;height: 29px;float: left;cursor: pointer;
+}
+.mediaUserTabText{
+    width: 100%;height: 20px;float: left;text-align: center;
+}
+.mediaUserTabActive{
+    width: 100%;height: 15px;float: left;text-align: center;color: white;font-size: 16px;margin-top: -8px;
+}
+.businessRankingContent{
+     width: 100%;height: 100%;float: left;overflow-y: auto;
+    background-image: url('/img/workbench/bg.png');background-repeat: repeat-x;
+    background-position: center;background-size:cover;-webkit-background-size: cover;
+    -moz-background-size: cover;
+}
+.businessRankingDiv{
+    width: 100%;height: 100%;float: left;overflow-y: auto;padding-left: 5px;border-right: 1px solid #eeeeee;
+}
+.rankingTitle{
+    width: 100%;height: 30px;line-height: 30px;float: left;margin-top: 10px;
+}
+.myRanking{
+   width: 100%;float: right;text-align: right;padding-right: 10px;font-size: 10px;
+}
+.deptRankingDiv{
+    /*width: 100%;height: 56%;float: left;*/
+    width: 20%;height: 89%;border-right:1px solid #F5F5F5;float: left;margin-top: 10px;
+}
+.deptRankingDivTitle{
+    width: 100%;float: left;
+}
+.deptRankingDivTitleIcon{
+    height: 13px;width: 16px;background-image: url('/img/workbench/paiming.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;float: left;margin-top: 6px;
+}
+.deptRankingDivTitleText{
+    float: left;margin-left: 5px;font-style: italic;color: #222222;font-weight: bold;font-size:10px;height: 28px;line-height: 25px;position: relative;z-index: 10;
+}
+.deptRankingDivTitleBack{
+    height: 8px;width: 67px;background-image: url('/img/workbench/rectsmall.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;position: relative;top: 11px;left: 68px;
+}
+.deptRankingContent{
+    width: 100%;float: left;margin-top: 20px;
+}
+.deptRanking{
+    width: 80%;height:28%;float: left;background-color: #f4f4f4;border-radius: 5px;margin-bottom: 8%;margin-left: 10%;margin-right: 10%;overflow-y: auto;
+}
+.deptRanking > div:first-child{
+   width: 100%;height:25px;float: left;margin-top: 15px;margin-bottom: 10px;text-align: center;
+}
+.dept{
+    width: 100%;height:25px;float: left;text-align: center;color: #555555;
+}
+.selfRankingDiv{
+    width: 100%;height: 42.6%;float: left;
+}
+.selfRankingTitle{
+    width: 100%;float: left;
+}
+.selfRankingTitleBack{
+    height: 8px;width: 67px;background-image: url('/img/workbench/rectsmall.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;position: relative;top: 11px;left: 56px;
+}
+.selfRankingContent{
+    /*width: 100%;float: left;margin-top: 25px;height: 65%;font-family: fantasy;*/
+    width: 26%;height: 89%;float: left;margin-top: 10px;padding-left: 25px;overflow-y: auto;border-right: 1px solid #F5F5F5;
+}
+.selfRankingContent > div{
+    /*width: 10%;float: left;height: 100%;*/
+    width: 100%;height: 9%;padding-top: 1.5%;float: left;
+}
+.selfRankingContent > div > div:first-child{
+    font-weight: bold;
+}
+.selfRankingOne{
+    height: 18px;width: 20px;background-image: url('/img/workbench/one.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;
+}
+.selfRankingTwo{
+    height: 18px;width: 20px;background-image: url('/img/workbench/two.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;
+}
+.selfRankingThree{
+    height: 18px;width: 20px;background-image: url('/img/workbench/three.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;
+}
+.selfRankingSeq{
+    height: 18px;width: 20px;text-align: center;color: #222222;float: left;
+}
+.selfRankingText{
+    /*width: 19px;text-align: center;margin-top: 5px; -webkit-writing-mode: vertical-rl;writing-mode: vertical-rl;*/
+    float: left;text-align: left;padding-left: 6px;margin-top: -0.8%;
+}
+.weekRinkingDiv{
+     width: 35%;height: 100%;float: left;overflow-y: auto;padding-left: 25px;
+}
+.weekRinkingTitle{
+    width: 100%;float: left;
+}
+.weekRinkingTitleBack{
+    height: 8px;width: 67px;background-image: url('/img/workbench/rectsmall.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;position: relative;top: 11px;left: 68px;
+}
+.weekRinkingContent{
+    width: 100%;height: 88%;float: left;font-size: 13px;padding-top: 5px;
+}
+.weekRinkingContentDiv{
+    width: 100%;height: 100%;float: left;font-family: fantasy;
+}
+
+.weekRinking{
+    /*width: 100%;float: left;margin-top: 25px;height: 65%;font-family: fantasy;*/
+    width: 28%;height: 89%;float: left;margin-top: 10px;overflow-y: auto;padding-left: 35px;border-right: 1px solid #F5F5F5;
+}
+.weekRinking > div{
+    /*width: 10%;float: left;height: 100%;*/
+    width: 100%;height: 9%;padding-top: 1%;float: left;
+}
+
+.weekRinking > div > div:first-child{
+    font-weight: bold;
+}
+
+.weekDeptRinking{
+    width: 100%;height: 30px;line-height:30px;float: left;font-size: 12px;
+}
+.weekRinkingOne{
+    height: 18px;width: 20px;background-image: url('/img/workbench/one.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;line-height: 18px;margin-top: 6px;
+}
+.weekRinkingTwo{
+    height: 18px;width: 20px;background-image: url('/img/workbench/two.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;line-height: 18px;margin-top: 6px;
+}
+.weekRinkingThree{
+    height: 18px;width: 20px;background-image: url('/img/workbench/three.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;text-align: center;color: white;float: left;line-height: 18px;margin-top: 6px;
+}
+.weekRankingSeq{
+    height: 18px;width: 20px;text-align: center;color: #797373;float: left;line-height: 18px;margin-top: 6px;
+}
+.weekRinkingText{
+    float: left;line-height: 30px;width:78%;padding-left: 8px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;
+}
+.weekGroupRinking{
+    width: 100%;height: 30px;line-height:30px;float: left;font-size: 12px;
+}
+.weekDept{
+    width: 100%;height: 20%;float: left;
+}
+
+.weekRinkingTime{
+    width: 65%;float: right;color: #999999;font-size: 10px;text-align: right;padding-right: 10px;
+}
+
+/*日程*/
+.planCalender{
+    width: 41%;height: 100%;float: left;border: 1px solid #eeeeee;overflow-y: auto;
+}
+.planCalenderMonth{
+    width: 100%;height: 80px;float: left;
+}
+.planCalenderMonthLeft{
+    width: 28%;height: 80px;line-height: 80px;float: left;
+}
+.planCalenderMonthText{
+    width: 100%;height: 60px;line-height: 60px;color: #5a5b5b;font-size: 18px;font-weight:bold;font-family: SourceHanSansCN-Bold;float: left;padding-left: 20%;
+}
+.planCalenderYearText{
+    width: 100%;height: 20px;line-height: 20px;float: left;font-size: 10px;padding-left: 20%;margin-top: -15px;
+}
+.planCalenderMonthChange{
+    width: 72%;height: 60px;line-height: 60px;float: left;text-align: right;font-size: 18px;font-weight:bold;font-family: SourceHanSansCN-Bold;padding-right: 5%;
+}
+.planCalenderWeek{
+    width: 100%;height: 40px;line-height: 40px;float: left;
+}
+.planCalenderWeek ul li{
+    width: 14.28%;text-align: center;font-weight: bold;float: left;font-family: SourceHanSansCN-Bold;
+}
+.planCalenderDay{
+    width: 100%;height: 230px;float: left;
+}
+.planCalenderDay ul li{
+    width: 14.28%;heigh:38px;line-height:38px;text-align: center;float: left;color: #5a5b5b;font-family: SourceHanSansCN-Bold;cursor: pointer;
+}
+.planCalenderDayText{
+    width: 100%;text-align: center;height: 38px;line-height: 38px;float: left;
+}
+.planCalenderDayText > div{
+    width: 40px;height: 40px;line-height: 38px;text-align: center;margin: 0 auto;
+}
+.otherMonthDay{
+    color: #999999;
+}
+.currentMonthDay{
+    color: #000000;
+}
+.dateClick{
+    color: #1c84c6;
+}
+.zmDay{
+    color: red;
+}
+.activeDay{
+    color: white;
+}
+.planCalenderDayActive{
+    background-color: #1c84c6;
+    color: white;
+    border-radius: 100%;
+}
+.planCalenderDayPoint{
+   width: 100%;text-align: center;height: 38px;line-height: 38px;font-size: 40px;float: left;margin-top: -38px;
+}
+.whitePoint{
+    color: white;
+}
+.bluePoint{
+    color: #1c84c6;
+}
+.greyPoint{
+    color: #d5d5d5;
+}
+.planList{
+    width: 57%;height: 100%;float: left;margin-left: 2%;border: 1px solid #eeeeee;
+}
+.planListTitle{
+    width: 100%;height: 80px;float: left;
+}
+.planListTitleDiv{
+    width: 100%;height: 80px;float: left;
+}
+.planListTitleDiv1{
+    width: 100%;height: 50px;line-height: 50px;padding-top:5px;font-family: SourceHanSansCN-Bold;float: left;padding-left: 5%;
+}
+.planListTitleText{
+   width: 50%;height: 100%;float: left;color: #555555;font-size: 16px;font-weight:bold;
+}
+.planAddDiv{
+    width: 50%;height: 100%;float: left;font-size: 12px;text-align: right;padding-right: 5px;
+}
+.planAddDivText{
+    float: right;padding-left: 4px;color: #1c84c6;cursor: pointer;
+}
+.planAddDivIcon{
+    height: 12px;width: 12px;background-image: url('/img/workbench/jia.png');float: right;margin-top: 19px;cursor: pointer;
+}
+.planListDay{
+    width: 100%;height: 30px;line-height: 30px;float: left;font-size: 12px;font-family: SourceHanSansCN-Regular;color:#000000;background-color: #f4f4f4;padding-left: 5%;
+}
+.planListContent{
+    width: 100%;float: left;overflow-y: auto;height: 73%;
+}
+.planListContent ul{
+    overflow-y: auto !important;
+}
+.planListContent ul li{
+    border-bottom: 1px solid #eeeeee;float: left;padding-left: 5%;width: 100%;cursor: pointer;
+}
+.jyAddTitle{
+    border-right: 2px solid red;float: left;height: 50px;line-height: 50px;width: 50px;text-align: center;color: #999999;
+}
+.jyAddContent{
+    float: left;height: 50px;line-height: 50px;font-size: 14px;color: #555555;padding-left: 10px;
+}
+.planAddTime1{
+    float: left;height: 25px;line-height: 35px;width: 50px;text-align: center;color: #999999;
+}
+.planAddTime2{
+    float: left;height: 25px;line-height: 15px;width: 50px;text-align: center;color: #222222;
+}
+
+/*建议/论坛*/
+.luntanTab{
+    width: 60px;height: 29px;float: left;cursor: pointer;
+}
+.luntanTabText{
+    width: 100%;height: 20px;float: left;text-align: center;
+}
+.luntanTabActive{
+    width: 100%;height: 15px;float: left;text-align: center;color: white;font-size: 16px;margin-top: -8px;
+}
+.jianyiTab{
+    width: 60px;height: 29px;float: left;cursor: pointer;
+}
+.jianyiTabText{
+    width: 100%;height: 20px;float: left;text-align: center;
+}
+.jianyiTabActive{
+    width: 100%;height: 15px;float: left;text-align: center;color: white;font-size: 16px;margin-top: -8px;
+}
+.luntanList{
+    height: 100%;width: 100%;overflow-y: auto;
+}
+.luntanList ul li{
+    border-bottom: 1px solid #eeeeee;height: 60px;line-height: 60px;padding-left: 30px;
+}
+.luntanListIcon{
+    height: 30px;width: 30px;float: left;
+}
+.luntanListTitle{
+    border-bottom: 1px solid #eeeeee;height: 30px;float: left;margin-left: 10px;color: #222222;font-size: 14px;
+}
+.luntanContent{
+    height: 30px;line-height: 30px;padding-left: 40px;font-size: 12px;color: #999999;
+}
+.luntanUser{
+    width: 60%;height: 100%;float: left;
+}
+.luntanNum{
+    width: 40%;height: 100%;float: left;
+}
+.luntanNum1{
+    width: 33.3%;height: 100%;float: left;
+}
+.luntanGive{
+    height: 14px;width: 12px;background-image: url('/img/workbench/yuedu.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;float: left;margin-right: 5px;margin-top: 6px;
+}
+.luntanLike{
+    height: 14px;width: 12px;background-image: url('/img/workbench/dianzan.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;float: left;margin-right: 5px;margin-top: 6px;
+}
+.luntanguanshui{
+    height: 14px;width: 12px;background-image: url('/img/workbench/guanshui.png');
+    background-position: center center;background-repeat: no-repeat;background-size: cover;-webkit-background-size: cover;
+    -moz-background-size: cover;float: left;margin-right: 5px;margin-top: 8px;
+}

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <script src="/js/template-web.js"></script>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script src="/js/plugins/iCheck/icheck.min.js"></script>
+    <link rel="stylesheet" href="/css/plugins/iCheck/custom.css">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/plugins/echarts/echarts-all.js"></script>
+
+    <!--树插件-->
+    <script type="text/javascript" src="/js/plugins/bootstrap-treeview/bootstrap-treeview.js"></script>
+    <script type="text/javascript" src="/js/plugins/bootstrap-dialog/bootstrap-dialog.min.js"></script>
+    <!--<script type="text/javascript" src="/js/plugins/bootstrap/jquery-3.1.1.min.js"></script>-->
+    <script type="text/javascript" src="/js/plugins/bootstrap/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/css/bootstrap.min.css" >
+    <link rel="stylesheet" type="text/css" href="/js/plugins/bootstrap-treeview/bootstrap-treeview.min.css">
+    <link rel="stylesheet" type="text/css" href="/js/plugins/bootstrap-dialog/bootstrap-dialog.min.css">
+    <!--富文本编辑器-->
+    <link rel="stylesheet" href="/js/plugins/kindeditor/themes/default/default.css" />
+    <script charset="utf-8" src="/js/plugins/kindeditor/kindeditor-all-min.js"></script>
+    <script charset="utf-8" src="/js/plugins/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript" src="/js/editTool.js"></script>
+
+    <link href="/css/utils/sysUserCompont.css" rel="stylesheet">
+    <script src="/js/utils/sysUserCompont.js"></script>
+    <!--文件上传-->
+    <link href="/css/plugins/dropzone/dropzone.css" rel="stylesheet">
+    <script src="/js/plugins/dropzone/dropzone.js"></script>
+    <script src="/js/fileUpload.js"></script>
+    <link href="/css/document/documentLibrary.css" rel="stylesheet">
+    <script th:src="@{/js/document/documentLibrary.js(v=${version})}"></script>
+
+    <title>制度管理</title>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins" style="margin-bottom: -8px">
+            <div class="ibox-content">
+                <div class="form-group" style="width:100%;text-align:center">
+                    <div class="col-sm-3" style="" >
+                        <div class="form-group" style="width:100%;text-align:center" id="btnSystem">
+                            <div class="col-sm-4" style="">
+                                <button id="typeAdd" type="button" class="btn btn-primary" onclick="pageObj.editTypeModal(0)">
+                                    <i class="fa fa-plus" aria-hidden="true"> </i>&nbsp;新增分类
+                                </button>
+                            </div>
+                            <div class="col-sm-4" style="">
+                                <button id="typeEdit" type="button" class="btn btn-success" onclick="pageObj.editTypeModal(1)">
+                                    <i class="fa fa-edit" aria-hidden="true"> </i>&nbsp;修改分类
+                                </button>
+                            </div>
+                            <div class="col-sm-4" style="">
+                                <button type="button" data-toggle="modal" data-target="#deleteConfirm" class="btn btn-danger" onclick="pageObj.delTypeBtn()">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;删除分类
+                                </button>
+                            </div>
+                            <div class="col-sm-4" style="">
+                                <button id="schAdd" type="button" class="btn btn-primary" onclick="pageObj.addLibraryModal()">
+                                    <i class="fa fa-plus" aria-hidden="true"> </i>&nbsp;新增制度
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="width:100%;text-align:center">
+                            <ul class="col-sm-12 text-left" id="schemeTree">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-9 text-left" id="schemeView" style="">
+                        <div class="searchParamOuter">
+                        <form id="documentLibraryForm" class="layui-form" style="margin-left: -45px">
+                        <div class="col-md-12 from-group">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    发布部门:
+                                </label>
+                                <div class="col-sm-8" >
+                                    <input name="releaseDept" class="form-control" onkeydown="commonObj.enterEvent(event)" />
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    发布人:
+                                </label>
+                                <div class="col-sm-8 layui-form">
+                                    <select name="releaseUser" id="releaseUser1" class="form-control"  lay-filter="releaseUser" lay-search>
+                                        <option date-deptid="" value="" selected>请选择</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    状态:
+                                </label>
+                                <div class="col-sm-8">
+                                    <select name="state" class="form-control" lay-filter="state" lay-search>
+                                        <option value="">请选择</option>
+                                        <option value="0">已发布</option>
+                                        <option value="1">已保存</option>
+                                        <option value="2">已失效</option>
+                                        <option class="tableHide" value="-9">已刪除</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-12 from-group">
+
+
+                        </div>
+                        <div class="col-md-12 from-group">
+                            <div class="col-sm-4">
+                                <label class="col-sm-3 control-label">
+                                    发布时间:
+                                </label>
+                                <div class="col-sm-4" >
+                                    <input id="releaseTime" style="width: 116%;; font-size: 14px;" name="releaseStateTime1" class="form-control" readonly/>
+                                </div>
+                                <div class="col-sm-4" >
+                                    <input id="releaseTime1"  style="width: 116%;; margin-left: -13px;font-size: 14px;" name="releaseEndTime1" class="form-control" readonly/>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                            <label class="col-sm-3 control-label">
+                                搜索:
+                            </label>
+                                <div class="col-sm-8" >
+                                    <input id="search" name="search" placeholder="可查询制度内容、名称、编号"  class="form-control" onkeydown="commonObj.enterEvent(event)" />
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0px;">
+                                    <ul class="layui-tab-title">
+                                        <li class="layui-this fa fa-list">&nbsp;&nbsp;列表</li>
+                                        <li class="fa fa-th-large">&nbsp;&nbsp;缩略图</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        </form>
+                        </div>
+
+
+                        <div class="modalTableContent" style="height: 100%;width: 100%;display: none;" >
+
+                            <table class="layui-table"  lay-skin="line" style="table-layout:fixed;" id="demo1" lay-filter="test">
+
+                            </table>
+                            <!--分页插件-->
+                            <div class="putStockListPager" style="text-align: center;">
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="pictureContent" style="height: 100%;width: 100%;display: none;">
+                            <table class="layui-table" lay-skin="line" style="table-layout:fixed;">
+                                <div id="picList" class="stockCheckList1">
+                                    <!--<div class="col-sm-4 iboxtable" style="background-image:url('/statics/trainPlan/9b8534341033.jpg');background-repeat:repeat-x;">-->
+                                        <!--<div class="ibox-con">-->
+                                            <!--<div class="ibox-tit">-->
+                                                <!--<input value="技术部制度" class="form-control" style="font-size: 11px;height: 21px;border: unset; " readonly/>-->
+                                            <!--</div>-->
+                                            <!--<div style="text-align: center;">-->
+                                                <!--<ul>-->
+                                                    <!--<b><span style="font-size: 20px;"> 技术类产品需求调研</span></b>-->
+                                                    <!--<li>-->
+                                                        <!--<span style="">发布人：名称2</span>-->
+                                                        <!--<span style="">发布人：名称2</span>-->
+                                                    <!--</li>-->
+                                                <!--</ul>-->
+                                            <!--</div>-->
+                                        <!--</div>-->
+                                        <!--<div class="ibox-foot">-->
+                                            <!--<ul>-->
+                                                <!--<li>-->
+                                                    <!--<div style="float: left"><span>NO.XH-JS-001</span></div>-->
+                                                    <!--<div style="float: left;"><span>版次:A</span></div>-->
+                                                    <!--<div style="float: right;"><span>等级:重要</span></div>-->
+                                                <!--</li>-->
+
+                                            <!--</ul>-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+
+                                </div>
+
+
+
+                            </table>
+                            <!--分页插件-->
+                            <div class="putStockListPager1" style="text-align: center;">
+                            </div>
+                        </div>
+                    </div>
+
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+<div id="readyingModal" style="display: none;">
+    <div class="stockModalCommon">
+        <div class="stockModalBtnOuter">
+            <span style=" line-height: 50px; text-align: left; font-size: 15px; font-family: Candara;font-weight: bold;">阅读统计</span>
+        </div>
+       <div class="col-sm-12">
+           <div class="ibox float-e-margins" style="margin-bottom: -8px">
+               <div class="ibox-content">
+                   <div class="form-group" style="width:100%;text-align:center">
+                       <div class="col-sm-9" style="" >
+                           <div class="col-sm-11">
+                               <div class="layui-tab layui-tab-card" lay-filter="readyFlag" style="margin: 0px; height: 400px;">
+                                   <ul class="layui-tab-title">
+                                       <li name="haveReadNum" class="layui-this" style="width: 50%">&nbsp;&nbsp;</li>
+                                       <li name="notReadNum" class="" style="width:50%">&nbsp;&nbsp;</li>
+                                   </ul>
+
+                                   <div class="havaReadyTable" style=" height: 350px;width: 100%;display: none; overflow-y: auto;" >
+                                       <!--<div data-divId=""  deptId="" title="" class="userDivClass">-->
+                                           <!--<div class="userClass">姓名</div>-->
+                                       <!--</div>-->
+
+                                   </div>
+                                   <div class="noReadyTable" style=" height: 350px; width: 100%;display: none; overflow-y: auto;" >
+                                       <!--<div data-divId=""  deptId="" title="" class="userDivClass">-->
+                                           <!--<div class="userClass">性别</div>-->
+                                       <!--</div>-->
+                                   </div>
+                               </div>
+                           </div>
+
+
+                       </div>
+                       <div class="col-sm-3">
+                           <div class="layui-tab-card" style="margin: 0px; height: 400px; margin-left: -62px">
+                           <ul class="layui-tab-title">
+                               <li>已阅、未阅统计</li>
+                           </ul>
+                               <div id="peopleReadyProportion" style="width: 100%;height: 100%;"></div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+       </div>
+    </div>
+</div>
+
+
+<!--新增制度-->
+<div id="libraryModal" style="display: none;">
+    <div class="stockModalCommon">
+        <div class="stockModalBtnOuter">
+            <div class="stockModalTitle">
+            </div>
+            <div class="stockModalBtn">
+                <div onclick="pageObj.putStockModalClose();">
+                    <i class="fa fa-close"></i>
+                    关闭
+                </div>
+                <div  onclick="pageObj.submitLibrary(this,0);" >
+                    <i class="fa fa-arrow-circle-o-up"></i>
+                    提交
+                </div>
+                <div onclick="pageObj.submitLibrary(this,1)">
+                    <i class="fa fa-save"></i>
+                    暂存
+                </div>
+            </div>
+        </div>
+        <!--表单内容-->
+        <div class="stockModalFormOuter">
+            <form id="putStockModalFrom" autocomplete="off" class="form-horizontal" method="post" enctype="multipart/form-data">
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-6">
+                        <input type="hidden" name="state" id="state">
+                        <input type="hidden" name="id" id="id">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>制度类型:
+                        </label>
+                        <div class="col-sm-8 layui-form">
+                            <select name="typeId" id="libraryType" class="form-control" lay-verify="" lay-search>
+                                <option value="">请选择</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>等级:
+                        </label>
+                        <div class="col-sm-8 layui-form" >
+                            <select name="level" id="level" class="form-control" lay-verify="" lay-search>
+                                <option value="">请选择</option>
+                                <option value="A">重要</option>
+                                <option value="B">中等</option>
+                                <option value="C">一般</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-6 ">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>制度编号:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="libraryCode"  placeholder="制度编号:GS-BM-001" name="libraryCode" onkeyup="value=value.replace( /[\u4E00-\u9FA5]/g,'')" class="form-control" required/>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>版次:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="version" placeholder="版次：大写字母A" name="version" class="form-control" required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>制度名称:
+                        </label>
+                        <div class="col-sm-8 layui-form" >
+                            <input id="libraryName" name="libraryName" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>发布人:
+                        </label>
+                        <div class="col-sm-8 layui-form">
+                            <select name="releaseUser" id="releaseUser" class="form-control" lay-verify="" lay-search>
+                                <option date-deptId="" value="" selected>请选择</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            生效开始时间:
+                        </label>
+                        <div class="col-sm-8 layui-form" >
+                            <input id="effectiveStartTime" name="effectiveStartTime" class="form-control" readonly />
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            生效结束时间:
+                        </label>
+                        <div class="col-sm-8">
+                            <input id="effectiveEndTime" name="effectiveEndTime" class="form-control" readonly/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group layui-form">
+                    <div class="col-sm-12">
+                        <label class="col-sm-3 control-label leftMargin">
+                            人员查看范围:
+                        </label>
+                        <div class="layui-input-block col-sm-9" style="margin-left: 0px;">
+                            <input type="radio" name="separateFlag" value="0" lay-filter="separateFlag" title="混合权限">
+                            <input type="radio" name="separateFlag"  value="1" lay-filter="separateFlag"  title="单独权限">
+                            <span class="hybridFlag">
+                            <span class="inputMargin">
+                                <input class="deptCheck commonFlag" type="checkbox" name="flag" lay-filter="flag" lay-skin="primary" value="1">部门权限范围 </span>
+                            <span class="inputMargin">
+                                <input class="roleCheck commonFlag" type="checkbox" name="flag" lay-filter="flag" lay-skin="primary" value="2">角色权限范围</span>
+                            <span class="inputMargin">
+                                <input class="workAgeCheck commonFlag " type="checkbox" name="flag" lay-filter="flag" lay-skin="primary" value="5">职龄权限范围</span>
+                            </span>
+                            <span class="singleFlag">
+                            <span class="inputMargin">
+                                    <input class="blackCheck" type="checkbox" name="flag" lay-filter="flag" lay-skin="primary" value="3">黑名单权限范围</span>
+                            <span class="inputMargin">
+                                <input class="whiteCheck" type="checkbox" name="flag" lay-filter="flag" lay-skin="primary" value="4">白名单权限范围</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 form-group permissions">
+                    <div class="col-sm-12 deptShow">
+                        <label class="col-sm-3 control-label leftMargin">
+                            部门设置范围:
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <div id="showDeptId"  name="showDeptId" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showDeptId"  type="button" id="savaDeptId" onclick="pageObj.courseSignRangeModalShow(this)"class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>设置部门
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 roleShow">
+                        <label class="col-sm-3 control-label leftMargin">
+                           角色设置范围:
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <div id="showRoleId" name = "showRoleId" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showRoleId"  type="button" id="saveRoleId" onclick="pageObj.courseSignRangeModalShow(this);"class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>设置角色
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 workAgeShow layui-form">
+                        <label class="col-sm-3 control-label leftMargin">
+                            职龄设置范围:
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <div id="showWorkAge" >
+                                    <div class="layui-form-item">
+                                        <div class="layui-input-block">
+                                            <input type="radio"  name="workAgeFlag" value="0"  title="年" checked="">
+                                            <input type="radio" name="workAgeFlag"  value="1"   title="月">
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">范围：</label>
+                                            <div class="layui-input-inline" style="width: 100px;">
+                                                <input type="text" name="workAgeMin"  autocomplete="off" onkeyup="value=value.replace(/[^0-9]/g,'')"  class="layui-input">
+                                            </div>
+                                            <div class="layui-form-mid">-</div>
+                                            <div class="layui-input-inline" style="width: 100px;">
+                                                <input type="text" name="workAgeMax"  autocomplete="off" onkeyup="value=value.replace(/[^0-9]/g,'')"  class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 blackListShow">
+                        <label class="col-sm-3 control-label leftMargin">
+                            黑名单设置范围:
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <div id="showblacklist" name="showblacklist" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showblacklist"  type="button" id="savablacklist" onclick="pageObj.courseSignRangeModalShow(this);"class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>设置黑名单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 whiteListShow">
+                        <label class="col-sm-3 control-label leftMargin">
+                            白名单设置范围:
+                        </label>
+                        <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <div id="showWhiteList" name="showWhiteList" style="border: 1px solid #E5E6E7;height: 78px;padding-bottom: 5px;overflow-y: auto;">
+                                </div>
+                            </div>
+                            <div class="col-sm-1 ">
+                                <button data-divId="showWhiteList"  type="button" id="savaWhiteList" onclick="pageObj.courseSignRangeModalShow(this);"class="btn btn-primary" style="margin-left: -17px;margin-bottom: 10px;">
+                                    <i class="fa fa-search"></i>设置白名单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-6">
+                        <label class="col-sm-4 control-label">
+                            <span class="text-red">*</span>制度内容:
+                        </label>
+                        <div class="col-sm-8">
+                            <textarea id="libraryContent" name="libraryContent" style="width: 271%;height:300px;"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-2">
+                        <label class="col-sm-12 control-label">
+                            附件:
+                        </label>
+                    </div>
+                    <div class=" col-sm-3">
+                        <input type="hidden" name="attachment">
+                        <input type="hidden" name="attachmentLink">
+                        <div class="col-sm-12">
+                            <div id="affixDiv" name="file1"></div>
+                            <input type="file" id="file" name="file1" class="form-control" multiple/>
+                        </div>
+                    </div>
+                    <label class="col-sm-2 control-label">
+                        添加缩略图:
+                    </label>
+                    <div class="col-sm-3">
+                        <input type="hidden" name="thumbnailPictureLink"/>
+                        <div class="coursePic" onclick="commonObj.imageUpload.upload();">
+                            <i class="fa fa-plus"></i>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+<!--新增制度类型-->
+<div class="modal fade" id="addOperation-dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+
+        <div class="modal-content radius_5">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel" title=""></h4>
+            </div>
+            <div class="modal-body">
+                <div group="" item="add">
+                    <div>
+                        <div class="input-group margin-t-5">
+                            <span class="input-group-addon">名称:</span>
+                            <input id="addName" type="text" class="form-control" />
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="Save" onclick="pageObj.addTypeBtn();" type="button" class="btn btn-primary">保存</button>
+                <button id="edit" onclick="pageObj.editTypeBtn();" type="button" class="btn btn-primary">保存</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<!--图片上传-->
+<form style="display: none" class="dropzone" id="imageUploadForm"></form>
+
+
+<!--图片预览-->
+<div class="modal inmodal" id="imgModal" tabindex="1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight">
+            <div class="ibox-content" style="min-height:370px;min-width:370px;vertical-align: middle;text-align: center;">
+                <img id="imgDiv" onclick="closeImg('imgModal')" width="100%">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

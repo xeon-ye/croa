@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.GoodsRecordMapper">
+    <sql id="selectColumn">
+       gr.id,
+       gr.type,
+       gr.state,
+       gr.foreign_id foreignId,
+       gr.inventory_id inventoryId,
+       gr.user_id userId,
+       gr.user_name userName,
+       gr.task_id taskId,
+       gr.create_time createTime,
+       gr.update_time updateTime,
+       gr.update_user_id updateUserId,
+       gr.company_code companyCode
+    </sql>
+
+    <insert id="saveGoodsRecord" parameterType="com.qinfei.qferp.entity.inventory.GoodsRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_goods_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="type != null">type,</if>
+            <if test="state != null">state,</if>
+            <if test="foreignId != null">foreign_id,</if>
+            <if test="inventoryId != null">inventory_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null">user_name,</if>
+            <if test="taskId!=null">task_id,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="type != null">#{type},</if>
+            <if test="state != null">#{state},</if>
+            <if test="foreignId != null">#{foreignId},</if>
+            <if test="inventoryId != null">#{inventoryId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null">#{userName},</if>
+            <if test="taskId!=null">#{taskId},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <update id="editGoodsRecord" parameterType="com.qinfei.qferp.entity.inventory.GoodsRecord">
+        update t_saves_goods_record
+        <set>
+            <if test="type != null">type=#{type},</if>
+            <if test="state != null">state=#{state},</if>
+            <if test="foreignId != null">foreign_id=#{foreignId},</if>
+            <if test="inventoryId != null">inventory_id=#{inventoryId},</if>
+            <if test="userId != null">user_id=#{userId},</if>
+            <if test="userName != null">user_name=#{userName},</if>
+            <if test="taskId!=null">task_id=#{taskId},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="updateTime != null">update_time=#{updateTime},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!--根据库存id查询物品库存记录-->
+    <select id="queryByInventoryId" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.GoodsRecord">
+        select <include refid="selectColumn"/>
+        from t_saves_goods_record gr where gr.state>-2 and gr.inventory_id=#{id}
+    </select>
+
+    <!--根据外键id查询物品库存记录-->
+    <select id="getGoodsRecordById" resultType="com.qinfei.qferp.entity.inventory.GoodsRecord">
+        select * from t_saves_goods_record where state>-2 and type=#{type} and foreign_id=#{id}
+    </select>
+
+    <!--修改物品库存记录状态-->
+    <update id="editGoodsRecordState" parameterType="java.util.Map">
+        update t_saves_goods_record
+        <set>
+            <if test="state!=null">state=#{state},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="updateUserId!=null">update_user_id=#{updateUserId},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!--将已完成库存记录修改为删除状态，防止出现两条相同数据-->
+    <update id="editGoodsRecordDelState">
+        update t_saves_goods_record set state=#{state} where state=1 and inventory_id=#{id}
+    </update>
+</mapper>

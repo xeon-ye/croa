@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.news.NewsMapper">
+  <select id="getNewsByNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+    <if test="type !=null">
+         and type  = #{type}
+    </if>
+
+    <if test="companyCode !=null">
+      and (company_code  = #{companyCode}
+      or type = 1)
+    </if>
+
+    <if test="queryValue !=null and queryValue !='' ">
+      and (title like CONCAT('%',#{queryValue},'%')
+      or content like CONCAT('%',#{queryValue},'%') )
+    </if>
+
+  </select>
+
+  <select id="getAdminNewsCount"  resultType="java.lang.Integer">
+    select  count(*)
+    from t_news
+    where is_delete = 1
+    <if test="type !=null">
+      and type  = #{type}
+    </if>
+    <if test="companyCode != null and companyCode != ''">
+      and company_code  = #{companyCode}
+    </if>
+    <if test="queryValue != null and queryValue !=''">
+      and (title like CONCAT('%',#{queryValue},'%')
+      or content like CONCAT('%',#{queryValue},'%'))
+    </if>
+  </select>
+
+  <select id="getAdminNewsByNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+    <if test="type !=null">
+      and type  = #{type}
+    </if>
+    <if test="companyCode != null and companyCode != ''">
+      and company_code  = #{companyCode}
+    </if>
+    <if test="queryValue != null and queryValue !=''">
+      and (title like CONCAT('%',#{queryValue},'%')
+      or content like CONCAT('%',#{queryValue},'%'))
+    </if>
+  </select>
+
+
+  <select id="getAdminNextNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+
+    <if test="companyCode !=null ">
+      and company_code  = #{companyCode}
+    </if>
+    <if test="updateTime !=null ">
+      and update_time> #{updateTime}
+    </if>
+    ORDER BY update_time ASC LIMIT 1
+
+  </select>
+
+  <select id="getNextNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+
+    <if test="companyCode !=null ">
+      and (company_code  = #{companyCode}
+      or type =1)
+    </if>
+    <if test="updateTime !=null ">
+      and update_time> #{updateTime}
+    </if>
+
+    ORDER BY update_time ASC LIMIT 1
+
+  </select>
+
+
+  <select id="getAdminPreNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+
+    <if test="companyCode !=null ">
+      and company_code  = #{companyCode}
+    </if>
+    <if test="updateTime !=null ">
+      and update_time &lt;#{updateTime}
+    </if>
+    ORDER BY update_time DESC LIMIT 1
+
+  </select>
+
+  <select id="getPreNews"  resultType="com.qinfei.qferp.entity.news.News">
+    select  *
+    from t_news
+    where is_delete = 1
+
+    <if test="companyCode !=null ">
+      and (company_code  = #{companyCode}
+      or type =1)
+    </if>
+
+    <if test="updateTime !=null ">
+      and update_time &lt; #{updateTime}
+    </if>
+
+    ORDER BY update_time DESC LIMIT 1
+
+  </select>
+
+  <!--批量删除-->
+  <update id="batchUpdateStateByIds">
+    update t_news
+    SET
+    update_time = now(),
+    update_id = #{updateId},
+    is_delete = #{state}
+    where id in
+    <foreach item="id" collection="ids" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </update>
+
+</mapper>

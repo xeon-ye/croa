@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaSupplierRelateAuditMapper">
+    <sql id="selectColumn">
+        tmsra.id,
+        tmsra.media_id,
+        tmsra.enabled,
+        tmsra.supplier_id,
+        tmsra.state,
+        tmsra.create_id,
+        tmsra.update_id,
+        tmsra.is_delete
+    </sql>
+    <sql id="supplierPriceColumn">
+        tmspa.id as supplierPriceId,
+        tmspa.media_supplier_relate_id as mediaSupplierRelateId,
+        tmspa.cell,
+        tmspa.cell_name as cellName,
+        tmspa.cell_value as cellValue,
+        tmspa.cell_type as cellType,
+        tmspa.cell_value_text as cellValueText
+    </sql>
+    <sql id="supplierColumn">
+        tms.id as supplierId,
+        tms.media_type_id as mediaTypeId,
+        tms.name as supplierCompany,
+        tms.contactor as supplierName,
+        tms.phone,
+        tms.creator,
+        tms.company_code as createUserCompanyCode
+    </sql>
+
+    <!--媒体供应商列表返回对象-->
+    <resultMap id="mediaSupplierMap" type="com.qinfei.qferp.entity.media1.MediaSupplierRelate">
+        <id column="id" property="id"/>
+        <result column="media_id" property="mediaId"/>
+        <result column="enabled" property="enabled"/>
+        <result column="supplier_id" property="supplierId"/>
+        <result column="state" property="state"/>
+        <result column="create_id" property="createId"/>
+        <result column="update_id" property="updateId"/>
+        <result column="is_delete" property="isDelete"/>
+        <collection property="mediaSupplierPriceList" ofType="com.qinfei.qferp.entity.media1.MediaSupplierPrice">
+            <id column="supplierPriceId" property="id"/>
+            <id column="mediaSupplierRelateId" property="mediaSupplierRelateId"/>
+            <result column="cell" property="cell"/>
+            <result column="cellName" property="cellName"/>
+            <result column="cellValue" property="cellValue"/>
+            <result column="cellValueText" property="cellValueText"/>
+        </collection>
+    </resultMap>
+
+    <!--根据媒体ID和供应商ID获取关系表信息-->
+    <select id="getRelateByMediaIdAndSupplierId" resultType="com.qinfei.qferp.entity.media1.MediaSupplierRelateAudit">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        WHERE
+        ( tmsra.state <![CDATA[<>]]> 1 OR tmsra.is_delete <![CDATA[<>]]> 1)
+        AND tmsra.media_id = #{mediaId}
+        AND tmsra.supplier_id = #{supplierId}
+    </select>
+
+    <select id="listRelateByMediaIdAndSupplierIds" resultType="com.qinfei.qferp.entity.media1.MediaSupplierRelateAudit">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        WHERE ( tmsra.state <![CDATA[<>]]> 1 OR tmsra.is_delete <![CDATA[<>]]> 1 )
+        AND	tmsra.media_id = #{mediaId}
+        AND tmsra.supplier_id in
+        <foreach collection="supplierIds" item="supplierId" open="(" close=")" separator=",">
+            #{supplierId}
+        </foreach>
+    </select>
+
+    <!--根据媒体ID获取关系表主键ID-->
+    <select id="listIdByMediaId" resultType="java.lang.Integer">
+        SELECT
+        	id
+        FROM
+        	t_media_supplier_relate_audit
+        WHERE  media_id = #{mediaId}
+    </select>
+
+    <!--根据媒体ID获取关系表主键ID-->
+    <select id="listIdByMediaIds" resultType="java.lang.Integer">
+        SELECT
+        id
+        FROM
+        t_media_supplier_relate_audit
+        WHERE state = 0 and
+        media_id in
+        <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </select>
+
+    <!--媒体供应商价格-->
+    <resultMap id="mediaSupplierPriceMap" type="com.qinfei.qferp.entity.media1.MediaSupplierRelateAudit">
+        <id column="id" property="id"/>
+        <result column="media_id" property="mediaId"/>
+        <result column="supplier_id" property="supplierId"/>
+        <result column="create_id" property="createId"/>
+        <result column="update_id" property="updateId"/>
+        <result column="enabled" property="enabled"/>
+        <association property="supplier" javaType="com.qinfei.qferp.entity.media.Supplier">
+            <id column="supplierId" property="id"/>
+            <result column="mediaTypeId" property="mediaTypeId"/>
+            <result column="supplierCompany" property="name"/>
+            <result column="supplierName" property="contactor"/>
+            <result column="phone" property="phone"/>
+            <result column="creator" property="creator"/>
+            <result column="createUserCompanyCode" property="companyCode"/>
+        </association>
+        <collection property="mediaSupplierPriceAuditList" ofType="com.qinfei.qferp.entity.media1.MediaSupplierPriceAudit">
+            <id column="supplierPriceId" property="id"/>
+            <result column="mediaSupplierRelateId" property="mediaSupplierRelateId"/>
+            <result column="cell" property="cell"/>
+            <result column="cellName" property="cellName"/>
+            <result column="cellValue" property="cellValue"/>
+            <result column="cellType" property="cellType"/>
+            <result column="cellValueText" property="cellValueText"/>
+        </collection>
+    </resultMap>
+
+    <!--批量插入媒体供应商关系表-->
+    <insert id="saveBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_media_supplier_relate_audit (
+           media_id,
+           supplier_id,
+           state,
+           is_copy,
+           enabled,
+           copy_remarks,
+           create_id,
+           create_date,
+           update_id,
+           update_date,
+           versions,
+           is_delete
+        )
+        VALUES
+        <foreach collection="list" item="mediaSupplierRelate" index="index" separator=",">
+            (
+            #{mediaSupplierRelate.mediaId},
+            #{mediaSupplierRelate.supplierId},
+            #{mediaSupplierRelate.state},
+            #{mediaSupplierRelate.isCopy},
+            #{mediaSupplierRelate.enabled},
+            #{mediaSupplierRelate.copyRemarks},
+            #{mediaSupplierRelate.createId},
+            now(),
+            #{mediaSupplierRelate.updateId},
+            now(),
+            0,
+            0
+            )
+        </foreach>
+    </insert>
+
+    <!--批量更新媒体供应商关系表-->
+    <update id="updateBatch">
+        update t_media_supplier_relate_audit
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            versions = versions + 1,
+            <trim prefix="enabled = case " suffix="else enabled end,">
+                <foreach collection="mediaSupplierRelateAuditList" item="mediaSupplierRelate" index="index">
+                    <if test="mediaSupplierRelate.enabled != null">
+                        when id = #{mediaSupplierRelate.id} then #{mediaSupplierRelate.enabled}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where id in
+        <foreach item="mediaSupplierRelate" collection="mediaSupplierRelateAuditList" index="index" open="(" close=")" separator=",">
+            #{mediaSupplierRelate.id}
+        </foreach>
+    </update>
+
+    <!--更新媒体供应商关系-->
+    <update id="updateMediaSupplierRelateForMap">
+        update t_media_supplier_relate_audit
+        <set>
+            update_date = now(),
+            versions = versions + 1,
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="state != null">state = #{state},</if>
+            <if test="updatedId != null">update_id = #{updatedId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--更新供应商关系表状态-->
+    <update id="updateStateByIds">
+        UPDATE t_media_supplier_relate_audit
+        SET state = #{state},
+         versions = versions + 1,
+         update_date = NOW(),
+         update_id = #{updateId}
+        WHERE id in
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--更新供应商关系表状态-->
+    <update id="updateStateById">
+        UPDATE t_media_supplier_relate_audit
+        SET state = #{state},
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--更新供应商关系表状态-->
+    <update id="updateStateBySupplierId">
+        UPDATE t_media_supplier_relate_audit
+        SET state = #{state},
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE supplier_id = #{supplierId}
+    </update>
+
+    <!--更新供应商关系表启用状态-->
+    <update id="updateEnableByIds">
+        UPDATE t_media_supplier_relate_audit
+        SET enabled = #{enabled},
+        <if test="state != null">
+            state = #{state},
+        </if>
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE id in
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--更新供应商关系表启用状态-->
+    <update id="updateEnableById">
+        UPDATE t_media_supplier_relate_audit
+        SET enabled = #{enabled},
+        <if test="state != null">
+            state = #{state},
+        </if>
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--更新供应商关系表状态-->
+    <update id="updateIsDeleteByIds">
+        UPDATE t_media_supplier_relate_audit
+        SET is_delete = #{isDelete},
+        <if test="state != null">
+            state = #{state},
+        </if>
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE id in
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--更新供应商关系表删除字段-->
+    <update id="updateIsDeleteById">
+        UPDATE t_media_supplier_relate_audit
+        SET is_delete = #{isDelete},
+        <if test="state != null">
+            state = #{state},
+        </if>
+        versions = versions + 1,
+        update_date = NOW(),
+        update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--根据媒体供应商关系ID获取供应商列表-->
+    <select id="listSupplierIdByIds" resultType="java.lang.Integer">
+        SELECT
+        	tmsra.supplier_id AS supplierId
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        WHERE tmsra.id IN
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--根据媒体Id获取供应商信息-->
+    <select id="listSupplierInfoByMediaId" resultMap="mediaSupplierPriceMap">
+        SELECT
+            <include refid="selectColumn"/>, <include refid="supplierColumn"/>, <include refid="supplierPriceColumn"/>
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        LEFT JOIN t_media_supplier tms ON tmsra.supplier_id = tms.id
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id
+        WHERE tmsra.is_delete = 0 and tmsra.media_id = #{mediaId}
+    </select>
+
+    <!--拷贝t_media_supplier_relate_audit表数据到该表-->
+    <insert id="copySupplierRelateByMediaIds" parameterType="java.util.List">
+        insert into
+        t_media_supplier_relate_audit
+        select * from t_media_supplier_relate where media_id in
+        <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </insert>
+
+    <!--拷贝t_media_supplier_relate表数据到该表-->
+    <insert id="copySupplierRelateByIds">
+        insert into
+        t_media_supplier_relate_audit
+        select * from t_media_supplier_relate
+        where
+        id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </insert>
+
+    <!--拷贝t_media_supplier_relate_audit表数据到该表-->
+    <insert id="copySupplierRelateByMediaId">
+        insert into
+        t_media_supplier_relate_audit
+        select * from t_media_supplier_relate where media_id = #{mediaId}
+    </insert>
+
+    <!--根据媒体ID删除扩展表-->
+    <delete id="deleteByMediaId">
+        DELETE
+        FROM
+        t_media_supplier_relate_audit
+        WHERE
+        media_id = #{mediaId}
+    </delete>
+
+    <!--根据媒体ID批量删除媒体表-->
+    <update id="deleteByMediaIds" parameterType="java.util.List">
+        delete from t_media_supplier_relate_audit
+        where
+        media_id in
+        <foreach collection="mediaIds" item="mediaId" open="(" close=")" separator=",">
+            #{mediaId}
+        </foreach>
+    </update>
+
+    <!--根据媒体ID批量删除媒体表-->
+    <update id="deleteByIds" parameterType="java.util.List">
+        delete from t_media_supplier_relate_audit
+        where
+        id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据供应商ID获取关联的媒体ID列表-->
+    <select id="listMediaIdBySupplierId" resultType="java.lang.Integer">
+        SELECT
+        	tmsra.media_id AS mediaId
+        FROM
+        	t_media_supplier_relate_audit tmsra
+        INNER JOIN t_media_audit tma ON tma.id = tmsra.media_id and (tma.state <![CDATA[<>]]> 1 OR tma.is_delete <![CDATA[<>]]> 1)
+        WHERE
+        	(tmsra.state <![CDATA[<>]]> 1 OR tmsra.is_delete <![CDATA[<>]]> 1)
+        AND tmsra.supplier_id = #{supplierId}
+    </select>
+
+    <!--根据ID获取媒体供应商详细信息-用户媒体供应商异动-->
+    <select id="listMediaSupplierDetailByIds" resultMap="mediaSupplierMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="supplierPriceColumn"/>
+        FROM
+          t_media_supplier_relate_audit tmsra
+        LEFT JOIN t_media_supplier_price_audit tmspa ON tmsra.id = tmspa.media_supplier_relate_id
+        WHERE tmsra.id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

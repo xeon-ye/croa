@@ -1,0 +1,2105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.biz.ArticleMapperXML">
+    <!--根据用户权限的sql,查询出了用户和部门-->
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+            ,sys_user u
+            <where>
+                <choose>
+                    <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                        and u.id=#{currentUserId}
+                    </when>
+                    <otherwise>
+                        <if test="companyCode!= null and companyCode != '' and companyCode != 'XH' and companyCode != 'JT' ">
+                            AND u.company_code=#{companyCode}
+                        </if>
+                        <if test="deptIds != ''">
+                            AND u.`dept_id` IN (${deptIds})
+                        </if>
+                    </otherwise>
+                </choose>
+                <if test="userTj != ''">
+                    ${userTj}
+                </if>
+            </where>
+        </if>
+    </sql>
+    <!--稿件查询通用列-->
+    <sql id="articleListColsCommon">
+        SELECT
+            ord.id id,
+            ord.user_id userId,
+            ord.user_name userName,
+            sd.name deptName,
+            art.id artId,
+            art.media_type_id mTypeId,
+            art.media_type_name mTypeName,
+            art.media_id mediaId,
+            art.media_name mediaName,
+            art.media_user_id mediaUserId,
+            art.media_user_name mediaUserName,
+            art.title title,
+            art.link link,
+            art.num num,
+            art.issued_date issuedDate,
+            art.sale_amount saleAmount,
+            art.issue_states issueStates,
+            art.outgo_amount outgoAmount,
+            art.create_time createTime,
+            art.remarks remarks,
+            art.mess_state messState,
+    </sql>
+    <!--集团稿件查询列-->
+    <sql id="articleListCols">
+        ord.company_id companyId,
+        ord.company_name companyName,
+        ord.cust_id dockingId,
+        ord.cust_name dockingName,
+        art.brand brand,
+        art.taxes taxes,
+        art.promise_date promiseDate,
+        art.income_amount incomeAmount,
+        art.income_date incomeDate,
+        art.income_states incomeStates,
+        art.refund_states refundStates,
+        art.other_pay_states otherPayStates,
+        art.outgo_states outgoStates,
+        art.commission_states commissionStates,
+        art.invoice_states invoiceStates,
+        art.supplier_id supplierId,
+        art.supplier_name supplierName,
+        art.supplier_contactor supplierContactor,
+        art.pay_amount payAmount,
+        art.price_column priceColumn,
+        art.price_type priceType,
+        art.outgo_amount outgoAmount,
+        art.other_pay otherPay,
+        art.commission commission,
+        art.refund_amount refundAmount,
+        art.profit profit,
+        art.year year,
+        art.month month,
+        art.unit_price unitPrice,
+        art.income_id incomeId,
+        art.income_code incomeCode,
+        art.income_account incomeAccount,
+        art.income_date incomeDate,
+        art.income_man incomeMan,
+        art.income_total_amount incomeTotalAmount,
+        art.assign_date assignDate,
+        art.outgo_id outgoId,
+        art.outgo_code outgoCode,
+        art.outgo_total_amount outgoTotalAmount,
+        art.create_time createTime,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.type_name typeName,
+        tms.company_code companyCode,
+        tms.phone supplierPhone,
+        cc.type_name custCompanyType,
+        ext.project_id projectId,
+        ext.project_code projectCode,
+        ext.project_name projectName,
+        art.alter_flag alterFlag
+    </sql>
+    <!--催收员稿件查询列-->
+    <sql id="articleListColsCSY">
+        ord.company_id companyId,
+        ord.company_name companyName,
+        ord.cust_id dockingId,
+        ord.cust_name dockingName,
+        art.brand brand,
+        art.income_amount incomeAmount,
+        art.taxes taxes,
+        art.type_name typeName,
+        art.promise_date promiseDate,
+        art.income_date incomeDate,
+        art.invoice_states invoiceStates,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.pay_amount payAmount,
+        cc.type_name custCompanyType
+    </sql>
+    <!--业务查询列-->
+    <sql id="articleListColsYW">
+        ord.company_id companyId,
+        ord.company_name companyName,
+        ord.cust_id dockingId,
+        ord.cust_name dockingName,
+        art.brand brand,
+        art.income_amount incomeAmount,
+        art.taxes taxes,
+        art.promise_date promiseDate,
+        art.income_date incomeDate,
+        art.income_states incomeStates,
+        art.refund_states refundStates,
+        art.other_pay_states otherPayStates,
+        art.commission_states commissionStates,
+        art.invoice_states invoiceStates,
+        art.price_column priceColumn,
+        art.price_type priceType,
+        art.outgo_amount outgoAmount,
+        art.other_pay otherPay,
+        art.commission commission,
+        art.refund_amount refundAmount,
+        art.profit profit,
+        art.year year,
+        art.month month,
+        art.unit_price unitPrice,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.type_name typeName,
+        art.outgo_states outgoStates,
+        tms.company_code companyCode,
+        cc.type_name custCompanyType,
+        ext.project_id projectId,
+        ext.project_code projectCode,
+        ext.project_name projectName
+    </sql>
+    <!--媒介查询列-->
+    <sql id="articleListColsMJ">
+        ord.cust_name dockingName,
+        art.outgo_states outgoStates,
+        (case art.outgo_states
+           when 1 then '已请款'
+           when 2 then '请款中'
+           else '' end
+        ) outgoStatus,
+        art.supplier_id supplierId,
+        art.supplier_name supplierName,
+        art.supplier_contactor supplierContactor,
+        art.pay_amount payAmount,
+        art.price_column priceColumn,
+        art.price_type priceType,
+        art.unit_price unitPrice,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.other_expenses otherExpenses,
+        art.commission_states commissionStates,
+        tms.company_code supplierCompanyCode,
+        tms.creator supplierCreator,
+        tms.phone supplierPhone,
+		sd.company_code_name as companyCodeName
+    </sql>
+    <!--集团查询表-->
+    <sql id="articleTable">
+        FROM t_biz_article art
+        left join t_biz_order ord on ord.id = art.order_id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_media_supplier tms on art.supplier_id = tms.id
+        left join t_crm_company cc on ord.company_id=cc.id
+        left join t_biz_article_extend ext on art.id=ext.article_id
+    </sql>
+    <!--催收员查询表-->
+    <sql id="articleTableCSY">
+        FROM t_biz_article art
+        left join t_biz_order ord on ord.id = art.order_id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_crm_company cc on ord.company_id = cc.id
+        left join t_biz_article_extend ext on art.id=ext.article_id
+    </sql>
+    <!--业务查询表,按照业务员所属部门来查询-->
+    <sql id="articleTableYW">
+        FROM t_biz_article art
+        left join t_biz_order ord on ord.id = art.order_id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_media_supplier tms on art.supplier_id = tms.id
+        left join t_crm_company cc on ord.company_id=cc.id
+        left join t_biz_article_extend ext on art.id=ext.article_id
+        left join sys_user u on u.id=ord.user_id
+    </sql>
+    <!--媒介查询表-->
+    <sql id="articleTableMJ">
+        FROM t_biz_article art
+        left join t_biz_order ord on art.order_id = ord.id
+        left join sys_dept sd on ord.depat_id = sd.id
+        left join t_media_supplier tms on art.supplier_id = tms.id
+        <if test="mjDeptList != null and mjDeptList.size() > 0">
+            left join sys_user su on art.media_user_id = su.id
+        </if>
+    </sql>
+    <!--通用查询条件-->
+    <sql id="articleParamCommon">
+        where art.state &gt; 0
+        <!--发布状态-->
+        <if test="issueStates != null and issueStates != ''">
+            and art.issue_states = #{issueStates}
+        </if>
+        <if test="issuedDateStart != null and issuedDateStart != ''">
+            and art.issued_date &gt;= #{issuedDateStart}
+        </if>
+        <if test="issuedDateEnd != null and issuedDateEnd != ''">
+            and art.issued_date &lt;= STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <!--媒体板块筛选-->
+        <if test="mType != null and mType != ''">
+            and art.media_type_id = #{mType}
+        </if>
+        <if test="messState != null and messState !=''">
+            and art.mess_state = #{messState}
+        </if>
+        <if test="alterFlag != null and alterFlag !=''">
+            and art.alter_flag = #{alterFlag}
+        </if>
+        <!--媒体名称筛选-->
+        <if test="mediaName != null and mediaName != ''">
+            and art.media_name like concat('%',#{mediaName},'%')
+        </if>
+        <!--标题筛选-->
+        <if test="title != null and title != ''">
+            and art.title like concat('%',#{title},'%')
+        </if>
+        <!--链接筛选-->
+        <if test="link != null and link != ''">
+            and art.link like concat('%',#{link},'%')
+        </if>
+        <!--部门id筛选-->
+        <if test="deptList!=null and deptList.size>0">
+            and ord.depat_id in
+            <foreach item="dept" collection="deptList" open="(" close=")" separator=",">
+                #{dept.id}
+            </foreach>
+        </if>
+        <!--业务员-->
+        <if test="userId != null and userId != ''">
+            and ord.user_id = #{userId}
+        </if>
+        <!--媒介-->
+        <if test="mediaUserId != null and mediaUserId != ''">
+            and art.media_user_id = #{mediaUserId}
+        </if>
+        <!--业务员所在公司-->
+        <if test="companyCode !=null and companyCode !='' and companyCode !='JT'">
+            and sd.company_code = #{companyCode}
+        </if>
+        <!--页面选中的稿件 -->
+        <if test="articles != null and articles.size>0">
+            and art.id in
+            <foreach item="item" collection="articles" index="index" open="(" close=")" separator=",">
+                #{item.id}
+            </foreach>
+        </if>
+        <!--页面选中的稿件id -->
+        <if test="ids != null and ids.size>0">
+            and art.id in
+            <foreach item="item" collection="ids" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+    <!--稿件查询条件-->
+    <sql id="articleParam">
+        <if test="promiseDateStart != null and promiseDateStart != ''">
+            and art.promise_date &gt;= #{promiseDateStart}
+        </if>
+        <if test="promiseDateEnd != null and promiseDateEnd != ''">
+            and art.promise_date &lt;=  STR_TO_DATE(CONCAT(#{promiseDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <!--客户公司名称-->
+        <if test="companyName != null and companyName != ''">
+            and ord.company_name like concat('%',#{companyName},'%')
+        </if>
+        <!--客户对接人-->
+        <if test="dockingPeopleName != null and dockingPeopleName != ''">
+            and ord.cust_name like concat('%',#{dockingPeopleName},'%')
+        </if>
+        <if test="assignDateStart != null and assignDateStart != ''">
+            and art.assign_date &gt;= #{assignDateStart}
+        </if>
+        <if test="assignDateEnd != null and assignDateEnd != ''">
+            and art.assign_date &lt;= STR_TO_DATE(CONCAT(#{assignDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <!--客户行业类型-->
+        <if test="custCompanyCode != null and custCompanyCode != ''">
+            and cc.type_code = #{custCompanyCode}
+        </if>
+        <if test="brand != null and brand != ''">
+            and art.brand like concat('%',#{brand},'%')
+        </if>
+        <if test="supplierName != null and supplierName != ''">
+            and art.supplier_name like concat('%',#{supplierName},'%')
+        </if>
+        <if test="supplierContactor != null and supplierContactor != ''">
+            and art.supplier_contactor like concat('%',#{supplierContactor},'%')
+        </if>
+        <!--稿件行业类型-->
+        <if test="typeCode != null and typeCode != ''">
+            and art.type_code = #{typeCode}
+        </if>
+        <!--客户状态 -->
+        <if test="completeStatus != null and completeStatus != ''">
+            <if test="completeStatus == 0">
+                and ord.cust_id is null
+            </if>
+            <if test="completeStatus == 1">
+                and ord.cust_id is not null
+            </if>
+        </if>
+        <!--回款状态-->
+        <if test="incomeStates != null and incomeStates != ''">
+            and art.income_states = #{incomeStates}
+        </if>
+        <!--请款状态-->
+        <if test="outgoStates != null and outgoStates != ''">
+            and art.outgo_states = #{outgoStates}
+        </if>
+        <!--开票状态-->
+        <if test="invoiceStates != null and invoiceStates != ''">
+            and art.invoice_states = #{invoiceStates}
+        </if>
+        <!--退款状态-->
+        <if test="refundStates != null and refundStates != ''">
+            and art.refund_states = #{refundStates}
+        </if>
+        <!--其他支出状态-->
+        <if test="otherPayStates != null and otherPayStates != ''">
+            and art.other_pay_states = #{otherPayStates}
+        </if>
+        <!--提成状态-->
+        <if test="commissionStates != null and commissionStates != ''">
+            and art.commission_states = #{commissionStates}
+        </if>
+        <!--提成年 -->
+        <if test="year != null and year != ''">
+            and art.year = #{year}
+        </if>
+        <!--提成月 -->
+        <if test="month != null and month != ''">
+            and art.month = #{month}
+        </if>
+        <!--内外部-->
+        <if test="innerOuter != null and innerOuter != ''">
+            and art.inner_outer = #{innerOuter}
+        </if>
+        <!--频道-->
+        <if test="channel != null and channel !=''">
+            AND art.channel like concat('%',#{channel},'%')
+        </if>
+        <!--电商商家-->
+        <if test="electricityBusinesses != null and electricityBusinesses !=''">
+            AND art.electricity_businesses like concat('%',#{electricityBusinesses},'%')
+        </if>
+        <!--项目编号-->
+        <if test="projectCode != null and projectCode != ''">
+            and ext.project_code like concat('%',#{projectCode},'%')
+        </if>
+        <!--项目名称-->
+        <if test="projectName != null and projectName != ''">
+            and ext.project_name like concat('%',#{projectName},'%')
+        </if>
+    </sql>
+    <!--催收员查询条件-->
+    <sql id="articleParamCSY">
+        AND sd.company_code = #{user.companyCode} AND ord.cust_id is not null and
+        current_date &gt; art.promise_date and art.income_states in (0,2)
+        <if test="promiseDateStart != null and promiseDateStart != ''">
+            and art.promise_date &gt;= #{promiseDateStart}
+        </if>
+        <if test="promiseDateEnd != null and promiseDateEnd != ''">
+            and art.promise_date &lt;= STR_TO_DATE(CONCAT(#{promiseDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <!--客户公司名称-->
+        <if test="companyName != null and companyName != ''">
+            and ord.company_name like concat('%',#{companyName},'%')
+        </if>
+        <!--客户对接人-->
+        <if test="dockingPeopleName != null and dockingPeopleName != ''">
+            and ord.cust_name like concat('%',#{dockingPeopleName},'%')
+        </if>
+        <if test="brand != null and brand != ''">
+            and art.brand like concat('%',#{brand},'%')
+        </if>
+        <!--回款状态-->
+        <if test="incomeStates != null and incomeStates != ''">
+            and art.income_states = #{incomeStates}
+        </if>
+        <!--开票状态-->
+        <if test="invoiceStates != null and invoiceStates != ''">
+            and art.invoice_states = #{invoiceStates}
+        </if>
+    </sql>
+    <!--业务员查询条件-->
+    <sql id="articleParamYW">
+        AND sd.company_code = #{user.companyCode}
+        <!--业务部部门id筛选跟人走-->
+        <if test="deptYWList!=null and deptYWList.size>0">
+            and u.dept_id in
+            <foreach item="dept" collection="deptYWList" open="(" close=")" separator=",">
+                #{dept.id}
+            </foreach>
+        </if>
+        <!--权限部门id筛选-->
+        <if test="deptYWIds!=null and deptYWIds != ''">
+            and u.dept_id in(${deptYWIds})
+        </if>
+        <!--权限部门id筛选-->
+        <if test="deptIds!=null and deptIds != ''">
+            and ord.depat_id in(${deptIds})
+        </if>
+        <if test="projectCode != null and projectCode != ''">
+            and ext.project_code like concat('%',#{projectCode},'%')
+        </if>
+        <if test="projectName != null and projectName != ''">
+            and ext.project_name like concat('%',#{projectName},'%')
+        </if>
+        <!--提成状态-->
+        <if test="commissionStates != null and commissionStates != ''">
+            and art.commission_states = #{commissionStates}
+        </if>
+        <!--提成年 -->
+        <if test="year != null and year != ''">
+            and art.year = #{year}
+        </if>
+        <!--提成月 -->
+        <if test="month != null and month != ''">
+            and art.month = #{month}
+        </if>
+        <if test="companyName != null and companyName != ''">
+            and ord.company_name like concat('%',#{companyName},'%')
+        </if>
+        <if test="dockingPeopleName != null and dockingPeopleName != ''">
+            and ord.cust_name like concat('%',#{dockingPeopleName},'%')
+        </if>
+        <if test="brand != null and brand != ''">
+            and art.brand like concat('%',#{brand},'%')
+        </if>
+        <!--客户行业类型-->
+        <if test="custCompanyCode != null and custCompanyCode != ''">
+            and cc.type_code = #{custCompanyCode}
+        </if>
+        <!--稿件行业类型-->
+        <if test="typeCode != null and typeCode != ''">
+            and art.type_code = #{typeCode}
+        </if>
+        <!--是否有客户信息 -->
+        <if test="completeStatus != null and completeStatus != ''">
+            <if test="completeStatus == 0">
+                and ord.cust_id is null
+            </if>
+            <if test="completeStatus == 1">
+                and ord.cust_id is not null
+            </if>
+        </if>
+        <!--回款状态-->
+        <if test="incomeStates != null and incomeStates != ''">
+            and art.income_states = #{incomeStates}
+        </if>
+        <!--开票状态-->
+        <if test="invoiceStates != null and invoiceStates != ''">
+            and art.invoice_states = #{invoiceStates}
+        </if>
+        <!--退款状态-->
+        <if test="refundStates != null and refundStates != ''">
+            and art.refund_states = #{refundStates}
+        </if>
+        <!--请款状态筛选-->
+        <if test="outgoStates != null and outgoStates != ''">
+            and art.outgo_states = #{outgoStates}
+        </if>
+        <!--其他支出状态-->
+        <if test="otherPayStates != null and otherPayStates != ''">
+            and art.other_pay_states = #{otherPayStates}
+        </if>
+        <!--内外部-->
+        <if test="innerOuter != null and innerOuter != ''">
+            and art.inner_outer = #{innerOuter}
+        </if>
+        <!--频道-->
+        <if test="channel != null and channel !=''">
+            AND art.channel like concat('%',#{channel},'%')
+        </if>
+        <!--电商商家-->
+        <if test="electricityBusinesses != null and electricityBusinesses !=''">
+            AND art.electricity_businesses like concat('%',#{electricityBusinesses},'%')
+        </if>
+    </sql>
+    <!--媒介查询条件-->
+    <sql id="articleParamMJ">
+        <!--媒介拥有的板块权限-->
+        and art.media_type_id IN (
+        (SELECT media_type_id FROM t_user_media_type userType
+        WHERE userType.user_id = #{user.id} ) )
+        <!--当前用户（媒介）和稿件中媒介公司一致-->
+        <if test="user.companyCode != null and user.companyCode != ''">
+            AND EXISTS (SELECT 1 FROM sys_user u WHERE u.id = art.`media_user_id` AND u.company_code = #{user.companyCode})
+        </if>
+        <!--请款状态-->
+        <if test="outgoStates != null and outgoStates != ''">
+            and art.outgo_states = #{outgoStates}
+        </if>
+        <!--提成状态-->
+        <if test="commissionStates != null and commissionStates != ''">
+            and art.commission_states = #{commissionStates}
+        </if>
+        <if test="supplierName != null and supplierName != ''">
+            and art.supplier_name like concat('%',#{supplierName},'%')
+        </if>
+        <if test="supplierContactor != null and supplierContactor != ''">
+            and art.supplier_contactor like concat('%',#{supplierContactor},'%')
+        </if>
+        <!--是否有客户信息 -->
+        <if test="completeStatus != null and completeStatus != ''">
+            <if test="completeStatus == 0">
+                and ord.cust_id is null
+            </if>
+            <if test="completeStatus == 1">
+                and ord.cust_id is not null
+            </if>
+        </if>
+        <!--内外部-->
+        <if test="innerOuter != null and innerOuter != ''">
+            and art.inner_outer = #{innerOuter}
+        </if>
+        <!--频道-->
+        <if test="channel != null and channel !=''">
+            AND art.channel like concat('%',#{channel},'%')
+        </if>
+        <!--电商商家-->
+        <if test="electricityBusinesses != null and electricityBusinesses !=''">
+            AND art.electricity_businesses like concat('%',#{electricityBusinesses},'%')
+        </if>
+        <!--媒介部门id筛选-->
+        <if test="mjDeptList != null and mjDeptList.size() > 0">
+            and su.dept_id in
+            <foreach item="dept" collection="mjDeptList" open="(" close=")" separator=",">
+                #{dept.id}
+            </foreach>
+        </if>
+    </sql>
+    <!--通用排序-->
+    <sql id="orderCommon">
+        order by
+        <if test="sidx != null and sidx != ''">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sidx == ''">
+            art.id desc
+        </if>
+    </sql>
+    <!--稿件列表查询通用统计列-->
+    <sql id="articleResultColsCommon">
+        SELECT sum(art.sale_amount) saleAmountSum,
+        sum(art.income_amount) incomeAmountSum,
+        sum(art.pay_amount) payAmountSum,
+        sum(art.outgo_amount) outgoAmountSum,
+        sum(art.refund_amount) refundAmountSum,
+        sum(art.taxes) taxesSum,
+        sum(art.other_pay) otherPaySum,
+        sum(art.profit) profitSum,
+        sum(art.commission) commissionSum,
+        SUM((case WHEN art.outgo_states =1 then IFNULL(art.outgo_amount,0) else 0 END)) repaidSum
+    </sql>
+
+    <!--稿件列表-->
+    <select id="articleList" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListCols"/>
+        <include refid="articleTable"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParam"/>
+        <include refid="orderCommon"/>
+    </select>
+    <!--催收员稿件列表-->
+    <select id="articleListCSY" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsCSY"/>
+        <include refid="articleTableCSY"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamCSY"/>
+        <include refid="orderCommon"/>
+    </select>
+    <!--业务查询列表-->
+    <select id="articleListYW" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsYW"/>
+        <include refid="articleTableYW"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamYW"/>
+        order by
+        <if test="sidx != null and sidx != ''">
+            ${sidx} ${sord},art.id desc
+        </if>
+        <if test="sidx == null or sidx == ''">
+            art.issued_date asc,art.id desc
+        </if>
+    </select>
+    <!--媒介查询列表-->
+    <select id="articleListMJ" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsMJ"/>
+        <include refid="articleTableMJ"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamMJ"/>
+        <include refid="orderCommon"/>
+    </select>
+
+    <!--稿件列表统计信息-->
+    <select id="articleResult" resultType="map">
+        <include refid="articleResultColsCommon"/>
+        <include refid="articleTable"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParam"/>
+        <include refid="orderCommon"/>
+    </select>
+    <!--催收员稿件列表统计信息-->
+    <select id="articleResultCSY" resultType="map">
+        <include refid="articleResultColsCommon"/>
+        <include refid="articleTableCSY"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamCSY"/>
+    </select>
+    <!--业务查询列表统计信息-->
+    <select id="articleResultYW" resultType="map">
+        <include refid="articleResultColsCommon"/>
+        <include refid="articleTableYW"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamYW"/>
+    </select>
+    <!--媒介查询列表统计信息-->
+    <select id="articleResultMJ" resultType="map">
+        <include refid="articleResultColsCommon"/>
+        <include refid="articleTableMJ"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamMJ"/>
+    </select>
+
+    <!--稿件列表-->
+    <select id="articleListPage" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListCols"/>
+        <include refid="articleTable"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParam"/>
+        <include refid="orderCommon"/>
+        limit ${index},${pageSize}
+    </select>
+    <!--催收员稿件列表-->
+    <select id="articleListPageCSY" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsCSY"/>
+        <include refid="articleTableCSY"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamCSY"/>
+        <include refid="orderCommon"/>
+        limit ${index},${pageSize}
+    </select>
+    <!--业务查询列表-->
+    <select id="articleListPageYW" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsYW"/>
+        <include refid="articleTableYW"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamYW"/>
+        order by
+        <if test="sidx != null and sidx != ''">
+            ${sidx} ${sord},art.id desc
+        </if>
+        <if test="sidx == null or sidx == ''">
+            art.issued_date asc,art.id desc
+        </if>
+        limit ${index},${pageSize}
+    </select>
+    <!--媒介查询列表-->
+    <select id="articleListPageMJ" resultType="map">
+        <include refid="articleListColsCommon"/>
+        <include refid="articleListColsMJ"/>
+        <include refid="articleTableMJ"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamMJ"/>
+        <include refid="orderCommon"/>
+        limit ${index},${pageSize}
+    </select>
+
+    <!--稿件查询页面稿件数量-->
+    <select id="articleListCount" resultType="integer">
+        select count(1)
+        <include refid="articleTable"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParam"/>
+    </select>
+    <select id="articleListCountCSY" resultType="integer">
+        select count(1)
+        <include refid="articleTableCSY"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamCSY"/>
+    </select>
+    <select id="articleListCountYW" resultType="integer">
+        select count(1)
+        <include refid="articleTableYW"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamYW"/>
+    </select>
+    <select id="articleListCountMJ" resultType="integer">
+        select count(1)
+        <include refid="articleTableMJ"/>
+        <include refid="articleParamCommon"/>
+        <include refid="articleParamMJ"/>
+    </select>
+
+    <select id="editArticle" resultType="map">
+        SELECT
+        ord.id id,
+        ord.user_id userId,
+        ord.no orderNo,
+        ord.company_name companyName,
+        ord.cust_name dockingName,
+        ord.user_name userName,
+        ord.title orderTitle,
+        ord.amount amount,
+        ord.state state,
+        art.id artId,
+        art.media_type_id mTypeId,
+        art.media_type_name mTypeName,
+        art.media_name mediaName,
+        art.title title,
+        art.brand brand,
+        art.price_type priceType,
+        art.link link,
+        art.media_id mediaId,
+        art.supplier_id supplierId,
+        art.issued_date issuedDate,
+        art.promise_date promiseDate,
+        art.sale_amount saleAmount,
+        art.income_amount incomeAmount,
+        art.promise_date promiseDate,
+        art.media_user_name mediaUserName,
+        art.outgo_states outgoStates,
+        art.outgo_amount outgoAmount,
+        art.commission_states commissionStates,
+        art.invoice_states invoiceStates,
+        art.income_states incomeStates,
+        art.remarks remarks,
+        art.num num,
+        art.unit_price unitPrice,
+        art.tax_type taxType,
+        art.taxes taxes,
+        art.other_pay otherPay,
+        s.company_code,
+        s.phone supplierPhone,
+        s.creator supplierCreator,
+        <!--媒介新增字段-->
+        art.pay_amount payAmount,
+        art.supplier_name supplierName,
+        art.supplier_contactor supplierContactor,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        art.other_expenses otherExpenses,
+        art.type_code typeCode,
+        art.type_name typeName
+        FROM t_biz_article art
+        left join t_biz_order ord
+        on ord.id = art.order_id
+        left join t_media_supplier s
+        on s.id= art.supplier_id
+        <where>
+            and art.id = #{id}
+        </where>
+    </select>
+
+    <select id="articleByMJ" resultType="map">
+        select o.cust_name dockingName,
+        o.user_id as userId,
+        o.user_name userName,
+        art.id artId,
+        art.order_id orderId,
+        art.media_type_id mTypeId,
+        art.media_type_name mTypeName,
+        art.media_id mediaId,
+        art.media_name mediaName,
+        art.title title,
+        art.link link,
+        art.num num,
+        art.issued_date issuedDate,
+        art.sale_amount saleAmount,
+        art.remarks remarks,
+        art.media_user_id mediaUserId,
+        art.media_user_name mediaUserName,
+        art.outgo_states outgoStates,
+        art.issue_states issueStates,
+        art.supplier_id supplierId,
+        art.supplier_name supplierName,
+        art.supplier_contactor supplierContactor,
+        art.pay_amount payAmount,
+        art.other_pay otherPay,
+        art.price_column priceColumn,
+        art.price_type priceType,
+        art.outgo_amount outgoAmount,
+        art.unit_price unitPrice,
+        art.inner_outer innerOuter,
+        art.channel channel,
+        art.electricity_businesses electricityBusinesses,
+        d.`company_code` companyCode,
+        s.`company_code` supplierCompanyCode,
+        d.company_code_name companyCodeName,
+        art.other_expenses otherExpenses
+        from t_biz_article art ,
+        t_media_supplier s,
+        t_biz_order o,
+        sys_dept d
+        <where>
+            <if test="currentUserId!=null and currentUserId!=''">
+                AND EXISTS
+                (SELECT 1 FROM t_user_media_type umt
+                WHERE art.`media_type_id` = umt.`media_type_id`
+                AND umt.`user_id` = #{currentUserId})
+            </if>
+            AND art.`supplier_id`=s.id
+            AND o.depat_id = d.id
+            AND art.order_id = o.id
+            <if test="companyCode1!=null and companyCode1!=''">
+                AND d.company_code = #{companyCode1}
+            </if>
+
+            <if test="companyCode!=null and companyCode!='' and companyCode!='XH'">
+                AND EXISTS (SELECT 1 FROM sys_user u WHERE u.id = art.`media_user_id` AND u.company_code =
+                #{companyCode})
+            </if>
+
+            and art.state &gt; 0
+            <if test="mType != null and mType != ''">
+                and art.media_type_id = #{mType}
+            </if>
+            <if test="mediaName != null and mediaName != ''">
+                and art.media_name like concat('%',#{mediaName},'%')
+            </if>
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                and art.issued_date &gt;= #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                and art.issued_date &lt;= STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+            <if test="promiseDateStart != null and promiseDateStart != ''">
+                and art.promise_date &gt;= #{promiseDateStart}
+            </if>
+            <if test="promiseDateEnd != null and promiseDateEnd != ''">
+                and art.promise_date &lt;= STR_TO_DATE(CONCAT(#{promiseDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+            <if test="dockingPeopleName != null and dockingPeopleName != ''">
+                and o.cust_name like concat('%',#{dockingPeopleName},'%')
+            </if>
+            <if test="title != null and title != ''">
+                and art.title like concat('%',#{title},'%')
+            </if>
+            <if test="companyId != null and companyId != ''">
+                and o.company_id=#{companyId}
+            </if>
+            <if test="custId != null and custId != ''">
+                and o.cust_id=#{custId}
+            </if>
+            <if test="companyName != null and companyName != ''">
+                and o.company_name like concat('%',#{companyName},'%')
+            </if>
+            <if test="brand != null and brand != ''">
+                and art.brand like concat('%',#{brand},'%')
+            </if>
+            <if test="issueStates != null and issueStates != ''">
+                and art.issue_states = #{issueStates}
+            </if>
+            <!--部门id筛选-->
+            <if test="deptList!=null and deptList.size>0">
+                and o.depat_id in
+                <foreach item="dept" collection="deptList" open="(" close=")" separator=",">
+                    #{dept.id}
+                </foreach>
+            </if>
+            <if test="deptIds!=null and deptIds != '' and currentDeptId != null and currentDeptId != ''">
+                and o.depat_id in(${deptIds})
+            </if>
+
+            <!--回款状态-->
+            <if test="incomeStates != null and incomeStates != ''">
+                and art.income_states = #{incomeStates}
+            </if>
+            <!--请款状态-->
+            <if test="outgoStates != null and outgoStates != ''">
+                and art.outgo_states = #{outgoStates}
+            </if>
+            <!--开票状态-->
+            <if test="invoiceStates != null and invoiceStates != ''">
+                and art.invoice_states = #{invoiceStates}
+            </if>
+            <!--退款状态-->
+            <if test="refundStates != null and refundStates != ''">
+                and art.refund_states = #{refundStates}
+            </if>
+            <!--其他支出状态-->
+            <if test="otherPayStates != null and otherPayStates != ''">
+                and art.other_pay_states = #{otherPayStates}
+            </if>
+            <!--提成状态-->
+            <if test="commissionStates != null and commissionStates != ''">
+                and art.commission_states = #{commissionStates}
+            </if>
+            <!--业务员-->
+            <if test="userId != null and userId != ''">
+                and o.user_id = #{userId}
+            </if>
+            <!--媒介-->
+            <if test="mediaUserId != null and mediaUserId != ''">
+                and art.media_user_id = #{mediaUserId}
+            </if>
+            <if test="supplierName != null and supplierName != ''">
+                and art.supplier_name like concat('%',#{supplierName},'%')
+            </if>
+            <if test="supplierContactor != null and supplierContactor != ''">
+                and art.supplier_contactor like concat('%',#{supplierContactor},'%')
+            </if>
+            <if test="link != null and link != ''">
+                and art.link like concat('%',#{link},'%')
+            </if>
+            <!--提成年 -->
+            <if test="year != null and year != ''">
+                and art.year = #{year}
+            </if>
+            <!--提成月 -->
+            <if test="month != null and month != ''">
+                and art.month = #{month}
+            </if>
+            <if test="artIds != null">
+                and art.id in
+                <foreach item="artId" collection="artIds" index="index" open="(" close=")" separator=",">
+                    #{artId}
+                </foreach>
+            </if>
+            <!--是否有客户信息 -->
+            <if test="completeStatus != null and completeStatus != ''">
+                <if test="completeStatus == 0">
+                    and o.cust_id is null
+                </if>
+                <if test="completeStatus == 1">
+                    and o.cust_id is not null
+                </if>
+            </if>
+            <!--内外部-->
+            <if test="innerOuter != null and innerOuter != ''">
+                and art.inner_outer = #{innerOuter}
+            </if>
+            <!--频道-->
+            <if test="channel != null and channel !=''">
+                AND art.channel like concat('%',#{channel},'%')
+            </if>
+            <!--电商商家-->
+            <if test="electricityBusinesses != null and electricityBusinesses !=''">
+                AND art.electricity_businesses like concat('%',#{electricityBusinesses},'%')
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                art.id desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="updateArticle" parameterType="map">
+        update t_biz_article
+        <set>
+            <if test="link != null">
+                link = #{link},
+            </if>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="remarks != null">
+                remarks = #{remarks},
+            </if>
+            <if test="brand != null">
+                brand = #{brand},
+            </if>
+            <if test="typeCode != null">
+                type_code = #{typeCode},
+            </if>
+            <if test="typeName != null">
+                type_name = #{typeName},
+            </if>
+            <if test="num != null and num != ''">
+                num = #{num},
+            </if>
+            <if test="unitPrice != null and unitPrice != ''">
+                unit_price = #{unitPrice},
+            </if>
+            <if test="saleAmount != null and saleAmount != ''">
+                sale_amount = #{saleAmount},
+            </if>
+            <if test="taxes != null">
+                taxes = #{taxes},
+            </if>
+            <if test="taxType != null">
+                tax_type = #{taxType},
+            </if>
+            <!--媒介新增字段-->
+            <if test="payAmount != null and payAmount != ''">
+                pay_amount = #{payAmount},
+            </if>
+            <if test="outgoAmount != null and outgoAmount != ''">
+                outgo_amount = #{outgoAmount},
+            </if>
+            supplier_id = #{supplierId},
+            <if test="supplierName != null">
+                supplier_name = #{supplierName},
+            </if>
+            <if test="supplierContactor != null">
+                supplier_contactor = #{supplierContactor},
+            </if>
+            <if test="mediaId != null and mediaId != ''">
+                media_id = ${mediaId},
+            </if>
+            <if test="mediaName != null and mediaName != ''">
+                media_name = #{mediaName},
+            </if>
+            <if test="issuedDate != null and issuedDate != ''">
+                issued_date = #{issuedDate},
+            </if>
+            <if test="promiseDate != null and promiseDate != ''">
+                promise_date = #{promiseDate},
+            </if>
+            <if test="mediaUserId != null and mediaUserId != ''">
+                media_user_id = #{mediaUserId},
+            </if>
+            <if test="mediaUserName != null and mediaUserName != ''">
+                media_user_name = #{mediaUserName},
+            </if>
+            <if test="electricityBusinesses != null">
+                electricity_businesses = #{electricityBusinesses},
+            </if>
+            <if test="channel != null">
+                channel = #{channel},
+            </if>
+            <if test="innerOuter != null">
+                inner_outer = #{innerOuter},
+            </if>
+            <if test="otherExpenses != null and otherExpenses != ''">
+                other_expenses = #{otherExpenses},
+            </if>
+            <if test="incomeStates != null">
+                income_states = #{incomeStates},
+            </if>
+            <if test="profit != null">
+                profit = #{profit},
+            </if>
+            <if test="alterFlag != null">
+                alter_flag = #{alterFlag},
+            </if>
+        </set>
+        <where>
+            id = #{artId}
+        </where>
+    </update>
+
+    <update id="updateArticlePublish" parameterType="map">
+        update t_biz_article
+        <set>
+            <if test="link != null and link != ''">
+                link = #{link},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="issuedDate != null and issuedDate != ''">
+                issued_date = #{issuedDate},
+            </if>
+            <if test="issueStates != null">
+                issue_states = #{issueStates},
+            </if>
+            <if test="outgoAmount != null">
+                outgo_amount = #{outgoAmount},
+            </if>
+        </set>
+        <where>
+            id = #{artId}
+        </where>
+    </update>
+
+    <update id="deleteArticle">
+        update t_biz_article
+        set state = -9
+        <where>
+            and id = #{artId} and media_user_id = #{userId}
+        </where>
+    </update>
+
+    <update id="deleteArticleByOrderId">
+        update t_biz_article
+        set state = -9
+        <where>
+            and order_id = #{orderId}
+        </where>
+    </update>
+
+    <!--改变稿件状态-->
+    <update id="changeIssueStates" parameterType="com.qinfei.qferp.entity.biz.Article">
+        update t_biz_article
+        set issue_states = #{issueStates} where id = #{id}
+    </update>
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        INSERT INTO `t_biz_article` (
+        `order_id`,
+        `media_id`,
+        `media_name`,
+        `supplier_id`,
+        `supplier_name`,
+        `media_user_id`,
+        `media_user_name`,
+        `brand`,
+        `issued_date`,
+        `title`,
+        `link`,
+        `num`,
+        `unit_price`,
+        `sale_amount`,
+        `income_amount`,
+        `taxes`,
+        `price_column`,
+        `price_type`,
+        `pay_amount`,
+        `outgo_amount`,
+        `promise_date`,
+        `income_date`,
+        `other_pay`,
+        `refund_amount`,
+        `remarks`,
+        `commission`,
+        `commission_date`,
+        `outgo_states`,
+        `commission_states`,
+        `invoice_states`,
+        `income_states`,
+        `issue_states`,
+        `media_type_id`,
+        `media_type_name`,
+        `supplier_contactor`,
+        `other_expenses`,
+        `creator`,
+        `create_time`,
+        `update_user_id`
+        )
+
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.orderId},
+            #{item.mediaId},
+            #{item.mediaName},
+            #{item.supplierId},
+            #{item.supplierName},
+            #{item.mediaUserId},
+            #{item.mediaUserName},
+            #{item.brand},
+            #{item.issuedDate},
+            #{item.title},
+            #{item.link},
+            #{item.num},
+            #{item.unitPrice},
+            #{item.saleAmount},
+            #{item.incomeAmount},
+            #{item.taxes},
+            #{item.priceColumn},
+            #{item.priceType},
+            #{item.payAmount},
+            #{item.outgoAmount},
+            #{item.promiseDate},
+            #{item.incomeDate},
+            #{item.otherPay},
+            #{item.refundAmount},
+            #{item.remarks},
+            #{item.commission},
+            #{item.commissionDate},
+            #{item.outgoStates},
+            #{item.commissionStates},
+            #{item.invoiceStates},
+            #{item.incomeStates},
+            #{item.issueStates},
+            #{item.mediaTypeId},
+            #{item.mediaTypeName},
+            #{item.supplierContactor},
+            #{item.otherExpenses},
+            #{item.creator},
+            #{item.createTime},
+            #{item.updateUserId}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="list">
+        update t_biz_article
+        <trim prefix="set" suffixOverrides=",">
+            state=1,issue_states=1,
+            <trim prefix="media_user_id =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.mediaUserId!=null and i.mediaUserId>0">
+                        when id=#{i.id} then #{i.mediaUserId}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="media_user_name =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.mediaUserName!=null ">
+                        when id=#{i.id} then #{i.mediaUserName}
+                    </if>
+                </foreach>
+            </trim>
+
+            <trim prefix="taxes =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.taxes!=null and i.taxes>0">
+                        when id=#{i.id} then #{i.taxes}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="sale_amount =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.saleAmount!=null and i.saleAmount>0">
+                        when id=#{i.id} then #{i.saleAmount}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="tax_type =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.taxType!=null">
+                        when id=#{i.id} then #{i.taxType}
+                    </if>
+                </foreach>
+            </trim>
+            <!--<trim prefix="sale_amount =case" suffix="end,">-->
+            <!--<foreach collection="list" item="i" index="index">-->
+            <!--<if test="i.saleAmount!=null">-->
+            <!--when id=#{i.id} then #{i.saleAmount}-->
+            <!--</if>-->
+            <!--</foreach>-->
+            <!--</trim>-->
+            <trim prefix="title =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.title!=null">
+                        when id=#{i.id} then #{i.title}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="link =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.link!=null">
+                        when id=#{i.id} then #{i.link}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="promise_date =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.promiseDate!=null">
+                        when id=#{i.id} then #{i.promiseDate}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="type_code =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.typeCode!=null">
+                        when id=#{i.id} then #{i.typeCode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="type_name =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.typeName!=null">
+                        when id=#{i.id} then #{i.typeName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="brand =case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.brand!=null">
+                        when id=#{i.id} then #{i.brand}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="list" separator="or" item="i" index="index">
+            id=#{i.id}
+        </foreach>
+    </update>
+
+    <sql id="timeContidion">
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and year(${timeField}) = year(now())
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(${timeField}) = year(now())
+            and QUARTER(${timeField}) = QUARTER(now())
+        </if>
+        <!--本月份-->
+        <if test="timeQuantum == 3">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+        </if>
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(${timeField}) = year(now())
+            and month(${timeField}) = month(now())
+            and day(${timeField}) = day(now())
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                and ${timeField} &gt;= #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                and ${timeField} &lt;= #{issuedDateEnd}
+            </if>
+        </if>
+    </sql>
+    <!--板块统计功能：基础表-->
+    <sql id="selectSql">
+        SELECT
+        tba.id,
+        tba.order_id as orderId,
+        tba.media_id as mediaId,
+        tm.`name` AS mediaName,
+        tms.id as supplierId,
+        tms.contactor as supplierName,
+        tms.company_code as supplierCompanyCode,
+        tba.media_user_id as mediaUserId,
+        tba.media_user_name as mediaUserName,
+        tba.title,
+        tba.sale_amount as saleAmount,
+        tba.income_amount as incomeAmount,
+        tba.pay_amount as payAmount,
+        IF(tba.income_states != 1,IFNULL(tba.sale_amount,0)-IFNULL(tba.income_amount,0),0) as noIncomeAmount,
+        tba.outgo_amount as outgoAmount,
+        tba.income_total_amount as incomeTotalAmount,
+        tba.other_pay as otherPay,
+        tba.refund_amount as refundAmount,
+        tmt.id AS mediaTypeId,
+        tmt.`name` AS mediaTypeName,
+        tbo.company_id as custCompanyId,
+        tbo.company_name as custCompanyName,
+        tbo.cust_id AS custId,
+        tbo.cust_name as custName,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        tba.profit as profit,
+        tba.issued_date as issuedDate
+        FROM t_biz_article tba
+        LEFT JOIN t_media_supplier tms ON tms.id = tba.supplier_id
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id AND tbo.order_type = 1
+        INNER JOIN t_media1 tm ON tm.id = tba.media_id
+        <if test="extendNum != null">
+            LEFT JOIN t_media_extend tme ON tm.id = tme.media_id
+        </if>
+        LEFT JOIN t_media_plate tmt ON tm.plate_id = tmt.id AND tmt.is_delete = 0
+        <!--权限相关-->
+        <if test="userType == 'YW'">
+            <include refid="currentUserQX">
+                <property name="userTj" value=" su.id = tbo.user_id"/>
+            </include>
+        </if>
+        <if test="userType == 'MJ'">
+            <include refid="currentUserQX">
+                <property name="userTj" value=" su.id = tba.media_user_id"/>
+            </include>
+        </if>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <if test="mediaType != null">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体扩展项筛选-->
+        <if test="extendNum != null">
+            AND tme.cell = #{extendParam.cell}
+            AND tme.cell_value = #{extendParam.cellValue}
+        </if>
+        <!---板块统计中：当媒体类型下拉列表为全部，且选择板块列表行，进行查询时使用-->
+        <if test="(mediaType == null or mediaType == '') and mediaTypeRowSelect != null and mediaTypeRowSelect != ''">
+            AND tmt.id = #{mediaTypeRowSelect}
+        </if>
+        <!--媒体统计中：当媒体下拉列表，进行查询时使用-->
+        <if test="mediaId != null and mediaId != ''">
+            AND tm.id = #{mediaId}
+        </if>
+        <!--媒体统计中：当媒体下拉列表为全部，且选择媒体列表行，进行查询时使用-->
+        <if test="(mediaId == null or mediaId == '') and mediaRowSelect != null and mediaRowSelect != ''">
+            AND tm.id = #{mediaRowSelect}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+    </sql>
+    <!--板块统计功能：组合表-->
+    <sql id="MediaTypeStatisticsBasicTable">
+        SELECT
+        tt.id,
+        tt.mediaId,
+        tt.mediaName,
+        tt.supplierId,
+        tt.supplierName,
+        tt.supplierCompanyCode,
+        tt.mediaUserId,
+        tt.mediaUserName,
+        tt.title,
+        tt.saleAmount,
+        tt.incomeAmount,
+        tt.payAmount,
+        tt.noIncomeAmount,
+        tt.outgoAmount,
+        tt.incomeTotalAmount,
+        tt.otherPay,
+        tt.refundAmount,
+        tt.mediaTypeId,
+        tt.mediaTypeName,
+        tt.custCompanyId,
+        tt.custCompanyName,
+        tt.custId,
+        tt.custName,
+        tt.businessUserId,
+        tt.businessUserName,
+        tt.profit,
+        tt.issuedDate
+        FROM
+        (
+        <choose>
+            <when test="extendParams != null and extendParams.size() > 0">
+                <foreach collection="extendParams" item="extendParam" index="index" open="(" close=")"
+                         separator="UNION ALL">
+                    (
+                    <include refid="selectSql"/>
+                    )
+                </foreach>
+            </when>
+            <otherwise>
+                <include refid="selectSql"/>
+            </otherwise>
+        </choose>
+        ) tt
+        GROUP BY
+        tt.id,
+        tt.mediaId,
+        tt.mediaName,
+        tt.supplierId,
+        tt.supplierName,
+        tt.supplierCompanyCode,
+        tt.mediaUserId,
+        tt.mediaUserName,
+        tt.title,
+        tt.saleAmount,
+        tt.incomeAmount,
+        tt.payAmount,
+        tt.noIncomeAmount,
+        tt.outgoAmount,
+        tt.incomeTotalAmount,
+        tt.otherPay,
+        tt.refundAmount,
+        tt.mediaTypeId,
+        tt.mediaTypeName,
+        tt.custCompanyId,
+        tt.custCompanyName,
+        tt.custId,
+        tt.custName,
+        tt.businessUserId,
+        tt.businessUserName,
+        tt.profit,
+        tt.issuedDate
+        <if test="extendNum != null">
+            HAVING count(*) = #{extendNum}
+        </if>
+    </sql>
+    <!--板块统计/媒体统计功能：总计-->
+    <select id="getMediaTypeStatistics" resultType="java.util.Map">
+        SELECT
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+    </select>
+    <!--板块统计功能：板块列表统计-->
+    <select id="listStatisticsByMediaType" resultType="java.util.Map">
+        SELECT
+        t.mediaTypeId,
+        t.mediaTypeName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.mediaTypeId,t.mediaTypeName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：所选板块媒体统计列表-->
+    <select id="listStatisticsByMedia" resultType="java.util.Map">
+        SELECT
+        t.mediaTypeId,
+        t.mediaTypeName,
+        t.mediaId,
+        t.mediaName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.mediaId
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：所选板块/媒体业务员统计列表-->
+    <select id="listStatisticsByBusiness" resultType="java.util.Map">
+        SELECT
+        t.businessUserId,
+        t.businessUserName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.businessUserId, t.businessUserName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：所选板块/媒体媒介统计列表-->
+    <select id="listStatisticsByMediaUser" resultType="java.util.Map">
+        SELECT
+        t.mediaUserId,
+        t.mediaUserName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.mediaUserId, t.mediaUserName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：所选板块/媒体供应商统计列表-->
+    <select id="listStatisticsBySupplier" resultType="java.util.Map">
+        SELECT
+        t.supplierId,
+        t.supplierName,
+        t.supplierCompanyCode,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.custId) AS custNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.supplierId, t.supplierName, t.supplierCompanyCode
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：所选板块/媒体客户统计列表-->
+    <select id="listStatisticsByCust" resultType="java.util.Map">
+        SELECT
+        t.custCompanyId,
+        t.custCompanyName,
+        t.custId,
+        t.custName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.profit),0) AS profit,
+        count(DISTINCT t.supplierId) AS supplierNum,
+        count(DISTINCT t.mediaUserId) AS mediaUserNum,
+        count(DISTINCT t.businessUserId) AS businessUserNum
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        GROUP BY t.custCompanyId,t.custCompanyName,t.custId,t.custName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块统计/媒体统计功能：趋势图-->
+    <select id="listStatisticsByDate" resultType="java.util.Map">
+        SELECT
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issuedDate,'%Y-%m-%d') as time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issuedDate,'%Y-%m') as time,
+            </otherwise>
+        </choose>
+        count(t.id) AS articleNum,
+        count(DISTINCT t.custId) AS custNum,
+        ifnull(sum(t.saleAmount),0) AS saleAmount,
+        ifnull(sum(t.outgoAmount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="MediaTypeStatisticsBasicTable"/>) t
+        group by
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issuedDate,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issuedDate,'%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                time asc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--权限功能：currentUserId为指定人员，不选默认全部-->
+    <sql id="currentUserQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--时间条件：最近时间-->
+    <sql id="recentTime">
+        <!--本月-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+        <!--本年-->
+        <if test="timeQuantum == 2">
+            and DATE_FORMAT(${timeField}, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 3">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND ${timeField} <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{issuedDateStart},' 00:00:00'),'%Y/%m/%d %T')
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND ${timeField} <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+        </if>
+    </sql>
+    <!--统计概况功能：基础表
+        userType: YW-业务员、MJ-媒介
+    -->
+    <sql id="statisticsBasicTable">
+        SELECT
+        tba.id,
+        tba.order_id,
+        tba.media_id,
+        tm.`name` AS mediaName,
+        CONCAT(tba.media_id,'->',IFNULL(tm.`name`,tm.media_content_id)) as media,
+        tmt.id AS mediaTypeId,
+        tmt.`name` AS mediaTypeName,
+        CONCAT(tmt.id,'->',tmt.`name`) as mediaType,
+        tba.supplier_id,
+        tba.supplier_name,
+        tba.supplier_contactor,
+        CONCAT(tms.id,'->',tms.contactor,'->',tms.company_code) as supplierUser,
+        tba.media_user_id,
+        tba.media_user_name,
+        CONCAT(tba.media_user_id,'->',tba.media_user_name) as mediaUser,
+        tba.title,
+        tba.sale_amount,
+        tba.income_amount,
+        IF(tba.income_states != 1,IFNULL(tba.sale_amount,0)-IFNULL(tba.income_amount,0),0) as noIncomeAmount,
+        tba.pay_amount,
+        tba.outgo_amount,
+        tba.income_total_amount,
+        tba.other_pay,
+        tba.refund_amount,
+        tba.issued_date,
+        tbo.company_id as custCompanyId,
+        tbo.company_name as custCompanyName,
+        tbo.cust_id AS custId,
+        tbo.cust_name as custName,
+        CONCAT(tbo.cust_id, '->', tbo.cust_name) AS cust,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        CONCAT(tbo.user_id,'->',tbo.user_name) as businessUser,
+        tba.profit as profit
+        FROM t_biz_article tba
+        LEFT JOIN t_media_supplier tms ON tms.id = tba.supplier_id
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id AND tbo.order_type = 1
+        INNER JOIN t_media1 tm ON tm.id = tba.media_id
+        LEFT JOIN t_media_plate tmt ON tm.plate_id = tmt.id AND tmt.is_delete = 0
+        <if test="userType == 'YW'">
+            <include refid="currentUserQX">
+                <property name="userTj" value=" su.id = tbo.user_id"/>
+            </include>
+        </if>
+        <if test="userType == 'MJ'">
+            <include refid="currentUserQX">
+                <property name="userTj" value=" su.id = tba.media_user_id"/>
+            </include>
+        </if>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <!--板块-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体-->
+        <if test="mediaId != null and mediaId != ''">
+            AND tba.media_id = #{mediaId}
+        </if>
+        <!--业务员ID-->
+        <if test="businessUserId != null  and businessUserId != ''">
+            AND tbo.user_id = #{businessUserId}
+        </if>
+        <!--媒介ID-->
+        <if test="mediaUserId != null  and mediaUserId != ''">
+            AND tba.media_user_id = #{mediaUserId}
+        </if>
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <!--供应商ID-->
+        <if test="supplierId != null  and supplierId != ''">
+            AND tba.supplier_id = #{supplierId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+    </sql>
+    <!--统计概况：不同维度总计-->
+    <select id="getStatisticsById" resultType="java.util.Map">
+        SELECT
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+    </select>
+    <!--趋势图：不同维度-->
+    <select id="listTrendStatisticsById" resultType="java.util.Map">
+        SELECT
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d') as time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m') as time,
+            </otherwise>
+        </choose>
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                time asc
+            </otherwise>
+        </choose>
+    </select>
+    <!--板块占比：根据不同纬度条件获取-->
+    <select id="listMediaTypeStatisticsById" resultType="java.util.Map">
+        SELECT
+        t.mediaTypeId as mediaTypeId,
+        t.mediaTypeName as mediaTypeName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.mediaTypeId,t.mediaTypeName
+    </select>
+    <!--媒体列表：不同维度-->
+    <select id="listMediaStatisticsById" resultType="java.util.Map">
+        SELECT
+        t.media_id as mediaId,
+        t.mediaName as mediaName,
+        t.mediaTypeId as mediaTypeId,
+        t.mediaTypeName as mediaTypeName,
+        GROUP_CONCAT(DISTINCT(t.businessUser)) as businessUser,
+        GROUP_CONCAT(DISTINCT(t.mediaUser)) as mediaUser,
+        GROUP_CONCAT(DISTINCT(t.cust)) as cust,
+        GROUP_CONCAT(DISTINCT(t.supplierUser)) as supplierUser,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.media_id
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                profit desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--业务员涉及客户列表-->
+    <select id="listCustStatisticsBybusinessId" resultType="java.util.Map">
+        SELECT
+        t.custId AS custId,
+        t.custName AS custName,
+        t.custCompanyId,
+        t.custCompanyName,
+        GROUP_CONCAT(DISTINCT(t.mediaType)) AS mediaType,
+        GROUP_CONCAT(DISTINCT(t.mediaUser)) AS mediaUser,
+        GROUP_CONCAT(DISTINCT(t.supplierUser)) AS supplierUser,
+        GROUP_CONCAT(DISTINCT(t.media)) AS media,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount), 0) AS saleAmount,
+        ifnull(sum(t.outgo_amount), 0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount), 0) AS noIncomeAmount,
+        ifnull(sum(t.profit), 0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.custId,t.custName,t.custCompanyId,t.custCompanyName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+    <!--业务员涉及客户列表-->
+    <select id="listCustStatisticsByMediaId" resultType="java.util.Map">
+        SELECT
+        t.custId AS custId,
+        t.custName AS custName,
+        t.custCompanyId,
+        t.custCompanyName,
+        GROUP_CONCAT(DISTINCT(t.mediaType)) AS mediaType,
+        GROUP_CONCAT(DISTINCT(t.mediaUser)) AS mediaUser,
+        GROUP_CONCAT(DISTINCT(t.supplierUser)) AS supplierUser,
+        GROUP_CONCAT(DISTINCT(t.businessUser)) AS businessUser,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount), 0) AS saleAmount,
+        ifnull(sum(t.outgo_amount), 0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount), 0) AS noIncomeAmount,
+        ifnull(sum(t.profit), 0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.custId,t.custName,t.custCompanyId,t.custCompanyName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                saleAmount desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--反馈列表-->
+    <select id="listArtFeedback" resultType="java.util.Map">
+        SELECT
+        tba.id as artId,
+        tba.order_id as orderId,
+        tbo.company_name AS companyName,
+        tbo.cust_name AS custName,
+        tba.media_name AS mediaName,
+        tba.title,
+        tba.brand,
+        tba.type_name AS typeName,
+        tba.link,
+        tba.sale_amount AS saleAmount,
+        tba.issued_date AS issuedDate,
+        tbo.user_name AS userName
+        FROM
+        t_biz_article tba
+        LEFT JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        AND tbo.state = 1
+        WHERE
+        tba.state = 1
+        AND tba.issue_states = 4
+        AND tbo.user_id = #{userId}
+        <if test="companyId != null">
+            AND tbo.company_id = #{companyId}
+        </if>
+        <if test="custId != null">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <if test="title != null and title != ''">
+            AND tba.title LIKE CONCAT('%',#{title},'%')
+        </if>
+    </select>
+
+    <!--未提交的订单列表-->
+    <select id="listOrderByNotPlaced" resultType="java.util.Map">
+        SELECT
+        tbo.id,
+        tbo.`no`,
+        tba.create_time as createTime,
+        tbo.amount,
+        tba.media_name as mediaName,
+        tba.media_user_name as mediaUserName,
+        tba.num,
+        tba.sale_amount as saleAmount,
+        tba.price_type as priceType,
+        tba.pay_amount,
+        tba.media_type_name as mediaTypeName,
+        tba.unit_price as unitPrice
+        FROM
+        t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id
+        AND tbo.state = 0
+        AND tbo.creator = #{userId}
+        WHERE
+        tba.state = 0
+        AND tba.issue_states = 0
+        <if test="companyId != null">
+            AND tbo.company_id = #{companyId}
+        </if>
+        <if test="custId != null">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <if test="mediaTypeId != null">
+            AND tba.media_type_id = #{mediaTypeId}
+        </if>
+        <if test="mediaUserId != null">
+            AND tba.media_user_id = #{mediaUserId}
+        </if>
+        <if test="mediaName != null and  mediaName != ''">
+            AND tba.media_name LIKE CONCAT(#{mediaName}, '%')
+        </if>
+
+
+    </select>
+
+    <update id="updateBatchArticle">
+        update t_biz_article
+        <set>
+            <trim prefix='unit_price =case' suffix='end,'>
+                <foreach collection='articles' item='item' index='index'>
+                    <if test='item.unitPrice!=null'>
+                        when id=#{item.id} then #{item.unitPrice}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix='profit =case' suffix='end,'>
+                <foreach collection='articles' item='item' index='index'>
+                    <if test='item.profit!=null'>
+                        when id=#{item.id} then #{item.profit}
+                    </if>
+                </foreach>
+            </trim>
+            <if test="param.outgoAmount != null and param.outgoAmount != ''">
+                outgo_amount= #{param.outgoAmount},
+            </if>
+            <if test="param.unitPrice != null and param.unitPrice != ''">
+                unit_price = #{param.unitPrice},
+            </if>
+            <if test="param.issuedDate != null and param.issuedDate != ''">
+                issued_date=#{param.issuedDate},
+            </if>
+            <if test="param.remarks != null and param.remarks != ''">
+                remarks = #{param.remarks},
+            </if>
+            <if test="param.orderId != null and param.orderId != ''">
+                order_id = #{param.orderId},
+            </if>
+            <if test="param.title != null and param.title != ''">
+                title = #{param.title},
+            </if>
+            update_user_id = #{param.updateUserId},
+            update_time = now()
+        </set>
+        <where>
+            id in
+            <foreach item="item" index="index" collection="articles" open="(" separator="," close=")">
+                #{item.id}
+            </foreach>
+        </where>
+
+    </update>
+</mapper>

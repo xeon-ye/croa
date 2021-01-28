@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaForm1Mapper">
+    <sql id="selectColumn">
+         tmf.id,
+         tmf.create_date as createDate,
+         tmf.is_delete as isDelete,
+         tmf.update_date as updateDate,
+         tmf.versions,
+         tmf.cell_code as cellCode,
+         tmf.cell_name as cellName,
+         tmf.data_type as dataType,
+         tmf.db_html as dbHtml,
+         tmf.db_json as dbJson ,
+         tmf.db_sql as dbSql,
+         tmf.disabled,
+         tmf.field_name as fieldName,
+         tmf.max,
+         tmf.maxlength,
+         tmf.min,
+         tmf.minlength,
+         tmf.remark,
+         tmf.required,
+         tmf.rule,
+         tmf.size,
+         tmf.sort_no as sortNo,
+         tmf.type,
+         tmf.media_plate_id as mediaPlateId,
+         tmf.extend_flag as extendFlag,
+         tmf.climb_flag as climbFlag
+    </sql>
+
+    <!--根据主键ID更新媒体表单-->
+    <update id="updateById" parameterType="com.qinfei.qferp.entity.media1.MediaForm1">
+        update t_media_form1
+        <set>
+            versions = versions+1,
+            update_date = now(),
+            <if test="cellCode != null and cellCode != ''">
+                cell_code = #{cellCode},
+            </if>
+            <if test="cellName != null and cellName != ''">
+                cell_name = #{cellName},
+            </if>
+            data_type = #{dataType},
+            db_html = #{dbHtml},
+            db_json = #{dbJson},
+            db_sql = #{dbSql},
+            <if test="disabled != null">
+                disabled = #{disabled},
+            </if>
+            <if test="fieldName != null and  fieldName != ''">
+                field_name = #{fieldName},
+            </if>
+            max = #{max},
+            maxlength = #{maxlength},
+            min = #{min},
+            minlength = #{minlength},
+            remark = #{remark},
+            <if test="required != null">
+                required = #{required},
+            </if>
+            rule = #{rule},
+            size = #{size},
+            <if test="sortNo != null">
+                sort_no = #{sortNo},
+            </if>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="mediaPlateId != null">
+                media_plate_id = #{mediaPlateId},
+            </if>
+            <if test="extendFlag != null">
+                extend_flag = #{extendFlag},
+            </if>
+            <if test="climbFlag != null">
+                climb_flag = #{climbFlag}
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--根据主键ID更新媒体表单-->
+    <update id="deleteBatch">
+        update t_media_form1
+        <set>
+            versions = versions+1,
+            update_date = now(),
+            is_delete = 1
+        </set>
+        <where>
+            id in
+            <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </update>
+
+    <!--获取指定板块的扩展表单（显示媒体板块名称）-->
+    <select id="listByMediaPlateId" resultType="java.util.Map">
+        SELECT
+	      tmp.`name` as mediaPlateName,
+	      <include refid="selectColumn"/>
+        FROM
+        	t_media_form1 tmf
+        INNER JOIN t_media_plate tmp ON tmf.media_plate_id = tmp.id
+        AND tmp.is_delete = 0
+        WHERE
+        	tmf.is_delete = 0
+        AND tmf.media_plate_id = #{mediaPlateId}
+        order by tmf.sort_no asc, tmf.update_date desc
+    </select>
+
+    <!--获取指定板块的扩展表单-->
+    <select id="listMediaFormByPlateId" resultType="com.qinfei.qferp.entity.media1.MediaForm1">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_media_form1 tmf
+        WHERE
+        tmf.is_delete = 0
+        AND tmf.media_plate_id = #{mediaPlateId}
+        order by tmf.sort_no asc, tmf.update_date desc
+    </select>
+
+    <!--获取所有扩展表单-->
+    <select id="listAllMediaForm" resultType="com.qinfei.qferp.entity.media1.MediaForm1">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_media_form1 tmf
+        WHERE
+        tmf.is_delete = 0
+    </select>
+
+    <!--获取老的媒体表单（数据迁移使用）-->
+    <select id="listAllOldMediaForm" resultType="com.qinfei.qferp.entity.media.MediaForm">
+        SELECT
+        t.media_type_id AS mediaTypeId,
+        t.`code`,
+        t.`name`
+        FROM
+        t_media_form t
+        WHERE
+        t.disabled <![CDATA[<>]]> 1
+    </select>
+
+    <!--判断媒体板块下是否存在相同的cell_code-->
+    <select id="getMediaFormCount" resultType="java.lang.Integer">
+        SELECT
+          count(*)
+        FROM
+        t_media_form1 tmf
+        WHERE
+        tmf.is_delete = 0
+        AND tmf.cell_code = #{cellCode}
+        AND tmf.media_plate_id = #{mediaPlateId}
+        <if test="id != null">
+            AND tmf.id <![CDATA[<>]]> #{id}
+        </if>
+    </select>
+
+    <!--根据板块ID获取媒体价格类型-->
+    <select id="listPriceTypeByPlateId" resultType="com.qinfei.qferp.entity.media1.MediaForm1">
+        SELECT
+        	tmf.cell_code AS cellCode,
+        	tmf.cell_name AS cellName
+        FROM
+        	t_media_form1 tmf
+        WHERE
+        	tmf.type = 'price'
+        AND tmf.is_delete = 0
+        AND tmf.media_plate_id = #{mediaPlateId}
+        ORDER BY
+        	tmf.sort_no ASC
+    </select>
+
+    <!--查询所有价格类型列表-->
+    <select id="listAllPriceType" resultType="com.qinfei.qferp.entity.media1.MediaForm1">
+        SELECT
+            tmf.media_plate_id AS mediaPlateId,
+        	tmf.cell_code AS cellCode,
+        	tmf.cell_name AS cellName
+        FROM
+        	t_media_form1 tmf
+        WHERE
+        	tmf.type = 'price'
+        AND tmf.is_delete = 0
+        ORDER BY
+        	tmf.sort_no ASC
+    </select>
+
+</mapper>

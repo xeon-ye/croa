@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.WarehouseMapper">
+     <sql id="selectColumn">
+         tsw.id,
+         tsw.code,
+         tsw.name,
+         tsw.address,
+         tsw.state,
+         tsw.user_id as userId,
+         tsw.create_id as  createId,
+         tsw.create_name as  createName,
+         tsw.create_time as  createTime,
+         tsw.update_user_id as  updateUserId,
+         tsw.update_time as  updateTime,
+         tsw.company_code as companyCode
+     </sql>
+
+
+    <!--增加仓库-->
+    <insert id="addWareHouse" parameterType="com.qinfei.qferp.entity.inventoryStock.Warehouse" useGeneratedKeys="true" keyProperty="id">
+        INSERT  INTO  t_saves_warehouse
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code !=null">code,</if>
+            <if test="name !=null">`name`,</if>
+            <if test="address !=null">address,</if>
+            <if test="state !=null">state,</if>
+            <if test="userId !=null">user_id,</if>
+            <if test="createId !=null">create_id,</if>
+            <if test="createName !=null">create_name,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="updateUserId !=null">update_user_id,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="companyCode !=null">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code !=null">#{code},</if>
+            <if test="name !=null">#{name},</if>
+            <if test="address !=null">#{address},</if>
+            <if test="state !=null">#{state},</if>
+            <if test="userId !=null">#{userId},</if>
+            <if test="createId !=null">#{createId},</if>
+            <if test="createName !=null">#{createName},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="updateUserId !=null">#{updateUserId},</if>
+            <if test="updateTime !=null">#{updateTime},</if>
+            <if test="companyCode !=null">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <select id="warehouseList" resultType="com.qinfei.qferp.entity.inventoryStock.Warehouse">
+        SELECT <include refid="selectColumn"/>
+         FROM  t_saves_warehouse tsw
+         WHERE tsw.state>-2 and tsw.company_code=#{companyCode}
+        <if test="code!=null and code !=''">
+           AND tsw.code= #{code}
+        </if>
+        <if test="name !=null and name !=''">
+           and tsw.name =#{name}
+        </if>
+    </select>
+
+    <!--判断仓库名称是否重名-->
+    <select id="getSameNameList" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.inventoryStock.Warehouse">
+        SELECT * FROM  t_saves_warehouse
+        where name=#{name} and company_code=#{companyCode} and state>-2
+        <if test="id!=null and id!=''">
+            AND id!=#{id}
+        </if>
+    </select>
+
+    <!--查询仓库id仓库信息-->
+    <select id="editAjax" resultType="com.qinfei.qferp.entity.inventoryStock.Warehouse" parameterType="java.lang.Integer">
+        select <include refid="selectColumn"/>
+        from t_saves_warehouse tsw
+        where tsw.id=#{id}
+    </select>
+
+    <!--查询仓库信息集合-->
+    <select id="getWarehouseList" resultType="java.util.Map">
+        SELECT id,name
+        FROM  t_saves_warehouse
+        WHERE state>-2 and company_code=#{companyCode}
+    </select>
+
+    <!--根据仓库id查询仓库名称-->
+    <select id="getWareNameById" resultType="java.lang.String" parameterType="java.lang.Integer">
+        SELECT name
+        FROM  t_saves_warehouse
+        WHERE state>-2 and id=#{id}
+    </select>
+
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*)
+        from t_saves_warehouse tsw
+        left join sys_user u on u.id=tsw.user_id
+        where tsw.state>-2 and tsw.company_code=#{companyCode}
+        <if test="wareCodeQc!=null and wareCodeQc!=''">
+            and tsw.code like concat('%',#{wareCodeQc},'%')
+        </if>
+        <if test="wareNameQc!=null and wareNameQc!=''">
+            and tsw.name like concat('%',#{wareNameQc},'%')
+        </if>
+        <if test="addressQc!=null and addressQc!=''">
+            and tsw.address like concat('%',#{addressQc},'%')
+        </if>
+        <if test="wareTimeQc!=null">
+            and tsw.create_time &gt;=#{wareTimeQc}
+        </if>
+    </select>
+
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        select u.name userName,
+        <include refid="selectColumn"/>
+        from t_saves_warehouse tsw
+        left join sys_user u on u.id=tsw.user_id
+        where tsw.state>-2 and tsw.company_code=#{companyCode}
+        <if test="wareCodeQc!=null and wareCodeQc!=''">
+            and tsw.code like concat('%',#{wareCodeQc},'%')
+        </if>
+        <if test="wareNameQc!=null and wareNameQc!=''">
+            and tsw.name like concat('%',#{wareNameQc},'%')
+        </if>
+        <if test="addressQc!=null and addressQc!=''">
+            and tsw.address like concat('%',#{addressQc},'%')
+        </if>
+        <if test="wareTimeQc!=null">
+            and tsw.create_time &gt;=#{wareTimeQc}
+        </if>
+    </select>
+
+    <select id="editWarehouse" parameterType="com.qinfei.qferp.entity.inventoryStock.Warehouse">
+        UPDATE t_saves_warehouse
+        <set>
+            <if test="code!=null and code!=''">code=#{code},</if>
+            <if test="name!=null and name!=''">name=#{name},</if>
+            <if test="address!=null and address!=''">address=#{address},</if>
+            <if test="state!=null">state=#{state},</if>
+            <if test="userId!=null">user_id=#{userId},</if>
+            <if test="createId!=null">create_id=#{createId},</if>
+            <if test="createName!=null and createName!=''">create_name=#{createName},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            <if test="updateUserId!=null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="companyCode!=null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id=#{id}
+    </select>
+
+    <select id="getCountByWareId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(*) from t_saves_goods g
+        left join t_saves_warehouse tsw on g.warehouse_id=tsw.id
+        where tsw.id=#{id} and g.state>-2
+    </select>
+
+    <update id="updateWarehouse" parameterType="java.util.Map">
+        UPDATE t_saves_warehouse
+        <set>
+            <if test="state!=null">state=#{state},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="updateUserId!=null">update_user_id=#{updateUserId},</if>
+        </set>
+        where id=#{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.workbench.MessageMapper">
+    <!--加载消息列表-->
+    <select id="listMsg" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+        mes.id id,
+        mes.pic pic,
+        mes.content content,
+        mes.create_time createTime,
+        mes.url url,
+        mes.url_name urlName,
+        CASE
+        WHEN mr.message_id IS NULL
+        THEN 1 ELSE 2 END state
+        FROM t_index_message mes
+        LEFT JOIN t_index_message_read mr ON mr.user_id = #{userId}
+        AND mr.message_id = mes.id
+        WHERE (mes.accept_worker=#{acceptWork} OR (mes.accept_worker is null and mes.accept_dept = #{userDept}))
+        <if test="state==1">
+            AND mr.message_id is null
+        </if>
+        <if test="state==2">
+            AND mr.message_id is not null
+        </if>
+        <if test="messageContent!=null and messageContent!=''">
+            AND mes.content like concat('%',#{messageContent},'%')
+        </if>
+        <if test="parentTypeQC!=null and parentTypeQC!=''">
+            AND mes.parent_type=#{parentTypeQC}
+        </if>
+        <if test="typeQC!=null and typeQC!=''">
+            AND mes.type=#{typeQC}
+        </if>
+        <if test="startTimeStart!=null and startTimeStart!=''">
+            AND mes.create_time &gt;= #{startTimeStart}
+        </if>
+        <if test="startTimeEnd!=null and startTimeEnd!=''">
+            AND mes.create_time &lt;= #{startTimeEnd}
+        </if>
+        ORDER BY mes.id DESC
+    </select>
+    <!--根据条件查询未读消息id集合-->
+    <select id="queryMessageIds" resultType="java.lang.Integer" parameterType="java.util.Map">
+        SELECT mes.id id FROM t_index_message mes
+        LEFT JOIN t_index_message_read mr ON mr.user_id = #{userId} AND mr.message_id = mes.id
+        LEFT JOIN sys_user iu ON mes.initiator_worker = iu.id
+        WHERE (mes.accept_worker=#{acceptWork} OR (mes.accept_worker is null and mes.accept_dept = #{userDept}))
+        <if test="state==1">
+            AND mr.message_id is null
+        </if>
+        <if test="state==2">
+            AND mr.message_id is not null
+        </if>
+        <if test="messageContent!=null and messageContent!=''">
+            AND mes.content like concat('%',#{messageContent},'%')
+        </if>
+        <if test="parentTypeQC!=null and parentTypeQC!=''">
+            AND mes.parent_type=#{parentTypeQC}
+        </if>
+        <if test="typeQC!=null and typeQC!=''">
+            AND mes.type=#{typeQC}
+        </if>
+        <if test="startTimeStart!=null and startTimeStart!=''">
+            AND mes.create_time &gt;= #{startTimeStart}
+        </if>
+        <if test="startTimeEnd!=null and startTimeEnd!=''">
+            AND mes.create_time &lt;= #{startTimeEnd}
+        </if>
+        ORDER BY mes.id DESC
+    </select>
+    <!--各种消息类型的数量-->
+    <select id="getMessageParentTypeNum" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+        mes.parent_type state,
+        count(*) number
+        FROM t_index_message mes
+        LEFT JOIN t_index_message_read mr ON mr.user_id = #{userId}
+        AND mr.message_id = mes.id
+        WHERE mr.message_id IS NULL
+        AND mes.accept_worker = #{acceptWork}
+        GROUP BY mes.parent_type
+    </select>
+    <insert id="batchAddMessage" parameterType="java.util.List">
+        insert into t_index_message
+        (
+        `pic`,
+        `content`,
+        `initiator_dept`,
+        `initiator_worker`,
+        `accept_dept`,
+        `accept_worker`,
+        `parent_type`,
+        `type`,
+        `url`,
+        `url_name`
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.pic},
+            #{item.content},
+            #{item.initiatorDept},
+            #{item.initiatorWorker},
+            #{item.acceptDept},
+            #{item.acceptWorker},
+            #{item.parentType},
+            #{item.type},
+            #{item.url},
+            #{item.urlName}
+            )
+        </foreach>
+    </insert>
+    <!--根据待办id查询消息ids-->
+    <select id="queryMessageIdsByItemId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+          select id from t_index_message where state=1 and parent_type=1 and item_id=#{itemId}
+    </select>
+
+    <!--根据待办id集合查询消息ids-->
+    <select id="queryIdsByItemIds" resultType="java.lang.Integer" parameterType="java.util.List">
+          select id from t_index_message where state=1 and parent_type=1 and item_id in
+          <foreach collection="list" item="item" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+    </select>
+</mapper>

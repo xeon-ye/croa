@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.media1.MediaBrandMapper">
+    <sql id="selectColumn">
+    id,
+    brand_name as brandName,
+    brand_type as brandType,
+    user_name as userName, 
+    user_id as userId, 
+    platform,
+    relate_id as relateId, 
+    create_date as createDate
+  </sql>
+
+    <resultMap type="com.qinfei.qferp.entity.media1.MediaBrand" id="mediaBrandMap">
+        <id property="id" column="id"/>
+        <result property="brandName" column="brand_name"/>
+        <result property="brandType" column="brand_type"/>
+        <result property="userName" column="user_name"/>
+        <result property="userId" column="user_id"/>
+        <result property="platform" column="platform"/>
+        <result property="relateId" column="relate_id"/>
+        <result property="createDate" column="create_date"/>
+    </resultMap>
+
+    <!--新增所有列-->
+    <insert id="saveMediaBrand" keyProperty="id" useGeneratedKeys="true"
+            parameterType="com.qinfei.qferp.entity.media1.MediaBrand">
+        insert into t_media_brand
+        (
+        brand_name,
+        brand_type,
+        user_name,
+        user_id,
+        platform,
+        relate_id,
+        create_date
+        )
+        values
+        (
+        <if test="brandName != null and brandName != ''">
+            brand_name = #{brandName},
+        </if>
+        <if test="brandType != null">
+            brand_type = #{brandType},
+        </if>
+        <if test="userName != null and userName != ''">
+            user_name = #{userName},
+        </if>
+        <if test="userId != null and userId != ''">
+            user_id = #{userId},
+        </if>
+        <if test="platform != null and platform != ''">
+            platform = #{platform},
+        </if>
+        <if test="relateId != null and relateId != ''">
+            relate_id = #{relateId},
+        </if>
+        <if test="createDate != null">
+            create_date = #{createDate}
+        </if>
+        )
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updateMediaBrand" parameterType="com.qinfei.qferp.entity.media1.MediaBrand">
+        update t_media_brand
+        <set>
+            <if test="brandName != null and brandName != ''">
+                brand_name = #{brandName},
+            </if>
+            <if test="brandType != null">
+                brand_type = #{brandType},
+            </if>
+            <if test="userName != null and userName != ''">
+                user_name = #{userName},
+            </if>
+            <if test="userId != null and userId != ''">
+                user_id = #{userId},
+            </if>
+            <if test="platform != null and platform != ''">
+                platform = #{platform},
+            </if>
+            <if test="relateId != null and relateId != ''">
+                relate_id = #{relateId},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="listPg" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+        brand_name AS brandName,
+        platform,
+        COUNT(0) as times
+        FROM
+        t_media_brand
+        <where>
+            <if test="brandName != null and brandName != ''">
+                and brand_name like CONCAT('%',#{brandName},'%')
+            </if>
+            <if test="platform != null and platform != ''">
+                and platform = #{platform}
+            </if>
+        </where>
+        GROUP BY brand_name,platform
+        order by
+        <if test="sort != null and sort != ''">
+            platform asc,${sort} ${order}
+        </if>
+        <if test="sort == null or sort == ''">
+            platform asc,times desc
+        </if>
+    </select>
+
+    <select id="listPgForView" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+        brand_name AS brandName,
+        platform,
+        user_name AS userName,
+        COUNT(0) as times
+        FROM
+        t_media_brand
+        <where>
+            <if test="brandNameQc != null and brandNameQc != ''">
+                and brand_name = #{brandNameQc}
+            </if>
+            <if test="platformQc != null and platformQc != ''">
+                and platform = #{platformQc}
+            </if>
+            <if test="userNameQc != null and userNameQc != ''">
+                and user_name like CONCAT('%',#{userNameQc},'%')
+            </if>
+        </where>
+        GROUP BY brand_name,platform,user_name
+        order by
+        <if test="sort != null and sort != ''">
+            platform asc,${sort} ${order}
+        </if>
+        <if test="sort == null or sort == ''">
+            platform asc,times desc
+        </if>
+    </select>
+
+    <select id="getById" resultType="com.qinfei.qferp.entity.media1.MediaBrand" parameterType="java.lang.String">
+        select
+        <include refid="selectColumn"/>
+        from t_media_brand
+        where id=#{id}
+    </select>
+</mapper>

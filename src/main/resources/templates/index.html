@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="${AppName}">系统主页</title>
+    <script th:inline="javascript">
+        var userId = [[${session.user.id}]];
+        var currentUserMenus = [[${menus}]];
+        if (userId == '') {
+            parent.location.href = 'login';
+        }
+        var href = window.location.href;
+        href = href.substring(href.indexOf("//") + 2);
+        var SOCKET_API = "ws://" + href + "ws/" + userId;
+        var IM_API = "ws://" + href + "im/" + userId;
+    </script>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- 自定义js -->
+    <script src="/js/hplus.js?v=4.1.0"></script>
+    <script type="text/javascript" src="/js/contabs.js"></script>
+    <script type="text/javascript" src="/js/msg.js"></script>
+    <script type="text/javascript" th:src="@{/js/index.js(v=${version})}"></script>
+    <!--菜单模板-->
+    <script id="menuHtml" type="text/html">
+        {{each data as menu i}}
+        <li class="menuLi">
+            <a href="{{menu.url ? menu.url : '#'}}"
+               class="{{menu.url ? 'J_menuItem' : ''}}"
+               onclick="setMenuStyle(this);return false;">
+                <i class="{{menu.icon || 'fa fa-user'}}"></i>
+                <span class="nav-label">{{menu.name}}</span>
+                <span class="fa arrow"></span>
+            </a>
+            {{if menu.childs.length > 0}}
+                <ul style="padding-left: 10px;" class="nav nav-second-level ">
+                    {{each menu.childs as child j}}
+                    <li>
+                        <a data-id="{{child.id}}" class="J_menuItem" href="{{child.url ? child.url : ''}}"
+                           onclick="setMenuStyle(this);return false;">
+                            <span class="nav-label">{{child.name}}</span>
+                            {{if child.childs.length > 0}}
+                                <span class="fa arrow"></span>
+                            {{/if}}
+                        </a>
+                    </li>
+                    {{/each}}
+                </ul>
+            {{/if}}
+        </li>
+        {{/each}}
+    </script>
+    <script id="childMenuHtml" type="text/html">
+        {{each data as menu m}}
+            <ul style="padding-left: 15px;" class="nav nav-second-level ">
+                <li>
+                    <a data-id="{{menu.id}}" class="J_menuItem" href="{{menu.url ? menu.url : '/homePage'}}"
+                       onclick="setMenuStyle(this);return false;">
+                        <span class="nav-label">{{menu.name}}</span>
+                        {{if menu.childs.length > 0}}
+                            <span class="fa arrow"></span>
+                        {{/if}}
+                    </a>
+                </li>
+            </ul>
+        {{/each}}
+    </script>
+    <script>
+        // $(".sidebar-menu li").click(function () {
+        //     var page = $(this).attr('id');
+        //     // 设置cookie把现在选择的那个列的id值存起来
+        //     // $.cookie('page', page, {path: "/"});
+        //     localStorage.setItem('page', page, {path: "/"})
+        // });
+        //
+        // // 点击那个展开收缩的按钮。
+        // $(".sidebar-toggle").click(function () {
+        //     var status = $('body').attr('class');//它具有两种状态skin-blue sidebar-mini sidebar-open展开。skin-blue sidebar-mini sidebar-open sidebar-collapse收缩。
+        //     var status1 = 'skin-blue sidebar-mini sidebar-open ';
+        //     var status2 = 'skin-blue sidebar-mini sidebar-open sidebar-collapse';
+        //     if (status == status1) {  //如果状态是展开的就让他收缩，并且最后用cookie把此时的状态存起来
+        //         status = status2;
+        //     } else {
+        //         status = status1;
+        //     }
+        //     //把body中代表他是收缩还是展开的class类存起来
+        //     // $.cookie('status', status, {path: "/"});
+        //     localStorage.setItem('page', status, {path: "/"})
+        // });
+        //
+        // // 下面的内容是每个页面都得引用的。比如放在公共的需要引用的header或者footer里面
+        // $(function () {
+        //     // $("#" + $.cookie('page')).addClass('active');//读取cookie获取选择的侧滑列，添加选中active样式
+        //     $("#" + localStorage.getItem('page')).addClass('active');//读取cookie获取选择的侧滑列，添加选中active样式
+        //
+        //     if ($.cookie('status')) {
+        //         $('body').attr('class', localStorage.getItem('status'));//读取cookie，获取树状展开或关闭状态。
+        //         // $('body').attr('class', $.cookie('status'));
+        //     }
+        // });
+    </script>
+    <style>
+        .img-circle {
+            width: 80px;
+            height: 80px;
+        }
+
+        .left .author-name {
+            font-weight: bold;
+            color: #1d9d74;
+        }
+
+        .right .author-name {
+            font-weight: bold;
+            color: red;
+            margin: 0 5px;
+        }
+
+        /*.chat-message.active a{*/
+        /*color: red;*/
+        /*}*/
+        #im-body {
+            width: 100%;
+            padding: 0px;
+
+        }
+
+        #im-body > div:first-child {
+            font-size: 14px;
+        }
+
+        #im-body > div:first-child > div {
+            margin: 10px 0 !important;
+            cursor: pointer;
+        }
+
+        #im-body > div:first-child img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        #userList > div {
+            padding: 5px 5px;
+        }
+
+        #im_content {
+            border-left: 1px solid red;
+            height: 100%;
+            overflow: scroll;
+            font-size: 12px !important;
+        }
+
+        .chat-date {
+            margin: 0 5px;
+        }
+
+        #content-main {
+            height: calc(100% - 116px);
+            overflow: hidden;
+        }
+
+        /*覆盖原来样式*/
+        .navbar, .navbar-form-custom .form-control, navbar-form-custom, .navbar-form-custom {
+            min-height: 36px;
+            height: 36px;
+        }
+
+        .navbar-top-links li a {
+            padding: 10px 10px;
+            min-height: 36px;
+        }
+
+        .count-info .label {
+            line-height: 10px;
+            padding: 1px 3px;
+            position: absolute;
+            right: 6px;
+            top: 2px;
+        }
+
+        .minimalize-styl-2 {
+            padding: 3px 8px;
+            margin: 8px 5px 5px 16px;
+            font-size: 14px;
+            float: left;
+        }
+
+        .content-tabs {
+            height: 37px;
+            line-height: 36px;
+        }
+
+        .content-tabs .roll-nav, .content-tabs button {
+            height: 35px;
+        }
+        .messageColor>span:first-child{
+            color: #ed5565;
+        }
+        .messageColor>span:nth-child(2){
+            color: #65a4e0;
+        }
+
+        .navbar-static-top > .navbar-top-links > li > a:hover {
+            background-color: unset !important;
+        }
+
+        /*切换用户样式*/
+        .form-control-feedback-my{
+            position: absolute;
+            top: 1px;
+            right: 10px;
+            z-index: 200;
+            display: block;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .boxBg:hover{
+            background-color: #fef9ff;
+        }
+        .bindingUnionId{
+            border-bottom: 2px solid #dfd7d7;padding: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;
+        }
+        .excerpt{
+            width: 272px;height: 70px;margin-left: 5px;margin-top:5px;float: left;
+        }
+        .imgDiv{
+            width: 60px;height: 60px;float: left;
+        }
+        .imgDiv > img{
+            width: 100%;height: 100%;margin: 0px;
+        }
+        .userInfoDiv{
+            width: 180px;height: 60px;float: left;padding-left: 5px;
+        }
+        .userInfoDiv > h3{
+            white-space: nowrap;text-overflow: ellipsis;overflow: hidden;width: 100%;margin-bottom: 5px;
+        }
+        .userInfoDiv > address{
+            white-space: nowrap;text-overflow: ellipsis;overflow: hidden;width: 100%;
+        }
+        .unBinding{
+            width: 20px;height: 60px;float: left;border-left: 1px solid #feebeb;padding-top: 10px;padding-left:5px;text-align: center;
+        }
+        .layui-tab-title li{
+            padding: 0 5px;
+        }
+
+        /*版本提示*/
+        .timeContent{
+            width: 97%;
+            padding-left: 10px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            background-color: rgb(249,249,249);
+            font-family: SourceHanSansCN-Light;
+        }
+        .timeContentTitle{
+            width: 100%;height: 20px;line-height: 20px;font-weight: bold;
+        }
+
+        /*菜单筛选按钮*/
+        .menuSearchInput{
+            background-color: #405162;
+            border-radius: 20px !important;
+            height: 30px !important;
+            width: 96% !important;
+            border: unset;
+            color: white;
+        }
+
+        .menuSearchBtn{
+            cursor: pointer;
+            width: 30px !important;
+            height: 30px !important;
+            padding: 0px !important;
+            border-radius: 50% !important;
+            background-color: #405162;
+            color: white;
+            border: unset;
+        }
+
+        .stockModalBtnOuter{
+            border-bottom: 1px solid #E6E6E6;
+            width: 100%;
+            height: 50px;
+            float: left;
+            display: flex;
+            padding-left: 15px;
+            background-color: #F9FAFC;
+        }
+        .stockModalTitle{
+            border: 0px solid red;
+            width: 150px;
+            height: 50px;
+            line-height: 50px;
+            float: left;
+            text-align: left;
+            font-size: 15px;
+            font-family: Candara;
+            font-weight: bold;
+        }
+        .ellipsisContent{
+            width: 98%;
+            text-align: center;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow:hidden;
+        }
+        .suggestDiv{
+            height: 345px;
+        }
+        .suggestDiv img{
+            max-height: 300px;
+            max-width: 400px;
+        }
+
+        /*菜单样式*/
+        .nav-second-level li:last-child{
+            margin-bottom: unset !important;
+        }
+
+        .navbar-top-links li:last-child {
+            margin-right: 0px!important;
+            padding: 0px 10px!important;
+        }
+    </style>
+</head>
+
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
+<div id="wrapper">
+    <!--左侧导航开始-->
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="nav-close"><i class="fa fa-times-circle"></i>
+        </div>
+        <div class="sidebar-collapse">
+            <ul class="nav" id="side-menu">
+                <li class="nav-header">
+                    <div class="dropdown profile-element">
+                        <span title="点击切换用户"><img onclick="userBinding.exchangeUserList();" style="cursor: pointer;" alt="image" class="img-circle" src="/img/profile_small.jpg"
+                                   onerror="this.src='/img/mrtx_1.png'" data-th-src="${session.user.image}"/>
+                        </span>
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                                <span class="clear">
+                               <span class="block m-t-xs"><strong class="font-bold"
+                                                                  data-th-text="${session.user.name}">Beaut-zihan</strong></span>
+                                <span id="roleName" class="text-muted text-xs" data-th-if="${session.user.roles.size()>0}"
+                                      data-th-text="${session.user.roles[0].name}">超级管理员</span><b class="caret"></b>
+                                </span>
+                        </a>
+                        <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                            <li><a type="button" class="" data-toggle="modal" data-target="#changePhotoModal">修改头像</a>
+                            </li>
+                            <li><a type="button" class="" data-toggle="modal" data-target="#myModal">修改密码</a>
+                            </li>
+                            <li><a href="javascript:void(0)" class="" onclick="edit()">个人资料</a>
+                            </li>
+                            <!--<li><a class="J_menuItem" href="contacts.html">联系我们</a>-->
+                            <!--</li>-->
+                            <!--<li><a class="J_menuItem" href="mailbox.html">信箱</a>-->
+                            <!--</li>-->
+                            <li><a type="button" href="javascript:;" onclick="userBinding.bindingUser();">关联用户</a>
+                            </li>
+                            <li class="divider" style="margin: unset;"></li>
+                            <li><a href="/logout">安全退出</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="logo-element">OA
+                    </div>
+                </li>
+                <li class="liSearch">
+                    <div class="col-sm-12 input-group m-b" style="margin-bottom: 0px;padding: 0 10px;">
+                        <input type="text" class="form-control menuSearchInput" placeholder="请输入菜单名称搜索" oninput="searchMenu(this);">
+                        <span class="input-group-addon menuSearchBtn" style="cursor: pointer;" onclick="searchMenu(this);">
+                            <i class="fa fa-search"></i>
+                        </span>
+                    </div>
+                </li>
+                <!--<li class="menuLi" data-th-each="menu:${menus}">
+                    <a href="#" data-th-href="${(menu.url==''||menu.url==null)?'#':menu.url}"
+                       data-th-class="${(menu.url==''||menu.url==null)?'':'J_menuItem'}"
+                       onclick="setMenuStyle(this);return false;">
+                        <i data-th-class="${(menu.icon==''||menu.icon==null)?'fa fa-user':menu.icon}"></i>
+                        <span class="nav-label" data-th-text="${menu.name}">首页</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level" data-th-each="child:${menu.childs}">
+                        <li>
+                            <a class="J_menuItem" href="/homePage" data-th-href="${child.url}"
+                               data-th-text="${child.name}" onclick="setMenuStyle(this);return false;">工作台</a>
+                        </li>
+                    </ul>
+                </li>-->
+            </ul>
+        </div>
+    </nav>
+    <!--左侧导航结束-->
+    <!--右侧部分开始-->
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div id="topNavWrap" class="row border-bottom">
+            <nav id="topNavHeader" class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                    <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                        <i class="fa fa-bars"></i>
+                    </a>
+                    <label class="text-center" style="line-height: 36px;margin-left: 20px;margin-top: 5px">
+                        欢迎使用
+                        <span data-th-text="${session.user.dept.companyCodeName}" class="text-danger"></span>
+                        <span data-th-text="${AppName}"></span>
+                    </label>
+                </div>
+                <ul id="bbsIcon" class="nav navbar-top-links navbar-right">
+                    <li style="margin-top: 5px;">
+                        <a class="count-info" href="javascript:void(0)" onclick="goToCompany()">
+                            <i class="fa fa-twitter">&nbsp;&nbsp;</i><span class="label label-warning">论坛</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="bellTips nav navbar-top-links navbar-right">
+                    <li class="dropdown" style="margin-top: 10px;">
+                        <a class="dropdown-toggle count-info" data-toggle="dropdown" href="javascript:void(0)"
+                           onclick="loadMessage2()" aria-expanded="true">
+                            <i class="fa fa-bell"></i>
+                            <span class="label label-danger" id="showMessageNum"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-alerts" style="width: 320px;padding: 0px;">
+                            <input type="hidden" id="messageId"/>
+                            <div style="height: 42px;line-height: 42px;background-color: #f7f7f7;">
+                                <span style="color: #1AB394;font-size: 14px;padding-left: 20px;"><strong>未读消息</strong></span>
+                            </div>
+                            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief"
+                                 style="width:100%;height:100%;margin: 0px;">
+                                <input type="hidden" id="index"/>
+                                <ul class="layui-tab-title" style="float: left;width: 100%">
+                                    <li class="tabTitle layui-this" data-id="1"
+                                        style="display: inline-block !important;">待办(<span style="color: #ED5565" id="showMessageNum1">0</span>)
+                                    </li>
+                                    <li class="tabTitle" data-id="2" style="display: inline-block !important;">提醒(<span
+                                            style="color: #ED5565" id="showMessageNum2">0</span>)
+                                    </li>
+                                    <li class="tabTitle" data-id="3" style="display: inline-block !important;">通知(<span
+                                            style="color: #ED5565" id="showMessageNum3">0</span>)
+                                    </li>
+                                    <li class="tabTitle" data-id="0" style="display: inline-block !important;">其它(<span
+                                            style="color: #ED5565" id="showMessageNum0">0</span>)
+                                    </li>
+                                </ul>
+                                <div class="layui-tab-content"
+                                     style="width: 100%;height: 100%;padding: 0px !important;clear: both;margin-top: 40px;">
+                                    <div class="jqGrid_wrapper tabContent" id="pt1Div">
+                                        <div id="message_list1"></div>
+                                    </div>
+                                    <div class="jqGrid_wrapper tabContent" id="pt2Div" style="display: none;">
+                                        <div id="message_list2"></div>
+                                    </div>
+                                    <div class="jqGrid_wrapper tabContent" id="pt3Div" style="display: none;">
+                                        <div id="message_list3"></div>
+                                    </div>
+                                    <div class="jqGrid_wrapper tabContent" id="pt4Div" style="display: none;">
+                                        <div id="message_list0"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 40px;line-height:40px;background-color: #f7f7f7;clear: both;border-top: #e6e6e6 1px solid; ">
+                                <a style="font-size: 14px;padding-left: 20px;color: #555555;"
+                                   onclick="moreMessage()">查看更多</a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="nav navbar-top-links navbar-right">
+                    <li style="margin-top: 5px;" title="历史版本">
+                        <a class="count-info" href="javascript:void(0)" onclick="versionHintObj.historyVersionHint();">
+                            <i class="fa fa-history"></i>
+                        </a>
+                    </li>
+                </ul>
+                <!--<ul class="nav navbar-top-links navbar-right" id="showStockWarningDiv">-->
+                    <!--<li style="margin-top: 5px;">-->
+                        <!--<a class="count-info" href="javascript:void(0)" onclick="stockWarningObj.showStockWarningModal()">-->
+                            <!--<i class="fa fa-warning">&nbsp;&nbsp;</i><span class="label label-warning">库存预警</span>-->
+                        <!--</a>-->
+                    <!--</li>-->
+                <!--</ul>-->
+
+                <!--<li class="dropdown">
+                    <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                        <i class="fa fa-envelope"></i> <span class="label label-warning">16</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-messages">
+                        <li class="m-t-xs">
+                            <div class="dropdown-messages-box">
+                                <a href="profile.html" class="pull-left">
+                                    <img alt="image" class="img-circle" src="img/a7.jpg">
+                                </a>
+                                <div class="media-body">
+                                    <small class="pull-right">46小时前</small>
+                                    <strong>小四</strong> 这里是消息列表
+                                    <br>
+                                    <small class="text-muted">3天前 2014.11.8</small>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <div class="dropdown-messages-box">
+                                <a href="profile.html" class="pull-left">
+                                    <img alt="image" class="img-circle" src="img/a4.jpg">
+                                </a>
+                                <div class="media-body ">
+                                    <small class="pull-right text-navy">25小时前</small>
+                                    <strong>国民岳父</strong> 如何看待"男子不满自己爱犬被称为狗，刺伤路人"？——这人比犬还凶
+                                    <br>
+                                    <small class="text-muted">昨天</small>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <div class="text-center link-block">
+                                <a class="J_menuItem" href="mailbox.html">
+                                    <i class="fa fa-envelope"></i> <strong> 查看所有消息</strong>
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </li>-->
+                <!--<li class="hidden-xs">
+                    <a href="index_v1.html" class="J_menuItem" data-index="0">
+                        &lt;!&ndash;<i class="fa fa-cart-arrow-down"></i>购买&ndash;&gt;
+                        <i class="fa fa-gear" title="系统设置"></i>
+                    </a>
+                </li>
+                <li class="dropdown hidden-xs">
+                    <a class="right-sidebar-toggle" aria-expanded="false">
+                        &lt;!&ndash;<i class="fa fa-cart-arrow-down"></i>购买&ndash;&gt;
+                        <i class="fa fa-user" title="用户信息"></i>
+                    </a>
+                </li>
+                <li class="dropdown hidden-xs">
+                    <a class="right-sidebar-toggle" aria-expanded="false">
+                        <i class="fa fa-tasks" title="切换主题"></i>
+                    </a>
+                </li>-->
+            </nav>
+        </div>
+        <div class="row content-tabs">
+            <button class="roll-nav roll-left J_tabLeft"><i class="fa fa-backward"></i>
+            </button>
+            <nav class="page-tabs J_menuTabs">
+                <div class="page-tabs-content" id="page-tabs-content">
+                    <a href="javascript:;" class="active J_menuTab" data-id="/homePage">首页</a>
+                </div>
+            </nav>
+            <button class="roll-nav roll-right" style="right:222px">
+                <i cellCopyFlag="0" id="cellCopyBtn" class="fa fa-copy" title="点击此按钮后，再点击表格单元格进行拷贝单元格内容"></i></button>
+            <button class="roll-nav roll-right" style="right: 180px"><i id="refresh" class="fa fa-refresh"
+                                                                        title="刷新"></i></button>
+            <button class="roll-nav roll-right J_tabRight"><i class="fa fa-forward"></i>
+            </button>
+            <div class="btn-group roll-nav roll-right">
+                <button class="dropdown J_tabClose" data-toggle="dropdown">关闭操作
+                    <span class="caret"></span>
+                </button>
+                <ul role="menu" class="dropdown-menu dropdown-menu-right">
+                    <li class="J_tabShowActive"><a>定位当前选项卡</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li class="J_tabCloseAll"><a>关闭全部选项卡</a>
+                    </li>
+                    <li class="J_tabCloseOther"><a>关闭其他选项卡</a>
+                    </li>
+                </ul>
+            </div>
+            <a href="/logout" class="roll-nav roll-right J_tabExit"><i class="fa fa-sign-out"></i> 退出</a>
+        </div>
+        <div class="row J_mainContent" id="content-main">
+            <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="/homePage"
+                    frameborder="0" data-id="/homePage" seamless></iframe>
+        </div>
+        <div class="footer center">
+            <div class="col-md-4 text-left">
+                <label>version: </label><span class="text-danger">1.0.0</span>
+            </div>
+            <div class="col-md-4 text-center">
+                &copy; 2013-<span data-th-text="${#dates.format(new java.util.Date().getTime(), 'yyyy')}">time</span>
+                <!-- <a href="http://www.qinfei.com/" target="_blank">QinFei</a>-->
+                <span data-th-text="${session.user.dept.companyCodeName}"></span><span
+                    data-th-text="${AppName}"></span></label>
+            </div>
+            <div class="col-md-4 text-right"><label class="text-success">现在是：</label><span id="DateTime"></span></a>
+            </div>
+        </div>
+    </div>
+    <!--右侧部分结束-->
+    <!--右侧边栏开始-->
+    <!--<div id="right-sidebar">-->
+    <!--<div class="sidebar-container">-->
+
+    <!--<ul class="nav nav-tabs navs-3">-->
+
+    <!--<li class="active">-->
+    <!--<a data-toggle="tab" href="#tab-1">-->
+    <!--<i class="fa fa-gear"></i> 主题-->
+    <!--&lt;!&ndash;<i class="fa fa-user"></i>&ndash;&gt;-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li class=""><a data-toggle="tab" href="#tab-2">-->
+    <!--通知-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li><a data-toggle="tab" href="#tab-3">-->
+    <!--项目进度-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--</ul>-->
+
+    <!--<div class="tab-content">-->
+    <!--<div id="tab-1" class="tab-pane active">-->
+    <!--<div class="sidebar-title">-->
+    <!--<h3><i class="fa fa-comments-o"></i> 主题设置</h3>-->
+    <!--<small><i class="fa fa-tim"></i> 你可以从这里选择和预览主题的布局和样式，这些设置会被保存在本地，下次打开的时候会直接应用这些设置。</small>-->
+    <!--</div>-->
+    <!--<div class="skin-setttings">-->
+    <!--<div class="title">主题设置</div>-->
+    <!--<div class="setings-item">-->
+    <!--<span>收起左侧菜单</span>-->
+    <!--<div class="switch">-->
+    <!--<div class="onoffswitch">-->
+    <!--<input type="checkbox" name="collapsemenu" class="onoffswitch-checkbox"-->
+    <!--id="collapsemenu">-->
+    <!--<label class="onoffswitch-label" for="collapsemenu">-->
+    <!--<span class="onoffswitch-inner"></span>-->
+    <!--<span class="onoffswitch-switch"></span>-->
+    <!--</label>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="setings-item">-->
+    <!--<span>固定顶部</span>-->
+
+    <!--<div class="switch">-->
+    <!--<div class="onoffswitch">-->
+    <!--<input type="checkbox" name="fixednavbar" class="onoffswitch-checkbox"-->
+    <!--id="fixednavbar">-->
+    <!--<label class="onoffswitch-label" for="fixednavbar">-->
+    <!--<span class="onoffswitch-inner"></span>-->
+    <!--<span class="onoffswitch-switch"></span>-->
+    <!--</label>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="setings-item">-->
+    <!--<span>-->
+    <!--固定宽度-->
+    <!--</span>-->
+
+    <!--<div class="switch">-->
+    <!--<div class="onoffswitch">-->
+    <!--<input type="checkbox" name="boxedlayout" class="onoffswitch-checkbox"-->
+    <!--id="boxedlayout">-->
+    <!--<label class="onoffswitch-label" for="boxedlayout">-->
+    <!--<span class="onoffswitch-inner"></span>-->
+    <!--<span class="onoffswitch-switch"></span>-->
+    <!--</label>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="title">皮肤选择</div>-->
+    <!--<div class="setings-item default-skin nb">-->
+    <!--<span class="skin-name ">-->
+    <!--<a href="#" class="s-skin-0">-->
+    <!--默认皮肤-->
+    <!--</a>-->
+    <!--</span>-->
+    <!--</div>-->
+    <!--<div class="setings-item blue-skin nb">-->
+    <!--<span class="skin-name ">-->
+    <!--<a href="#" class="s-skin-1">-->
+    <!--蓝色主题-->
+    <!--</a>-->
+    <!--</span>-->
+    <!--</div>-->
+    <!--<div class="setings-item yellow-skin nb">-->
+    <!--<span class="skin-name ">-->
+    <!--<a href="#" class="s-skin-3">-->
+    <!--黄色/紫色主题-->
+    <!--</a>-->
+    <!--</span>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div id="tab-2" class="tab-pane">-->
+
+    <!--<div class="sidebar-title">-->
+    <!--<h3><i class="fa fa-comments-o"></i> 最新通知</h3>-->
+    <!--<small><i class="fa fa-tim"></i> 您当前有10条未读信息</small>-->
+    <!--</div>-->
+
+    <!--<div>-->
+
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a1.jpg">-->
+
+    <!--<div class="m-t-xs">-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+
+    <!--据天津日报报道：瑞海公司董事长于学伟，副董事长董社轩等10人在13日上午已被控制。-->
+    <!--<br>-->
+    <!--<small class="text-muted">今天 4:21</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a2.jpg">-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+    <!--HCY48之音乐大魔王会员专属皮肤已上线，快来一键换装拥有他，宣告你对华晨宇的爱吧！-->
+    <!--<br>-->
+    <!--<small class="text-muted">昨天 2:45</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a3.jpg">-->
+
+    <!--<div class="m-t-xs">-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+    <!--写的好！与您分享-->
+    <!--<br>-->
+    <!--<small class="text-muted">昨天 1:10</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a4.jpg">-->
+    <!--</div>-->
+
+    <!--<div class="media-body">-->
+    <!--国外极限小子的炼成！这还是亲生的吗！！-->
+    <!--<br>-->
+    <!--<small class="text-muted">昨天 8:37</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a8.jpg">-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+
+    <!--一只流浪狗被收留后，为了减轻主人的负担，坚持自己觅食，甚至......有些东西，可能她比我们更懂。-->
+    <!--<br>-->
+    <!--<small class="text-muted">今天 4:21</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a7.jpg">-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+    <!--这哥们的新视频又来了，创意杠杠滴，帅炸了！-->
+    <!--<br>-->
+    <!--<small class="text-muted">昨天 2:45</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a3.jpg">-->
+
+    <!--<div class="m-t-xs">-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--<i class="fa fa-star text-warning"></i>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+    <!--最近在补追此剧，特别喜欢这段表白。-->
+    <!--<br>-->
+    <!--<small class="text-muted">昨天 1:10</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="sidebar-message">-->
+    <!--<a href="#">-->
+    <!--<div class="pull-left text-center">-->
+    <!--<img alt="image" class="img-circle message-avatar" src="img/a4.jpg">-->
+    <!--</div>-->
+    <!--<div class="media-body">-->
+    <!--我发起了一个投票 【你认为下午大盘会翻红吗？】-->
+    <!--<br>-->
+    <!--<small class="text-muted">星期一 8:37</small>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</div>-->
+    <!--</div>-->
+
+    <!--</div>-->
+    <!--<div id="tab-3" class="tab-pane">-->
+
+    <!--<div class="sidebar-title">-->
+    <!--<h3><i class="fa fa-cube"></i> 最新任务</h3>-->
+    <!--<small><i class="fa fa-tim"></i> 您当前有14个任务，10个已完成</small>-->
+    <!--</div>-->
+
+    <!--<ul class="sidebar-list">-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>市场调研</h4> 按要求接收教材；-->
+
+    <!--<div class="small">已完成： 22%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 22%;" class="progress-bar progress-bar-warning"></div>-->
+    <!--</div>-->
+    <!--<div class="small text-muted m-t-xs">项目截止： 4:00 - 2015.10.01</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>可行性报告研究报上级批准 </h4> 编写目的编写本项目进度报告的目的在于更好的控制软件开发的时间,对团队成员的 开发进度作出一个合理的比对-->
+
+    <!--<div class="small">已完成： 48%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 48%;" class="progress-bar"></div>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>立项阶段</h4> 东风商用车公司 采购综合综合查询分析系统项目进度阶段性报告武汉斯迪克科技有限公司-->
+
+    <!--<div class="small">已完成： 14%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 14%;" class="progress-bar progress-bar-info"></div>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<span class="label label-primary pull-right">NEW</span>-->
+    <!--<h4>设计阶段</h4>-->
+    <!--&lt;!&ndash;<div class="small pull-right m-t-xs">9小时以后</div>&ndash;&gt;-->
+    <!--项目进度报告(Project Progress Report)-->
+    <!--<div class="small">已完成： 22%</div>-->
+    <!--<div class="small text-muted m-t-xs">项目截止： 4:00 - 2015.10.01</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>拆迁阶段</h4> 科研项目研究进展报告 项目编号: 项目名称: 项目负责人:-->
+
+    <!--<div class="small">已完成： 22%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 22%;" class="progress-bar progress-bar-warning"></div>-->
+    <!--</div>-->
+    <!--<div class="small text-muted m-t-xs">项目截止： 4:00 - 2015.10.01</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>建设阶段 </h4> 编写目的编写本项目进度报告的目的在于更好的控制软件开发的时间,对团队成员的 开发进度作出一个合理的比对-->
+
+    <!--<div class="small">已完成： 48%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 48%;" class="progress-bar"></div>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</li>-->
+    <!--<li>-->
+    <!--<a href="#">-->
+    <!--<div class="small pull-right m-t-xs">9小时以后</div>-->
+    <!--<h4>获证开盘</h4> 编写目的编写本项目进度报告的目的在于更好的控制软件开发的时间,对团队成员的 开发进度作出一个合理的比对-->
+
+    <!--<div class="small">已完成： 14%</div>-->
+    <!--<div class="progress progress-mini">-->
+    <!--<div style="width: 14%;" class="progress-bar progress-bar-info"></div>-->
+    <!--</div>-->
+    <!--</a>-->
+    <!--</li>-->
+
+    <!--</ul>-->
+
+    <!--</div>-->
+    <!--</div>-->
+
+    <!--</div>-->
+    <!--</div>-->
+    <!--右侧边栏结束-->
+    <!--mini聊天窗口开始-->
+    <div class="small-chat-box panel panel-default" style="width: 80%;">
+        <div class="panel-heading">
+            <small class="chat-date pull-right">
+                2018.11.5
+            </small>
+            <input type="hidden" id="receiveUserId"/>
+            <input type="hidden" id="headImg"/>
+            与 <span id="receiveName"></span> 聊天中
+        </div>
+        <div class="panel-body content" id="im-body">
+            <div class="col-md-2" id="userList">
+            </div>
+            <div class="col-md-10 " id="im_content">
+
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div class="input-group input-group-sm">
+                <textarea type="text" class="form-control" id="msg" rows="5"></textarea>
+                <span class="input-group-btn">
+            <button class="btn btn-primary" id="sendMsg" type="button"
+                    data-th-onclick="'sendMsg('+${session.user.id}+',\''+${session.user.name}+'\',\''+${session.user.image}+'\',$(\'#receiveUserId\').val(),$(\'#receiveName\').text(),$(\'#msg\'),$(\'#headImg\').val())'">发送
+            </button>
+            </span>
+            </div>
+        </div>
+    </div>
+
+    <!--<div id="small-chat">-->
+    <!--<span class="badge badge-warning pull-right">5</span>-->
+    <!--<a class="open-small-chat">-->
+    <!--<i class="fa fa-comments"></i>-->
+
+    <!--</a>-->
+    <!--</div>-->
+    <!--<div class="small-chat-box fadeInRight animated">-->
+    <!--<div class="heading" draggable="true">-->
+    <!--<small class="chat-date pull-right">-->
+    <!--2015.9.1-->
+    <!--</small>-->
+    <!--与 Beau-zihan 聊天中-->
+    <!--</div>-->
+    <!--<div class="content" id="im_content">-->
+    <!--</div>-->
+    <!--<div class="form-chat">-->
+    <!--<div class="input-group input-group-sm">-->
+    <!--<input type="text" class="form-control" id="msg">-->
+    <!--<span class="input-group-btn">-->
+    <!--<button class="btn btn-primary" id="sendMsg" type="button" data-th-onclick="'sendMsg('+${session.user.id}+',\''+${session.user.userName}+'\',2,\'zs\',$(\'#msg\'))'">发送-->
+    <!--</button>-->
+    <!--</span>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--<div id="small-chat">-->
+    <!--<span class="badge badge-warning pull-right">5</span>-->
+    <!--<a class="open-small-chat">-->
+    <!--<i class="fa fa-comments"></i>-->
+
+    <!--</a>-->
+    <!--</div>-->
+    <!--mini聊天窗口结束-->
+</div>
+
+<!--重置密码-->
+<div class="modal inmodal" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">修改密码</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="form" class="form-horizontal">
+                        <div class="row">
+
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">输入旧密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="oldpassword" name="oldpassword" required=""
+                                           class="form-control" placeholder="输入旧密码">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">输入新密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="password1" name="password1" required=""
+                                           class="form-control" placeholder="输入新密码">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">确认新密码</label>
+                                <div class="col-sm-6">
+                                    <input type="password" id="password2" name="password2" required=""
+                                           class="form-control" placeholder="确认新密码">
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submit">保存</button>
+                <button type="button" class="btn btn-white" id="cancel" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--修改头像-->
+<div class="modal inmodal" id="changePhotoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">修改头像</h4>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="changePhotoForm" class="form-horizontal" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label col-sm-offset-2">请上传头像</label>
+                                <div class="col-sm-5">
+                                    <input type="file" id="doc" name="image" class="form-control" accept="image/*"
+                                           onchange="showImage();">
+                                </div>
+                                <div class="col-sm-10">
+                                    <div class="hr-line-dashed"></div>
+                                </div>
+                                <div id="localImag" class="col-sm-11 col-sm-offset-3">
+                                    <img alt="image" id="preview" style="width: 300px;height: 300px;"
+                                         onerror="this.src='/img/sctp.png'" data-th-src="${session.user.image}"/>
+                                </div>
+                                <div class="col-sm-10">
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="submit2">保存</button>
+                <button type="button" class="btn btn-white" id="cancel2" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--编辑个人信息-->
+<div class="modal inmodal" id="editModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <form id="editForm" class="form-horizontal" action="" method="post">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">部门<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="deptName" name="deptName" class="form-control"
+                                               readonly="readonly" required="required">
+                                    </div>
+                                    <label class="col-sm-2 control-label">姓名<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="name" name="name" class="form-control"
+                                               readonly="readonly">
+                                    </div>
+                                </div>
+                                <input type="hidden" id="checkUserId" name="id" class="form-control">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">工号:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="no" name="no" class="form-control" readonly="readonly">
+                                    </div>
+                                    <label class="col-sm-2 control-label">用户名<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="userName" name="userName" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">是否领导<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <div class="radio i-checks">
+                                            <input type="hidden" name="isMgr"/>
+                                            <input type="radio" value="1" name="isMgr"/>是
+                                            <input type="radio" value="0" name="isMgr"/>否
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-2 control-label">性别:</label>
+                                    <div class="col-sm-3">
+                                        <div class="radio i-checks">
+                                            <input type="hidden" name="sex"/>
+                                            <input type="radio" value="0" name="sex"/>女
+                                            <input type="radio" value="1" name="sex"/>男
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">电话<span class="text-red">*</span>:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="phone" name="phone" class="form-control">
+                                    </div>
+                                    <label class="col-sm-2 control-label">邮箱:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="email" name="email" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">QQ:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="qq" name="qq" class="form-control">
+                                    </div>
+                                    <label class="col-sm-2 control-label">微信:</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="wechat" name="wechat" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">备注:</label>
+                                    <div class="col-sm-8">
+                                        <textarea type="text" id="remark" name="remark" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary update" id="update"
+                                            onclick="submitHander(this,'/user/editSelf')">保存
+                                    </button>
+                                    <button type="button" class="btn btn-white" id="cancel1" data-dismiss="modal">关闭
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--关联用户-->
+<div id="bindingUserDiv" style="display: none;">
+    <div style="margin-top: 20px;width: 460px;height: 210px;">
+        <form id="bindingUserForm" class="form-horizontal" type="post">
+            <div class="col-md-12">
+                <div class="form-group col-sm-12">
+                    <label class="col-sm-3 control-label">
+                        <span class="text-red">*</span>用户名:
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="text" name="bindingUserName" class="form-control" placeholder="用户名"
+                               required autocomplete="off" >
+                    </div>
+                </div>
+                <div class="form-group col-sm-12">
+                    <label class="col-sm-3 control-label">
+                        <span class="text-red">*</span>密码:
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="password" name="bindingPassword" class="form-control" placeholder="密码"
+                               required autoComplete="new-password">
+                        <span onclick="userBinding.eyeClick(this);" class="glyphicon glyphicon-eye-close form-control-feedback-my"></span>
+                    </div>
+                </div>
+                <div class="form-group col-sm-12">
+                    <label class="col-sm-3 control-label">
+                        关联码:
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="text" name="unionId" class="form-control" placeholder="关联码" autocomplete="off" >
+                    </div>
+                </div>
+                <div class="form-group col-sm-12" style="color: red;">
+                    提示：1、一个用户只能被关联一次。<br/>
+                    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2、关联未被关联的用户时，不需要输入关联码。<br/>
+                    &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;3、关联已被关联的用户时，需要输入对应用户的关联码。
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--关联用户列表-->
+<div id="bindingUserListDiv" style="display: none">
+    <div class="bindingUnionId">
+        <h3 title="其他账号关联已被关联的账号时，需填写该关联码">
+            <strong>关联码：</strong>
+            <span id="bindingUnionId"></span>
+            <span style="font-size: 10px;">(使用其他账号关联已被关联的账号时，需填写该关联码)</span>
+        </h3>
+    </div>
+    <div id="user_list">
+        <!--<div class="excerpt">
+            <div class="contact-box boxBg" style="padding: 5px;background-color: #fef9ff;">
+                <a href="javascript:;">
+                    <div class="imgDiv">
+                        <img alt="图片丢失" onerror="this.src='/img/mrtx_1.png'" class="img-circle m-t-xs img-responsive" src="/img/mrtx_1.png">
+                    </div>
+                    <div class="userInfoDiv">
+                        <h3>
+                            <strong>郭勇</strong>
+                        </h3>
+                        <address>
+                            用户名：<span></span><br>
+                            部门：<span></span>
+                        </address>
+                    </div>
+                    <div class="unBinding">
+                        <span>解<br>绑</span>
+                    </div>
+                    <div class="clearfix"></div>
+                </a>
+            </div>
+        </div>-->
+
+    </div>
+</div>
+
+<!--系统版本提示-->
+<div id="versionHintDiv" style="display: none">
+    <div id="versionHintList" style="padding-left: 15px;height: 345px;padding-top: 10px;">
+        <ul class="layui-timeline" id="announcements">
+            <!--<li class="layui-timeline-item timeLineCss">
+                <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                <div class="layui-timeline-content layui-text timeCss">
+                    <span class="layui-timeline-title">2019.08.26</span>
+                    <div class="timeContent">
+                        <div class="timeContentTitle">
+                            发布人-胡春丽
+                        </div>
+                        <div class="timeContent1">
+                            食堂管理制度
+                        </div>
+                    </div>
+                </div>
+            </li>-->
+
+        </ul>
+    </div>
+</div>
+<!--建议提醒版本提示-->
+<div id="suggestWarnDiv" style="display: none">
+    <div id="showSuggestContent" class="suggestDiv">
+
+    </div>
+</div>
+
+<!--历史版本提示-->
+<div id="historyVersionHintDiv" style="display: none;height: 100%;width: 100%;">
+    <div class="layui-form historyVersiontDiv" style=" border: 0px solid red;width: 100%;height: 100%;display: flex;flex-direction: column;">
+        <!--搜索条件-->
+        <div style="width: 100%;height: 34px;">
+            <form id="historyVersionForm" autocomplete="off" class="form-horizontal" method="post">
+                <div style="width: 20%;float: left;">
+                    <input name="createDate" placeholder="请选择创建日期" class="form-control" autocomplete="off"/>
+                </div>
+                <div style="width: 80%;float: left;">
+                    <div class="input-group">
+                        <input type="text" name="keyword" placeholder="请输入关键字搜索" class="form-control"/>
+                        <span class="input-group-addon" style="cursor: pointer;" onclick="versionHintObj.searchHistoryVersion(this);">
+                            <i class="fa fa-search"></i>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--版本信息列表-->
+        <div id="historyVersionHintList" style="flex: 1;width: 100%;padding-left: 15px;padding-top: 10px;overflow: auto;">
+            <ul class="layui-timeline" id="historyAnnouncements">
+                <!--<li class="layui-timeline-item timeLineCss">
+                    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                    <div class="layui-timeline-content layui-text timeCss">
+                        <span class="layui-timeline-title">2019.08.26</span>
+                        <div class="timeContent">
+                            <div class="timeContentTitle">
+                                发布人-胡春丽
+                            </div>
+                            <div class="timeContent1">
+                                食堂管理制度
+                            </div>
+                        </div>
+                    </div>
+                </li>-->
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<!--库存预警提示-->
+<div id="stockWarnDiv" style="display: none">
+    <div class="stockModalBtnOuter">
+        <div class="stockModalTitle">
+            库存预警
+        </div>
+    </div>
+    <div class="layui-form" style="padding: 20px 0px 0px 50px;width: 36%;display: flex;line-height: 40px;">
+            <label class="control-label">
+                仓库&nbsp;&nbsp;:&nbsp;&nbsp;
+            </label>
+            <select lay-filter="wareId" id="wareId" style="width: 60%;" name="wareId" class="form-control">
+
+            </select>
+        </div>
+        <div style="padding:0px 50px 20px;">
+            <div style="height: 40px;line-height: 40px;">库存最大值预警</div>
+            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;overflow: auto;">
+                <colgroup>
+                    <col width="8%">
+                    <col width="12%">
+                    <col width="12%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="12%">
+                    <col width="12%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th title="序号">
+                        <div class="ellipsisContent">
+                            序号
+                        </div>
+                    </th>
+                    <th title="产品分类">
+                        <div class="ellipsisContent">
+                            产品分类
+                        </div>
+                    </th>
+                    <th title="产品名称">
+                        <div class="ellipsisContent">
+                            产品名称
+                        </div>
+                    </th>
+                    <th title="仓库">
+                        <div class="ellipsisContent">
+                            仓库
+                        </div>
+                    </th>
+                    <th title="规格">
+                        <div class="ellipsisContent">
+                            规格
+                        </div>
+                    </th>
+                    <th title="单位">
+                        <div class="ellipsisContent">
+                            单位
+                        </div>
+                    </th>
+                    <th title="库存数量">
+                        <div class="ellipsisContent">
+                            库存数量
+                        </div>
+                    </th>
+                    <th title="库存最大值">
+                        <div class="ellipsisContent">
+                            库存最大值
+                        </div>
+                    </th>
+                    <th title="库存最小值">
+                        <div class="ellipsisContent">
+                            库存最小值
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="showStockMaxWarnInfo">
+                </tbody>
+            </table>
+            <div style="height: 40px;line-height: 40px;">库存最小值预警</div>
+            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin: 0px;overflow: auto;">
+                <colgroup>
+                    <col width="8%">
+                    <col width="12%">
+                    <col width="12%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="12%">
+                    <col width="12%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th title="序号">
+                        <div class="ellipsisContent">
+                            序号
+                        </div>
+                    </th>
+                    <th title="产品分类">
+                        <div class="ellipsisContent">
+                            产品分类
+                        </div>
+                    </th>
+                    <th title="产品名称">
+                        <div class="ellipsisContent">
+                            产品名称
+                        </div>
+                    </th>
+                    <th title="仓库">
+                        <div class="ellipsisContent">
+                            仓库
+                        </div>
+                    </th>
+                    <th title="规格">
+                        <div class="ellipsisContent">
+                            规格
+                        </div>
+                    </th>
+                    <th title="单位">
+                        <div class="ellipsisContent">
+                            单位
+                        </div>
+                    </th>
+                    <th title="库存数量">
+                        <div class="ellipsisContent">
+                            库存数量
+                        </div>
+                    </th>
+                    <th title="库存最大值">
+                        <div class="ellipsisContent">
+                            库存最大值
+                        </div>
+                    </th>
+                    <th title="库存最小值">
+                        <div class="ellipsisContent">
+                            库存最小值
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="showStockMinWarnInfo">
+                </tbody>
+            </table>
+        </div>
+</div>
+</body>
+
+</html>

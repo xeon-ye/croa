@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.AnswerCardMapper">
+    <sql id="selectColumn">
+      tac.id,
+      tac.paper_id as paperId,
+      tac.paper_grade as paperGrade,
+      tac.exam_start_time as examStartTime,
+      tac.exam_end_time as examEndTime,
+      tac.remain_time as remainTime,
+      tac.create_id as createId,
+      tac.create_date as createDate,
+      tac.update_id as updateId,
+      tac.update_date as updateDate,
+      tac.company_code as companyCode,
+      tac.state
+    </sql>
+    <sql id="answerCardDetail">
+      tacd.id as cardDetailId,
+      tacd.question_id as questionId,
+      tacd.student_answer as studentAnswer,
+      tacd.teacher_grade as teacherGrade,
+      tacd.teacher_remark as teacherRemark
+    </sql>
+    <sql id="paperColumn">
+      tp.course_id as courseId,
+      tp.course_plate as coursePlate,
+      tp.paper_title as paperTitle,
+      tp.paper_grade as paperGrade,
+      tp.paper_time as paperTime,
+      tp.paper_time_setting as paperTimeSetting,
+      tp.paper_way as paperWay,
+      tp.auto_mark_flag as autoMarkFlag,
+      tp.paper_desc as paperDesc,
+      tp.paper_start_time as paperStartTime,
+      tp.paper_end_time as paperEndTime,
+      tp.create_id as teacherId
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--答题卡详情结果-->
+    <resultMap id="answerCardResultMap" type="com.qinfei.qferp.entity.study.AnswerCard">
+        <id column="id" property="id"/>
+        <result column="paperId" property="paperId"/>
+        <result column="paperGrade" property="paperGrade"/>
+        <result column="examStartTime" property="examStartTime"/>
+        <result column="examEndTime" property="examEndTime"/>
+        <result column="remainTime" property="remainTime"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <association property="paper" javaType="com.qinfei.qferp.entity.study.Paper">
+            <result column="courseId" property="courseId"/>
+            <result column="coursePlate" property="coursePlate"/>
+            <result column="paperTitle" property="paperTitle"/>
+            <result column="paperGrade" property="paperGrade"/>
+            <result column="paperTime" property="paperTime"/>
+            <result column="paperTimeSetting" property="paperTimeSetting"/>
+            <result column="paperWay" property="paperWay"/>
+            <result column="autoMarkFlag" property="autoMarkFlag"/>
+            <result column="paperDesc" property="paperDesc"/>
+            <result column="paperStartTime" property="paperStartTime"/>
+            <result column="paperEndTime" property="paperEndTime"/>
+            <result column="teacherId" property="createId"/>
+        </association>
+        <collection property="answerCardDetailList" ofType="com.qinfei.qferp.entity.study.AnswerCardDetail">
+            <id column="cardDetailId" property="id"/>
+            <result column="questionId" property="questionId"/>
+            <result column="studentAnswer" property="studentAnswer"/>
+            <result column="teacherGrade" property="teacherGrade"/>
+            <result column="teacherRemark" property="teacherRemark"/>
+        </collection>
+    </resultMap>
+    <!--答题卡列表-->
+    <resultMap id="answerCardListMap" type="com.qinfei.qferp.entity.study.AnswerCard">
+        <id column="id" property="id"/>
+        <result column="paperId" property="paperId"/>
+        <result column="paperGrade" property="paperGrade"/>
+        <result column="examStartTime" property="examStartTime"/>
+        <result column="examEndTime" property="examEndTime"/>
+        <result column="remainTime" property="remainTime"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <association property="paper" javaType="com.qinfei.qferp.entity.study.Paper">
+            <result column="courseId" property="courseId"/>
+            <result column="coursePlate" property="coursePlate"/>
+            <result column="paperTitle" property="paperTitle"/>
+            <result column="paperGrade" property="paperGrade"/>
+            <result column="paperTime" property="paperTime"/>
+            <result column="paperTimeSetting" property="paperTimeSetting"/>
+            <result column="paperWay" property="paperWay"/>
+            <result column="autoMarkFlag" property="autoMarkFlag"/>
+            <result column="paperDesc" property="paperDesc"/>
+            <result column="paperStartTime" property="paperStartTime"/>
+            <result column="paperEndTime" property="paperEndTime"/>
+            <result column="teacherId" property="createId"/>
+        </association>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+            <result column="image" property="image"/>
+            <result column="sex" property="sex"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_answer_card
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">paper_id,</if>
+            <if test="paperGrade != null">paper_grade,</if>
+            <if test="examStartTime != null">exam_start_time,</if>
+            <if test="examEndTime != null">exam_end_time,</if>
+            <if test="remainTime != null">remain_time,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">#{paperId},</if>
+            <if test="paperGrade != null">#{paperGrade},</if>
+            <if test="examStartTime != null">#{examStartTime},</if>
+            <if test="examEndTime != null">#{examEndTime},</if>
+            <if test="remainTime != null">#{remainTime},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--更新-->
+    <insert id="updateById">
+        UPDATE t_train_answer_card
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="paperGrade != null">paper_grade = #{paperGrade},</if>
+            <if test="remainTime != null">remain_time = #{remainTime},</if>
+            <if test="state != null">state = #{state},</if>
+        </set>
+        WHERE id = #{id}
+    </insert>
+
+    <!--更新答题卡状态-->
+    <update id="updateStateById">
+        UPDATE t_train_answer_card
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--更新答题卡分数-->
+    <update id="updateGradeById">
+        UPDATE t_train_answer_card
+        SET paper_grade = #{paperGrade},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--删除学员指定课程的所有考试记录，学员取消报名使用-->
+    <update id="delStudentCourseAnswerCard">
+        UPDATE t_train_answer_card tac
+        INNER JOIN t_train_paper tp ON tp.id = tac.paper_id
+        SET tac.state = -9
+        WHERE
+        	tac.create_id = #{createId}
+        AND tp.course_id = #{courseId}
+    </update>
+
+    <!--删除指定课程的所有考试记录，管理员取消课程使用-->
+    <update id="delCourseAnswerCard">
+        UPDATE t_train_answer_card tac
+        INNER JOIN t_train_paper tp ON tp.id = tac.paper_id
+        SET tac.state = -9
+        WHERE tp.course_id = #{courseId}
+    </update>
+
+    <!--根据参数获取答题卡列表-->
+    <select id="listAnswerCardByParam" resultMap="answerCardListMap">
+        SELECT
+            <include refid="selectColumn"/>,<include refid="userColumn"/>,<include refid="paperColumn"/>
+        FROM
+          t_train_answer_card tac
+        INNER JOIN t_train_paper tp on tp.id = tac.paper_id
+        INNER JOIN sys_user su on tac.create_id = su.id
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        <if test="paperGrade != null">
+            AND tac.paper_grade = #{paperGrade}
+        </if>
+        <if test="paperId != null">
+            AND tac.paper_id = #{paperId}
+        </if>
+        <if test="state != null">
+            AND tac.state = #{state}
+        </if>
+    </select>
+
+    <!--根据参数获取答题卡列表-->
+    <select id="listAnswerCardByPaper" resultType="java.util.Map">
+        SELECT
+        <include refid="selectColumn"/>,<include refid="userColumn"/>,
+        <include refid="paperColumn"/>
+        FROM
+        t_train_answer_card tac
+        INNER JOIN t_train_paper tp on tp.id = tac.paper_id
+        INNER JOIN sys_user su on tac.create_id = su.id
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        AND tac.paper_id = #{paperId}
+    </select>
+
+    <!--根据试卷ID获取答题卡-->
+    <select id="listAnswerCardByPaperId" resultMap="answerCardResultMap">
+        SELECT
+          <include refid="selectColumn"/>,<include refid="answerCardDetail"/>
+        FROM
+          t_train_answer_card tac
+        INNER JOIN t_train_answer_card_detail tacd on tac.id = tacd.answer_card_id
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        <if test="paperId != null">
+            AND tac.paper_id = #{paperId}
+        </if>
+        <if test="createId != null">
+            AND tac.create_id = #{createId}
+        </if>
+    </select>
+
+    <!--根据课程和学员查询学员该课程所有试卷成绩， 仅查询已阅卷的答题卡-->
+    <select id="getGradeByCourseIdAndUserId" resultType="java.lang.Float">
+        SELECT
+          IFNULL(SUM(tac.paper_grade), 0)
+        FROM
+        t_train_answer_card tac
+        INNER JOIN t_train_paper tp ON tac.paper_id = tp.id
+        INNER JOIN t_train_course tc ON tc.id = tp.course_id
+        WHERE
+        tac.state = 1
+        AND tac.create_id = #{createId}
+        and tp.course_id = #{courseId}
+    </select>
+
+    <!--根据试卷ID获取答题卡数量-->
+    <select id="getAnswerCardCountByPaperId" resultType="java.lang.Integer">
+        SELECT
+          count(*)
+        FROM
+        t_train_answer_card tac
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        AND tac.paper_id = #{paperId}
+    </select>
+
+    <!--根据学员ID集合获取测试次数-->
+    <select id="listExamNumByUserId" resultType="java.util.Map">
+        SELECT
+          tac.create_id as createId,
+          count(tac.id) as examNum
+        FROM
+        t_train_answer_card tac
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        AND tac.create_id in
+        <foreach item="userId" collection="userIds" index="index" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+        GROUP BY tac.create_id
+    </select>
+
+</mapper>

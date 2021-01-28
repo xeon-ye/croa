@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 考核个人评分； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformanceScoreMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformanceScore">
+        <id column="score_id" jdbcType="INTEGER" property="scoreId"/>
+        <result column="pro_id" jdbcType="INTEGER" property="proId"/>
+        <result column="pro_desc" jdbcType="VARCHAR" property="proDesc"/>
+        <result column="sch_id" jdbcType="INTEGER" property="schId"/>
+        <result column="sch_desc" jdbcType="VARCHAR" property="schDesc"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="user_gender" jdbcType="INTEGER" property="userGender"/>
+        <result column="dept_id" jdbcType="INTEGER" property="deptId"/>
+        <result column="dept_name" jdbcType="VARCHAR" property="deptName"/>
+        <result column="post_id" jdbcType="INTEGER" property="postId"/>
+        <result column="post_name" jdbcType="VARCHAR" property="postName"/>
+        <result column="score_self" jdbcType="REAL" property="scoreSelf"/>
+        <result column="score_leader" jdbcType="REAL" property="scoreLeader"/>
+        <result column="score_group" jdbcType="REAL" property="scoreGroup"/>
+        <result column="score_total" jdbcType="REAL" property="scoreTotal"/>
+        <result column="score_level" jdbcType="VARCHAR" property="scoreLevel"/>
+        <result column="be_suffice" jdbcType="INTEGER" property="beSuffice"/>
+        <result column="task_id" jdbcType="VARCHAR" property="taskId"/>
+        <result column="item_id" jdbcType="INTEGER" property="itemId"/>
+        <result column="process_state" jdbcType="INTEGER" property="processState"/>
+        <result column="valid_code" jdbcType="VARCHAR" property="validCode"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        score_id, pro_id, pro_desc, sch_id, sch_desc, user_id, user_name, user_gender, dept_id,
+        dept_name, post_id, post_name, score_self, score_leader, score_group, score_total,
+        score_level, be_suffice, task_id, item_id, process_state, valid_code,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_score
+        where score_id = #{scoreId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 根据权限访问码获取转正流程所需的信息； -->
+    <select id="selectApproveInfoByCode" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_score
+        where
+        valid_code = #{code}
+        <choose>
+            <when test="state != null">
+                and state = #{state}
+            </when>
+            <otherwise>
+                and state &lt;&gt; -1
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 通过proId获取所有没有提交绩效考核的人的信息； -->
+    <select id="listScore" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select user_id, dept_id from e_performance_score
+        <where>
+            state &lt;&gt; -1
+            and process_state in (15,-1)
+            and pro_id = #{proId,jdbcType=INTEGER}
+        </where>
+    </select>
+
+    <!-- 绩效评分列表； -->
+    <select id="selectPagePerformanceScore" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select * from e_performance_score
+        <where>
+            state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            score_id desc
+        </if>
+    </select>
+
+
+    <!-- 查询条件； -->
+    <sql id="condition">
+        <if test="proId != null">
+            and pro_id = #{proId}
+        </if>
+        <if test="proDesc != null">
+            and pro_desc like '%${proDesc}%'
+        </if>
+        <if test="schId != null">
+            and sch_id = #{schId}
+        </if>
+        <if test="schDesc != null">
+            and sch_desc like '%${schDesc}%'
+        </if>
+        <if test="userId != null">
+            and user_id = #{userId}
+        </if>
+        <if test="userName != null">
+            and user_name like '%${userName}%'
+        </if>
+        <if test="deptId != null">
+            and dept_id = #{deptId}
+        </if>
+        <if test="deptIds != null">
+            and dept_id in
+            <foreach item="deptId" collection="deptIds" index="index" open="(" close=")" separator=",">
+                #{deptId}
+            </foreach>
+        </if>
+        <if test="deptArray!=null">
+            and dept_id in (${deptArray})
+        </if>
+        <if test="companyCode != null">
+            and dept_id in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+        <if test="deptName != null">
+            and dept_name like '%${deptName}%'
+        </if>
+        <if test="userGender != null">
+            and user_gender = #{userGender}
+        </if>
+        <if test="postId != null">
+            and post_id = #{postId}
+        </if>
+        <if test="postName != null">
+            and post_name like '%${postName}%'
+        </if>
+        <if test="beSuffice != null">
+            and be_suffice = #{beSuffice}
+        </if>
+        <if test="scoreLevel != null">
+            and score_level like '%${scoreLevel}%'
+        </if>
+        <if test="scoreSelfLittle != null">
+            and score_self &gt;= #{scoreSelfLittle}
+        </if>
+        <if test="scoreSelfBig != null">
+            and score_self &lt;= #{scoreSelfBig}
+        </if>
+        <if test="scoreLeaderLittle != null">
+            and score_leader &gt;= #{scoreLeaderLittle}
+        </if>
+        <if test="scoreLeaderBig != null">
+            and score_leader &lt;= #{scoreLeaderBig}
+        </if>
+        <if test="scoreGroupLittle != null">
+            and score_group &gt;= #{scoreGroupLittle}
+        </if>
+        <if test="scoreGroupBig != null">
+            and score_group &lt;= #{scoreGroupBig}
+        </if>
+        <if test="scoreTotalLittle != null">
+            and score_total &gt;= #{scoreTotalLittle}
+        </if>
+        <if test="scoreTotalBig != null">
+            and score_total &lt;= #{scoreTotalBig}
+        </if>
+        <if test="createTimeStart != null">
+            and create_time &gt;= #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            and create_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="state != null">
+            and state= #{state}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore" useGeneratedKeys="true"
+            keyProperty="scoreId">
+        insert into e_performance_score (score_id, pro_id, pro_desc,
+        sch_id, sch_desc, user_id,
+        user_name, user_gender, dept_id,
+        dept_name, post_id, post_name,
+        score_self, score_leader, score_group,
+        score_total, score_level, be_suffice,
+        task_id, item_id, process_state,
+        valid_code,
+        <include refid="EmployCommon.commonColumn"/>
+        )
+        values (#{scoreId,jdbcType=INTEGER}, #{proId,jdbcType=INTEGER}, #{proDesc,jdbcType=VARCHAR},
+        #{schId,jdbcType=INTEGER}, #{schDesc,jdbcType=VARCHAR}, #{userId,jdbcType=INTEGER},
+        #{userName,jdbcType=VARCHAR}, #{userGender,jdbcType=INTEGER}, #{deptId,jdbcType=INTEGER},
+        #{deptName,jdbcType=VARCHAR}, #{postId,jdbcType=INTEGER}, #{postName,jdbcType=VARCHAR},
+        #{scoreSelf,jdbcType=REAL}, #{scoreLeader,jdbcType=REAL}, #{scoreGroup,jdbcType=REAL},
+        #{scoreTotal,jdbcType=REAL}, #{scoreLevel,jdbcType=VARCHAR}, #{beSuffice,jdbcType=INTEGER},
+        #{taskId,jdbcType=VARCHAR},#{itemId,jdbcType=INTEGER}, #{processState,jdbcType=INTEGER},
+        #{validCode,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore"
+            useGeneratedKeys="true" keyProperty="scoreId">
+        insert into e_performance_score
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="scoreId != null">
+                score_id,
+            </if>
+            <if test="proId != null">
+                pro_id,
+            </if>
+            <if test="proDesc != null">
+                pro_desc,
+            </if>
+            <if test="schId != null">
+                sch_id,
+            </if>
+            <if test="schDesc != null">
+                sch_desc,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="userGender != null">
+                user_gender,
+            </if>
+            <if test="deptId != null">
+                dept_id,
+            </if>
+            <if test="deptName != null">
+                dept_name,
+            </if>
+            <if test="postId != null">
+                post_id,
+            </if>
+            <if test="postName != null">
+                post_name,
+            </if>
+            <if test="scoreSelf != null">
+                score_self,
+            </if>
+            <if test="scoreLeader != null">
+                score_leader,
+            </if>
+            <if test="scoreGroup != null">
+                score_group,
+            </if>
+            <if test="scoreTotal != null">
+                score_total,
+            </if>
+            <if test="scoreLevel != null">
+                score_level,
+            </if>
+            <if test="beSuffice != null">
+                be_suffice,
+            </if>
+            <if test="taskId != null">
+                task_id,
+            </if>
+            <if test="itemId != null">
+                item_id,
+            </if>
+            <if test="processState != null">
+                process_state,
+            </if>
+            <if test="validCode != null">
+                valid_code,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="scoreId != null">
+                #{scoreId,jdbcType=INTEGER},
+            </if>
+            <if test="proId != null">
+                #{proId,jdbcType=INTEGER},
+            </if>
+            <if test="proDesc != null">
+                #{proDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="schId != null">
+                #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="schDesc != null">
+                #{schDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="userGender != null">
+                #{userGender,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                #{deptId,jdbcType=INTEGER},
+            </if>
+            <if test="deptName != null">
+                #{deptName,jdbcType=VARCHAR},
+            </if>
+            <if test="postId != null">
+                #{postId,jdbcType=INTEGER},
+            </if>
+            <if test="postName != null">
+                #{postName,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreSelf != null">
+                #{scoreSelf,jdbcType=REAL},
+            </if>
+            <if test="scoreLeader != null">
+                #{scoreLeader,jdbcType=REAL},
+            </if>
+            <if test="scoreGroup != null">
+                #{scoreGroup,jdbcType=REAL},
+            </if>
+            <if test="scoreTotal != null">
+                #{scoreTotal,jdbcType=REAL},
+            </if>
+            <if test="scoreLevel != null">
+                #{scoreLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="beSuffice != null">
+                #{beSuffice,jdbcType=INTEGER},
+            </if>
+            <if test="taskId != null">
+                #{taskId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId != null">
+                #{itemId,jdbcType=INTEGER},
+            </if>
+            <if test="processState != null">
+                #{processState,jdbcType=INTEGER},
+            </if>
+            <if test="validCode != null">
+                valid_code = #{validCode,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <!-- 批量插入数据； -->
+    <insert id="insertBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="scoreId">
+        insert into e_performance_score
+        (pro_id, pro_desc, sch_id, user_id, user_name,user_gender, dept_id, dept_name ,post_id, post_name, create_id, create_name,
+        create_time, state, version,scheme_type)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.proId,jdbcType=INTEGER},
+            #{item.proDesc,jdbcType=VARCHAR},
+            #{item.schId,jdbcType=INTEGER},
+            #{item.userId,jdbcType=INTEGER},
+            #{item.userName,jdbcType=VARCHAR},
+            #{item.userGender,jdbcType=VARCHAR},
+            #{item.deptId,jdbcType=INTEGER},
+            #{item.deptName,jdbcType=VARCHAR},
+            #{item.postId,jdbcType=INTEGER},
+            #{item.postName,jdbcType=VARCHAR},
+            #{item.createId,jdbcType=INTEGER},
+            #{item.createName,jdbcType=VARCHAR},
+            #{item.createTime,jdbcType=TIMESTAMP},
+            #{item.state,jdbcType=INTEGER},
+            #{item.version,jdbcType=INTEGER},
+            #{item.schemeType,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore">
+        update e_performance_score
+        <include refid="EmployCommon.deleteInfo"/>
+        where score_id = #{scoreId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 根据考核方案清除相关的评分信息； -->
+    <update id="deleteByProId" parameterType="java.util.Map">
+        update e_performance_score
+        <include refid="EmployCommon.deleteInfo"/>
+        where pro_id = #{proId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新评分； -->
+    <update id="updateScoreData" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore">
+        update e_performance_score
+        <set>
+            <if test="schDesc != null">
+                sch_desc = #{schDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreSelf != null">
+                score_self = #{scoreSelf,jdbcType=REAL},
+                score_total = #{scoreSelf,jdbcType=REAL} + ifnull(score_leader, 0) + ifnull(score_group, 0),
+            </if>
+            <if test="scoreLeader != null">
+                score_leader = #{scoreLeader,jdbcType=REAL},
+                score_total = ifnull(score_self, 0) + #{scoreLeader,jdbcType=REAL} + ifnull(score_group, 0),
+            </if>
+            <if test="scoreLevel != null">
+                score_level = #{scoreLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="beSuffice != null">
+                be_suffice = #{beSuffice,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where score_id = #{scoreId,jdbcType=INTEGER} and state = 0
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore">
+        update e_performance_score
+        <set>
+            <if test="proId != null">
+                pro_id = #{proId,jdbcType=INTEGER},
+            </if>
+            <if test="proDesc != null">
+                pro_desc = #{proDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="schId != null">
+                sch_id = #{schId,jdbcType=INTEGER},
+            </if>
+            <if test="schDesc != null">
+                sch_desc = #{schDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="userName != null">
+                user_name = #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="userGender != null">
+                user_gender = #{userGender,jdbcType=INTEGER},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=INTEGER},
+            </if>
+            <if test="deptName != null">
+                dept_name = #{deptName,jdbcType=VARCHAR},
+            </if>
+            <if test="postId != null">
+                post_id = #{postId,jdbcType=INTEGER},
+            </if>
+            <if test="postName != null">
+                post_name = #{postName,jdbcType=VARCHAR},
+            </if>
+            <if test="scoreSelf != null">
+                score_self = #{scoreSelf,jdbcType=REAL},
+            </if>
+            <if test="scoreLeader != null">
+                score_leader = #{scoreLeader,jdbcType=REAL},
+            </if>
+            <if test="scoreGroup != null">
+                score_group = #{scoreGroup,jdbcType=REAL},
+            </if>
+            <if test="scoreTotal != null">
+                score_total = #{scoreTotal,jdbcType=REAL},
+            </if>
+            <if test="scoreLevel != null">
+                score_level = #{scoreLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="beSuffice != null">
+                be_suffice = #{beSuffice,jdbcType=INTEGER},
+            </if>
+            <if test="taskId != null">
+                task_id = #{taskId,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId != null">
+                item_id = #{itemId,jdbcType=INTEGER},
+            </if>
+            <if test="processState != null">
+                process_state = #{processState,jdbcType=INTEGER},
+            </if>
+            <if test="validCode != null">
+                <choose>
+                    <when test="validCode == 0">
+                        valid_code = null,
+                    </when>
+                    <otherwise>
+                        valid_code = #{validCode,jdbcType=VARCHAR},
+                    </otherwise>
+                </choose>
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where score_id = #{scoreId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceScore">
+        update e_performance_score
+        set pro_id = #{proId,jdbcType=INTEGER},
+        pro_desc = #{proDesc,jdbcType=VARCHAR},
+        sch_id = #{schId,jdbcType=INTEGER},
+        sch_desc = #{schDesc,jdbcType=VARCHAR},
+        user_id = #{userId,jdbcType=INTEGER},
+        user_name = #{userName,jdbcType=VARCHAR},
+        user_gender = #{userGender,jdbcType=INTEGER},
+        dept_id = #{deptId,jdbcType=INTEGER},
+        dept_name = #{deptName,jdbcType=VARCHAR},
+        post_id = #{postId,jdbcType=INTEGER},
+        post_name = #{postName,jdbcType=VARCHAR},
+        score_self = #{scoreSelf,jdbcType=REAL},
+        score_leader = #{scoreLeader,jdbcType=REAL},
+        score_group = #{scoreGroup,jdbcType=REAL},
+        score_total = #{scoreTotal,jdbcType=REAL},
+        score_level = #{scoreLevel,jdbcType=VARCHAR},
+        be_suffice = #{beSuffice,jdbcType=INTEGER},
+        task_id = #{taskId,jdbcType=VARCHAR},
+        item_id = #{itemId,jdbcType=INTEGER},
+        process_state = #{processState,jdbcType=INTEGER},
+        valid_code = #{validCode,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where score_id = #{scoreId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateItemData" parameterType="java.util.Map">
+        update t_index_items set transaction_state=#{transactionState},finish_time=now(),finish_worker=#{finishWorker}
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

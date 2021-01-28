@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://www.flowable.org/processdef">
+    <process id="positive" name="员工转正" isExecutable="true">
+        <documentation>员工转正流程。</documentation>
+
+        <startEvent id="startEvent" name="启动流程"/>
+        <sequenceFlow id="sid-C01A4B9C-A429-436D-81B1-A126B1016A80" name="开始" sourceRef="startEvent"
+                      targetRef="employeeConfirm">
+        </sequenceFlow>
+
+        <userTask id="employeeConfirm" name="个人确认">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.positive.EmployeeTaskHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-123BEE2E-2497-45CD-9CB1-F1DA440F65EA" name="通过" sourceRef="employeeConfirm"
+                      targetRef="leaderApprove">
+        </sequenceFlow>
+
+        <userTask id="leaderApprove" name="部门审核">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.positive.LeaderTaskHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18" name="通过" sourceRef="leaderApprove"
+                      targetRef="personnelApprove">
+        </sequenceFlow>
+
+        <userTask id="personnelApprove" name="人事部审核">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.positive.PersonnelTaskHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-60732661-4BA7-4185-8399-B579B794894F" name="通过" sourceRef="personnelApprove"
+                      targetRef="managerApprove">
+        </sequenceFlow>
+
+        <userTask id="managerApprove" name="总经理审核">
+            <extensionElements>
+                <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.positive.ManagerTaskHandler"/>
+                <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.positive.ProcessFinishHandler"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6" name="结束" sourceRef="managerApprove"
+                      targetRef="endEvent">
+        </sequenceFlow>
+
+        <endEvent id="endEvent" name="结束流程"/>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_positive">
+        <bpmndi:BPMNPlane bpmnElement="positive" id="BPMNPlane_positive">
+            <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+                <omgdc:Bounds height="30" width="30" x="150" y="162"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+                <omgdc:Bounds height="80" width="100" x="460" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="personnelApprove" id="BPMNShape_personnelApprove">
+                <omgdc:Bounds height="80" width="100" x="645" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="managerApprove" id="BPMNShape_managerApprove">
+                <omgdc:Bounds height="80" width="100" x="830" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+                <omgdc:Bounds height="28" width="28" x="1020" y="163"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="employeeConfirm"
+                              id="BPMNShape_sid-5B3CF371-2D0A-4EF9-87E0-909186B11FA0">
+                <omgdc:Bounds height="80" width="100" x="285" y="137"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="sid-123BEE2E-2497-45CD-9CB1-F1DA440F65EA"
+                             id="BPMNEdge_sid-123BEE2E-2497-45CD-9CB1-F1DA440F65EA">
+                <omgdi:waypoint x="385" y="177"/>
+                <omgdi:waypoint x="460" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-C01A4B9C-A429-436D-81B1-A126B1016A80"
+                             id="BPMNEdge_sid-C01A4B9C-A429-436D-81B1-A126B1016A80">
+                <omgdi:waypoint x="180" y="177"/>
+                <omgdi:waypoint x="285" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18"
+                             id="BPMNEdge_sid-7A2E217A-4BB7-4AB2-81BC-CCEE9584ED18">
+                <omgdi:waypoint x="560" y="177"/>
+                <omgdi:waypoint x="645" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6"
+                             id="BPMNEdge_sid-7F960E34-2A8E-4B8B-8CCC-25CAF25943E6">
+                <omgdi:waypoint x="930" y="177"/>
+                <omgdi:waypoint x="1020" y="177"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="sid-60732661-4BA7-4185-8399-B579B794894F"
+                             id="BPMNEdge_sid-60732661-4BA7-4185-8399-B579B794894F">
+                <omgdi:waypoint x="745" y="177"/>
+                <omgdi:waypoint x="830" y="177"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>

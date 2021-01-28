@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainTeacherMapper">
+    <sql id="selectColumn">
+      tt.id,
+      tt.user_id as userId,
+      tt.good_at_field_id as goodAtFieldId,
+      tt.education_flag as educationFlag,
+      tt.introduce,
+      tt.create_id as createId,
+      tt.create_date as createDate,
+      tt.update_id as updateId,
+      tt.update_date as updateDate,
+      tt.company_code as companyCode,
+      tt.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.post_id AS postId,
+	    su.post_name AS postName,
+        su.company_code as userCompanyCode
+    </sql>
+
+    <!--讲师信息-->
+    <resultMap id="teacherMap" type="com.qinfei.qferp.entity.study.TrainTeacher">
+        <id column="id" property="id"/>
+        <result column="userId" property="userId"/>
+        <result column="goodAtFieldId" property="goodAtFieldId"/>
+        <result column="educationFlag" property="educationFlag"/>
+        <result column="introduce" property="introduce"/>
+        <result column="createId" property="createId"/>
+        <result column="createDate" property="createDate"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="state" property="state"/>
+        <result column="teacherCourseNum" property="teacherCourseNum"/>
+        <result column="teacherComplateCourseNum" property="teacherComplateCourseNum"/>
+        <result column="teacherIntegral" property="teacherIntegral"/>
+        <result column="teacherCourseScore" property="teacherCourseScore"/>
+        <result column="teacherCourseScoreNum" property="teacherCourseScoreNum"/>
+        <result column="teacherCourseAvgScore" property="teacherCourseAvgScore"/>
+        <result column="teacherCourseLikeNum" property="teacherCourseLikeNum"/>
+        <result column="teacherCourseVentNum" property="teacherCourseVentNum"/>
+        <result column="teacherCourseCommentNum" property="teacherCourseCommentNum"/>
+        <result column="teacherCourseSignNum" property="teacherCourseSignNum"/>
+        <result column="teacherCourseCompleteNum" property="teacherCourseCompleteNum"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+            <result column="sex" property="sex"/>
+            <result column="phone" property="phone"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="postId" property="postId"/>
+            <result column="postName" property="postName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_teacher
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="goodAtFieldId != null">good_at_field_id,</if>
+            <if test="educationFlag != null">education_flag,</if>
+            <if test="introduce != null">introduce,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="goodAtFieldId != null">#{goodAtFieldId},</if>
+            <if test="educationFlag != null">#{educationFlag},</if>
+            <if test="introduce != null">#{introduce},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--根据用户ID获取讲师信息-->
+    <select id="getTrainTeacherByUserId" resultType="com.qinfei.qferp.entity.study.TrainTeacher">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+        t_train_teacher tt
+        WHERE
+        tt.state <![CDATA[<>]]> -9
+        AND tt.user_id = #{userId}
+        limit 1
+    </select>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_teacher
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="goodAtFieldId != null">good_at_field_id = #{goodAtFieldId},</if>
+            <if test="educationFlag != null">education_flag = #{educationFlag},</if>
+            <if test="introduce != null">introduce = #{introduce},</if>
+            <if test="state != null">state = #{state}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--更新答题卡状态-->
+    <update id="updateStateById">
+        UPDATE t_train_teacher
+        SET state = #{state},
+         update_date = now(),
+         update_id = #{updateId}
+        WHERE id = #{id}
+    </update>
+
+    <!--获取讲师总数-->
+    <select id="getTrainTeacherTotal" resultType="java.lang.Integer">
+        SELECT
+          count(*)
+        FROM
+        (
+           SELECT
+              tt.user_id
+           FROM
+           t_train_teacher tt
+           LEFT JOIN sys_user su ON tt.user_id = su.id
+           LEFT JOIN t_train_course tc ON tc.create_id = tt.user_id AND tc.state = 1
+           WHERE tt.state = 0
+           <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+               AND tt.company_code = #{companyCode}
+           </if>
+           <if test="goodAtFieldId != null">
+               AND tt.good_at_field_id = #{goodAtFieldId}
+           </if>
+           <if test="educationFlag != null">
+               AND tt.education_flag = #{educationFlag}
+           </if>
+           <if test="deptId != null">
+               AND su.dept_id = #{deptId}
+           </if>
+           <if test="userId != null">
+              AND tt.user_id = #{userId}
+           </if>
+           GROUP BY tt.id, tt.user_id
+          <if test="teacherLevelStart != null">
+              HAVING IFNULL(SUM(tc.course_integral), 0) <![CDATA[>=]]> #{teacherLevelStart}
+              <if test="teacherLevelEnd != null">
+                  AND IFNULL(SUM(tc.course_integral), 0) <![CDATA[<]]> #{teacherLevelEnd}
+              </if>
+          </if>
+        ) tx
+    </select>
+
+    <!--分页查询讲师-->
+    <select id="listTrainTeacher" resultMap="teacherMap">
+        SELECT
+          IFNULL(count(tc.id), 0) AS teacherCourseNum,
+          IFNULL(count(CASE WHEN tc.state = 1 THEN tc.id ELSE null END), 0) AS teacherComplateCourseNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_integral ELSE 0 END), 0) AS teacherIntegral,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_score ELSE 0 END), 0) AS teacherCourseScore,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_score_num ELSE 0 END), 0) AS teacherCourseScoreNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN IFNULL(tc.course_score / tc.course_score_num,0) ELSE 0 END),0) AS teacherCourseAvgScore,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_like_num ELSE 0 END), 0) AS teacherCourseLikeNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_vent_num ELSE 0 END), 0) AS teacherCourseVentNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_comment_num ELSE 0 END),0) AS teacherCourseCommentNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_sign_num ELSE 0 END), 0) AS teacherCourseSignNum,
+          IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_complete_num ELSE 0 END),0) AS teacherCourseCompleteNum,
+          <include refid="selectColumn"/>, <include refid="userColumn"/>
+        FROM
+        	t_train_teacher tt
+        LEFT JOIN sys_user su ON tt.user_id = su.id
+        <!--统计讲师积分，仅统计有效状态下的课程-->
+        LEFT JOIN t_train_course tc ON tc.create_id = tt.user_id  AND tc.state <![CDATA[<>]]> -9
+        WHERE tt.state = 0
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND tt.company_code = #{companyCode}
+        </if>
+        <if test="goodAtFieldId != null">
+            AND tt.good_at_field_id = #{goodAtFieldId}
+        </if>
+        <if test="educationFlag != null">
+            AND tt.education_flag = #{educationFlag}
+        </if>
+        <if test="deptId != null">
+            AND su.dept_id = #{deptId}
+        </if>
+        <if test="userId != null">
+            AND tt.user_id = #{userId}
+        </if>
+        GROUP BY tt.id, tt.user_id
+        <if test="teacherLevelStart != null">
+            HAVING teacherIntegral <![CDATA[>=]]> #{teacherLevelStart}
+            <if test="teacherLevelEnd != null">
+                AND teacherIntegral <![CDATA[<]]> #{teacherLevelEnd}
+            </if>
+        </if>
+    </select>
+
+    <select id="listTrainTeacherForExport" resultType="java.util.Map">
+        SELECT
+        IFNULL(count(tc.id), 0) AS teacherCourseNum,
+        IFNULL(count(CASE WHEN tc.state = 1 THEN tc.id ELSE null END), 0) AS teacherComplateCourseNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_integral ELSE 0 END), 0) AS teacherIntegral,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_score ELSE 0 END), 0) AS teacherCourseScore,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_score_num ELSE 0 END), 0) AS teacherCourseScoreNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN IFNULL(tc.course_score / tc.course_score_num,0) ELSE 0 END),0) AS
+        teacherCourseAvgScore,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_like_num ELSE 0 END), 0) AS teacherCourseLikeNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_vent_num ELSE 0 END), 0) AS teacherCourseVentNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_comment_num ELSE 0 END),0) AS teacherCourseCommentNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_sign_num ELSE 0 END), 0) AS teacherCourseSignNum,
+        IFNULL(SUM(CASE WHEN tc.state = 1 THEN tc.course_complete_num ELSE 0 END),0) AS teacherCourseCompleteNum,
+        <include refid="selectColumn"/>,
+        <include refid="userColumn"/>
+        FROM
+        t_train_teacher tt
+        LEFT JOIN sys_user su ON tt.user_id = su.id
+        <!--统计讲师积分，仅统计有效状态下的课程-->
+        LEFT JOIN t_train_course tc ON tc.create_id = tt.user_id AND tc.state <![CDATA[<>]]> -9
+        WHERE tt.state = 0
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND tt.company_code = #{companyCode}
+        </if>
+        <if test="goodAtFieldId != null">
+            AND tt.good_at_field_id = #{goodAtFieldId}
+        </if>
+        <if test="educationFlag != null">
+            AND tt.education_flag = #{educationFlag}
+        </if>
+        <if test="deptId != null">
+            AND su.dept_id = #{deptId}
+        </if>
+        <if test="userId != null">
+            AND tt.user_id = #{userId}
+        </if>
+        GROUP BY tt.id, tt.user_id
+        <if test="teacherLevelStart != null">
+            HAVING teacherIntegral <![CDATA[>=]]> #{teacherLevelStart}
+            <if test="teacherLevelEnd != null">
+                AND teacherIntegral <![CDATA[<]]> #{teacherLevelEnd}
+            </if>
+        </if>
+    </select>
+
+
+    <!--查询所有讲师/非讲师用户-->
+    <select id="listUserNotTeacher" resultType="java.util.Map">
+        SELECT
+          <include refid="userColumn"/>
+        FROM
+        	sys_user su
+        WHERE
+        <choose>
+            <when test="existsFlag">
+                EXISTS (
+                SELECT
+                tt.id
+                FROM
+                t_train_teacher tt
+                WHERE
+                tt.state = 0
+                AND su.id = tt.user_id
+                )
+            </when>
+            <otherwise>
+                NOT EXISTS (
+                SELECT
+                tt.id
+                FROM
+                t_train_teacher tt
+                WHERE
+                tt.state = 0
+                AND su.id = tt.user_id
+                )
+            </otherwise>
+        </choose>
+        AND su.state > -2
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND su.company_code = #{companyCode}
+        </if>
+        order by su.handover_state, su.id asc
+    </select>
+
+    <!--查询所有用户-->
+    <select id="listUser" resultType="java.util.Map">
+        SELECT
+          <include refid="userColumn"/>
+        FROM
+        sys_user su
+        WHERE su.state > -2
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND su.company_code = #{companyCode}
+        </if>
+        order by su.handover_state, su.id asc
+    </select>
+</mapper>

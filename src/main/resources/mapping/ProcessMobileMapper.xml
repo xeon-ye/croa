@@ -1,0 +1,1117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.mobile.ProcessMobileMapper">
+    <select id="administrativeList" resultType="map">
+        SELECT
+        ta.id as dataId,
+        ta.task_id AS taskId,
+        <if test="typeId == 1">
+            talt.type_name AS typeName,
+            tal.*,
+        </if>
+        <if test="typeId== 2">
+            tao.*,
+        </if>
+        <if test="typeId== 3">
+            taow.*,
+        </if>
+        <if test="typeId==4">
+            tbp.*,
+            art.ASSIGNEE_ as taskUserId,
+            arv1.LONG_ AS  taskState,
+            tbc.*,
+        </if>
+        ahv.TEXT_ as process
+        FROM
+            t_administrative ta
+        LEFT JOIN act_ru_task art on ta.task_id = art.ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+        LEFT JOIN sys_user su on ta.create_id = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+        LEFT JOIN sys_dept sd on ta.dept_id = sd.id
+        </if>
+        <if test="typeId== 1">
+        LEFT JOIN t_administrative_leave tal on ta.id=tal.administrative_id
+        LEFT JOIN t_administrative_leave_type talt on tal.leave_type = talt.id
+        </if>
+        <if test="typeId== 2">
+            LEFT JOIN t_administrative_overtimework tao on tao.administrative_id= ta.id
+        </if>
+        <if test="typeId== 3">
+            LEFT JOIN t_administrative_out_work taow on taow.administrative_id = ta.id
+        </if>
+        <if test="typeId==4">
+            LEFT JOIN  t_business_plan tbp on tbp.administrative_id = ta.id
+            LEFT JOIN act_hi_varinst arv1 ON arv1.PROC_INST_ID_ = art.PROC_INST_ID_
+            LEFT JOIN t_business_conclusion tbc ON tbp.id = tbc.plan_id
+        </if>
+        LEFT JOIN act_hi_varinst ahv on art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+
+        where art.ASSIGNEE_= #{userId}
+        and ta.state >-1
+        and ta.task_id is not null
+        and ahv.NAME_='process'
+        <if test="typeId==4">
+            and arv1.NAME_ ='state'
+        </if>
+        <if test="typeId !=null and typeId != ''">
+            and ta.administrative_type=#{typeId}
+        </if>
+        <if test="title !=null and title !=''">
+            and ta.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND ta.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND ta.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by ta.create_time desc
+    </select>
+
+    <select id="administrativeProcessAlready" resultType="map">
+        SELECT
+        ta.id as dataId,
+        <if test="typeId == 1">
+            talt.type_name AS typeName,
+            tal.*,
+        </if>
+        <if test="typeId== 2">
+            tao.*,
+        </if>
+        <if test="typeId== 3">
+            taow.*,
+        </if>
+        <if test="typeId==4">
+            tbp.*,
+            aht1.ASSIGNEE_ as taskUserId,
+            arv1.LONG_ AS  taskState,
+            tbc.*,
+        </if>
+        ahv.TEXT_ as process
+        FROM t_administrative ta
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= ta.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+            LEFT JOIN sys_user su on ta.create_id = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            LEFT JOIN sys_dept sd on ta.dept_id = sd.id
+        </if>
+        <if test="typeId== 1">
+            LEFT JOIN t_administrative_leave tal on ta.id=tal.administrative_id
+            LEFT JOIN t_administrative_leave_type talt on tal.leave_type = talt.id
+        </if>
+        <if test="typeId== 2">
+            LEFT JOIN t_administrative_overtimework tao on tao.administrative_id= ta.id
+        </if>
+        <if test="typeId== 3">
+            LEFT JOIN t_administrative_out_work taow on taow.administrative_id = ta.id
+        </if>
+        <if test="typeId==4">
+            LEFT JOIN  t_business_plan tbp on tbp.administrative_id = ta.id
+            LEFT JOIN act_hi_varinst arv1 ON arv1.PROC_INST_ID_ = aht1.PROC_INST_ID_
+            LEFT JOIN t_business_conclusion tbc ON tbp.id = tbc.plan_id
+        </if>
+        where aht1.ASSIGNEE_ = #{userId}
+        and ta.state >-1
+        and ta.task_id is not null
+        and ahv.NAME_= 'process'
+        <if test="typeId !=null and typeId != ''">
+            and ta.administrative_type=#{typeId}
+        </if>
+        <if test="title !=null and title !=''">
+            and ta.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND ta.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND ta.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by ta.create_time desc
+    </select>
+
+    <select id="administrativeMeeting" resultType="map">
+        SELECT
+        tm.id as dataId,
+        ahv.TEXT_ as process,
+        su.name as createName,
+        tmra.task_id as taskId,
+        tm.*
+        FROM
+        t_meeting tm
+        LEFT JOIN t_meeting_room_apply tmra on tm.id= tmra.meet_id
+        LEFT JOIN sys_user su on tm.create_id = su.id
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+        LEFT JOIN sys_dept sd on su.dept_id = sd.id
+        </if>
+        LEFT JOIN act_ru_task art on tmra.task_id = art.ID_
+        LEFT JOIN act_hi_varinst ahv on art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where art.ASSIGNEE_= #{userId}
+        and tm.state>-1
+        and tmra.task_id is not null
+        and ahv.NAME_= 'process'
+        <if test="title !=null and title !=''">
+            and tm.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tm.create_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tm.create_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tmra.create_date desc
+    </select>
+
+    <select id="administrativeMeetingAlready" resultType="map">
+        SELECT
+        tm.id as dataId,
+        ahv.TEXT_ as process,
+        su.name as createName,
+        tmra.task_id as taskId,
+        tm.*
+        FROM  t_meeting tm
+        LEFT JOIN sys_user su on tm.create_id = su.id
+        LEFT JOIN t_meeting_room_apply tmra on tm.id= tmra.meet_id
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= tmra.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where aht1.ASSIGNEE_ = #{userId}
+        and ahv.NAME_='process'
+        and  tmra.state>-1
+        and tmra.task_id is not null
+        <if test="title !=null and title !=''">
+            and tm.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tm.create_date <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tm.create_date <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tmra.create_date desc
+    </select>
+
+    <select id="administrativeSaveBuy" resultType="map">
+        SELECT
+        tspb.id AS dataId,
+        ahv.TEXT_ AS process,
+        su.name as createName,
+        tspb.*
+        FROM
+        t_saves_product_buying tspb
+        LEFT JOIN act_ru_task art ON tspb.task_id = art.ID_
+        LEFT JOIN sys_user su ON tspb.user_id = su.id
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+        LEFT JOIN sys_dept sd ON tspb.dept_id = sd.id
+        </if>
+        LEFT JOIN act_hi_varinst ahv ON art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE
+            art.ASSIGNEE_ = #{userId}
+        AND tspb.state >-1
+        AND tspb.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and tspb.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tspb.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tspb.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tspb.create_time desc
+    </select>
+
+    <select id="administrativeSaveBuyAlready" resultType="map">
+        SELECT
+        tspb.id as dataId,
+        ahv.TEXT_ as process,
+        tspb.*
+        FROM  t_saves_product_buying tspb
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= tspb.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where aht1.ASSIGNEE_ = #{userId}
+        and ahv.NAME_='process'
+        and  tspb.state>-1
+        and tspb.task_id is not null
+        <if test="title !=null and title !=''">
+            and tspb.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tspb.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tspb.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tspb.create_time desc
+    </select>
+
+    <select id="administrativeApply" resultType="map">
+        SELECT
+        tsra.id AS dataId,
+        ahv.TEXT_ AS process,
+        tspb.*
+        FROM
+        t_saves_receive_apply tsra
+        LEFT JOIN act_ru_task art ON tsra.task_id = art.ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+        LEFT JOIN sys_user su ON tsra.user_id = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+        LEFT JOIN sys_dept sd ON su.dept_id = sd.id
+        </if>
+        LEFT JOIN act_hi_varinst ahv ON art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE
+        art.ASSIGNEE_ = #{userId}
+        AND tsra.state >-1
+        AND tsra.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and tsra.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tsra.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tsra.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tsra.create_time desc
+    </select>
+
+    <select id="administrativeApplyAlready" resultType="map">
+        select
+         tsra.id AS dataId,
+        ahv.TEXT_ AS process,
+         tsra.*
+        FROM
+        t_saves_receive_apply tsra
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= tsra.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE
+        aht1.ASSIGNEE_ = #{userId}
+        AND tsra.state >-1
+        AND tsra.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and tsra.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tsra.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tsra.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tsra.create_time desc
+    </select>
+
+    <select id="businessRefundList" resultType="map">
+        SELECT
+        fr.id AS dataId,
+        ahv.TEXT_ AS process,
+        fr.*
+        FROM
+        fee_refund fr
+        LEFT JOIN act_ru_task art on fr.task_id = art.ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+        LEFT JOIN sys_user su ON fr.creator = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+        LEFT JOIN sys_dept sd ON fr.dept_id = sd.id
+        </if>
+        LEFT JOIN act_hi_varinst ahv ON art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE art.ASSIGNEE_ = #{userId}
+        AND fr.state >-1
+        AND fr.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND fr.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND fr.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by fr.apply_time desc
+    </select>
+
+    <select id="businessRefundListAlready" resultType="map">
+        select
+        tsra.id AS dataId,
+        ahv.TEXT_ AS process,
+        tsra.*
+        FROM
+        fee_refund fr
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= fr.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where
+         aht1.ASSIGNEE_ = #{userId}
+        AND fr.state >-1
+        AND fr.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND fr.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND fr.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by fr.apply_time desc
+    </select>
+
+
+    <select id="selectProJect" resultType="com.qinfei.qferp.entity.biz.ProjectNode">
+        select * from t_biz_project_node where project_id =#{id}
+    </select>
+
+    <select id="businessCommissionList" resultType="map">
+        SELECT
+        tbp.id AS dataId,
+        ahv.TEXT_ AS process,
+        tbp.*
+        FROM  t_biz_project tbp
+        LEFT JOIN act_ru_task art on tbp.task_id = art.ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+            LEFT JOIN sys_user su ON tbp.apply_id = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            LEFT JOIN sys_dept sd ON su.dept_id = sd.id
+        </if>
+        LEFT JOIN act_hi_varinst ahv ON art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE art.ASSIGNEE_ = #{userId}
+        AND tbp.state >-1
+        AND tbp.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and tbp.name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tbp.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tbp.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tbp.apply_time desc
+    </select>
+
+    <select id="businessCommissionListAlready" resultType="map">
+       select
+        tbp.id AS dataId,
+        ahv.TEXT_ AS process,
+        tbpn.*,
+        tbp.*
+        FROM
+        t_biz_project tbp
+        LEFT JOIN  t_biz_project_node tbpn on tbp.id = tbpn.project_id
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= tbp.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where
+         aht1.ASSIGNEE_ = #{userId}
+        AND tbp.state >-1
+        AND tbp.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and tbp.name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND tbp.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND tbp.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by tbp.apply_time desc
+
+    </select>
+
+    <select id="administrativePerformance" resultType="map">
+        select
+        eps.sch_id AS dataId,
+        ahv.TEXT_ AS process,
+        eps.*
+        from e_performance_score eps
+        LEFT JOIN act_ru_task art on eps.task_id = art.ID_
+        <if test="applyUserName !=null and applyUserName != ''">
+            LEFT JOIN sys_user su ON eps.create_id = su.id
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            LEFT JOIN sys_dept sd ON su.dept_id = sd.id
+        </if>
+        LEFT JOIN act_hi_varinst ahv ON art.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        WHERE art.ASSIGNEE_ = #{userId}
+        AND eps.state >-1
+        AND eps.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and eps.pro_desc LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName !=null and applyUserName != ''">
+            and su.name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="applyUserDeptName !=null and applyUserDeptName !=''">
+            and sd.name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND eps.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND eps.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by eps.create_time desc
+
+    </select>
+
+    <select id="administrativePerformanceAlready" resultType="map">
+        select
+        eps.sch_id AS dataId,
+        ahv.TEXT_ AS process,
+        eps.*
+        from e_performance_score eps
+        INNER JOIN act_hi_taskinst aht  on aht.ID_= eps.task_id
+        LEFT JOIN act_hi_taskinst aht1 on aht.PROC_INST_ID_ = aht1.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv on aht.PROC_INST_ID_ = ahv.PROC_INST_ID_
+        where
+         aht1.ASSIGNEE_ = #{userId}
+        AND eps.state >-1
+        AND eps.task_id IS NOT NULL
+        AND ahv.NAME_ = 'process'
+        <if test="title !=null and title !=''">
+            and eps.pro_desc LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startDate !=null and startDate !=''">
+            AND eps.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            AND eps.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        order by eps.create_time desc
+    </select>
+    <!--查询未审核的录用流程查询-->
+    <select id="listHireNotAudit" resultType="java.util.Map">
+        SELECT
+        ee.entry_id AS entryId,
+        ee.entry_id AS dataId,
+        '6' as process,
+        ee.process_state AS processState,
+        ee.task_id AS taskId
+        FROM
+        e_entry ee
+        INNER JOIN act_ru_task art ON ee.task_id = art.ID_
+        WHERE
+        ee.state <![CDATA[<>]]> -1
+        AND ee.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND ee.entry_name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by ee.create_time desc
+    </select>
+
+    <!--查询已审核的录用流程查询-->
+    <select id="listHireHasAudit" resultType="java.util.Map">
+        SELECT
+        ee.entry_id AS entryId,
+        ee.entry_id AS dataId,
+        '6' as process,
+        aht1.ID_ AS taskId
+        FROM
+        e_entry ee
+        INNER JOIN act_hi_taskinst aht0 ON ee.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        ee.state <![CDATA[<>]]> -1
+        AND ee.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND ee.entry_name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by ee.create_time desc
+    </select>
+
+    <!--获取当前用户历史审核节点，返回记录ID-->
+    <select id="listHisTaskDataIdByUserId" resultType="java.util.Map">
+        SELECT
+            ahv0.TEXT_ as process,
+        	ahv1.TEXT_ AS dataId
+        FROM
+        	act_hi_taskinst aht
+        LEFT JOIN act_hi_varinst ahv0 ON aht.PROC_INST_ID_ = ahv0.PROC_INST_ID_
+        LEFT JOIN act_hi_varinst ahv1 ON aht.PROC_INST_ID_ = ahv1.PROC_INST_ID_
+        WHERE
+        	aht.ASSIGNEE_ = #{userId}
+        AND ahv0.NAME_ = 'process'
+        AND ahv0.TEXT_ IN
+        <foreach collection="processList" item="process" open="(" close=")" separator=",">
+            #{process}
+        </foreach>
+        AND ahv1.NAME_ = 'dataId'
+    </select>
+
+    <!--查询员工信息-->
+    <select id="listEmpByEmpIds" resultType="java.util.Map">
+        SELECT
+        	ee.emp_id AS empId,
+        	ee.emp_name AS empName,
+        	ee.emp_num AS empNum,
+        	ee.emp_phone AS empPhone,
+        	ee.emp_marriage AS empMarriage,
+        	ee.emp_age AS empAge,
+        	ee.emp_work_year AS empWorkYear,
+        	ee.emp_house AS empHouse,
+        	ee.state AS state,
+        	sd.`name` AS deptName,
+        	sp.`name` AS postName,
+            sd.mgr_name AS deptLeaderName
+        FROM
+        	e_employee ee
+        INNER JOIN sys_dept sd ON sd.id = ee.emp_dept
+        INNER JOIN sys_post sp ON ee.emp_profession = sp.id
+        WHERE ee.emp_id IN
+        <foreach collection="empIds" item="empId" open="(" close=")" separator=",">
+            #{empId}
+        </foreach>
+    </select>
+
+    <!--查询转正、离职、交接、调岗审核流程-->
+    <select id="listEmployeeNotAuditByParam" resultType="java.util.Map">
+        SELECT
+          ee.emp_id as empId,
+          ee.user_id as userId,
+          ee.task_id AS taskId,
+          ee.process_state AS processState,
+          ee.process_id AS process,
+          arv.TEXT_ AS dataId
+        FROM
+          e_employee ee
+        INNER JOIN act_ru_task art ON art.ID_ = ee.task_id
+        INNER JOIN act_ru_variable arv ON arv.PROC_INST_ID_ = art.PROC_INST_ID_
+        WHERE
+        ee.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND ee.emp_name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        AND ee.state <![CDATA[<>]]> -1
+        AND ee.process_id in
+        <foreach collection="processList" item="process" open="(" close=")" separator=",">
+            #{process}
+        </foreach>
+        AND art.ASSIGNEE_ = #{userId,VARCHAR}
+        AND arv.NAME_ = 'dataId'
+        order by ee.create_time desc
+    </select>
+
+    <!--查询未审核的请款流程-->
+    <select id="listOutgoNotAuditByParam" resultType="java.util.Map">
+        SELECT
+        fo.id AS dataId,
+        fo.process_type AS process,
+        fo.*
+        FROM
+        fee_outgo fo
+        INNER JOIN act_ru_task art ON fo.task_id = art.ID_
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            INNER JOIN sys_user su ON fo.apply_id = su.id
+        </if>
+        WHERE
+        fo.state <![CDATA[<>]]> -9
+        AND fo.state <![CDATA[<>]]> -1
+        and fo.state <![CDATA[<>]]> 26
+        AND fo.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fo.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fo.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fo.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fo.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND su.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fo.apply_time desc
+    </select>
+
+    <!--查询已审核的请款流程-->
+    <select id="listOutgoHasAuditByParam" resultType="java.util.Map">
+        SELECT
+        fo.id AS dataId,
+        fo.process_type AS process,
+        fo.*
+        FROM
+        fee_outgo fo
+        INNER JOIN act_hi_taskinst aht0 ON fo.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            INNER JOIN sys_user su ON fo.apply_id = su.id
+        </if>
+        WHERE
+        fo.state <![CDATA[<>]]> -9
+        AND fo.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fo.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fo.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fo.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fo.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND su.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fo.apply_time desc
+    </select>
+
+    <!--查询未审核的请款唤醒流程-->
+    <select id="listOutgoWorkUpNotAuditByParam" resultType="java.util.Map">
+        SELECT
+        fo.id AS dataId,
+        '23' AS process,
+        fo.*
+        FROM
+        fee_outgo fo
+        INNER JOIN act_ru_task art ON fo.workup_task_id = art.ID_
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            INNER JOIN sys_user su ON fo.apply_id = su.id
+        </if>
+        WHERE
+        fo.state <![CDATA[<>]]> -9
+        AND fo.state <![CDATA[<>]]> -1
+        and fo.state <![CDATA[<>]]> 26
+        AND fo.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fo.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fo.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fo.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fo.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND su.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fo.apply_time desc
+    </select>
+
+    <!--查询已审核的请款唤醒流程-->
+    <select id="listOutgoWorkUpHasAuditByParam" resultType="java.util.Map">
+        SELECT
+        fo.id AS dataId,
+        '23' AS process,
+        fo.*
+        FROM
+        fee_outgo fo
+        INNER JOIN act_hi_taskinst aht0 ON fo.workup_task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            INNER JOIN sys_user su ON fo.apply_id = su.id
+        </if>
+        WHERE
+        fo.state <![CDATA[<>]]> -9
+        AND fo.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fo.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fo.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fo.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fo.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND su.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fo.apply_time desc
+    </select>
+
+    <!--查询未审核的删稿流程-->
+    <select id="listDropNotAuditByParam" resultType="java.util.Map">
+        SELECT
+        fd.id AS dataId,
+        '11' AS process,
+        fd.*
+        FROM
+        fee_drop fd
+        INNER JOIN act_ru_task art ON fd.task_id = art.ID_
+        WHERE
+        fd.state <![CDATA[<>]]> -9
+        AND fd.state <![CDATA[<>]]> -1
+        AND fd.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fd.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fd.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fd.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fd.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fd.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fd.apply_time desc
+    </select>
+
+    <!--查询已审核的删稿流程-->
+    <select id="listDropHasAuditByParam" resultType="java.util.Map">
+        SELECT
+          fd.id AS dataId,
+          '11' AS process,
+          fd.*
+        FROM
+          fee_drop fd
+        INNER JOIN act_hi_taskinst aht0 ON fd.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        fd.state <![CDATA[<>]]> -9
+        AND fd.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fd.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fd.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fd.create_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fd.create_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fd.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fd.apply_time desc
+
+    </select>
+
+    <!--查询未审核的借款流程-->
+    <select id="listBorrowNotAuditByParam" resultType="java.util.Map">
+        SELECT
+          fb.id AS dataId,
+          '2' AS process,
+          fb.*
+        FROM
+        fee_borrow fb
+        INNER JOIN act_ru_task art ON fb.task_id = art.ID_
+        WHERE
+        fb.state <![CDATA[<>]]> -9
+        AND fb.state <![CDATA[<>]]> -1
+        AND fb.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fb.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fb.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fb.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fb.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fb.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fb.apply_time desc
+    </select>
+
+    <!--查询已审核的借款流程-->
+    <select id="listBorrowHasAuditByParam" resultType="java.util.Map">
+        SELECT
+        fb.id AS dataId,
+        '2' AS process,
+        fb.*
+        FROM
+        fee_borrow fb
+        INNER JOIN act_hi_taskinst aht0 ON fb.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        fb.state <![CDATA[<>]]> -9
+        AND fb.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fb.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fb.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fb.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fb.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fb.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fb.apply_time desc
+    </select>
+
+    <!--查询未审核的报销流程-->
+    <select id="listReimursementNotAuditByParam" resultType="java.util.Map">
+        SELECT
+          fr.id AS dataId,
+          '12' AS process,
+          fr.*
+        FROM
+        fee_reimbursement fr
+        INNER JOIN act_ru_task art ON fr.task_id = art.ID_
+        WHERE
+        fr.state <![CDATA[<>]]> -9
+        AND fr.state <![CDATA[<>]]> -1
+        AND fr.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fr.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fr.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fr.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fr.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fr.apply_time desc
+    </select>
+
+    <!--查询已审核的报销流程-->
+    <select id="listReimursementHasAuditByParam" resultType="java.util.Map">
+        SELECT
+          fr.id AS dataId,
+          '12' AS process,
+          fr.*
+        FROM
+        fee_reimbursement fr
+        INNER JOIN act_hi_taskinst aht0 ON fr.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        fr.state <![CDATA[<>]]> -9
+        AND fr.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fr.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fr.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fr.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fr.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fr.apply_time desc
+    </select>
+
+    <!--查询未审核的开票流程-->
+    <select id="listInvoiceNotAuditByParam" resultType="java.util.Map">
+        SELECT
+          fi.id AS dataId,
+          '1' AS process,
+          fi.*
+        FROM
+        fee_invoice fi
+        INNER JOIN act_ru_task art ON fi.task_id = art.ID_
+        WHERE
+        fi.state <![CDATA[<>]]> -9
+        AND fi.state <![CDATA[<>]]> -1
+        AND fi.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fi.name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fi.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fi.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fi.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fi.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fi.apply_time desc
+    </select>
+
+    <!--查询已审核的开票流程-->
+    <select id="listInvoiceHasAuditByParam" resultType="java.util.Map">
+        SELECT
+          fi.id AS dataId,
+          '1' AS process,
+          fi.*
+        FROM
+        fee_invoice fi
+        INNER JOIN act_hi_taskinst aht0 ON fi.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        fi.state <![CDATA[<>]]> -9
+        AND fi.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fi.name LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fi.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fi.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fi.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fi.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fi.apply_time desc
+    </select>
+
+    <!--查询未审核的退款流程-->
+    <select id="listRefundNotAuditByParam" resultType="java.util.Map">
+        SELECT
+        fr.id AS dataId,
+        '4' AS process,
+        fr.*
+        FROM
+        fee_refund fr
+        INNER JOIN act_ru_task art ON fr.task_id = art.ID_
+        WHERE
+        fr.state <![CDATA[<>]]> -9
+        AND fr.state <![CDATA[<>]]> -1
+        AND fr.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fr.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fr.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fr.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fr.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND art.ASSIGNEE_ = #{userId}
+        order by fr.apply_time desc
+    </select>
+
+    <!--查询已审核的退款流程-->
+    <select id="listRefundHasAuditByParam" resultType="java.util.Map">
+        SELECT
+        fr.id AS dataId,
+        '1' AS process,
+        fr.*
+        FROM
+        fee_refund fr
+        INNER JOIN act_hi_taskinst aht0 ON fr.task_id = aht0.ID_
+        INNER JOIN act_hi_taskinst aht1 ON aht1.PROC_INST_ID_ = aht0.PROC_INST_ID_
+        WHERE
+        fr.state <![CDATA[<>]]> -9
+        AND fr.task_id IS NOT NULL
+        <if test="title != null and title != ''">
+            AND fr.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="applyUserName != null and applyUserName != ''">
+            AND fr.apply_name LIKE CONCAT('%', #{applyUserName}, '%')
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND fr.apply_time <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{startDate},' 00:00:00'),'%Y/%m/%d %T')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND fr.apply_time <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{endDate},' 23:59:59'),'%Y/%m/%d %T')
+        </if>
+        <if test="applyUserDeptName != null and applyUserDeptName != ''">
+            AND fr.dept_name LIKE CONCAT('%', #{applyUserDeptName}, '%')
+        </if>
+        AND aht1.ASSIGNEE_ = #{userId}
+        order by fr.apply_time desc
+    </select>
+
+</mapper>

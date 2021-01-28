@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>未提交订单管理</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/biz/noOrderPlacedManage.js"></script>
+    <style type="text/css">
+
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+
+    </script>
+</head>
+<body>
+<!--查询条件-->
+<form id="queryForm">
+    <div class="ibox-title">
+        <h4>查询条件</h4>
+    </div>
+    <div class="ibox-content">
+        <div class="form-horizontal">
+            <div class="form-group" >
+                <label class="col-sm-1 control-label right0">媒体板块:</label>
+                <div class="col-sm-2 layui-form">
+                    <select name="mediaTypeId" class="form-control height18" lay-search>
+                        <option value="">请选择媒体板块</option>
+
+                    </select>
+                </div>
+
+                <label class="col-sm-1 control-label right0">媒体名称:</label>
+                <div class="col-sm-2">
+                    <input type="text" placeholder="媒体名称" name="mediaName" class="form-control height18" onkeydown="searchForm.enterEvent(event);"/>
+                </div>
+
+                <label class="col-sm-1 control-label right0">媒介:</label>
+                <div class="col-sm-2 layui-form">
+                    <select name="mediaUserId" class="form-control height18" lay-search>
+                        <option value="">请选择媒介</option>
+
+                    </select>
+                </div>
+
+                <div class="col-sm-1" style="padding-top: 3px;">
+                    <button type="button" id="searchButton" class="btn btn-primary" onclick="searchForm.search();">
+                        <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row" >
+    <div class="ibox">
+        <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 15px !important;margin: 0 auto;">
+            <!--内容-->
+            <div style="border-bottom: 1px solid #c9c9c9;width: 100%;">
+                <!--日期列表-->
+                <div class="jqGrid_wrapper">
+                    <table id="orderTable"></table>
+                    <div id="orderTablePaper"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

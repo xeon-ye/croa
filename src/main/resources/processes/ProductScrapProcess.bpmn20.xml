@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="ProductScrapProcess" name="物品报废" isExecutable="true">
+    <documentation>物品报废</documentation>
+    <startEvent id="startEvent" name="启动流程"></startEvent>
+    <sequenceFlow id="sid-31F81A35-1257-4BE2-BB31-6EA3898FE8AB" name="开始" sourceRef="startEvent" targetRef="leaderApprove"></sequenceFlow>
+    <userTask id="leaderApprove" name="仓库管理员审核">
+       <extensionElements>
+          <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.productScrap.LeaderTaskHandler"></flowable:taskListener>
+       </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-74D4F5FD-14BA-422B-A7B4-0CAC1584D612" name="通过" sourceRef="leaderApprove" targetRef="personApprove"></sequenceFlow>
+    <userTask id="personApprove" name="个人确认">
+       <extensionElements>
+         <flowable:taskListener event="create" class="com.qinfei.qferp.flow.listener1.productScrap.personApprove"></flowable:taskListener>
+         <flowable:taskListener event="complete" class="com.qinfei.qferp.flow.listener1.productScrap.ProcessFinishHandler"></flowable:taskListener>
+       </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-71765896-E103-4710-873E-962C967C65C3" name="通过" sourceRef="personApprove" targetRef="endEvent"></sequenceFlow>
+    <endEvent id="endEvent" name="结束流程"></endEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ProductRepair">
+    <bpmndi:BPMNPlane bpmnElement="ProductScrapProcess" id="BPMNPlane_ProductRepair">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="225.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="leaderApprove" id="BPMNShape_leaderApprove">
+        <omgdc:Bounds height="80.0" width="100.0" x="360.0" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="personApprove" id="BPMNShape_financeApprove">
+        <omgdc:Bounds height="80.00000000000003" width="100.0" x="555.0" y="224.99999999999997"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="750.0" y="251.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-74D4F5FD-14BA-422B-A7B4-0CAC1584D612" id="BPMNEdge_sid-74D4F5FD-14BA-422B-A7B4-0CAC1584D612">
+        <omgdi:waypoint x="459.9499999999802" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="555.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-71765896-E103-4710-873E-962C967C65C3" id="BPMNEdge_sid-71765896-E103-4710-873E-962C967C65C3">
+        <omgdi:waypoint x="654.9499999999999" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="750.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-31F81A35-1257-4BE2-BB31-6EA3898FE8AB" id="BPMNEdge_sid-31F81A35-1257-4BE2-BB31-6EA3898FE8AB">
+        <omgdi:waypoint x="254.9499993675608" y="265.0"></omgdi:waypoint>
+        <omgdi:waypoint x="360.0" y="265.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

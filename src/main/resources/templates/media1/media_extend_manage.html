@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title data-th-text="'媒体管理-媒体搜索条件项管理'+${AppName}"></title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/need/laydate.css"/>
+    <link type="text/css" rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css"
+          id="LayDateSkin"/>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/media/common.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/js/media1/media_extend_manage.js"></script>
+    <style type="text/css">
+
+    </style>
+
+    <script th:inline="javascript">
+        //加载tab页
+        layui.use('element', function(){
+            var element = layui.element;
+            element.on('tab(docDemoTabBrief)', function(data){
+                tabChange(data.index);
+            });
+        });
+
+    </script>
+</head>
+
+<body>
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief" style="margin: 0px;">
+    <ul class="layui-tab-title">
+        <li class="layui-this">媒体表单项</li>
+        <li>媒体条件项</li>
+    </ul>
+    <div class="layui-tab-content" style="padding: 0px;">
+        <!--媒体表单项-->
+        <div id="extendForm" class="tabContent" style="height: 100%;width: 100%;">
+            <!--媒体板块-->
+            <div class="ibox-title col-md-12 plateWrap" id="extendFormMediaPlate" tabIndex="0">
+                <!--标准板块-->
+                <div id="extendFormStandardPlateWrap"
+                     style="border:0px solid red;width: 100%;min-height: 34px;display: flex;align-items: center;">
+                    <div style="border: 0px solid red;height: 17px;width: 60px;">
+                        <img src="/img/standard.png" width="60" height="17"/>
+                    </div>
+                    <div id="extendFormStandardPlate"
+                         style="border: 0px solid red;flex: 1px;min-height: 34px;padding-left: 15px;"></div>
+                </div>
+                <!--非标准板块-->
+                <div id="extendFormNotStandardPlateWrap"
+                     style="border:0px solid red;width: 100%;min-height: 34px;display: flex;align-items: center;">
+                    <div style="border: 0px solid red;height: 17px;width: 60px;">
+                        <img src="/img/notStandard.png" width="60" height="17"/>
+                    </div>
+                    <div id="extendFormNotStandardPlate"
+                         style="border: 0px solid red;flex: 1px;min-height: 34px;padding-left: 15px;"></div>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <form id="mediaForm" autocomplete="off" method="post" class="form-horizontal">
+                    <div class="col-md-12">
+                        <input type="hidden" id="mediaPlateId" name="mediaPlateId" value="">
+                        <input type="hidden" id="fieldName" name="fieldName">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>控件类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select id="type" name="type" placeholder="控件类型" class="form-control" required>
+                                    <option value="text">文本框</option>
+                                    <option value="link">链接</option>
+                                    <option value="radio">单选框</option>
+                                    <option value="checkbox">多选框</option>
+                                    <option value="select">下拉框</option>
+                                    <option value="textarea">文本域</option>
+                                    <option value="date">时间(年月日YYYY-MM-DD)</option>
+                                    <option value="datetime">时间(年月日时分秒)</option>
+                                    <option value="time">时间(时分秒 HH:MI:SS)</option>
+                                    <option value="price">价格</option>
+                                    <option value="file">文件</option>
+                                    <option value="number">数字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input id="cellCode" name="cellCode" maxlength="50" placeholder="数据库列名" class="form-control" required/>
+                                <i style="color: #0a6aa1;left: 100%;top: -24px;z-index: 10;" title="说明：
+1、媒体表单每次添加或者更改后，媒体批量模板需要重新下载，并且已经打开的新增媒体页面需要关闭重新打开，不然数据不会更新；
+2、列名为英文字符，对于有附属价格的价格类型，命名需要特殊处理，当前包含三种特殊命名格式“a<1>b、a&lt;n&gt;b、b->a”；
+   -> 除非有特殊需求，否则，命名列名时最好不要出现“<1>、&lt;n&gt;、->”三组特殊字符，该符号做了特殊处理。
+   -> 当命名时，出现“->”符号的价格类型列名将不再媒体下单页面展示，该符号做了特殊处理。
+   -> a和b在此说明中表示两种价格的单独命名字符，当这两种价格在媒体下单时需要组合计算价格时，就需要使用以上命名格式来替换，目前每种媒体板块仅支持一个这种组合价格。
+   -> 当表单仅有“a<1>b、a&lt;n&gt;b、b->a”格式其中一种会当做普通价格类型处理，“a<1>b、a&lt;n&gt;”格式需要和“b->a”格式配合使用才有效。
+   -> b->a：表示a价格是媒体下单展示的价格，b是附属价格，所有定义列名时，命名成b->a格式，a、b的顺序与“a<1>b、a&lt;n&gt;b”格式顺序相反。
+   -> a<1>b: 需要和“b->a”配合使用，在媒体下单时，a<1>b价格类型显示，b->a价格类型附属于a<1>b，展示形式变成a(b)，价格计算方式为 a * discount * num + b，例如报纸的参考报价和标题费用。
+   -> a&lt;n&gt;b: 需要和“b->a”配合使用，在媒体下单时，a&lt;n&gt;b价格类型显示，b->a价格类型附属于a&lt;n&gt;b，展示形式变成a(b)，价格计算方式为 a * discount * num + b * num。" class="glyphicon glyphicon-question-sign"></i>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>中文列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cellName" maxlength="50" placeholder="中文列名" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                数据类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select name="dataType" class="form-control"
+                                        onchange="loadDataType(this)">
+                                    <option value="">请选择</option>
+                                    <option value="html">html</option>
+                                    <option value="json">json</option>
+                                    <option value="sql">sql</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>排序:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="sortNo" type="number" placeholder="排序" class="form-control" required value="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>禁用？:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="disabled" type="radio" class="i-checks" value="1">是
+                                <input name="disabled" type="radio" class="i-checks" value="0" checked>否
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>必填？:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="required" type="radio" class="i-checks" value="1">是
+                                <input name="required" type="radio" class="i-checks" value="0" checked>否
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>扩展标识:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="extendFlag" type="radio" class="i-checks" value="0" checked>仅媒体用
+                                <input name="extendFlag" type="radio" class="i-checks" value="1">仅供应商用
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>爬取标识:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="climbFlag" type="radio" class="i-checks" value="0" checked>仅手工填写
+                                <input name="climbFlag" type="radio" class="i-checks" value="1">仅脚本爬取
+                                <input name="climbFlag" type="radio" class="i-checks" value="2">手工+爬取
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                控件大小:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="size" type="number" placeholder="控件大小" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                最大长度:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="maxlength" type="number" placeholder="最大长度" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                最小长度:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="minlength" type="number" placeholder="最小长度" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                最小值:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="min" type="number" placeholder="最小值" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                最大值:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="max" type="number" placeholder="最小值" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                验证规则:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="rule" placeholder="控件验证规则" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                控件描述:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="remark" placeholder="控件描述" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="display: flex;align-items: center;">
+                        <div class="form-group col-sm-3" id="dataDiv" style="display: none;">
+                            <label class="col-sm-5 control-label">
+                                <span id="dataLabel">HTML数据</span>:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea id="dataDB" name="dbHtml" placeholder="HTML内容" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-1" style="margin-left: 30px;">
+                            <button type="button" class="btn btn-danger" onclick="saveMediaForm()"><i class="fa fa-plus"></i>&nbsp;添加
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="ibox-content">
+                <button class="btn btn-warning" onclick="batchDelMediaForm()"><i class="fa fa-trash"></i>&nbsp;批量删除</button>
+            </div>
+            <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                <div class="jqGrid_wrapper">
+                    <table id="extendFormTable">
+                    </table>
+                    <div id="extendFormPager"></div>
+                </div>
+            </div>
+        </div>
+
+        <!--媒体条件项-->
+        <div id="extendTerm" class="tabContent" style="height: 100%;width: 100%;">
+            <!--媒体板块-->
+            <div class="ibox-title col-md-12 plateWrap" id="extendTermMediaPlate" tabIndex="1">
+                <!--标准板块-->
+                <div id="extendTermStandardPlateWrap"
+                     style="border:0px solid red;width: 100%;min-height: 34px;display: flex;align-items: center;">
+                    <div style="border: 0px solid red;height: 17px;width: 60px;">
+                        <img src="/img/standard.png" width="60" height="17"/>
+                    </div>
+                    <div id="extendTermStandardPlate"
+                         style="border: 0px solid red;flex: 1px;min-height: 34px;padding-left: 15px;"></div>
+                </div>
+                <!--非标准板块-->
+                <div id="extendTermNotStandardPlateWrap"
+                     style="border:0px solid red;width: 100%;min-height: 34px;display: flex;align-items: center;">
+                    <div style="border: 0px solid red;height: 17px;width: 60px;">
+                        <img src="/img/notStandard.png" width="60" height="17"/>
+                    </div>
+                    <div id="extendTermNotStandardPlate"
+                         style="border: 0px solid red;flex: 1px;min-height: 34px;padding-left: 15px;"></div>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <form id="mediaTerm" autocomplete="off" method="post" class="form-horizontal">
+                    <div class="col-md-12">
+                        <input type="hidden" id="mediaPlateId1" name="mediaPlateId" value="">
+                        <input type="hidden" id="fieldName1" name="fieldName">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>控件类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select name="type" placeholder="控件类型" class="form-control" required>
+                                    <option value="text">文本框</option>
+                                    <option value="radio">单选框</option>
+                                    <option value="checkbox">多选框</option>
+                                    <option value="select">下拉框</option>
+                                    <option value="textarea">文本域</option>
+                                    <option value="date">时间(年月日YYYY-MM-DD)</option>
+                                    <option value="datetime">时间(年月日时分秒)</option>
+                                    <option value="time">时间(时分秒 HH:MI:SS)</option>
+                                    <option value="price">价格</option>
+                                    <option value="file">文件</option>
+                                    <option value="number">数字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input id="cell" name="cell" maxlength="50" placeholder="数据库列名" class="form-control" required/>
+                                <i style="color: #0a6aa1;left: 100%;top: -24px;z-index: 10;" title="说明：该字段需要和表单对应字段列名保持一致。" class="glyphicon glyphicon-question-sign"></i>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>中文列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cellName" placeholder="中文列名" class="form-control" required/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                数据类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select name="dataType" class="form-control"
+                                        onchange="loadDataType(this)">
+                                    <option value="">请选择</option>
+                                    <option value="html">html</option>
+                                    <option value="json">json</option>
+                                    <option value="sql">sql</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>排序:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="sortNo" type="number" placeholder="排序" class="form-control" required value="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <label class="col-sm-5 control-label">
+                                控件描述:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="remark" placeholder="控件描述" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3" id="dataDiv2" style="display: none;">
+                            <label class="col-sm-5 control-label">
+                                <span id="dataLabel2">HTML数据</span>:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea id="dataDB2" name="dbHtml" placeholder="HTML内容" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-3">
+                            <button type="button" class="btn btn-danger" onclick="saveMediaTerm()"><i class="fa fa-plus"></i>&nbsp;添加
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="ibox-content">
+                <button class="btn btn-warning" onclick="batchDelMediaTerm()"><i class="fa fa-trash"></i>&nbsp;批量删除</button>
+            </div>
+            <div class="ibox-content" style="padding-right: 0px; padding-left: 0px;">
+                <div class="jqGrid_wrapper">
+                    <table id="extendTermTable">
+                    </table>
+                    <div id="extendTermPager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!--媒体表单项编辑-->
+<div class="modal inmodal fade" id="editMediaFormModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: 80%">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>编辑<span id="name"></span></h2>
+            </div>
+            <div class="modal-body" style="display: table">
+                <form id="editMediaForm" method="post" class="form-horizontal">
+                    <div class="col-md-12">
+                        <input type="hidden" name="id" id="id">
+                        <input type="hidden" name="mediaPlateId">
+                        <input type="hidden" name="fieldName">
+                        <input type="hidden" name="contactor" data-th-value="${session.user.name}">
+                        <input type="hidden" name="contact" data-th-value="${session.user.phone}">
+                        <input type="hidden" name="version">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>控件类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select name="type" placeholder="控件类型" class="form-control" required>
+                                    <option value="text">文本框</option>
+                                    <option value="link">链接</option>
+                                    <option value="radio">单选框</option>
+                                    <option value="checkbox">多选框</option>
+                                    <option value="select">下拉框</option>
+                                    <option value="textarea">文本域</option>
+                                    <option value="date">时间(年月日YYYY-MM-DD)</option>
+                                    <option value="datetime">时间(年月日时分秒)</option>
+                                    <option value="time">时间(时分秒 HH:MI:SS)</option>
+                                    <option value="price">价格</option>
+                                    <option value="file">文件</option>
+                                    <option value="number">数字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cellCode" placeholder="数据库列名" maxlength="50" class="form-control" required/>
+                                <i style="color: #0a6aa1;left: 100%;top: -24px;z-index: 10;" title="说明：
+1、媒体表单每次添加或者更改后，媒体批量模板需要重新下载，并且已经打开的新增媒体页面需要关闭重新打开，不然数据不会更新；
+2、列名为英文字符，对于有附属价格的价格类型，命名需要特殊处理，当前包含三种特殊命名格式“a<1>b、a&lt;n&gt;b、b->a”；
+   -> 除非有特殊需求，否则，命名列名时最好不要出现“<1>、&lt;n&gt;、->”三组特殊字符，该符号做了特殊处理。
+   -> 当命名时，出现“->”符号的价格类型列名将不再媒体下单页面展示，该符号做了特殊处理。
+   -> a和b在此说明中表示两种价格的单独命名字符，当这两种价格在媒体下单时需要组合计算价格时，就需要使用以上命名格式来替换，目前每种媒体板块仅支持一个这种组合价格。
+   -> 当表单仅有“a<1>b、a&lt;n&gt;b、b->a”格式其中一种会当做普通价格类型处理，“a<1>b、a&lt;n&gt;”格式需要和“b->a”格式配合使用才有效。
+   -> b->a：表示a价格是媒体下单展示的价格，b是附属价格，所有定义列名时，命名成b->a格式，a、b的顺序与“a<1>b、a&lt;n&gt;b”格式顺序相反。
+   -> a<1>b: 需要和“b->a”配合使用，在媒体下单时，a<1>b价格类型显示，b->a价格类型附属于a<1>b，展示形式变成a(b)，价格计算方式为 a * discount * num + b，例如报纸的参考报价和标题费用。
+   -> a&lt;n&gt;b: 需要和“b->a”配合使用，在媒体下单时，a&lt;n&gt;b价格类型显示，b->a价格类型附属于a&lt;n&gt;b，展示形式变成a(b)，价格计算方式为 a * discount * num + b * num。" class="glyphicon glyphicon-question-sign"></i>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>中文列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cellName" maxlength="50" placeholder="中文列名" class="form-control" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                数据类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select id="formDataType" name="dataType" class="form-control" onchange="loadDataType(this)">
+                                    <option value="">请选择</option>
+                                    <option value="html">html</option>
+                                    <option value="json">json</option>
+                                    <option value="sql">sql</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>禁用？:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="disabled" type="radio" class="i-checks" value="1">是
+                                <input name="disabled" type="radio" class="i-checks" value="0">否
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>必填？:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="required" type="radio" class="i-checks" value="1">是
+                                <input name="required" type="radio" class="i-checks" value="0">否
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>扩展标识:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="extendFlag" type="radio" class="i-checks" value="0" checked>仅媒体用
+                                <input name="extendFlag" type="radio" class="i-checks" value="1">仅供应商用
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>爬取标识:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="climbFlag" type="radio" class="i-checks" value="0" checked>仅手工填写
+                                <input name="climbFlag" type="radio" class="i-checks" value="1">仅脚本爬取
+                                <input name="climbFlag" type="radio" class="i-checks" value="2">手工+爬取
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>排序:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="sortNo" type="number" placeholder="排序" class="form-control" required
+                                       value="1"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                控件大小:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="size" type="number" placeholder="控件大小" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                最大长度:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="maxlength" type="number" placeholder="最大长度" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                最小长度:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="minlength" type="number" placeholder="最小长度" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                最小值:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="min" type="number" placeholder="最小值" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                最大值:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="max" type="number" placeholder="最小值" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                验证规则:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="rule" placeholder="控件验证规则" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                控件描述:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="remark" placeholder="控件描述" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4" id="dataDiv1" style="display: none;">
+                            <label class="col-sm-5 control-label">
+                                <span id="dataLabel1">HTML数据</span>:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea id="dataDB1" name="dbHtml" placeholder="HTML内容"
+                                          class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" class="btn btn-primary" onclick="updateMediaForm()"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--媒体条件项编辑-->
+<div class="modal inmodal fade" id="editMediaTermModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width: 80%">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h2>编辑<span id="name1"></span></h2>
+            </div>
+            <div class="modal-body" style="display: table">
+                <form id="editMediaTerm" method="post" class="form-horizontal">
+                    <div class="col-md-12">
+                        <input type="hidden" name="id">
+                        <input type="hidden" name="mediaPlateId">
+                        <input type="hidden" name="fieldName">
+                        <input type="hidden" name="version">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>控件类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select name="type" placeholder="控件类型" class="form-control" required>
+                                    <option value="text">文本框</option>
+                                    <option value="radio">单选框</option>
+                                    <option value="checkbox">多选框</option>
+                                    <option value="select">下拉框</option>
+                                    <option value="textarea">文本域</option>
+                                    <option value="date">时间(年月日YYYY-MM-DD)</option>
+                                    <option value="datetime">时间(年月日时分秒)</option>
+                                    <option value="time">时间(时分秒 HH:MI:SS)</option>
+                                    <option value="price">价格</option>
+                                    <option value="file">文件</option>
+                                    <option value="number">数字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cell" maxlength="50" placeholder="数据库列名" class="form-control" required/>
+                                <i style="color: #0a6aa1;left: 100%;top: -24px;z-index: 10;" title="说明：该字段需要和表单对应字段列名保持一致。" class="glyphicon glyphicon-question-sign"></i>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>中文列名:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="cellName" placeholder="中文列名" class="form-control" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                数据类型:
+                            </label>
+                            <div class="col-sm-7">
+                                <select id="termDataType" name="dataType" class="form-control" onchange="loadDataType(this)">
+                                    <option value="">请选择</option>
+                                    <option value="html">html</option>
+                                    <option value="json">json</option>
+                                    <option value="sql">sql</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                <span class="text-red"> * </span>排序:
+                            </label>
+                            <div class="col-sm-7">
+                                <input name="sortNo" type="number" placeholder="排序" class="form-control" required
+                                       value="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label class="col-sm-5 control-label">
+                                控件描述:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea name="remark" placeholder="控件描述" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-4" id="dataDiv3" style="display: none;">
+                            <label class="col-sm-5 control-label">
+                                <span id="dataLabel3">HTML数据</span>:
+                            </label>
+                            <div class="col-sm-7">
+                                <textarea id="dataDB3" name="dbHtml" placeholder="HTML内容"
+                                          class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" class="btn btn-primary" onclick="updateMediaTerm()"><i class="fa fa-save"></i>&nbsp;保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

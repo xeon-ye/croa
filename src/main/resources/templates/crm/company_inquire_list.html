@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>客户查询</title>
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script th:src="@{/js/fee/commonFee.js(v=${version})}"  data-th-inline="javascript"></script>
+    <script th:src="@{/js/crm/company_inquire_list.js(v=${version})}"  data-th-inline="javascript"></script>
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="margin-bottom: 0px;">
+            <div class="ibox-title" style="padding-left: 20px">
+                <h5 style="font-weight: bold">查询条件</h5>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal" id="queryDiv">
+                    <form id="queryForm">
+                        <div class="form-group">
+                            <label class="col-sm-1 control-label">客户公司:</label>
+                            <div class="col-sm-2">
+                                <!--在一个form表单中，若只有一个input，按回车键表单会自动提交，但是当表单中存在多个input时，按回车键不会执行任何操作，这是form表单的一个特性-->
+                                <input type="text" style="display: none;">
+                                <input type="text" id="companyName" name="companyName" placeholder="请输入公司名称搜索" autocomplete="off"
+                                       class="form-control height18">
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" id="queryBtn" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div class="ibox-content">
+                <div class="jqGrid_wrapper">
+                    <table id="query_table_logs"></table>
+                    <div id="query_pager_logs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

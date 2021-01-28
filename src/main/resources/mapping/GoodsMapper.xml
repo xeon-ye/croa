@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.inventory.GoodsMapper">
+    <sql id="selectColumn">
+       g.id,
+       g.code,
+       g.state,
+       g.type_id typeId,
+       g.goods_id goodsId,
+       g.number,
+       g.purchase_id purchaseId,
+       g.apply_id applyId,
+       g.create_id createId,
+       g.create_name createName,
+       g.user_id userId,
+       g.create_time createTime,
+       g.update_user_id updateUserId,
+       g.update_time updateTime,
+       Date_format(g.return_time,'%Y-%m-%d %H:%i') returnTime,
+       g.company_code companyCode,
+       warehouse_id warehouseId
+    </sql>
+
+    <sql id="selectSimpleColumn">
+       g.id,
+       g.code,
+       g.state,
+       g.type_id typeId,
+       g.goods_id goodsId,
+       g.number,
+       g.purchase_id,
+       g.user_id,
+       g.company_code companyCode,
+       warehouse_id warehouseId
+    </sql>
+
+    <!--新增产品信息-->
+    <insert id="saveGoods" parameterType="com.qinfei.qferp.entity.inventory.Goods" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_goods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="code != null and code != ''">code,</if>
+            <if test="state != null">state,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="goodsId != null">goods_id,</if>
+            <if test="number != null">`number`,</if>
+            <if test="purchaseId != null">purchase_id,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createName != null">create_name,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateUserId != null">update_user_id,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="returnTime != null">return_time,</if>
+            <if test="companyCode != null and companyCode!=''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="code != null and code != ''">#{code},</if>
+            <if test="state != null">#{state},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="goodsId != null">#{goodsId},</if>
+            <if test="number != null">#{number},</if>
+            <if test="purchaseId != null">#{purchaseId},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createName != null">#{createName},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateUserId != null">#{updateUserId},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="returnTime != null">#{returnTime},</if>
+            <if test="companyCode != null and companyCode!=''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--批量生成库存-->
+    <insert id="addGoodsBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_saves_goods
+        (`code`,
+        `state`,
+        type_id,
+        goods_id,
+        `number`,
+        purchase_id,
+        create_id,
+        create_name,
+        create_time,
+        update_time,
+        update_user_id,
+        company_code,
+        warehouse_id)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.code},
+            #{item.state},
+            #{item.typeId},
+            #{item.goodsId},
+            #{item.number},
+            #{item.purchaseId},
+            #{item.createId},
+            #{item.createName},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.updateUserId},
+            #{item.companyCode},
+            #{item.warehouseId})
+        </foreach>
+    </insert>
+
+    <!--产品导入-->
+    <insert id="insertGoodsFormExcel" parameterType="java.util.List">
+        insert into t_saves_goods_type
+        (name,
+         code,
+         state,
+         parent_id,
+         specs,
+         unit,
+         price,
+         create_id,
+         create_name,
+         create_time,
+         update_user_id,
+         update_time,
+         company_code)
+         values
+         <foreach collection="list" item="item" index="index" open="(" separator="),(" close=")">
+            #{item.name},
+            #{item.code},
+            #{item.state},
+            #{item.typeId},
+            #{item.specs},
+            #{item.unit},
+            #{item.price},
+            #{item.createId},
+            #{item.createName},
+            #{item.createTime},
+            #{item.updateUserId},
+            #{item.updateTime},
+            #{item.companyCode}
+         </foreach>
+    </insert>
+
+    <!--修改产品信息-->
+    <update id="updateGoods" parameterType="com.qinfei.qferp.entity.inventory.Goods">
+        update t_saves_goods
+        <set>
+            <if test="code != null and code != ''">code=#{code},</if>
+            <if test="state != null">state=#{state},</if>
+            <if test="typeId != null">type_id=#{typeId},</if>
+            <if test="goodsId != null">goods_id=#{goodsId},</if>
+            <if test="number != null">number=#{number},</if>
+            <if test="purchaseId != null">purchase_id=#{purchaseId},</if>
+            <if test="createId != null">create_id=#{createId},</if>
+            <if test="createName != null">create_name=#{createName},</if>
+            <if test="userId != ''">user_id=#{userId},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime != null">update_time=#{updateTime},</if>
+            <if test="returnTime != null">return_time=#{returnTime},</if>
+            <if test="companyCode != null and companyCode!=''">company_code=#{companyCode},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量修改库存信息-->
+    <update id="updateGoodsBatch" parameterType="java.util.Map">
+        update t_saves_goods
+        <set>
+            <if test="state != null">state=#{state},</if>
+            <if test="applyId != null">apply_id=#{applyId},</if>
+            <if test="userId != null">user_id=#{userId},</if>
+            <if test="updateUserId != null">update_user_id=#{updateUserId},</if>
+            <if test="updateTime != null">update_time=#{updateTime},</if>
+            <if test="returnTime != null">return_time=#{returnTime},</if>
+        </set>
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <!--修改库存产品状态-->
+    <update id="editGoodsState" parameterType="java.util.Map">
+        update t_saves_goods
+        <set>
+            <if test="state!=null">
+                state=#{state},
+            </if>
+            <if test="updateUserId!=null">
+                update_user_id=#{updateUserId},
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+
+    <!--根据id查询产品信息-->
+    <select id="getById" parameterType="java.lang.Integer" resultType="java.util.Map">
+        select
+        gt.name goodsName,
+        gt.specs,
+        gt.unit,
+        <include refid="selectColumn"/>
+        from t_saves_goods g
+        left join t_saves_goods_type gt on g.goods_id = gt.id
+        where g.state>-2 and g.id = #{id}
+    </select>
+
+    <!--根据id查询产品信息-->
+    <select id="getGoodsById" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.Goods">
+        select
+        <include refid="selectSimpleColumn"/>
+        from t_saves_goods g
+        where g.state>-2 and g.id = #{id}
+    </select>
+
+    <!--查询是否存在的相同产品名称-->
+    <select id="checkSameName" parameterType="java.lang.Integer" resultType="com.qinfei.qferp.entity.inventory.Goods">
+        select
+        <include refid="selectColumn"/>
+        from t_saves_goods g
+        where g.state>-2 and g.company_code=#{companyCode}
+        <if test="id!=null">
+            and g.id!=#{id}
+        </if>
+    </select>
+
+    <!--根据产品分类id查询产品信息-->
+    <select id="getGoodsByParentId" parameterType="java.util.Map" resultType="com.qinfei.qferp.entity.inventory.Goods">
+        select
+        <include refid="selectSimpleColumn"/>
+        from t_saves_goods g
+        where g.state>-2 and g.company_code=#{companyCode}
+        <if test="parentId!=null">
+            and g.type_id = #{parentId}
+        </if>
+    </select>
+
+    <!--根据库存id查询库存记录-->
+    <select id="getInventoryById" parameterType="java.lang.Integer" resultType="java.util.Map">
+        select u.name userName,gt.name goodsName,gt.specs,gt.unit,gt.price,
+        gr.user_name operateName,gr.create_time operateTime,gr.foreign_id foreignId,gr.state recordState,gr.type,
+        <include refid="selectColumn"/>
+        from t_saves_goods g
+        left join t_saves_goods_record gr on g.id=gr.inventory_id and gr.state>-9
+        left join t_saves_goods_type gt on g.goods_id=gt.id
+        left join sys_user u on u.id=g.user_id
+        where g.id=#{id} and g.state>-2
+    </select>
+
+    <!--根据产品id(已区分公司)查询所有的库存id-->
+    <select id="getGoodsIdByProductId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+         select g.id from t_saves_goods g
+         where g.state=0 and g.goods_id=#{goodsId}
+         <if test="wareId!=null">
+             and g.warehouse_id=#{wareId}
+         </if>
+    </select>
+
+    <!--查询指定用户使用的库存数据的数量-->
+    <select id="getUserApplyCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*)
+        from t_saves_goods g
+        left join t_saves_goods_type gt on g.goods_id=gt.id
+        left join sys_user u on g.user_id=u.id
+        left join t_saves_goods_record record on g.id=record.inventory_id and record.state>-9 and record.state!=5
+        where g.state in(-1,1,2,3) and g.user_id=#{userId} and g.state>-2
+        <if test="codeQc!=null and codeQc!=''">
+            and g.code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="typeQc!=null">
+            and g.type_id=#{typeQc}
+        </if>
+        <if test="stateQc!=null">
+            and g.state=#{stateQc}
+        </if>
+    </select>
+
+    <!--查询指定用户使用的库存数据(出库，报修，报废，归还)-->
+    <select id="getUserApplyData" resultType="java.util.Map" parameterType="java.util.Map">
+        select u.name userName,gt.name goodsName,gt.specs,gt.unit,
+        record.foreign_id foreignId,record.type operateType,record.task_Id taskId,record.state recordState,record.user_id operateUserId,
+        <include refid="selectColumn"/>
+        from t_saves_goods g
+        left join t_saves_goods_type gt on g.goods_id=gt.id
+        left join sys_user u on g.user_id=u.id
+        left join t_saves_goods_record record on g.id=record.inventory_id and record.state>-9 and record.state!=5
+        where g.state in(-1,1,2,3) and g.user_id=#{userId} and g.state>-2
+        <if test="codeQc!=null and codeQc!=''">
+            and g.code like concat('%',#{codeQc},'%')
+        </if>
+        <if test="typeQc!=null">
+            and g.type_id=#{typeQc}
+        </if>
+        <if test="stateQc!=null">
+            and g.state=#{stateQc}
+        </if>
+    </select>
+
+    <!--查询产品库存分页数量-->
+    <select id="getPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*)
+        from t_saves_goods g
+        left join t_saves_goods_type gt on g.goods_id=gt.id
+        left join t_saves_goods_record gr on g.id=gr.inventory_id and gr.state>-9 and gr.state!=5
+        where g.state>-2 and g.company_code=#{companyCode}
+        <if test="typeQc!=null">
+            and g.type_id=#{typeQc}
+        </if>
+        <if test="goodsNameQc!=null and goodsNameQc!=''">
+            and gt.name like concat('%',#{goodsNameQc},'%')
+        </if>
+        <if test="wareIdQc!=null">
+            and g.warehouse_id=#{wareIdQc}
+        </if>
+        <if test="stateQc!=null">
+            and g.state=#{stateQc}
+        </if>
+    </select>
+
+    <!--产品库存列表查询-->
+    <select id="listPg" parameterType="java.util.Map" resultType="java.util.Map">
+        select u.name userName,gt.name goodsName,gt.specs,gt.unit,gt.price,
+        gr.foreign_id foreignId,gr.state recordState,gr.type operateType,gr.task_Id taskId,gr.user_id operateUserId,
+        <include refid="selectColumn"/>
+        from t_saves_goods g
+        left join t_saves_goods_type gt on g.goods_id=gt.id
+        left join t_saves_goods_record gr on g.id=gr.inventory_id and gr.state>-9 and gr.state!=5
+        left join sys_user u on g.user_id=u.id
+        where g.state>-2 and g.company_code=#{companyCode}
+        <if test="typeQc!=null">
+            and g.type_id=#{typeQc}
+        </if>
+        <if test="goodsNameQc!=null and goodsNameQc!=''">
+            and gt.name like concat('%',#{goodsNameQc},'%')
+        </if>
+        <if test="wareIdQc!=null">
+            and g.warehouse_id=#{wareIdQc}
+        </if>
+        <if test="stateQc!=null">
+            and g.state=#{stateQc}
+        </if>
+    </select>
+
+    <!--库存盘点选择产品查询库存产品的数量-->
+    <select id="getTotalAmount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*) from
+        (SELECT g.goods_id from t_saves_goods g
+           where g.state=0 and g.company_code=#{companyCode}
+           <if test="typeIdQc!=null and typeIdQc!=''">
+               and g.type_id=#{typeIdQc}
+           </if>
+           <if test="wareId!=null and wareId!=''">
+                and g.warehouse_id=#{wareId}
+           </if>
+           group by g.goods_id
+        ) t
+    </select>
+
+    <select id="getGoodsList" resultType="java.util.Map" parameterType="java.util.Map">
+        select gt.id,gt.code goodsCode,gt.name goodsName,gt.specs,gt.unit,gt.price,
+        (select count(*) from t_saves_goods g
+        where g.goods_id=gt.id and g.state=0
+            <if test="wareId!=null and wareId!=''">
+                and g.warehouse_id=#{wareId}
+            </if>
+        ) amount
+        from  t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode} and gt.id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+           #{item}
+        </foreach>
+    </select>
+
+    <!--库存盘点选择产品查询库存产品数据-->
+    <select id="queryGoodsData" resultType="java.util.Map" parameterType="java.util.Map">
+        select gt.id,gt.code goodsCode,gt.name goodsName,gt.specs,gt.unit,gt.price,
+        (select count(*) from t_saves_goods g where
+            g.goods_id=gt.id and g.state=0
+            <if test="wareId!=null and wareId!=''">
+                and g.warehouse_id=#{wareId}
+            </if>
+        ) amount
+        from  t_saves_goods_type gt
+        where gt.state>-2 and gt.company_code=#{companyCode}
+        <if test="list.size() > 0">
+            and gt.id in
+            <foreach collection="list" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <!--查询产品库存id-->
+    <select id="getGoodIds" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select g.goods_id goodsId from t_saves_goods g
+        where g.state=0 and g.company_code=#{companyCode}
+        <if test="typeIdQc!=null and typeIdQc!=''">
+            and g.type_id=#{typeIdQc}
+        </if>
+        <if test="wareId!=null and wareId!=''">
+            and g.warehouse_id=#{wareId}
+        </if>
+        group by g.goods_id
+    </select>
+
+    <!--根据产品id产品库存数量-->
+    <select id="getStockAmountById" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT count(*) stockAmount FROM t_saves_goods g
+        where  g.warehouse_id=#{wareId} and g.state=0
+        and g.company_code=#{companyCode} and g.goods_id=#{id}
+    </select>
+</mapper>

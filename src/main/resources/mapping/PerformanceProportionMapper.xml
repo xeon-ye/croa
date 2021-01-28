@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 考核计划实体； -->
+<mapper namespace="com.qinfei.qferp.mapper.performance.PerformanceProportionMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.performance.PerformanceProportion">
+        <id column="pro_id" jdbcType="INTEGER" property="proId"/>
+        <result column="pro_code" jdbcType="VARCHAR" property="proCode"/>
+        <result column="pro_type" jdbcType="INTEGER" property="proType"/>
+        <result column="pro_name" jdbcType="VARCHAR" property="proName"/>
+        <result column="pro_begin" jdbcType="TIMESTAMP" property="proBegin"/>
+        <result column="pro_end" jdbcType="TIMESTAMP" property="proEnd"/>
+        <result column="proportion_self" jdbcType="REAL" property="proportionSelf"/>
+        <result column="proportion_leader" jdbcType="REAL" property="proportionLeader"/>
+        <result column="proportion_group" jdbcType="REAL" property="proportionGroup"/>
+        <result column="pro_used" jdbcType="INTEGER" property="proUsed"/>
+        <result column="pro_notice" jdbcType="INTEGER" property="proNotice"/>
+        <result column="pro_message" jdbcType="INTEGER" property="proMessage"/>
+        <result column="pro_desc" jdbcType="VARCHAR" property="proDesc"/>
+        <result column="dept_id" jdbcType="INTEGER" property="deptId"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="company_code" jdbcType="VARCHAR" property="companyCode"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        pro_id, pro_code, pro_type, pro_name, DATE_FORMAT(pro_begin,"%Y-%m-%d") pro_begin,DATE_FORMAT(pro_end,"%Y-%m-%d") pro_end, proportion_self, proportion_leader,
+        proportion_group, pro_used, pro_notice, pro_message, pro_desc, dept_id,company_code,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where pro_id = #{proId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <select id="getByProId" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where pro_id = #{proId,jdbcType=INTEGER} and state &lt;&gt; -1 and pro_used=0
+    </select>
+
+    <select id="findProportionByCondition" parameterType="java.util.Map" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1 and pro_name =#{proName,jdbcType=VARCHAR} and company_code=#{companyCode}
+    </select>
+
+    <sql id="condition">
+        <if test="proId != null">
+            and pro_id = #{proId}
+        </if>
+        <if test="proCode != null">
+            and pro_code like '%${proCode}%'
+        </if>
+        <if test="proType != null">
+            and pro_type = #{proType}
+        </if>
+        <if test="proName != null">
+            and pro_name like '%${proName}%'
+        </if>
+        <if test="createTimeStart !=null ">
+            AND pro_begin &gt;= #{createTimeStart}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND pro_begin &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="endTimeStart !=null ">
+            AND pro_end &gt;= #{endTimeStart}
+        </if>
+        <if test="endTimeEnd !=null ">
+            AND pro_end &lt;= #{endTimeEnd}
+        </if>
+        <if test="companyCode != null">
+            and dept_id in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2)
+        </if>
+    </sql>
+
+    <!--按照条件获取绩效考核计划-->
+    <select id="getProportionList" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1
+        <include refid="condition"/>
+    </select>
+
+    <!--按类型查询所有的绩效考核计划-->
+    <select id="getList" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1
+        and pro_type = #{type,jdbcType=INTEGER}
+        and company_Code = #{companyCode,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取所有的考核计划-->
+    <select id="getAllProportion" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1
+        and company_Code = #{companyCode,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取当天数据,用于启动流程-->
+    <select id="getTodayData" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1
+        and pro_notice = 0 and pro_used = 0
+        and to_days(pro_begin) = to_days(now())
+    </select>
+
+    <!--获取当前时间大于等于开始时间，小于等于结束时间的数据-->
+    <select id="getData" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from e_performance_proportion
+        where state &lt;&gt; -1
+        and pro_message = 0 and pro_used = 0
+        <![CDATA[and to_days(now())>= to_days(pro_begin) and  to_days(now())<= to_days(pro_end)]]>
+    </select>
+
+    <!--伪删除-->
+    <update id="deleteById" parameterType="java.lang.Integer">
+        update e_performance_proportion
+        set state = -1
+        where pro_id = #{proportionId} and state &lt;&gt; -1
+    </update>
+
+    <!--修改启用状态-->
+    <update id="updateById" parameterType="java.lang.Integer">
+        update e_performance_proportion
+        set pro_used = #{proUsed}
+        where pro_id = #{proportionId} and state &lt;&gt; -1
+    </update>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.performance.PerformanceProportion" useGeneratedKeys="true"
+            keyProperty="proId">
+        insert into e_performance_proportion (pro_id, pro_code, pro_type,
+        pro_name, pro_begin, pro_end,
+        proportion_self, proportion_leader, proportion_group,
+        pro_used, pro_notice, pro_message,
+        pro_desc, dept_id,company_code,
+        <include refid="EmployCommon.commonColumn"/>
+        )
+        values (#{proId,jdbcType=INTEGER}, #{proCode,jdbcType=VARCHAR}, #{proType,jdbcType=INTEGER},
+        #{proName,jdbcType=VARCHAR}, #{proBegin,jdbcType=TIMESTAMP}, #{proEnd,jdbcType=TIMESTAMP},
+        #{proportionSelf,jdbcType=REAL}, #{proportionLeader,jdbcType=REAL}, #{proportionGroup,jdbcType=REAL},
+        #{proUsed,jdbcType=INTEGER}, #{proNotice,jdbcType=INTEGER}, #{proMessage,jdbcType=INTEGER},
+        #{proDesc,jdbcType=VARCHAR},#{deptId,jdbcType=INTEGER},#{companyCode,jdbcType=VARCHAR},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceProportion"
+            useGeneratedKeys="true" keyProperty="proId">
+        insert into e_performance_proportion
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="proId != null">
+                pro_id,
+            </if>
+            <if test="proCode != null">
+                pro_code,
+            </if>
+            <if test="proType != null">
+                pro_type,
+            </if>
+            <if test="proName != null">
+                pro_name,
+            </if>
+            <if test="proBegin != null">
+                pro_begin,
+            </if>
+            <if test="proEnd != null">
+                pro_end,
+            </if>
+            <if test="proportionSelf != null">
+                proportion_self,
+            </if>
+            <if test="proportionLeader != null">
+                proportion_leader,
+            </if>
+            <if test="proportionGroup != null">
+                proportion_group,
+            </if>
+            <if test="proUsed != null">
+                pro_used,
+            </if>
+            <if test="proNotice != null">
+                pro_notice,
+            </if>
+            <if test="proMessage != null">
+                pro_message,
+            </if>
+            <if test="proDesc != null">
+                pro_desc,
+            </if>
+            <if test="deptId != null">
+                dept_id,
+            </if>
+            <if test="companyCode != null">
+                company_code,
+            </if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="proId != null">
+                #{proId,jdbcType=INTEGER},
+            </if>
+            <if test="proCode != null">
+                #{proCode,jdbcType=VARCHAR},
+            </if>
+            <if test="proType != null">
+                #{proType,jdbcType=INTEGER},
+            </if>
+            <if test="proName != null">
+                #{proName,jdbcType=VARCHAR},
+            </if>
+            <if test="proBegin != null">
+                #{proBegin,jdbcType=TIMESTAMP},
+            </if>
+            <if test="proEnd != null">
+                #{proEnd,jdbcType=TIMESTAMP},
+            </if>
+            <if test="proportionSelf != null">
+                #{proportionSelf,jdbcType=REAL},
+            </if>
+            <if test="proportionLeader != null">
+                #{proportionLeader,jdbcType=REAL},
+            </if>
+            <if test="proportionGroup != null">
+                #{proportionGroup,jdbcType=REAL},
+            </if>
+            <if test="proUsed != null">
+                #{proUsed,jdbcType=INTEGER},
+            </if>
+            <if test="proNotice != null">
+                #{proNotice,jdbcType=INTEGER},
+            </if>
+            <if test="proMessage != null">
+                #{proMessage,jdbcType=INTEGER},
+            </if>
+            <if test="proDesc != null">
+                #{proDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="deptId != null">
+                #{deptId,jdbcType=INTEGER},
+            </if>
+            <if test="companyCode != null">
+                #{companyCode,jdbcType=VARCHAR},
+            </if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceProportion">
+        update e_performance_proportion
+        <include refid="EmployCommon.deleteInfo"/>
+        where pro_id = #{proId} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.performance.PerformanceProportion">
+        update e_performance_proportion
+        <set>
+            <if test="proCode != null">
+                pro_code = #{proCode,jdbcType=VARCHAR},
+            </if>
+            <if test="proType != null">
+                pro_type = #{proType,jdbcType=INTEGER},
+            </if>
+            <if test="proName != null">
+                pro_name = #{proName,jdbcType=VARCHAR},
+            </if>
+            <if test="proBegin != null">
+                pro_begin = #{proBegin,jdbcType=TIMESTAMP},
+            </if>
+            <if test="proEnd != null">
+                pro_end = #{proEnd,jdbcType=TIMESTAMP},
+            </if>
+            <if test="proportionSelf != null">
+                proportion_self = #{proportionSelf,jdbcType=REAL},
+            </if>
+            <if test="proportionLeader != null">
+                proportion_leader = #{proportionLeader,jdbcType=REAL},
+            </if>
+            <if test="proportionGroup != null">
+                proportion_group = #{proportionGroup,jdbcType=REAL},
+            </if>
+            <if test="proUsed != null">
+                pro_used = #{proUsed,jdbcType=INTEGER},
+            </if>
+            <if test="proNotice != null">
+                pro_notice = #{proNotice,jdbcType=INTEGER},
+            </if>
+            <if test="proMessage != null">
+                pro_message = #{proMessage,jdbcType=INTEGER},
+            </if>
+            <if test="proDesc != null">
+                pro_desc = #{proDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="deptId != null">
+                dept_id = #{deptId,jdbcType=INTEGER},
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where pro_id = #{proId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.performance.PerformanceProportion">
+        update e_performance_proportion
+        set pro_code = #{proCode,jdbcType=VARCHAR},
+        pro_type = #{proType,jdbcType=INTEGER},
+        pro_name = #{proName,jdbcType=VARCHAR},
+        pro_begin = #{proBegin,jdbcType=TIMESTAMP},
+        pro_end = #{proEnd,jdbcType=TIMESTAMP},
+        proportion_self = #{proportionSelf,jdbcType=REAL},
+        proportion_leader = #{proportionLeader,jdbcType=REAL},
+        proportion_group = #{proportionGroup,jdbcType=REAL},
+        pro_used = #{proUsed,jdbcType=INTEGER},
+        pro_notice = #{proNotice,jdbcType=INTEGER},
+        pro_message = #{proMessage,jdbcType=INTEGER},
+        pro_desc = #{proDesc,jdbcType=VARCHAR},
+        dept_id = #{deptId,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where pro_id = #{proId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

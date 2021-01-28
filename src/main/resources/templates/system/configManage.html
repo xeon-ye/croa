@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>系统配置管理</title>
+    <!--<link href="/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">-->
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/system/configManage.js"></script>
+    <style type="text/css">
+        .layui-table{
+            margin: unset !important;
+        }
+        .layui-table td, .layui-table th{
+            padding: unset !important;
+            text-align: center;
+        }
+        .layui-table td input{
+            text-align: center;
+        }
+
+        /*渲染JSON格式效果样式开始*/
+        pre {outline: 1px solid #ccc; padding: 5px; width: 100%;height: 100%;}
+        .string { color: green; }
+        .number { color: darkorange; }
+        .boolean { color: blue; }
+        .null { color: magenta; }
+        .key { color: red; }
+        /*渲染JSON格式效果样式结束*/
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $(function () {
+            //回车提交事件
+            $('#queryForm').on('keypress', function (event) {
+                if (event.keyCode == "13") {
+                    $("#search").click();
+                }
+            });
+
+            //使用layui表单，下拉列表改变事件
+            layui.use('form', function(){
+                var form = layui.form;
+                //配置改变事件
+                form.on('select(queryConfigType)', function(data){
+                    searchForm.search();
+                });
+                //数据类型改变事件
+                form.on('select(queryDataType)', function(data){
+                   searchForm.search();
+                });
+                //数据类型改变事件
+                form.on('select(state)', function(data){
+                    searchForm.search();
+                });
+                //配置改变事件
+                form.on('select(configType)', function(data){
+                    if(data.value != 'other'){
+                        if(data.value != "user_id" && data.value != "dept_id" && data.value != "media_plate" && data.value != "media_parent_plate"){
+                            $("#addSysConfigFormData select[name='dataType']").html("" +
+                                "<option value=\"string\" selected>String</option>\n" +
+                                "<option value=\"list\">List</option>\n" +
+                                "<option value=\"json\">Json</option>\n"
+                            );
+                        }else {
+                            $("#addSysConfigFormData select[name='dataType']").html("" +
+                                "<option value=\"string\" selected>String</option>\n" +
+                                "<option value=\"list\">List</option>\n" +
+                                "<option value=\"json\">Json</option>\n" +
+                                "<option value=\"int\">Integer</option>\n" +
+                                "<option value=\"float\">Float</option>\n" +
+                                "<option value=\"double\">Double</option>\n"
+                            );
+                        }
+                    }else {
+                        $("#addSysConfigFormData select[name='dataType']").html("" +
+                            "<option value=\"string\" selected>String</option>\n" +
+                            "<option value=\"list\">List</option>\n" +
+                            "<option value=\"json\">Json</option>\n" +
+                            "<option value=\"int\">Integer</option>\n" +
+                            "<option value=\"float\">Float</option>\n" +
+                            "<option value=\"double\">Double</option>\n" +
+                            "<option value=\"date\">Date</option>\n"
+                        );
+                    }
+                    opConfigObj.configValueShow($("#addSysConfigFormData  select[name='dataType']").val(), data.value);
+                    form.render("select");
+                });
+                //数据类型改变事件
+                form.on('select(dataType)', function(data){
+                    if(data.value == "list" || data.value == "date"){
+                        $("#addSysConfigFormData input[name='configPattern']").val("");
+                        $("#addSysConfigFormData input[name='configPattern']").removeAttr("readonly");
+                    }else {
+                        $("#addSysConfigFormData input[name='configPattern']").val("");
+                        $("#addSysConfigFormData input[name='configPattern']").attr("readonly", "true");
+                    }
+                    opConfigObj.configValueShow(data.value, $("#addSysConfigFormData select[name='configType']").val());
+                });
+
+                //表格复选框事件
+                form.on('checkbox(valueAllChoose)', function(data){
+                    var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+                    child.each(function(index, item){
+                        item.checked = data.elem.checked;
+                    });
+                    form.render('checkbox');
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--查询条件-->
+<form id="queryForm">
+    <div class="ibox-title">
+        <h4>查询条件</h4>
+    </div>
+    <div class="ibox-content">
+        <div class="form-horizontal">
+            <div class="form-group" >
+                <label class="col-sm-1 control-label right0">功能名称:</label>
+                <div class="col-sm-2">
+                    <input type="text" placeholder="功能名称" name="configTitle" class="form-control height18"/>
+                </div>
+                <label class="col-sm-1 control-label right0">配置项键:</label>
+                <div class="col-sm-2">
+                    <input type="text" placeholder="配置项键" name="configKey" class="form-control height18"/>
+                </div>
+                <label class="col-sm-1 control-label right0">配置类型:</label>
+                <div class="col-sm-2 layui-form">
+                    <select name="configType" class="form-control height18" lay-search lay-filter="queryConfigType">
+                        <option value="">请选择配置类型</option>
+                        <option value="other">其他</option>
+                        <option value="company_code">公司代码</option>
+                        <option value="user_id">用户ID</option>
+                        <option value="dept_id">部门ID</option>
+                        <option value="dept_type">部门类型</option>
+                        <option value="dept_code">部门编码</option>
+                        <option value="role_type">角色类型</option>
+                        <option value="role_code">角色编码</option>
+                        <option value="media_plate">媒体板块</option>
+                        <option value="media_parent_plate">媒体父板块</option>
+                    </select>
+                </div>
+                <label class="col-sm-1 control-label right0">数据类型:</label>
+                <div class="col-sm-2 layui-form">
+                    <select name="dataType" class="form-control height18" lay-search lay-filter="queryDataType">
+                        <option value="">请选择数据类型</option>
+                        <option value="string">String</option>
+                        <option value="list">List</option>
+                        <option value="json">Json</option>
+                        <option value="int">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="double">Double</option>
+                        <option value="date">Date</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" >
+                <label class="col-sm-1 control-label right0">是否启用:</label>
+                <div class="col-sm-2 layui-form">
+                    <select name="state" class="form-control height18" lay-search lay-filter="state">
+                        <option value="">请选择状态</option>
+                        <option value="0">启用</option>
+                        <option value="1">禁用</option>
+                    </select>
+                </div>
+                <div class="col-sm-1" style="padding-top: 3px;">
+                    <button type="button" id="searchButton" class="btn btn-primary" onclick="searchForm.search();">
+                        <i class="fa fa-search"></i>&nbsp;&nbsp;查询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row" >
+    <div class="ibox">
+        <div class="ibox-title">
+            <button onclick="opConfigObj.addBtnClick();" class="btn btn-danger" type="button" style="margin-left: 15px;">
+                <i class="fa fa-plus"></i>&nbsp;&nbsp;新增配置&nbsp;
+            </button>
+            <button  onclick="opConfigObj.lookConfig();" class="btn btn-info" type="button" style="margin-left: 15px;">
+                <i class="fa fa-search"></i>&nbsp;&nbsp;配置预览&nbsp;
+            </button>
+        </div>
+        <div class="ibox-content"  style="padding-right: 0px !important;padding-left: 15px !important;margin: 0 auto;">
+            <!--内容-->
+            <div style="border-bottom: 1px solid #c9c9c9;width: 100%;">
+                <!--日期列表-->
+                <div class="jqGrid_wrapper">
+                    <table id="sysConfigTable"></table>
+                    <div id="sysConfigTablePaper"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!--JSON格式页面渲染-->
+<div id="jsonLook" style="display: none;">
+    <pre id="result"></pre>
+</div>
+</body>
+<!--新增系统配置-->
+<div class="modal inmodal fade" id="addSysConfigModal"  role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" style="width: 70%;">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px">
+                <h6 id="modalTitle" class="modal-title">添加系统配置</h6>
+            </div>
+            <div class="modal-body" style="margin-top: 0px;height: 530px;">
+                <form id="addSysConfigFormData" autocomplete="off" class="form-horizontal" method="post">
+                    <input type="hidden" id="id" name="id">
+                    <div class="col-md-11">
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red">*</span>功能名称:
+                            </label>
+                            <div class="col-sm-9">
+                                <input name="configTitle" placeholder="请输入配置功能名称" maxlength="256" required type="text" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red">*</span>配置类型:
+                            </label>
+                            <div class="col-sm-3 layui-form">
+                                <select name="configType" class="form-control height18" lay-search lay-filter="configType">
+                                    <option value="other" selected>其他</option>
+                                    <option value="company_code">公司代码</option>
+                                    <option value="user_id">用户ID</option>
+                                    <option value="dept_id">部门ID</option>
+                                    <option value="dept_type">部门类型</option>
+                                    <option value="dept_code">部门编码</option>
+                                    <option value="role_type">角色类型</option>
+                                    <option value="role_code">角色编码</option>
+                                    <option value="media_plate">媒体板块</option>
+                                    <option value="media_parent_plate">媒体父板块</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red">*</span>数据类型:
+                            </label>
+                            <div class="col-sm-3 layui-form">
+                                <select name="dataType" class="form-control height18" lay-search lay-filter="dataType">
+                                    <option value="string" selected>String</option>
+                                    <option value="list">List</option>
+                                    <option value="json">Json</option>
+                                    <option value="int">Integer</option>
+                                    <option value="float">Float</option>
+                                    <option value="double">Double</option>
+                                    <option value="date">Date</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red">*</span>配置项键:
+                            </label>
+                            <div class="col-sm-3">
+                                <input name="configKey" onkeyup="value=value.replace(/[^A-Za-z0-9]/g,'')" placeholder="请输入配置项键" maxlength="128" required type="text" class="form-control"/>
+                            </div>
+                            <label class="col-sm-3 control-label">
+                                数据规则:
+                            </label>
+                            <div class="col-sm-3">
+                                <input name="configPattern" title="请输入数据分割符/日期格式，对应数据类型为List或Date时使用" readonly placeholder="请输入数据分割符/日期格式，对应数据类型为List或Date时使用" maxlength="32" type="text" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-3 control-label">
+                                <span class="text-red">*</span>配置项值:
+                            </label>
+                            <div class="col-sm-9 layui-form">
+                                <textarea id="configValue" name="configValue" placeholder="请输入配置项值" required type="text" class="form-control" style="height: 200px;width: 100%;"></textarea>
+                                <div id="configJsonValue" style="border: 1px solid #eee;width: 100%;height: 200px;overflow-y: auto;display: none">
+                                    <table class="layui-table layui-form" style="table-layout:fixed;">
+                                        <colgroup>
+                                            <col width="45%">
+                                            <col width="45%">
+                                            <col width="10%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th title="Key">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    Key
+                                                </div>
+                                            </th>
+                                            <th title="Value">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    Value
+                                                </div>
+                                            </th>
+                                            <th>
+                                                <button onclick="opConfigObj.renderJsonValue();" class="btn btn-default" type="button" >
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="configJsonBody">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="configListValue" style="border: 1px solid #eee;width: 100%;height: 200px;overflow-y: auto;display: none;">
+                                    <table class="layui-table layui-form" style="table-layout:fixed;">
+                                        <colgroup>
+                                            <col width="10%">
+                                            <col width="10%">
+                                            <col width="40%">
+                                            <col width="40%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" lay-skin="primary" lay-filter="valueAllChoose">
+                                            </th>
+                                            <th title="序号">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    序号
+                                                </div>
+                                            </th>
+                                            <th title="配置值">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    配置值
+                                                </div>
+                                            </th>
+                                            <th title="中文描述">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    中文描述
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="configListBody">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="configRadioValue" style="border: 1px solid #eee;width: 100%;height: 200px;overflow-y: auto;display: none;">
+                                    <table class="layui-table layui-form" style="table-layout:fixed;">
+                                        <colgroup>
+                                            <col width="10%">
+                                            <col width="10%">
+                                            <col width="40%">
+                                            <col width="40%">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th>
+
+                                            </th>
+                                            <th title="序号">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    序号
+                                                </div>
+                                            </th>
+                                            <th title="配置值">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    配置值
+                                                </div>
+                                            </th>
+                                            <th title="中文描述">
+                                                <div style="width: 98%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+                                                    中文描述
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="configRadioBody">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-3 control-label">
+                                配置描述:
+                            </label>
+                            <div class="col-sm-9">
+                                <textarea name="configDesc" placeholder="请输入配置项描述，详细描述配置作用" maxlength="1024" class="form-control" style="height: 60px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                <button type="button" id="saveBtn" class="btn btn-primary" onclick="opConfigObj.save('/sysConfig/save');">
+                    <i class="fa fa-save"></i>&nbsp;保存
+                </button>
+                <button type="button" id="updateBtn" class="btn btn-primary" onclick="opConfigObj.save('/sysConfig/update');" style="display: none;">
+                    <i class="fa fa-save"></i>&nbsp;修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

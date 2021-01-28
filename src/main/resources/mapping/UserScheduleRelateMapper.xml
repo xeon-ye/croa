@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.schedule.UserScheduleRelateMapper">
+    <sql id="selectColumn">
+       tusr.id,
+       tusr.schedule_id as scheduleId,
+       tusr.remind_date as remindDate,
+       tusr.repeat_date as repeatDate,
+       tusr.create_id as createId,
+       tusr.update_date as updateDate,
+       tusr.update_id as updateId,
+       tusr.state
+    </sql>
+
+    <!--批量增加日程对应提醒时间-->
+    <insert id="batchSave" parameterType="com.qinfei.qferp.entity.schedule.UserScheduleRelate">
+        insert into t_user_schedule_relate (
+          schedule_id,
+          remind_date,
+          repeat_date,
+          create_id,
+          update_date,
+          update_id,
+          state
+        )
+        values
+        <foreach collection="list" item="userScheduleRelate" index="index" separator=",">
+            (
+              #{userScheduleRelate.scheduleId},
+              #{userScheduleRelate.remindDate},
+              #{userScheduleRelate.repeatDate},
+              #{userScheduleRelate.createId},
+              #{userScheduleRelate.updateDate},
+              #{userScheduleRelate.updateId},
+              0
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateSchedule"  parameterType="java.lang.Integer">
+        UPDATE t_user_schedule_relate
+        <set>
+            <if test="updateId !=null">update_id=#{updateId},</if>
+            <if test="updateDate !=null">update_date=#{updateDate},</if>
+            <if test="state !=null">state=#{state},</if>
+        </set>
+        where
+        schedule_id in
+        <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+
+    </update>
+</mapper>

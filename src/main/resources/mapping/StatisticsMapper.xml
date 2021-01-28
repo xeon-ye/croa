@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.crm.StatisticsMapper">
+    <!--权限相关-->
+    <!--<sql id="userQxSql">-->
+    <!--<if test="currentDeptQx == 'true'">-->
+    <!--<if test="currentDeptId != null and currentDeptId != ''">-->
+    <!--inner join(-->
+    <!--select u.id uid,d.id did from sys_dept d-->
+    <!--inner join sys_user u-->
+    <!--on u.dept_id = d.id-->
+    <!--where find_in_set(d.id,getChilds(#{currentDeptId}))-->
+    <!--)usersdepts-->
+    <!--${userTj}-->
+    <!--</if>-->
+    <!--</if>-->
+    <!--</sql>-->
+    <sql id="userQxSql">
+        <if test="(currentUserId!=null and currentUserId!='' and currentUserId!=0) or (companyCode!= null and companyCode != '') or (deptIds!= null and deptIds != '')">
+        ,sys_user u
+        <where>
+            <choose>
+                <when test="currentUserId!=null and currentUserId!='' and currentUserId!=0">
+                    and u.id=#{currentUserId}
+                </when>
+                <otherwise>
+                    <if test="companyCode!= null and companyCode != '' and companyCode != 'XH'">
+                        AND u.company_code=#{companyCode}
+                    </if>
+                    <if test="deptIds!= null and deptIds != ''">
+                        AND u.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+            <if test="userTj != ''">
+                ${userTj}
+            </if>
+        </where>
+        </if>
+    </sql>
+    <!--权限功能：currentUserId为指定人员，不选默认全部-->
+    <sql id="currentUserQX">
+        <if test="(currentUserId != null and currentUserId != '' and currentUserId != 0) or (deptIds != null and deptIds != '') or (companyCode != null and companyCode != '')">
+            inner join sys_user su on ${userTj}
+            <choose>
+                <when test="currentUserId != null and currentUserId != '' and currentUserId != 0">
+                    and su.id = #{currentUserId}
+                </when>
+                <otherwise>
+                    <!--如果仅指定了公司，则按照公司查询，如果指定集团，则查询所有-->
+                    <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                        AND su.company_code = #{companyCode}
+                    </if>
+                    <if test="deptIds != '' and deptIds != null">
+                        AND su.`dept_id` IN (${deptIds})
+                    </if>
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <!--时间条件：最近时间-->
+    <sql id="recentTime">
+        <!--本月-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(${timeField}, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+        <!--本年-->
+        <if test="timeQuantum == 2">
+            and DATE_FORMAT(${timeField}, '%Y') = DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 3">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND ${timeField} <![CDATA[>=]]> STR_TO_DATE(CONCAT(#{issuedDateStart},' 00:00:00'),'%Y/%m/%d %T')
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND ${timeField} <![CDATA[<=]]> STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+        </if>
+    </sql>
+    <!--时间条件：最近时间之外-->
+    <sql id="recentTimeOutside">
+        <!--本月-->
+        <if test="timeQuantum == 1">
+            and DATE_FORMAT(${timeField}, '%Y%m') <![CDATA[<>]]> DATE_FORMAT(CURDATE(), '%Y%m')
+        </if>
+        <!--本年-->
+        <if test="timeQuantum == 2">
+            and DATE_FORMAT(${timeField}, '%Y') <![CDATA[<>]]> DATE_FORMAT(CURDATE(), '%Y')
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 3">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                AND ${timeField} <![CDATA[<]]> STR_TO_DATE(CONCAT(#{issuedDateStart},' 00:00:00'),'%Y/%m/%d %T')
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                AND ${timeField} <![CDATA[>]]> STR_TO_DATE(CONCAT(#{issuedDateEnd},' 23:59:59'),'%Y/%m/%d %T')
+            </if>
+        </if>
+    </sql>
+    <!--最近时间新成交客户条件-->
+    <sql id="newTransCustSql">
+        AND NOT EXISTS (
+        SELECT
+          1
+        FROM
+        t_biz_order ordn
+        INNER JOIN t_biz_article art ON art.order_id = ordn.id
+        AND art.state = 1 and art.issue_states = 4
+        WHERE
+        ordn.state > 0
+        AND ${custTj}
+        <include refid="recentTimeOutside">
+            <property name="timeField" value=" ordn.create_date"/>
+        </include>
+        )
+    </sql>
+    <!--统计基础表-->
+    <sql id="statisticsBasicTable">
+        SELECT
+        tba.id,
+        tba.order_id,
+        tba.media_id,
+        tm.`name` AS mediaName,
+        tmt.id AS mediaTypeId,
+        tmt.`name` AS mediaTypeName,
+        tba.supplier_id,
+        tba.supplier_name,
+        tba.supplier_contactor,
+        tba.media_user_id,
+        tba.media_user_name,
+        tba.title,
+        tba.sale_amount,
+        tba.income_amount,
+        IF(tba.income_states != 1,IFNULL(tba.sale_amount,0)-IFNULL(tba.income_amount,0),0) as noIncomeAmount,
+        (case when TIMESTAMPDIFF(DAY,promise_date,now()) &gt; 0 and tba.income_states != 1
+        then (IFNULL(tba.sale_amount,0) - IFNULL(tba.income_amount,0)) else 0 end
+        ) as dqysIncomeAmount,
+        tba.pay_amount,
+        tba.outgo_amount,
+        tba.income_total_amount,
+        tba.other_pay,
+        tba.refund_amount,
+        tba.issued_date,
+        tbo.company_id as custCompanyId,
+        tbo.company_name as custCompanyName,
+        tbo.cust_id AS custId,
+        tbo.cust_name as custName,
+        tbo.user_id AS businessUserId,
+        tbo.user_name as businessUserName,
+        tba.profit as profit
+        FROM t_biz_article tba
+        INNER JOIN t_biz_order tbo ON tba.order_id = tbo.id AND tbo.order_type = 1
+        INNER JOIN t_media1 tm ON tm.id = tba.media_id
+        LEFT  JOIN t_media_plate tmt ON tm.plate_id = tmt.id AND tmt.is_delete = 0
+        <include refid="currentUserQX">
+            <property name="userTj" value=" su.id = tbo.user_id"/>
+        </include>
+        WHERE tba.state = 1 and tba.issue_states = 4
+        <!--板块-->
+        <if test="mediaType != null and mediaType != ''">
+            AND tmt.id = #{mediaType}
+        </if>
+        <!--媒体-->
+        <if test="mediaId != null and mediaId != ''">
+            AND tba.media_id = #{mediaId}
+        </if>
+        <!--客户ID-->
+        <if test="custId != null  and custId != ''">
+            AND tbo.cust_id = #{custId}
+        </if>
+        <include refid="recentTime">
+            <property name="timeField" value="tba.issued_date"/>
+        </include>
+        <!--是否统计新成交客户：newTransCustSql：true-是，false-否-->
+        <if test="newCustFlag">
+            <include refid="newTransCustSql">
+                <property name="custTj" value=" ordn.cust_id = tbo.cust_id"/>
+            </include>
+        </if>
+    </sql>
+    <!--客户统计-->
+    <select id="getCustStatisticsByParam"  resultType="java.util.Map">
+        SELECT
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.dqysIncomeAmount),0) AS dqysIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+    </select>
+    <!--客户趋势图-->
+    <select id="listCustTrendStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d') as time,
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m') as time,
+            </otherwise>
+        </choose>
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.dqysIncomeAmount),0) AS dqysIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by
+        <choose>
+            <when test="timeQuantum == 1">
+                DATE_FORMAT(t.issued_date,'%Y-%m-%d')
+            </when>
+            <otherwise>
+                DATE_FORMAT(t.issued_date,'%Y-%m')
+            </otherwise>
+        </choose>
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+                time asc
+            </otherwise>
+        </choose>
+    </select>
+    <!--客户板块占比-->
+    <select id="listCustMediaTypeStatisticsByParam" resultType="java.util.Map">
+        SELECT
+        t.mediaTypeId as mediaTypeId,
+        t.mediaTypeName as mediaTypeName,
+        count(t.id) AS articleNum,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.outgo_amount),0) AS payAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.mediaTypeId,t.mediaTypeName
+    </select>
+    <!--统计客户排名-->
+    <select id="listCustStatisticsRankingByParam" resultType="java.util.Map">
+        SELECT
+        t.businessUserId as userId,
+        t.custId as custId,
+        t.custName as custName,
+        t.custCompanyName as companyName,
+        ifnull(sum(t.sale_amount),0) AS saleAmount,
+        ifnull(sum(t.noIncomeAmount),0) AS noIncomeAmount,
+        ifnull(sum(t.dqysIncomeAmount),0) AS dqysIncomeAmount,
+        ifnull(sum(t.profit),0) AS profit
+        FROM (<include refid="statisticsBasicTable"/>) t
+        group by t.businessUserId , t.custId , t.custName , t.custCompanyName
+        ORDER BY
+        <choose>
+            <when test="sidx != null and sidx != ''">
+                ${sidx} ${sord}
+            </when>
+            <otherwise>
+              <choose>
+                  <when test="rankType == 1">
+                      saleAmount DESC
+                  </when>
+                  <when test="rankType == 2">
+                      noIncomeAmount DESC
+                  </when>
+                  <when test="rankType == 4">
+                      dqysIncomeAmount DESC
+                  </when>
+                  <when test="rankType == 5">
+                      profit DESC
+                  </when>
+                  <otherwise>
+                      saleAmount DESC
+                  </otherwise>
+              </choose>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--目前客户统计暂时不用-旧代码-->
+    <select id="statisticsResult" resultType="map">
+        SELECT
+        <if test="timeQuantum == 1">
+            month(art.issued_date) month,
+        </if>
+        <if test="timeQuantum == 2">
+            month(art.issued_date) month,
+        </if>
+        <if test="timeQuantum == 3">
+            month(art.issued_date) month,
+        </if>
+        <if test="timeQuantum == 4">
+            day(art.issued_date) month,
+        </if>
+        <if test="timeQuantum == 5">
+            concat(concat(#{issuedDateStart},'至'),#{issuedDateEnd}) month,
+        </if>
+        sum(sale_amount) saleAmount,
+        sum(profit) profitAmount,
+        sum(sale_amount - income_amount) noIncomeAmount,
+        sum(
+        case when TIMESTAMPDIFF(MONTH,issued_date,now()) &gt;= 3
+        then (sale_amount - income_amount) else 0 end
+        ) yqIncomeAmount,
+        sum(
+        case when TIMESTAMPDIFF(DAY,promise_date,now()) &gt; 0
+        then (sale_amount - income_amount) else 0 end
+        ) dqysIncomeAmount
+        FROM t_biz_article art
+        left join t_media med
+        on med.id = art.media_id
+        left join t_biz_order ord
+        on ord.id = art.order_id
+        <!--权限相关,统计当前部门-->
+        <include refid="userQxSql">
+            <property name="userTj" value="and u.id = ord.user_id"/>
+        </include>
+        <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+            where 1=1
+        </if>
+        and art.state = 1 and art.issue_states = 4
+        <!--权限相关，统计当前用户-->
+        <if test="currentUserId != null and currentUserId != ''">
+            and ord.user_id = #{currentUserId}
+        </if>
+        <!--业务员-->
+        <if test="worker != null and worker != ''">
+            and ord.user_id = #{worker}
+        </if>
+        <!--对接人-->
+        <if test="docPeo != null and docPeo != ''">
+            and ord.cust_id = #{docPeo}
+        </if>
+        <!--稿件类型-->
+        <if test="artType != null and artType != ''">
+            and med.m_type = #{artType}
+        </if>
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and art.issued_date &gt;= concat(year(now()),'-01-01')
+            and art.issued_date &lt;= concat(year(now()),'-12-31')
+            group by month(art.issued_date)
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(art.issued_date) = year(now())
+            and QUARTER(art.issued_date) = QUARTER(now())
+            group by month(art.issued_date)
+        </if>
+        <!--本月份-->
+        <if test="timeQuantum == 3">
+            and year(art.issued_date) = year(now())
+            and month(art.issued_date) = month(now())
+            group by month(art.issued_date)
+        </if>
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(art.issued_date) = year(now())
+            and month(art.issued_date) = month(now())
+            and day(art.issued_date) = day(now())
+            group by day(art.issued_date)
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            <if test="issuedDateStart != null and issuedDateStart != ''">
+                and art.issued_date &gt;= #{issuedDateStart}
+            </if>
+            <if test="issuedDateEnd != null and issuedDateEnd != ''">
+                and art.issued_date &lt;= #{issuedDateEnd}
+            </if>
+        </if>
+        order by month
+    </select>
+
+    <!--统计客户排名-->
+    <select id="statisticsRanking" resultType="map">
+        SELECT
+        ord.company_name companyName,
+        ord.cust_name custName,
+        sum(sale_amount) saleAmount,
+        sum(profit) profitAmount,
+        sum(sale_amount - income_amount) noIncomeAmount,
+        sum(
+        case when TIMESTAMPDIFF(MONTH,issued_date,now()) &gt;= 3
+        then (sale_amount - income_amount) else 0 end
+        ) yqIncomeAmount,
+        sum(
+        case when TIMESTAMPDIFF(DAY,promise_date,now()) &gt; 0
+        then (sale_amount - income_amount) else 0 end
+        ) dqysIncomeAmount
+        FROM
+        t_biz_article art
+        LEFT JOIN
+        t_biz_order ord ON ord.id = art.order_id
+        LEFT JOIN
+        t_media med ON med.id = art.media_id
+        <!--权限相关,统计当前部门-->
+        <!--<include refid="userQxSql">-->
+        <!--<property name="userTj" value="on usersdepts.uid = ord.user_id"></property>-->
+        <!--</include>      -->
+        <include refid="userQxSql">
+            <property name="userTj" value="and u.id = ord.user_id"/>
+        </include>
+        <if test="(currentUserId==null or currentUserId=='' or currentUserId==0) and (companyCode== null or companyCode == '') and (deptIds== null or deptIds == '')">
+            where 1=1
+        </if>
+        and art.state = 1 and art.issue_states = 4
+        <!--权限相关，统计当前用户-->
+        <if test="currentUserId != null and currentUserId != ''">
+            and ord.user_id = #{currentUserId}
+        </if>
+        <!--业务员-->
+        <if test="worker != null and worker != ''">
+            and ord.user_id = #{worker}
+        </if>
+        <!--对接人-->
+        <if test="docPeo != null and docPeo != ''">
+            and ord.cust_id = #{docPeo}
+        </if>
+        <!--稿件类型-->
+        <if test="artType != null and artType != ''">
+            and med.m_type = #{artType}
+        </if>
+        <!--本年度-->
+        <if test="timeQuantum == 1">
+            and art.issued_date &gt;= concat(year(now()),'-01-01')
+            and art.issued_date &lt;= concat(year(now()),'-12-31')
+        </if>
+        <!--本季度-->
+        <if test="timeQuantum == 2">
+            and year(art.issued_date) = year(now())
+            and QUARTER(art.issued_date) = QUARTER(now())
+        </if>
+        <!--本月份-->
+        <if test="timeQuantum == 3">
+            and year(art.issued_date) = year(now())
+            and month(art.issued_date) = month(now())
+        </if>
+        <!--当天-->
+        <if test="timeQuantum == 4">
+            and year(art.issued_date) = year(now())
+            and month(art.issued_date) = month(now())
+            and day(art.issued_date) = day(now())
+        </if>
+        <!--时间区间-->
+        <if test="timeQuantum == 5">
+            and art.issued_date &gt;= #{issuedDateStart}
+            and art.issued_date &lt;= #{issuedDateEnd}
+        </if>
+
+        GROUP BY ord.cust_id , ord.cust_name , ord.company_name
+
+        <if test="jeType == 1">
+            ORDER BY saleAmount DESC
+        </if>
+
+        <if test="jeType == 2">
+            ORDER BY noIncomeAmount DESC
+        </if>
+
+        <if test="jeType == 3">
+            ORDER BY yqIncomeAmount DESC
+        </if>
+
+        <if test="jeType == 4">
+            ORDER BY dqysIncomeAmount DESC
+        </if>
+
+        <if test="jeType == 5">
+            ORDER BY profitAmount DESC
+        </if>
+    </select>
+
+    <!--根据权限和角色查询用户-->
+    <select id="deptUsers" parameterType="map" resultType="map">
+        select u.* from sys_user u,sys_role r,sys_user_role ur where u.state &gt; -2 and
+         u.company_code=#{companyCode} and r.id=ur.role_id and ur.user_id=u.id and r.`type`=#{roleType}
+    </select>
+    <!--<select id="deptUsers" parameterType="map" resultType="map">-->
+    <!--select u.* from sys_user u-->
+    <!--&lt;!&ndash;权限相关,统计当前部门&ndash;&gt;-->
+    <!--<include refid="userQxSql">-->
+    <!--<property name="userTj" value="on usersdepts.uid = u.id"></property>-->
+    <!--</include>-->
+    <!--where u.state &gt; -2-->
+    <!--&lt;!&ndash;权限相关，统计当前用户&ndash;&gt;-->
+    <!--<if test="currentUserId != null and currentUserId != ''">-->
+    <!--and u.id = #{currentUserId}-->
+    <!--</if>-->
+    <!--<if test="roleType != null and roleType != ''">-->
+    <!--and exists(select 1 from sys_user_role ur,sys_role r where r.id = ur.role_id and ur.user_id = u.id and r.type = #{roleType})-->
+    <!--</if>-->
+    <!--</select>-->
+
+</mapper>

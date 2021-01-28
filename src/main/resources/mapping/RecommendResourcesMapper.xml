@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.news.RecommendResourcesMapper">
+  <sql id="selectColumn">
+    a.id,
+    a.company_code,
+    a.title,
+    a.plate_id,
+    a.href,
+    a.resource_title,
+    a.create_id,
+    a.update_id,
+    a.is_delete,
+    a.create_time,
+    a.update_time,
+    a.content
+  </sql>
+
+  <select id="getListByRes"  resultType="com.qinfei.qferp.entity.news.RecommendResources">
+    select  <include refid="selectColumn"/> , b.name as plate_Name
+    from t_recommend_resources a
+    left join t_media_plate b  on a.plate_id = b.id
+    where a.is_delete = 1
+    <if test="mediaPlateIdList != null and mediaPlateIdList.size() > 0">
+      and b.id in
+      <foreach item="plateId" collection="mediaPlateIdList" index="index" open="(" close=")" separator=",">
+        #{plateId}
+      </foreach>
+    </if>
+    <if test="companyCode !=null">
+      and a.company_code  = #{companyCode}
+    </if>
+    <if test="queryValue !=null and queryValue !='' ">
+      and (a.resource_title like CONCAT('%',#{queryValue},'%')
+      or a.title like CONCAT('%',#{queryValue},'%')
+      or a.content like CONCAT('%',#{queryValue},'%') )
+    </if>
+
+  </select>
+
+  <select id="getResourceById" resultType="com.qinfei.qferp.entity.news.RecommendResources">
+    select  <include refid="selectColumn"/> , b.name as plate_Name
+    from t_recommend_resources a
+    left join t_media_plate b  on  a.plate_id = b.id
+    where a.id = #{id}
+  </select>
+
+  <select id="getNextResources"  resultType="com.qinfei.qferp.entity.news.RecommendResources">
+    select  <include refid="selectColumn"/>
+    from t_recommend_resources a
+    where a.is_delete = 1
+    <if test="companyCode != null and companyCode != ''">
+      and a.company_code  = #{companyCode}
+    </if>
+    <if test="updateTime !=null ">
+      and a.update_time <![CDATA[>]]> #{updateTime}
+    </if>
+    ORDER BY a.update_time ASC LIMIT 1
+  </select>
+
+  <select id="getPreResources"  resultType="com.qinfei.qferp.entity.news.RecommendResources">
+    select  <include refid="selectColumn"/>
+    from t_recommend_resources a
+    where a.is_delete = 1
+    <if test="companyCode != null and companyCode != ''">
+      and a.company_code  = #{companyCode}
+    </if>
+    <if test="updateTime !=null ">
+      and a.update_time <![CDATA[<]]> #{updateTime}
+    </if>
+    ORDER BY a.update_time DESC LIMIT 1
+  </select>
+
+
+
+
+
+</mapper>

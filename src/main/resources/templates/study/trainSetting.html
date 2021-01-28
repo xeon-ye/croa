@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>培训设置</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/trainSetting.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <!--自定义公式-->
+    <script src="/js/study/formulaConfigCompont.js"></script>
+    <script src="/js/study/trainSetting.js"></script>
+    <style type="text/css">
+
+    </style>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script>
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //配置模块选择事件
+                form.on('select(settingModule)', function(data){
+                    trainSettingObj.selChangeEvent(data.value);
+                });
+
+                form.render();
+            });
+        });
+    </script>
+</head>
+<body>
+    <!--参数设置-->
+    <div class="trainSettingWrap">
+        <!--规则配置-->
+        <div class="ruleWrap">
+            <div class="ruleItem">
+                <div class="ruleItemLeft">
+                    <label>评级规则：</label>
+                </div>
+                <div class="ruleItemRight">
+                    <span id="upRuleBtn" class="addBtn" onclick="trainSettingObj.addUpRuleClick(this);">添加讲师评级规则</span>
+                    <textarea id="upRuleValue" placeholder="请点击上方按钮添加升级评级规则公式" class="layui-textarea" readonly></textarea>
+                </div>
+            </div>
+            <div class="ruleItem">
+                <div class="ruleItemLeft">
+                    <label>积分规则：</label>
+                </div>
+                <div class="ruleItemRight">
+                    <span id="courseRuleBtn" class="addBtn" onclick="trainSettingObj.addCourseRuleClick(this);">设置讲师单课程积分规则</span>
+                    <textarea id="courseRuleValue" placeholder="请点击上方按钮设置讲师单课程积分规则积分公式" class="layui-textarea" readonly></textarea>
+                </div>
+            </div>
+            <div class="ruleItem">
+                <div class="ruleItemLeft">
+                    <label>积分规则：</label>
+                </div>
+                <div class="ruleItemRight">
+                    <span id="studentRuleBtn" class="addBtn" onclick="trainSettingObj.addStudentRuleClick(this);">设置学员积分规则</span>
+                    <textarea id="studentRuleValue" placeholder="请点击上方按钮设置学员积分规则公式" class="layui-textarea" readonly></textarea>
+                </div>
+            </div>
+            <div class="ruleItem">
+                <div class="ruleItemLeft">
+                    <label>试卷分数：</label>
+                </div>
+                <div class="ruleItemRight">
+                    <span id="paperGradeBtn" class="addBtn" onclick="trainSettingObj.addPaperGradeClick(this);">设置试卷总分数</span>
+                    <textarea id="paperGradeValue" placeholder="请点击上方按钮设置试卷总分数" class="layui-textarea" readonly></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!--配置模块-->
+        <div class="moduleWrap">
+            <div class="paramDiv layui-form">
+                <div>
+                    <label class="control-label">
+                        配置模块:
+                    </label>
+                </div>
+                <div>
+                    <select name="settingModule" class="form-control" lay-search lay-filter="settingModule">
+                        <option value="TRAIN_WAY">培训方式</option>
+                        <option value="GOOD_AT_FIELD">擅长领域</option>
+                        <option value="COURSE_PLATE">课程板块</option>
+                        <option value="TEACHER_LEVEL">讲师等级</option>
+                    </select>
+                </div>
+            </div>
+            <div id="submitWrap" class="paramDiv layui-form" style="display: none;">
+                <span class="submitBtn" onclick="trainSettingObj.submitBtn();">提交</span>
+            </div>
+
+        </div>
+
+        <!--模块内容-->
+        <div class="trainSettingItem">
+            <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                <colgroup>
+                    <col width="6%">
+                    <col width="13%">
+                    <col width="10%">
+                    <col width="8%">
+                    <col width="8%">
+                    <col width="12%">
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="15%">
+                    <col width="8%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th title="序号">
+                        <div class="ellipsisContent">
+                            序号
+                        </div>
+                    </th>
+                    <th title="选项名称">
+                        <div class="ellipsisContent">
+                            选项名称
+                        </div>
+                    </th>
+                    <th title="展现顺序" id="level">
+                        <div class="ellipsisContent">
+                            展现顺序
+                        </div>
+                    </th>
+                    <th title="所需积分">
+                        <div class="ellipsisContent">
+                            所需积分
+                        </div>
+                    </th>
+                    <th title="创建人">
+                        <div class="ellipsisContent">
+                            创建人
+                        </div>
+                    </th>
+                    <th title="创建时间">
+                        <div class="ellipsisContent">
+                            创建时间
+                        </div>
+                    </th>
+                    <th title="状态">
+                        <div class="ellipsisContent">
+                            状态
+                        </div>
+                    </th>
+                    <th title="操作">
+                        <div class="ellipsisContent">
+                            操作
+                        </div>
+                    </th>
+                    <th title="移动">
+                        <div class="ellipsisContent">
+                            移动
+                        </div>
+                    </th>
+                    <th title="添加">
+                        <div class="ellipsisContent">
+                            <button class="tableButton blueBtn" type="button" onclick="trainSettingObj.addBtnClick();">
+                                添加
+                            </button>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+            <div class="tbodyWrap">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;margin-bottom: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="13%">
+                        <col width="10%">
+                        <col width="8%">
+                        <col width="8%">
+                        <col width="12%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="15%">
+                        <col width="8%">
+                    </colgroup>
+                    <tbody id="trainSettingList">
+                    <!--<tr onmouseover="commonObj.mouseOver(this);" onmouseout="commonObj.mouseOut(this);">
+                        <td title="1">
+                            <div class="ellipsisContent">
+                                1
+                            </div>
+                        </td>
+                        <td title="软件培训">
+                            <div class="ellipsisContent layui-form">
+                                <input type="text" value="软件培训" class="form-control height18 readonlyInput"/>
+                            </div>
+                        </td>
+                        <td title="1">
+                            <div class="ellipsisContent">
+                                1
+                            </div>
+                        </td>
+                        <td title="1000">
+                            <div class="ellipsisContent">
+                                1000
+                            </div>
+                        </td>
+                        <td title="创建人">
+                            <div class="ellipsisContent">
+                                创建人
+                            </div>
+                        </td>
+                        <td title="创建时间">
+                            <div class="ellipsisContent">
+                                2020-03-31 11:33:59
+                            </div>
+                        </td>
+                        <td title="启用">
+                            <div class="ellipsisContent">
+                                启用
+                            </div>
+                        </td>
+                        <td>
+                            <button class="tableButton blueBtn" type="button" title="启用">
+                                启用
+                            </button>
+                            <button class="tableButton blueBtn" type="button" title="编辑">
+                                编辑
+                            </button>
+                        </td>
+                        <td>
+                            <button class="tableButton blueBtn" type="button" title="置顶">
+                                置顶
+                            </button>
+                            <button class="tableButton blueBtn" type="button" title="上移">
+                                上移
+                            </button>
+                            <button class="tableButton blueBtn" type="button" title="下移">
+                                下移
+                            </button>
+                            <button class="tableButton blueBtn" type="button" title="置底">
+                                置底
+                            </button>
+                        </td>
+                        <td>
+                            <button class="tableButton orangeBtn" type="button" title="移除">
+                                移除
+                            </button>
+                        </td>
+                    </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

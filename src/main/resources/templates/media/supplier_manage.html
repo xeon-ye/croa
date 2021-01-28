@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+    <title>供应商管理</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/media/mediaChange.css" rel="stylesheet">
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script src="/layui/layui.js"></script>
+    <!--模态框拖动-->
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css" />
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/js/media/common.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <script th:src="@{//js/media/supplier_manage.js(v=${version})}"></script>
+    <style type="text/css">
+        th.ui-th-column div, .ui-jqgrid tr.jqgrow td {
+            white-space: normal !important;
+            height: auto;
+        }
+        .ui-pager-table .layui-form-select{ display: none !important;}
+        .layui-layer-page .layui-layer-content {
+            position: relative;
+            overflow: unset !important;
+        }
+        .layui-layer-btn{
+            margin-top: -15px !important;
+        }
+        .companyWrap {
+            border: 1px solid #eeeeee;
+            width: 95.6%;
+            height: 212px;
+            position: absolute;
+            top: 34px;
+            background-color: white;
+            z-index: 999;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .companyNameItem {
+            border-bottom: 1px solid #eeeeee;
+            width: 100%;
+            height: 30px;
+            float: left;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0 12px;
+        }
+        .companyNameItem:hover{
+            background-color: #DFF0D8;
+        }
+
+        .companyNameItem > span{
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .text-green {
+            color: #18a689;
+        }
+        .companyPanelCancel {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <form id="supplier">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                    <div class="ibox-title">
+                        <h5 style="font-weight: bold">查询条件</h5>
+                    </div>
+                    <div class="ibox-content" style="padding-bottom: 1px;">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-1 control-label right0">供应商公司名称:</label>
+                                <div class="col-sm-1">
+                                    <input type="text" name="name" placeholder="供应商公司名称" class="form-control"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+                                <label class="col-sm-1 control-label right0">供应商联系人:</label>
+                                <div class="col-sm-1">
+                                    <input type="text" name="contactor" placeholder="供应商联系人" class="form-control"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+                                <label class="col-sm-1 control-label right0">媒体板块:</label>
+                                <div class="col-sm-1 layui-form">
+                                    <select name="mediaPlateId" id="mediaPlateId" class="form-control" lay-verify=""  lay-filter="mediaPlateId" lay-search>
+                                        <option value="">请选择</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" name="phone" class="form-control" placeholder="手机号"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" name="qqwechat" class="form-control" placeholder="微信号"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+                                <div class="col-sm-1">
+                                    <input type="text" name="qq" class="form-control" placeholder="QQ号"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+
+                                <div class="col-sm-1">
+                                    <input type="text" name="creator" class="form-control" placeholder="责任人"
+                                           onkeydown="mediaSupplierManageObj.enterEvent(event);">
+                                </div>
+                                <div class="col-sm-1">
+                                    <button type="button" id="search" class="btn btn-primary" onclick="mediaSupplierManageObj.reflushTable('table_suppliers', $('#supplier').serializeJson());">
+                                        <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <button onclick="mediaSupplierManageObj.addSupplierClick();" class="btn btn-danger" type="button">
+                        <i class="fa fa-plus"></i>&nbsp;增加供应商
+                    </button>
+                    <button class="btn btn-success" type="button" onclick="mediaSupplierManageObj.downTemplate();">
+                        <i class="fa fa-download"></i>&nbsp;模板下载
+                    </button>
+                    <button class="btn btn-primary" type="button" onclick="mediaSupplierManageObj.importSupplierBtnClick();">
+                        <i class="fa fa-upload"></i>&nbsp;开始导入
+                    </button>
+                    <button onclick="mediaSupplierManageObj.exportBtnClick();" class="btn btn-info" type="button">
+                        <i class="glyphicon glyphicon-export"></i>导出
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<label>小技巧：1、双击下列表格中的数据行可进入“供应商联系人”信息查看！</label>
+                </div>
+                <div class="ibox-content" style="padding-left: 0px;padding-right: 0px;">
+                    <div class="jqGrid_wrapper">
+                        <table id="table_suppliers"></table>
+                        <div id="pager_suppliers"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 批量导入供应商数据-->
+<div class="modal inmodal" id="importModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="importForm" class="form-horizontal" action="" type="post" enctype="multipart/form-data">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header" style="padding: 15px;">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button>
+                    <h4 class="modal-title">批量导入供应商</h4>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group" style="margin-bottom: 0px;">
+                                    <label class="col-sm-3 control-label">选择文件：</label>
+                                    <div class="col-sm-9">
+                                        <input type="file" id="uploadFile" name="file" class="uploadFile">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="mediaSupplierManageObj.importSupplier();">批量导入</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--新增供应商2-UI-->
+<div class="modal fade" id="mediaSupplierModal2" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 1200px">
+        <div class="modal-content" style="display: flex;flex-direction: column;height: 780px;">
+            <!--标题-->
+            <div style="border-bottom: 1px solid #EEEEEE;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;">
+                供应商登记
+            </div>
+            <!--内容-->
+            <div style="border: 0px solid red;flex: 1;width: 100%;padding-top: 10px;overflow: hidden;">
+                <form autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+                    <!--供应商公司-->
+                    <div style="border: 0px solid red;width: 100%;">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>客户性质:</label>
+                            <div class="col-sm-8">
+                                <input type="hidden" name="custProperty" id="custProperty" value="1"/>
+                                <button type="button" class="btn btn-info" id="companyUser">&nbsp;企业供应商&nbsp;
+                                </button>&nbsp;&nbsp;
+                                <button type="button" class="btn btn-white" id="individualUser">&nbsp;个体供应商&nbsp;
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="position: relative;">
+                            <label class="col-sm-2 control-label">
+                                <span class="text-red">*</span>供应商公司名称:
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="companyName" autocomplete="off"/>
+                            </div>
+                            <div id="companyPanel" class="companyWrap companyPanelCancel">
+                                <div class="col-sm-12 input-group m-b" style="margin-bottom: 0px;">
+                                    <input type="text" class="form-control" name="keyword" id="keyword" placeholder="输入供应商公司名称关键字搜索" autocomplete="off" oninput="companyObj.search(this);">
+                                    <span class="input-group-addon" style="cursor: pointer;" onclick="companyObj.check(this, true);" title="确认输入">
+                                    <i class="fa fa-check"></i>
+                                </span>
+                                </div>
+                                <div class="companyNameWrap"></div>
+                            </div>
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standardize" id="standardize">
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="供应商登记根据性质分为企业供应商和个体供应商，选择企业供应商时，供应商公司名称有标准类型和非标类型，选择个体供应商时，供应商名称默认为个体工商户">
+                                <i class="fa fa-question-circle"></i>
+                            </span>
+                                <span id="companyTipsYes" style="display:none">
+                                <span class="text-green">
+                                    &nbsp;<i class="fa fa-check-circle"></i>
+                                    &nbsp;标准
+                                </span>
+                            </span>
+                                <span id="companyTipsNo" style="display:none">
+                                <span class="text-red">
+                                    &nbsp;<i class="fa fa-times-circle"></i>
+                                    &nbsp;非标准
+                                </span>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!--联系人及账户-->
+                    <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;padding-left: 15px;padding-right: 15px;font-size: 15px;background-color: #E6EAED;font-weight: bold;">
+                        <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;">
+                            联系人及账户信息
+                        </div>
+                        <div style="border: 0px solid red;float: right;display: flex;align-items: center;height: 100%;">
+                            <button type="button" class="btn btn-info">
+                                <i class="fa fa-plus"></i>&nbsp;新增联系人
+                            </button>
+                        </div>
+                    </div>
+                    <!--联系人分组-->
+                    <div style="border: 0px solid red;flex:1;width: 100%;overflow-y: auto;overflow-x: hidden;">
+                        <!--单项供应商联系人-->
+                        <div style="width: 100%;margin: 10px 0;">
+                            <div style="border: 1px solid #E9E9E9;width: 100%;margin: 0 15px;">
+                                <!--标题-->
+                                <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;font-weight: bold;padding-left: 30px;">
+                                    联系人信息
+                                </div>
+                                <div style="border: 0px solid red;width: 100%;margin-top: 5px;">
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label"><span class="text-red">*</span>联系人:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <label class="col-sm-2 control-label"><span class="text-red">*</span>手机号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <div class="col-sm-2" style="padding-top: 9px;">
+                                            <input type="hidden" name="standardize">
+                                            <span data-toggle="tooltip" data-placement="left" data-html="true" title="客户登记后填写客户公司名称之后判定分为标准和非标两类，企业供应商有标准类型和非标类型">
+                                            <i class="fa fa-question-circle"></i>
+                                        </span>
+                                            <span style="display:none">
+                                            <span class="text-green">
+                                                &nbsp;<i class="fa fa-check-circle"></i>
+                                                &nbsp;标准
+                                            </span>
+                                        </span>
+                                            <span style="display:none">
+                                            <span class="text-red">
+                                                &nbsp;<i class="fa fa-times-circle"></i>
+                                                &nbsp;非标准
+                                            </span>
+                                        </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">微信号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <label class="col-sm-2 control-label">QQ号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">备注:</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--标题-->
+                                <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;font-weight: bold;padding-left: 15px;padding-right: 30px;background-color: #E6EAED;">
+                                    <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;padding-left: 15px;">
+                                        账户信息
+                                    </div>
+                                    <div style="border: 0px solid red;float: right;display: flex;align-items: center;height: 100%;">
+                                        <button type="button" class="btn btn-info">
+                                            <i class="fa fa-plus"></i>&nbsp;新增账户
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="width: 100%;padding:0 15px;margin: 10px 0;">
+                                    <!--单个账户信息-->
+                                    <div style="border: 1px solid #E9E9E9;width: 100%;padding: 10px 0;">
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>账户名称:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                            <label class="col-sm-2 control-label">户主:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>账号:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>开户行:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">类型:</label>
+                                            <div class="col-sm-3" style="font-size: 10px !important;">
+                                                <input type="radio" name="type" class="form-control" title="未指定"/>
+                                                <input type="radio" name="type" class="form-control" title="对公账户"/>
+                                                <input type="radio" name="type" class="form-control" title="对私账户"/>
+                                            </div>
+                                            <label class="col-sm-2 control-label">预留电话:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">备注:</label>
+                                            <div class="col-sm-8" style="padding-left: 15px !important;">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="width: 100%;margin: 10px 0;">
+                            <div style="border: 1px solid #E9E9E9;width: 100%;margin: 0 15px;">
+                                <!--标题-->
+                                <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;font-weight: bold;padding-left: 30px;">
+                                    联系人信息
+                                </div>
+                                <div style="border: 0px solid red;width: 100%;margin-top: 5px;">
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label"><span class="text-red">*</span>联系人:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <label class="col-sm-2 control-label"><span class="text-red">*</span>手机号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <div class="col-sm-2" style="padding-top: 9px;">
+                                            <input type="hidden" name="standardize">
+                                            <span data-toggle="tooltip" data-placement="left" data-html="true" title="客户登记后填写客户公司名称之后判定分为标准和非标两类，企业供应商有标准类型和非标类型">
+                                            <i class="fa fa-question-circle"></i>
+                                        </span>
+                                            <span style="display:none">
+                                            <span class="text-green">
+                                                &nbsp;<i class="fa fa-check-circle"></i>
+                                                &nbsp;标准
+                                            </span>
+                                        </span>
+                                            <span style="display:none">
+                                            <span class="text-red">
+                                                &nbsp;<i class="fa fa-times-circle"></i>
+                                                &nbsp;非标准
+                                            </span>
+                                        </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">微信号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                        <label class="col-sm-2 control-label">QQ号:</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label">备注:</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--标题-->
+                                <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;font-weight: bold;padding-left: 15px;padding-right: 30px;background-color: #E6EAED;">
+                                    <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;padding-left: 15px;">
+                                        账户信息
+                                    </div>
+                                    <div style="border: 0px solid red;float: right;display: flex;align-items: center;height: 100%;">
+                                        <button type="button" class="btn btn-info">
+                                            <i class="fa fa-plus"></i>&nbsp;新增账户
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="width: 100%;padding:0 15px;margin: 10px 0;">
+                                    <!--单个账户信息-->
+                                    <div style="border: 1px solid #E9E9E9;width: 100%;padding: 10px 0;">
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>账户名称:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                            <label class="col-sm-2 control-label">户主:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>账号:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                            <label class="col-sm-2 control-label"><span class="text-red">*</span>开户行:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">类型:</label>
+                                            <div class="col-sm-3" style="font-size: 10px !important;">
+                                                <input type="radio" name="type" class="form-control" title="未指定"/>
+                                                <input type="radio" name="type" class="form-control" title="对公账户"/>
+                                                <input type="radio" name="type" class="form-control" title="对私账户"/>
+                                            </div>
+                                            <label class="col-sm-2 control-label">预留电话:</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">备注:</label>
+                                            <div class="col-sm-8" style="padding-left: 15px !important;">
+                                                <input type="text" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+
+            </div>
+            <!--底部按钮-->
+            <div style="border: 0px solid red;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;background-color: #7F7F7F;">
+                <button type="button" class="btn btn-white" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>&nbsp;&nbsp;
+                <button type="button" class="btn btn-success" id="addCompanyUserBtn" onclick="companyObj.addCompany(this,'/crm/company/addCompany')"><i
+                        class="fa fa-save"></i>&nbsp;提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--供应商登记-->
+<div class="modal fade" id="mediaSupplierAddModal" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 1200px">
+        <div class="modal-content" style="display: flex;flex-direction: column;height: 420px;">
+            <!--标题-->
+            <div data-modalId="" class="modalTitle" style="border-bottom: 1px solid #EEEEEE;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;">
+                供应商登记
+            </div>
+            <!--内容-->
+            <div style="border: 0px solid red;flex: 1;width: 100%;padding-top: 10px;overflow: hidden;">
+                <form autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+                    <!--供应商公司-->
+                    <div style="border: 0px solid red;width: 100%;">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>供应商性质:</label>
+                            <div class="col-sm-8">
+                                <label class="control-label" style="font-size: 20px;margin-top: -5px;">企业供应商</label>
+                                <input type="hidden" name="supplierNature" value="0"/>
+                                <button onclick="companyObj.natureClick(this, 0);" type="button" class="btn btn-info companyBtnCls">&nbsp;企业供应商&nbsp;
+                                </button>&nbsp;&nbsp;
+                                <button onclick="companyObj.natureClick(this, 1);" type="button" class="btn btn-white personBtnCls">&nbsp;个体供应商&nbsp;
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">
+                                <span class="text-red">*</span>供应商公司名称:
+                            </label>
+                            <div class="col-sm-8" style="position: relative;">
+                                <input type="text" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control" name="name" autocomplete="off" required oninput="companyObj.search(this);" onblur="companyObj.checkCompany(this);" onkeydown="companyObj.enterEvent(this, event);" onmouseout="companyObj.mourseOut(this);" onmouseover="companyObj.mourseOver(this);"/>
+                                <div class="companyWrap companyPanelCancel" onmouseover="companyObj.mourseOver(this);" onmouseout="companyObj.mourseOut(this);">
+
+                                </div>
+                            </div>
+
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standarCompanyFlag" value="0"/>
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="供应商登记根据性质分为企业供应商和个体供应商，选择企业供应商时，供应商公司名称有标准类型和非标类型，选择个体供应商时，供应商名称默认为个体工商户">
+                                <i class="fa fa-question-circle"></i>
+                                </span>
+                                <span class="companyTipsYes" style="display:none">
+                                    <span class="text-green">
+                                        &nbsp;<i class="fa fa-check-circle"></i>
+                                        &nbsp;标准
+                                    </span>
+                                </span>
+                                <span class="companyTipsNo" style="display:none">
+                                    <span class="text-red">
+                                        &nbsp;<i class="fa fa-times-circle"></i>
+                                        &nbsp;非标准
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>联系人:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="contactor" required/>
+                            </div>
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>手机号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="11" class="form-control" name="phone" required oninput="companyObj.checkPhone(this);" onblur="companyObj.checkPhone(this);"/>
+                            </div>
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standarPhoneFlag" value="0">
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="联系人规范，采用通用手机号校验规则来校验">
+                                            <i class="fa fa-question-circle"></i>
+                                        </span>
+                                <span class="phoneTipsYes" style="display:none">
+                                            <span class="text-green">
+                                                &nbsp;<i class="fa fa-check-circle"></i>
+                                                &nbsp;规范
+                                            </span>
+                                        </span>
+                                <span  class="phoneTipsNo" style="display:none">
+                                            <span class="text-red">
+                                                &nbsp;<i class="fa fa-times-circle"></i>
+                                                &nbsp;不规范
+                                            </span>
+                                        </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>微信号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="qqwechat" required/>
+                            </div>
+                            <label class="col-sm-2 control-label">QQ号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="qq"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">备注:</label>
+                            <div class="col-sm-8">
+                                <textarea class="layui-textarea" style="min-height: 50px;" name="contactorDesc"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!--底部按钮-->
+            <div style="border: 0px solid red;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;background-color: #7F7F7F;">
+                <button type="button" class="btn btn-default" onclick="mediaSupplierManageObj.closeSupplierClick(this, false);">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>
+                &nbsp;&nbsp;
+                <button id="addSupplierBtn" type="button" class="btn btn-success" onclick="mediaSupplierManageObj.addSupplier(this);">
+                    <i class="fa fa-save"></i>&nbsp;提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--供应商编辑-->
+<div class="modal fade" id="mediaSupplierEditModal" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 1200px">
+        <div class="modal-content" style="display: flex;flex-direction: column;height: 700px;">
+            <!--标题-->
+            <div style="border-bottom: 1px solid #EEEEEE;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;">
+                供应商编辑
+            </div>
+            <!--内容-->
+            <div style="border: 0px solid red;flex: 1;width: 100%;padding-top: 10px;">
+                <!--记录修改前的联系人规范状态，不能由规范改为非规范-->
+                <input type="hidden" id="oldStandarPhoneFlag">
+                <form autocomplete="off" class="form-horizontal layui-form" style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+                    <input type="hidden" name="id"/>
+                    <!--供应商公司-->
+                    <div style="border: 0px solid red;width: 100%;">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>供应商性质:</label>
+                            <div class="col-sm-8" style="display: flex;align-items: center;">
+                                <label class="control-label" style="font-size: 20px;margin-top: -5px;">企业供应商</label>
+                                <input type="hidden" name="supplierNature" value="0"/>
+                                <button onclick="companyObj.natureClick(this, 0);" type="button" class="btn btn-info companyBtnCls">&nbsp;企业供应商&nbsp;
+                                </button>&nbsp;&nbsp;
+                                <button onclick="companyObj.natureClick(this, 1);" type="button" class="btn btn-white personBtnCls">&nbsp;个体供应商&nbsp;
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">
+                                <span class="text-red">*</span>供应商公司名称:
+                            </label>
+                            <div class="col-sm-8" style="position: relative;">
+                                <input type="text" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control" name="name" autocomplete="off" required oninput="companyObj.search(this);" onblur="companyObj.checkCompany(this);" onkeydown="companyObj.enterEvent(this, event);" onmouseout="companyObj.mourseOut(this);" onmouseover="companyObj.mourseOver(this);"/>
+                                <div class="companyWrap companyPanelCancel" onmouseover="companyObj.mourseOver(this);" onmouseout="companyObj.mourseOut(this);">
+
+                                </div>
+                            </div>
+
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standarCompanyFlag" value="0"/>
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="供应商登记根据性质分为企业供应商和个体供应商，选择企业供应商时，供应商公司名称有标准类型和非标类型，选择个体供应商时，供应商名称默认为个体工商户">
+                                <i class="fa fa-question-circle"></i>
+                                </span>
+                                <span class="companyTipsYes" style="display:none">
+                                    <span class="text-green">
+                                        &nbsp;<i class="fa fa-check-circle"></i>
+                                        &nbsp;标准
+                                    </span>
+                                </span>
+                                <span class="companyTipsNo" style="display:none">
+                                    <span class="text-red">
+                                        &nbsp;<i class="fa fa-times-circle"></i>
+                                        &nbsp;非标准
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>联系人:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="contactor" required/>
+                            </div>
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>手机号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" maxlength="11" class="form-control" name="phone" required oninput="companyObj.checkPhone(this);" onblur="companyObj.checkPhone(this);"/>
+                            </div>
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standarPhoneFlag" value="0">
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="联系人规范，采用通用手机号校验规则来校验">
+                                            <i class="fa fa-question-circle"></i>
+                                        </span>
+                                <span class="phoneTipsYes" style="display:none">
+                                            <span class="text-green">
+                                                &nbsp;<i class="fa fa-check-circle"></i>
+                                                &nbsp;规范
+                                            </span>
+                                        </span>
+                                <span  class="phoneTipsNo" style="display:none">
+                                            <span class="text-red">
+                                                &nbsp;<i class="fa fa-times-circle"></i>
+                                                &nbsp;不规范
+                                            </span>
+                                        </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">微信号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="qqwechat"/>
+                            </div>
+                            <label class="col-sm-2 control-label">QQ号:</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" name="qq"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">备注:</label>
+                            <div class="col-sm-8">
+                                <textarea class="layui-textarea" style="min-height: 50px;" name="contactorDesc"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!--账户信息-->
+                    <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;padding-left: 15px;padding-right: 15px;font-size: 15px;background-color: #E6EAED;font-weight: bold;">
+                        <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;">
+                            联系人账户信息
+                        </div>
+                        <div style="border: 0px solid red;float: right;display: flex;align-items: center;height: 100%;">
+                            <button type="button" class="btn btn-info addAccount" data-id="" data-supplierNature="" data-modalId="" data-supplierName="" data-contactor="" onclick="mediaSupplierManageObj.opAccountClick(this);">
+                                <i class="fa fa-plus"></i>&nbsp;新增账户
+                            </button>
+                        </div>
+                    </div>
+                    <!--账户列表-->
+                    <div style="border: 0px solid red;flex:1;width: 100%;">
+                        <div class="jqGrid_wrapper">
+                            <table id="supplierContactorAccountTable"></table>
+                            <div id="supplierContactorAccountPaper"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!--底部按钮-->
+            <div style="border: 0px solid red;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;background-color: #7F7F7F;">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>&nbsp;&nbsp;
+                <button id="editSupplierBtn" type="button" class="btn btn-success" onclick="mediaSupplierManageObj.editSupplier(this);"><i
+                        class="fa fa-save"></i>&nbsp;提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--供应商公司编辑-->
+<div class="modal fade" id="mediaSupplierCompanyModal" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 1200px">
+        <div class="modal-content" style="display: flex;flex-direction: column;height: 780px;">
+            <!--标题-->
+            <div style="border-bottom: 1px solid #EEEEEE;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;">
+                供应商公司编辑
+            </div>
+            <!--内容-->
+            <div style="border: 0px solid red;flex: 1;width: 100%;padding-top: 10px;overflow: hidden;">
+                <!--记录修改前的联系人规范状态，不能由规范改为非规范-->
+                <input type="hidden" id="oldStandarCompanyFlag">
+                <form autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+                    <!--供应商公司-->
+                    <div style="border: 0px solid red;width: 100%;">
+                        <input type="hidden" name="oldCompanyName"/>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label"><span class="text-red">*</span>供应商性质:</label>
+                            <div class="col-sm-8" style="display: flex;align-items: center;">
+                                <label class="control-label" style="font-size: 20px;margin-top: -5px;">企业供应商</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">
+                                <span class="text-red">*</span>供应商公司名称:
+                            </label>
+                            <div class="col-sm-8" style="position: relative;">
+                                <input type="text" placeholder="请输入关键字(公司名、注册号或社会统一信用代码)搜索" class="form-control" name="name" autocomplete="off" required oninput="companyObj.search(this);" onblur="companyObj.checkCompany(this);" onkeydown="companyObj.enterEvent(this, event);" onmouseout="companyObj.mourseOut(this);" onmouseover="companyObj.mourseOver(this);"/>
+                                <div class="companyWrap companyPanelCancel" onmouseover="companyObj.mourseOver(this);" onmouseout="companyObj.mourseOut(this);">
+
+                                </div>
+                            </div>
+                            <div class="col-sm-2" style="padding-top: 9px;">
+                                <input type="hidden" name="standarCompanyFlag"/>
+                                <span data-toggle="tooltip" data-placement="left" data-html="true" title="供应商登记根据性质分为企业供应商和个体供应商，选择企业供应商时，供应商公司名称有标准类型和非标类型，选择个体供应商时，供应商名称默认为个体工商户">
+                                <i class="fa fa-question-circle"></i>
+                            </span>
+                                <span class="companyTipsYes" style="display:none">
+                                <span class="text-green">
+                                    &nbsp;<i class="fa fa-check-circle"></i>
+                                    &nbsp;标准
+                                </span>
+                            </span>
+                                <span class="companyTipsNo" style="display:none">
+                                <span class="text-red">
+                                    &nbsp;<i class="fa fa-times-circle"></i>
+                                    &nbsp;非标准
+                                </span>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!--联系人信息-->
+                    <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;padding-left: 15px;padding-right: 15px;font-size: 15px;background-color: #E6EAED;font-weight: bold;">
+                        <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;">
+                            联系人信息
+                        </div>
+                        <div style="border: 0px solid red;float: right;display: flex;align-items: center;height: 100%;">
+                            <button type="button" class="btn btn-info addSupplierCls" data-supplierNature="" data-modalId="mediaSupplierCompanyModal" data-supplierName="" data-standarCompanyFlag="" onclick="mediaSupplierManageObj.addSupplierClick(this);">
+                                <i class="fa fa-plus"></i>&nbsp;新增联系人
+                            </button>
+                        </div>
+                    </div>
+                    <!--联系人列表-->
+                    <div style="border: 0px solid red;flex:1;width: 100%;">
+                        <div class="jqGrid_wrapper">
+                            <table id="supplierContactorTable"></table>
+                            <div id="supplierContactorPaper"></div>
+                        </div>
+                    </div>
+                    <!--账户信息-->
+                    <div style="border: 0px solid red;height: 40px;line-height:40px;width: 100%;padding-left: 15px;padding-right: 15px;font-size: 15px;background-color: #E6EAED;font-weight: bold;">
+                        <div style="border: 0px solid red;float: left;display: flex;align-items: center;height: 100%;">
+                            联系人账户信息
+                        </div>
+                    </div>
+                    <!--账户列表-->
+                    <div style="border: 0px solid red;flex:1;width: 100%;">
+                        <div class="jqGrid_wrapper">
+                            <table id="supplierContactorAccountTable1"></table>
+                            <div id="supplierContactorAccountPaper1"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!--底部按钮-->
+            <div style="border: 0px solid red;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;background-color: #7F7F7F;">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i>&nbsp;关闭
+                </button>&nbsp;&nbsp;
+                <button id="editSupplierCompanyBtn" type="button" class="btn btn-success" onclick="mediaSupplierManageObj.editSupplierCompany(this);"><i
+                        class="fa fa-save"></i>&nbsp;提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--新增账户-->
+<div class="modal fade" id="mediaSupplierAccountAddModal" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 1200px">
+        <div class="modal-content" style="display: flex;flex-direction: column;height: 415px;">
+            <!--标题-->
+            <div data-modalId="" class="modalTitle" style="border-bottom: 1px solid #EEEEEE;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;">
+                新增账户
+            </div>
+            <!--内容-->
+            <div style="border: 0px solid red;flex: 1;width: 100%;padding-top: 10px;overflow: hidden;">
+                <form autocomplete="off" class="form-horizontal layui-form" method="post" style="width: 100%;height: 100%;display: flex;flex-direction: column;">
+                    <input type="hidden" name="id"/>
+                    <input type="hidden" name="companyId"/>
+                    <!--编辑的时候需要对比是否是创建人-->
+                    <input type="hidden" name="creator"/>
+                    <input type="hidden" name="type" value="2"/>
+                    <input type="hidden" name="companyCode" value="2"/>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">供应商公司名称:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="companyName" readonly/>
+                        </div>
+                        <div class="col-sm-1">
+                        </div>
+                        <label class="col-sm-2 control-label">联系人:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="contactor" readonly/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span class="text-red">*</span>账户名称:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="name" required readonly/>
+                        </div>
+                        <div class="col-sm-1">
+                        </div>
+                        <label class="col-sm-2 control-label"><span class="text-red">*</span>户主:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="owner" required/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><span class="text-red">*</span>账号:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="bankNo" required/>
+                        </div>
+                        <div class="col-sm-1">
+                        </div>
+                        <label class="col-sm-2 control-label"><span class="text-red">*</span>开户行:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="bankName" required/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">
+                            <span data-toggle="tooltip" data-placement="left" data-html="true"
+                                  title="企业供应商，类型仅为对公账户，个体供应商，类型仅为对私账户">
+                                <i class="fa fa-question-circle"></i>
+                            </span>
+                            类型:
+                        </label>
+                        <div class="col-sm-4" style="font-size: 10px !important;">
+                            <input type="hidden" name="accountType"/>
+                            <input type="radio" name="accountTypeStr" class="form-control" title="对公账户" id="b2bAccount" disabled/>
+                            <input type="radio" name="accountTypeStr" class="form-control" title="对私账户" id="b2cAccount" disabled/>
+                        </div>
+                        <label class="col-sm-2 control-label">预留电话:</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" name="phone"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">备注:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" style="min-height: 50px;" name="remark"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!--底部按钮-->
+            <div style="border: 0px solid red;height: 50px;width: 100%;display: flex;align-items: center;justify-content:center;font-size: 20px;background-color: #7F7F7F;">
+                <button type="button" class="btn btn-default" onclick="mediaSupplierManageObj.closeAccountClick(this, false);">
+                    <i class="fa fa-close"></i>&nbsp;关闭
+                </button>&nbsp;&nbsp;
+                <button id="supplierAccountSubmitBtn" type="button" class="btn btn-success" onclick="mediaSupplierManageObj.opAccount(this);">
+                    <i class="fa fa-save"></i>&nbsp;提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--供应商责任人指派-->
+<div id="supplierAssign" style="display: none;">
+    <div style="margin-top: 20px;margin-left: 75px;">
+        <form class="form-horizontal layui-form" type="post">
+            <input type="hidden" name="id"/>
+            <div style="width: 100%;">
+                <label class="control-label col-md-2">
+                    <span class="text-red">*</span>媒介人员:
+                </label>
+                <div class="col-sm-8">
+                    <select name="userId" class="form-control height18" lay-search required>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--异动详情-->
+<div id="supplierChange" style="display: none;">
+    <div class="modalContentWrap">
+        <!--总字段-->
+        <div class="allFieldWrap">
+            <!--标签-->
+            <div data-userId="" class="fieldLabel">供应商全部字段</div>
+            <!--字段列表-->
+            <div class="fieldItemWrap">
+                <!-- <div class="fieldItem fieldItemActive" title="媒体名称媒体名称媒体">
+                     <div class="ellipsisContent">媒体名称媒体名称媒体名称媒体名称媒体名称</div>
+                 </div>-->
+            </div>
+        </div>
+        <!--内容-->
+        <div class="changContentWrap">
+            <ul class="layui-timeline" id="announcements">
+                <!--<li class="layui-timeline-item timeLineCss">
+                    <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+                    <div class="layui-timeline-content layui-text timeCss">
+                        <div class="layui-timeline-title" style="display: flex;justify-content: space-between;padding-right: 20px;">
+                            <div>媒体名称(2019.08.26)</div>
+                            <div>异动人：邹丽&nbsp;&nbsp;审核人：邹丽</div>
+                        </div>
+                        <div class="timeContent">
+                            <div class="firstRowContentWrap">
+                                <div class="firstRowItemWrap">
+                                    <div class="fieldName">媒体名称：</div>
+                                    <div class="fieldChangeVal">
+                                        <span class="oldValue">无</span>
+                                        <span>-></span>
+                                        <span class="newValue">tetesttesttesttestetesttesttesttesttesttesttesttesttesttesttestteststttesttesttesttesttesttesttesttestst</span>
+                                    </div>
+                                </div>
+                                <div class="moreChangeBtn" onclick="mediaChangeObj.moreBtnClick(this);">
+                                    <i class="text-danger">更多&nbsp;</i>
+                                    <i class="fa fa-chevron-up"></i>
+                                </div>
+                            </div>
+                            <div class="otherRowContentWrap">
+                                <div class="otherRowItem">
+                                    <div class="fieldName">媒体名称：</div>
+                                    <div class="fieldChangeVal">
+                                        <span class="oldValue">无</span>
+                                        <span>-></span>
+                                        <span class="newValue">tetesttesttesttestetesttesttesttesttesttesttesttesttesttesttestteststttesttesttesttesttesttesttesttestst</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>-->
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

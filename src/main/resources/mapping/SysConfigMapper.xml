@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.SysConfigMapper">
+    <sql id="selectColumn">
+      tsc.id,
+      tsc.config_title as configTitle,
+      tsc.config_type as configType,
+      tsc.data_type as dataType,
+      tsc.config_key as configKey,
+      tsc.config_pattern as configPattern,
+      tsc.config_value as configValue,
+      tsc.config_desc as configDesc,
+      tsc.create_id as createId,
+      tsc.create_date as createDate,
+      tsc.update_id as updateId,
+      tsc.update_date as updateDate,
+      tsc.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as companyCode
+    </sql>
+
+    <!--提示信息结果-->
+    <resultMap id="configResultMap" type="com.qinfei.qferp.entity.sys.SysConfig">
+        <id column="id" property="id"/>
+        <result column="configTitle" property="configTitle"/>
+        <result column="configType" property="configType"/>
+        <result column="dataType" property="dataType"/>
+        <result column="configPattern" property="configPattern"/>
+        <result column="configKey" property="configKey"/>
+        <result column="configValue" property="configValue"/>
+        <result column="configDesc" property="configDesc"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="password" property="password"/>
+            <result column="name" property="name"/>
+            <result column="image" property="image"/>
+            <result column="sex" property="sex"/>
+            <result column="phone" property="phone"/>
+            <result column="qq" property="qq"/>
+            <result column="wechat" property="wechat"/>
+            <result column="email" property="email"/>
+            <result column="is_mgr" property="isMgr"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="companyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_sys_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="configTitle != null and configTitle != ''">config_title,</if>
+            <if test="configType != null and configType != ''">config_type,</if>
+            <if test="dataType != null and dataType != ''">data_type,</if>
+            <if test="configKey != null and configKey != ''">config_key,</if>
+            <if test="configPattern != null and configPattern != ''">config_pattern,</if>
+            <if test="configValue != null and configValue != ''">config_value,</if>
+            <if test="configDesc != null and configDesc != ''">config_desc,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="configTitle != null and configTitle != ''">#{configTitle},</if>
+            <if test="configType != null and configType != ''">#{configType},</if>
+            <if test="dataType != null and dataType != ''">#{dataType},</if>
+            <if test="configKey != null and configKey != ''">#{configKey},</if>
+            <if test="configPattern != null and configPattern != ''">#{configPattern},</if>
+            <if test="configValue != null and configValue != ''">#{configValue},</if>
+            <if test="configDesc != null and configDesc != ''">#{configDesc},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_sys_config
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            config_desc = #{configDesc},
+            <if test="configTitle != null and configTitle != ''">config_title = #{configTitle},</if>
+            <if test="configType != null and configType != ''">config_type = #{configType},</if>
+            <if test="dataType != null and dataType != ''">data_type = #{dataType},</if>
+            <if test="configPattern != null and configPattern != ''">config_pattern = #{configPattern},</if>
+            <if test="configValue != null and configValue != ''">config_value = #{configValue},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateConfigValue">
+        UPDATE  t_sys_config
+        SET
+        config_value = #{newUser},
+        update_id = #{updateId},
+        update_date = now()
+        where id  =#{id}
+    </update>
+    <!--修改状态-->
+    <update id="updateStateById">
+        update t_sys_config
+        SET
+          state = #{state},
+          update_id = #{updateId},
+          update_date = now()
+        where id = #{id}
+    </update>
+
+    <!--根据Key获取有效数据-->
+    <select id="getOneConfigByKey" resultType="com.qinfei.qferp.entity.sys.SysConfig">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+          t_sys_config tsc
+        WHERE
+          tsc.state <![CDATA[<>]]> -9
+        AND tsc.config_key = #{configKey}
+        <if test="id != null">
+            AND tsc.id <![CDATA[<>]]> #{id}
+        </if>
+        LIMIT 1
+    </select>
+
+    <!--查询列表-->
+    <select id="listConfigByParam" resultMap="configResultMap">
+        SELECT
+            <include refid="selectColumn"/>,<include refid="userColumn"/>
+        FROM
+        t_sys_config tsc
+        INNER JOIN sys_user su ON tsc.create_id = su.id
+        WHERE
+        tsc.state <![CDATA[<>]]> -9
+        <if test="configKey != null and configKey != ''">
+            AND tsc.config_key LIKE CONCAT(#{configKey}, '%')
+        </if>
+        <if test="configTitle != null and configTitle != ''">
+            AND tsc.config_title LIKE CONCAT(#{configTitle}, '%')
+        </if>
+        <if test="configType != null and configType != ''">
+            AND tsc.config_type = #{configType}
+        </if>
+        <if test="dataType != null and dataType != ''">
+            AND tsc.data_type = #{dataType}
+        </if>
+        <if test="state != null">
+            AND tsc.state = #{state}
+        </if>
+    </select>
+
+    <!--获取启用的所有配置信息-->
+    <select id="listAllSysConfig" resultType="com.qinfei.qferp.entity.sys.SysConfig">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_sys_config tsc
+        WHERE
+        	tsc.state = 0
+    </select>
+
+    <!--获取系统所有用户-->
+    <select id="listAllUser" resultType="java.util.Map">
+        SELECT
+        	su.id,
+        	su.`name`
+        FROM
+        	sys_user su
+        WHERE
+        	su.state > -2
+    </select>
+
+    <!--获取系统所有部门-->
+    <select id="listAllDept" resultType="java.util.Map">
+        SELECT
+        	sd.id,
+        	sd.type,
+        	sd.`code`,
+        	sd.`name`
+        FROM
+        	sys_dept sd
+        WHERE
+        	sd.state > -2
+    </select>
+
+    <!--获取所有角色-->
+    <select id="listAllRole" resultType="java.util.Map">
+        SELECT
+        	sr.id,
+        	sr.type,
+        	sr.`code`,
+        	sr.`name`
+        FROM
+        	sys_role sr
+        WHERE
+        	sr.state > -2
+    </select>
+
+    <!--获取媒体板块-->
+    <select id="listAllMediaPlate" resultType="java.util.Map">
+        SELECT
+        	tmp.id,
+        	tmp.`name`
+        FROM
+        	t_media_plate tmp
+        WHERE
+        	tmp.is_delete = 0
+    </select>
+
+</mapper>

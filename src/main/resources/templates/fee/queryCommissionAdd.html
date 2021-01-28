@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>提成登记</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/plugins/jparticle.jquery.js"></script>
+    <script type="text/javascript" src="/js/crm/commonDatagrid.js"></script>
+    <script type="text/javascript" src="/js/fee/queryCommissionAdd.js"></script>
+    <script type="text/javascript" src="/js/fee/commonFee.js"></script>
+    <link rel="stylesheet" href="/js/plugins/layer/laydate/skins/default/laydate.css">
+    <script src="/js/plugins/layer/laydate/laydate.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="/js/crm/common_util.js"></script>
+    <script src="/js/process/approveTask.js"></script>
+    <link rel="stylesheet" href="/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css"/>
+    <script src="/js/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script>
+        $(function () {
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+            $("#editForm input[name='historyDept'][value='0']").iCheck("check");
+            $('body').bind('keyup', function (event) {
+                if (event.keyCode == "13") {
+                    //回车执行查询
+                    $("#selectArticleSearch").click();
+                    $("#selectedArticleSearch").click();
+                }
+            });
+            var publishStartTime = {
+                elem: '#publishStartTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    publishEndTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    publishEndTime.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var publishEndTime = {
+                elem: '#publishEndTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    publishStartTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            var publishStartTime1 = {
+                elem: '#publishStartTime1',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    publishEndTime1.min = datas; //开始日选好后，重置结束日的最小日期
+                    publishEndTime1.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var publishEndTime1 = {
+                elem: '#publishEndTime1',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    publishStartTime1.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            laydate(publishStartTime);
+            laydate(publishEndTime);
+            laydate(publishStartTime1);
+            laydate(publishEndTime1);
+
+            var tradeStartTime = {
+                elem: '#tradeStartTime',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    tradeEndTime.min = datas; //开始日选好后，重置结束日的最小日期
+                    tradeEndTime.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var tradeEndTime = {
+                elem: '#tradeEndTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    tradeStartTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            var tradeStartTime1 = {
+                elem: '#tradeStartTime1',
+                format: 'YYYY/MM/DD ',
+                // min: laydate.now(), //设定最小日期为当前日期
+                max: laydate.now(),//最大日期
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    tradeEndTime1.min = datas; //开始日选好后，重置结束日的最小日期
+                    tradeEndTime1.start = datas //将结束日的初始值设定为开始日
+                }
+            };
+            var tradeEndTime1 = {
+                elem: '#tradeEndTime1',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    tradeStartTime1.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            var commissionStartTime = {
+                elem: '#commissionStartTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // commissionTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            var commissionEndTime = {
+                elem: '#commissionEndTime',
+                format: 'YYYY/MM/DD ',
+                //min: laydate.now(),
+                // max: laydate.now(),
+                istime: true,
+                istoday: false,
+                choose: function (datas) {
+                    // publishStartTime.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+            laydate(tradeStartTime);
+            laydate(tradeEndTime);
+            laydate(tradeStartTime1);
+            laydate(tradeEndTime1);
+            laydate(commissionStartTime);
+            laydate(commissionEndTime);
+        });
+    </script>
+</head>
+<body>
+<div>
+    <div class="tabs-container">
+        <div class="tab-content">
+            <div id="editDiv" class="form-horizontal" style="margin-top:18px;">
+                <div class="row">
+                    <div class="col-md-12">
+                        <form id="editForm" class="" action="" method="post">
+                            <div class="form-group">
+                                <!--用于查询：公司部门选择整个公司或者集团时，该值有效-->
+                                <label class="col-md-1 control-label">部门:</label>
+                                <div class="col-md-1" style="text-align:center">
+                                    <input type="hidden" id="deptId" name="deptId" class="form-control">
+                                    <input type="text" id="chooseDeptName" class="form-control height18"
+                                           readonly="readonly" placeholder="业务部门"
+                                           style="width:120%">
+                                </div>
+                                <div class="col-md-2" style="text-align:center">
+                                    <button type="button" class="btn btn-primary  glyphicon glyphicon-search"
+                                            id="selDept"></button>
+                                    <button type="button" class="btn btn-danger  glyphicon glyphicon-remove"
+                                            id="cleanDept"></button>
+                                </div>
+                                <div class="col-md-2 layui-form">
+                                    <select lay-verify="" lay-search name="businessUserId" id="businessUserId"  lay-filter="users"
+                                            class="form-control height18">
+                                    </select>
+                                </div>
+                                <label class="col-md-1 control-label">历史部门稿件:</label>
+                                <div class="col-md-2">
+                                    <div class="radio i-checks">
+                                        <input type="radio" value="0" name="historyDept"/>包含
+                                        <input type="radio" value="1" name="historyDept"/>不包含
+                                    </div>
+                                </div>
+                                <label class="col-md-1 control-label">提成年月:</label>
+                                <div class="col-md-1">
+                                    <div class="input-group m-b">
+                                        <input type="text" class="form-control" name="year" style="border: 0;">
+                                        <span class="input-group-addon"  style="border: 0;">年</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <div class="input-group m-b">
+                                        <input type="text" class="form-control" name="month" style="border: 0;">
+                                        <span class="input-group-addon"  style="border: 0;">月</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-1 control-label">报价:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="sale" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">进账:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="income" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">成本:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="outgo" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">退款:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="refund" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-1 control-label">其他支出:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="otherExpense" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">税额:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="taxExpense" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">利润:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="profit" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                                <label class="col-md-1 control-label">提成:</label>
+                                <div class="col-md-2">
+                                    <input type="text" name="comm" class="form-control"
+                                           style="border: 0;">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                            <div class="ibox-title">
+                                <h5 style="font-weight: bold">未登记的稿件</h5>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="form-horizontal">
+                                    <form id="selectArticle">
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">发布日期:</label>
+                                            <div class="col-sm-2" style="min-width:280px;">
+                                                <input placeholder="开始日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="publishStartTime"
+                                                       name="publishStartTime">
+                                                <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon " id="publishEndTime"
+                                                       name="publishEndTime">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="custCompanyName"
+                                                       class="form-control" placeholder="客户公司">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="custName"
+                                                       class="form-control" placeholder="联系人">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="mediaName"
+                                                       class="form-control" placeholder="媒体">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="mediaUserName" class="form-control"
+                                                       placeholder="媒介">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="invoiceStates" name="invoiceStates" class="form-control">
+                                                    <option value="">开票状态</option>
+                                                    <option value="0">未开票</option>
+                                                    <option value="1">已开票</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="refundStates" name="refundStates" class="form-control">
+                                                    <option value="">退款状态</option>
+                                                    <option value="0">未退款</option>
+                                                    <option value="1">已退款</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="otherPayStates" name="otherPayStates" class="form-control">
+                                                    <option value="">其他支出状态</option>
+                                                    <option value="0">未支出</option>
+                                                    <option value="1">已支出</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">进账日期:</label>
+                                            <div class="col-sm-2" style="min-width:280px;">
+                                                <input placeholder="开始日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon " id="tradeStartTime"
+                                                       name="tradeStartTime">
+                                                <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon " id="tradeEndTime"
+                                                       name="tradeEndTime">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" placeholder="进账编号" name="incomeCode"
+                                                       class="form-control">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="tradeMan" class="form-control"
+                                                       placeholder="进账人">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="title" class="form-control"
+                                                       placeholder="稿件标题">
+                                            </div>
+                                            <input type="hidden" name="commissionStates" value="0">
+                                            <input type="hidden" id="userId1" name="userId" value="">
+                                            <input type="hidden" id="deptId1" name="deptId" value="">
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div>
+                                <button id="BatchInBtn" class="btn btn-warning" type="button"><i
+                                        class="glyphicon glyphicon-plus"></i>&nbsp;批量登记
+                                </button>
+                                <button id="exportUnRegister" class="btn btn-primary" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导出未登记
+                                </button>
+                                <button type="button" id="selectArticleSearch" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                            <div class="jqGrid_wrapper">
+                                <table id="select_article_table_logs"></table>
+                                <div id="select_article_pager_logs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="ibox float-e-margins" style="margin-bottom:-8px;">
+                            <div class="ibox-title">
+                                <h5 style="font-weight: bold">已登记的稿件</h5>
+                                <span>提示：内容电商版块提成比例：15%，内容电商外的版块提成比例：20%</span>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="form-horizontal">
+                                    <form id="selectedArticle">
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">发布日期:</label>
+                                            <div class="col-sm-2" style="min-width:280px;">
+                                                <input placeholder="开始日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="publishStartTime1"
+                                                       name="publishStartTime">
+                                                <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="publishEndTime1"
+                                                       name="publishEndTime">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="custCompanyName"
+                                                       class="form-control" placeholder="客户公司">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="custName"
+                                                       class="form-control" placeholder="联系人">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="mediaName"
+                                                       class="form-control" placeholder="媒体">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="mediaUserName"
+                                                       class="form-control" placeholder="媒介">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="invoiceStates1" name="invoiceStates" class="form-control">
+                                                    <option value="">开票状态</option>
+                                                    <option value="0">未开票</option>
+                                                    <option value="1">已开票</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="refundStates1" name="refundStates" class="form-control">
+                                                    <option value="">退款状态</option>
+                                                    <option value="0">未退款</option>
+                                                    <option value="1">已退款</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <select id="otherPayStates1" name="otherPayStates" class="form-control">
+                                                    <option value="">其他支出状态</option>
+                                                    <option value="0">未支出</option>
+                                                    <option value="1">已支出</option>
+                                                    <option value="2">进行中</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-1 control-label">进账日期:</label>
+                                            <div class="col-sm-2" style="min-width:280px;">
+                                                <input placeholder="开始日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="tradeStartTime1"
+                                                       name="tradeStartTime">
+                                                <input placeholder="结束日期" style="width:40%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon " id="tradeEndTime1"
+                                                       name="tradeEndTime">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" placeholder="进账编号" name="incomeCode"
+                                                       class="form-control">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="tradeMan" class="form-control"
+                                                       placeholder="进账人">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="title" class="form-control" placeholder="稿件标题">
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <input placeholder="提成开始时间" style="width:45%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="commissionStartTime"
+                                                       name="commissionStartTime">
+                                                <input placeholder="提成结束时间" style="width:45%;vertical-align: middle"
+                                                       class="form-control layer-date laydate-icon "
+                                                       id="commissionEndTime"
+                                                       name="commissionEndTime">
+                                            </div>
+                                            <div class="col-sm-1" id="registerYear">
+                                                <input type="text" placeholder="提成年" name="commissionYear"
+                                                       id="commissionYear" class="form-control">
+                                            </div>
+                                            <div class="col-sm-1" id="registerMonth">
+                                                <input type="text" placeholder="提成月" name="commissionMonth"
+                                                       id="commissionMonth" class="form-control">
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="commissionStates" value="2">
+                                        <input type="hidden" id="userId2" name="userId" value="">
+                                        <input type="hidden" id="deptId2" name="deptId" value="">
+                                    </form>
+                                </div>
+                            </div>
+                            <div>
+                                <button id="BatchOutBtn" class="btn btn-danger" type="button"><i
+                                        class="glyphicon glyphicon-minus"></i>&nbsp;批量取消
+                                </button>
+                                <button id="exportRegister" class="btn btn-primary" type="button">
+                                    <i class="glyphicon glyphicon-export"></i>&nbsp;导出已登记
+                                </button>
+                                <button type="button" id="selectedArticleSearch" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>&nbsp;&nbsp;搜索
+                                </button>
+                            </div>
+                            <div class="jqGrid_wrapper">
+                                <table id="selected_article_table_logs"></table>
+                                <div id="selected_article_pager_logs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal inmodal" id="incomeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h1 class="modal-title">进账信息</h1>
+            </div>
+            <div class="ibox-content">
+                <div class="form-horizontal">
+                    <div class="jqGrid_wrapper">
+                        <table id="incomeTable"></table>
+                        <div id="incomePager"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger backButton" id="cancel2"
+                        data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--搜索条件选择部门-->
+<div class="modal inmodal" id="deptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" style="width:1200px">
+        <div class="modal-content animated bounceInRight" style="height:600px">
+            <div class="modal-header" style="padding: 15px;">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">关闭</span>
+                </button>
+                <h5 class="modal-title">部门信息</h5>
+            </div>
+            <div class="ibox-content">
+                <div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>选择部门</h5>
+                                    <div class="ibox-tools"></div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div id="treeview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

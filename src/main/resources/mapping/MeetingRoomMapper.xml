@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.meeting.MeetingRoomMapper">
+    <sql id="selectColumn">
+        tmr.id,
+        tmr.name,
+        tmr.pic_path as picPath,
+        tmr.address,
+        tmr.people_num as peopleNum,
+        tmr.other_device as otherDevice,
+        tmr.enabled,
+        tmr.audit_flag as auditFlag,
+        tmr.audit_user_id as auditUserId,
+        tmr.open_time_start as openTimeStart,
+        tmr.open_time_end as openTimeEnd,
+        tmr.meet_unit as meetUnit,
+        tmr.once_time as onceTime,
+        tmr.apply_range as applyRange,
+        tmr.create_date as createDate,
+        tmr.create_id as createId,
+        tmr.update_date as updateDate,
+        tmr.update_id as updateId,
+        tmr.remarks,
+        tmr.apply_notice as applyNotice,
+        tmr.state,
+        tmr.company_code as companyCode
+    </sql>
+
+    <!--新增会议室-->
+    <insert id="save" parameterType="com.qinfei.qferp.entity.meeting.MeetingRoom" useGeneratedKeys="true" keyProperty="id">
+        insert into t_meeting_room
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="picPath != null and picPath != ''">pic_path,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="peopleNum != null">people_num,</if>
+            <if test="otherDevice != null and otherDevice != ''">other_device,</if>
+            <if test="enabled != null">enabled,</if>
+            <if test="auditFlag != null">audit_flag,</if>
+            <if test="auditUserId != null">audit_user_id,</if>
+            <if test="openTimeStart != null and openTimeStart != ''">open_time_start,</if>
+            <if test="openTimeEnd != null and openTimeEnd != ''">open_time_end,</if>
+            <if test="meetUnit != null">meet_unit,</if>
+            <if test="onceTime != null">once_time,</if>
+            <if test="applyRange != null">apply_range,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="remarks != null and remarks != ''">remarks,</if>
+            <if test="applyNotice != null and applyNotice != ''">apply_notice,</if>
+            <if test="state != null">state,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="picPath != null and picPath != ''">#{picPath},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="peopleNum != null">#{peopleNum},</if>
+            <if test="otherDevice != null and otherDevice != ''">#{otherDevice},</if>
+            <if test="enabled != null">#{enabled},</if>
+            <if test="auditFlag != null">#{auditFlag},</if>
+            <if test="auditUserId != null">#{auditUserId},</if>
+            <if test="openTimeStart != null and openTimeStart != ''">#{openTimeStart},</if>
+            <if test="openTimeEnd != null and openTimeEnd != ''">#{openTimeEnd},</if>
+            <if test="meetUnit != null">#{meetUnit},</if>
+            <if test="onceTime != null">#{onceTime},</if>
+            <if test="applyRange != null">#{applyRange},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="remarks != null and remarks != ''">#{remarks},</if>
+            <if test="applyNotice != null and applyNotice != ''">#{applyNotice},</if>
+            <if test="state != null">#{state},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+        </trim>
+    </insert>
+
+    <!--根据ID更新-->
+    <update id="updateById" parameterType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+        update t_meeting_room
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="picPath != null and picPath != ''">
+                pic_path = #{picPath},
+            </if>
+            <if test="address != null and address != ''">
+                address = #{address},
+            </if>
+            <if test="peopleNum != null">
+                people_num = #{peopleNum},
+            </if>
+            other_device = #{otherDevice},
+            <if test="enabled != null">
+                enabled = #{enabled},
+            </if>
+            <if test="auditFlag != null">
+                audit_flag = #{auditFlag},
+            </if>
+            audit_user_id = #{auditUserId},
+            open_time_start = #{openTimeStart},
+            open_time_end = #{openTimeEnd},
+            <if test="meetUnit != null">
+                meet_unit = #{meetUnit},
+            </if>
+            <if test="onceTime != null">
+                once_time = #{onceTime},
+            </if>
+            <if test="applyRange != null">
+                apply_range = #{applyRange},
+            </if>
+            update_date = now(),
+            <if test="updateId != null">
+                update_id = #{updateId},
+            </if>
+            remarks = #{remarks},
+            apply_notice = #{applyNotice},
+            <if test="state != null">
+                state = #{state},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--根据ID更新状态-->
+    <update id="updateStateById">
+        UPDATE t_meeting_room
+          SET state = #{state}
+        WHERE
+          id = #{id}
+    </update>
+
+    <!--根据ID更新预约状态-->
+    <update id="updateEnabledById">
+        UPDATE t_meeting_room
+          SET enabled = #{enabled}
+        WHERE
+          id = #{id}
+    </update>
+
+    <!--根据会议室名称查看是否存在该名称-->
+    <select id="getMeetingRoomByName" resultType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+          t_meeting_room tmr
+        WHERE tmr.state = 0
+          AND tmr.name = #{name}
+          AND tmr.company_code = #{companyCode}
+          <if test="id != null">
+              AND id <![CDATA[<>]]> #{id}
+          </if>
+        LIMIT 1
+    </select>
+
+    <!--根据ID获取会议室信息-->
+    <select id="getMeetingRoomById" resultType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+          t_meeting_room tmr
+        WHERE tmr.state = 0
+          AND id = #{id}
+    </select>
+
+    <!--根据参数获取会议室列表-->
+    <select id="listByParam" resultType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+        SELECT
+          <include refid="selectColumn"/>, su.name as approverUserName
+        FROM
+          t_meeting_room tmr
+        LEFT JOIN sys_user su on su.id = tmr.audit_user_id
+        WHERE tmr.state = 0
+        <if test="name != null and name != ''">
+            AND tmr.name like CONCAT('%', #{name},'%')
+        </if>
+        <if test="address != null and address != ''">
+            AND tmr.address like CONCAT('%', #{address},'%')
+        </if>
+        <if test="peopleNum != null">
+            AND tmr.peopleNum = #{peopleNum}
+        </if>
+        <if test="otherDevice != null and otherDevice != ''">
+            AND tmr.other_device like CONCAT('%',#{otherDevice},'%')
+        </if>
+        <if test="enabled != null">
+            AND tmr.enabled = #{enabled},
+        </if>
+        <if test="auditFlag != null">
+            AND tmr.audit_flag = #{auditFlag},
+        </if>
+        <if test="meetUnit != null">
+            AND tmr.meet_unit = #{meetUnit},
+        </if>
+        <if test="onceTime != null">
+            AND tmr.once_time = #{onceTime},
+        </if>
+        <if test="applyRange != null">
+            AND tmr.apply_range = #{applyRange},
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tmr.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--根据参数获取会议室列表-->
+    <select id="listMapByParam" resultType="java.util.Map">
+        SELECT
+        <include refid="selectColumn"/>, su.name as approverUserName
+        FROM
+        t_meeting_room tmr
+        LEFT JOIN sys_user su on su.id = tmr.audit_user_id
+        WHERE tmr.state = 0
+        <if test="name != null and name != ''">
+            AND tmr.name like CONCAT('%' ,#{name},'%')
+        </if>
+        <if test="address != null and address != ''">
+            AND tmr.address like CONCAT('%', #{address},'%')
+        </if>
+        <if test="peopleNum != null">
+            AND tmr.peopleNum = #{peopleNum}
+        </if>
+        <if test="otherDevice != null and otherDevice != ''">
+            AND tmr.other_device like CONCAT('%',#{otherDevice},'%')
+        </if>
+        <if test="enabled != null">
+            AND tmr.enabled = #{enabled},
+        </if>
+        <if test="auditFlag != null">
+            AND tmr.audit_flag = #{auditFlag},
+        </if>
+        <if test="meetUnit != null">
+            AND tmr.meet_unit = #{meetUnit},
+        </if>
+        <if test="onceTime != null">
+            AND tmr.once_time = #{onceTime},
+        </if>
+        <if test="applyRange != null">
+            AND tmr.apply_range = #{applyRange},
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tmr.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--根据参数获取会议室总数-->
+    <select id="getCountByParam" resultType="java.lang.Integer">
+        SELECT
+            count(*)
+        FROM
+        t_meeting_room tmr
+        WHERE tmr.state = 0
+        <if test="name != null and name != ''">
+            AND tmr.name like CONCAT('%', #{name},'%')
+        </if>
+        <if test="address != null and address != ''">
+            AND tmr.address like CONCAT('%', #{address},'%')
+        </if>
+        <if test="peopleNum != null">
+            AND tmr.peopleNum = #{peopleNum}
+        </if>
+        <if test="otherDevice != null and otherDevice != ''">
+            AND tmr.other_device like CONCAT('%',#{otherDevice},'%')
+        </if>
+        <if test="enabled != null">
+            AND tmr.enabled = #{enabled},
+        </if>
+        <if test="auditFlag != null">
+            AND tmr.audit_flag = #{auditFlag},
+        </if>
+        <if test="meetUnit != null">
+            AND tmr.meet_unit = #{meetUnit},
+        </if>
+        <if test="onceTime != null">
+            AND tmr.once_time = #{onceTime},
+        </if>
+        <if test="applyRange != null">
+            AND tmr.apply_range = #{applyRange},
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND tmr.company_code = #{companyCode}
+        </if>
+    </select>
+
+    <!--获取指定公司的会议室列表-->
+    <select id="listMeetingRoomByCompanyCode" resultType="com.qinfei.qferp.entity.meeting.MeetingRoom">
+        SELECT
+          <include refid="selectColumn"/>
+        FROM
+        t_meeting_room tmr
+        WHERE
+        tmr.state = 0
+        <if test="companyCode != null and companyCode != ''">
+            AND tmr.company_code = #{companyCode}
+        </if>
+    </select>
+
+</mapper>

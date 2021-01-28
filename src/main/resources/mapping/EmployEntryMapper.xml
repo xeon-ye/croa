@@ -1,0 +1,882 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 入职申请； -->
+<mapper namespace="com.qinfei.qferp.mapper.employ.EmployEntryMapper">
+    <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.employ.EmployEntry">
+        <id column="entry_id" jdbcType="INTEGER" property="entryId"/>
+        <result column="entry_company_code" jdbcType="VARCHAR" property="entryCompanyCode"/>
+        <result column="entry_first_dept" jdbcType="INTEGER" property="entryFirstDept"/>
+        <result column="entry_dept" jdbcType="INTEGER" property="entryDept"/>
+        <result column="entry_profession" jdbcType="INTEGER" property="entryProfession"/>
+        <result column="entry_expect_salary" jdbcType="VARCHAR" property="entryExpectSalary"/>
+        <result column="entry_name" jdbcType="VARCHAR" property="entryName"/>
+        <result column="entry_image" jdbcType="VARCHAR" property="entryImage"/>
+        <result column="entry_code_file" jdbcType="VARCHAR" property="entryCodeFile"/>
+        <result column="entry_residence" jdbcType="INTEGER" property="entryResidence"/>
+        <result column="entry_residence_file" jdbcType="VARCHAR" property="entryResidenceFile"/>
+        <result column="entry_marriage" jdbcType="INTEGER" property="entryMarriage"/>
+        <result column="entry_local_address" jdbcType="VARCHAR" property="entryLocalAddress"/>
+        <result column="entry_mail" jdbcType="VARCHAR" property="entryMail"/>
+        <result column="entry_phone" jdbcType="VARCHAR" property="entryPhone"/>
+        <result column="entry_urgent" jdbcType="VARCHAR" property="entryUrgent"/>
+        <result column="entry_urgent_phone" jdbcType="VARCHAR" property="entryUrgentPhone"/>
+        <result column="entry_urgent_relation" jdbcType="VARCHAR" property="entryUrgentRelation"/>
+        <result column="entry_has_licence" jdbcType="INTEGER" property="entryHasLicence"/>
+        <result column="entry_licence" jdbcType="VARCHAR" property="entryLicence"/>
+        <result column="entry_drive_age" jdbcType="INTEGER" property="entryDriveAge"/>
+        <result column="entry_interest" jdbcType="VARCHAR" property="entryInterest"/>
+        <result column="entry_has_sick" jdbcType="INTEGER" property="entryHasSick"/>
+        <result column="entry_sick" jdbcType="VARCHAR" property="entrySick"/>
+        <result column="entry_report" jdbcType="VARCHAR" property="entryReport"/>
+        <result column="entry_channel" jdbcType="INTEGER" property="entryChannel"/>
+        <result column="entry_channel_name" jdbcType="VARCHAR" property="entryChannelName"/>
+        <result column="entry_has_relative" jdbcType="INTEGER" property="entryHasRelative"/>
+        <result column="entry_file" jdbcType="VARCHAR" property="entryFile"/>
+        <result column="entry_validate" jdbcType="VARCHAR" property="entryValidate"/>
+        <result column="entry_complete" jdbcType="INTEGER" property="entryComplete"/>
+        <result column="entry_expect_date" jdbcType="DATE" property="entryExpectDate"/>
+        <result column="emp_id" jdbcType="INTEGER" property="empId"/>
+        <result column="task_id" jdbcType="VARCHAR" property="taskId"/>
+        <result column="item_id" jdbcType="INTEGER" property="itemId"/>
+        <result column="process_state" jdbcType="INTEGER" property="processState"/>
+        <result column="create_id" jdbcType="INTEGER" property="createId"/>
+        <result column="create_name" jdbcType="VARCHAR" property="createName"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_id" jdbcType="INTEGER" property="updateId"/>
+        <result column="update_name" jdbcType="VARCHAR" property="updateName"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="entry_state" jdbcType="INTEGER" property="entryState"/>
+        <result column="state" jdbcType="INTEGER" property="state"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        entry_id,
+        entry_company_code,
+        entry_first_dept,
+        entry_dept,
+        entry_profession,
+        entry_expect_salary,
+        entry_name,
+        entry_image,
+        entry_code_file,
+        entry_residence,
+        entry_residence_file,
+        entry_marriage,
+        entry_local_address,
+        entry_mail,
+        entry_phone,
+        entry_urgent,
+        entry_urgent_phone,
+        entry_urgent_relation,
+        entry_has_licence,
+        entry_licence,
+        entry_drive_age,
+        entry_interest,
+        entry_has_sick,
+        entry_sick,
+        entry_report,
+        entry_channel,
+        entry_channel_name,
+        entry_has_relative,
+        entry_file,
+        entry_validate,
+        entry_complete,
+        entry_expect_date,
+        emp_id,
+        task_id,
+        item_id,
+        process_state,
+        entry_state,
+        <include refid="EmployCommon.commonColumn"/>
+    </sql>
+    <sql id="EntryMapList">
+        a.entry_id as entryId,
+        a.entry_company_code as entryCompanyCode,
+        a.entry_first_dept as entryFirstDept,
+        a.entry_dept as entryDept,
+        a.entry_profession as entryProfession,
+        a.entry_expect_salary as entryExpectSalary,
+        a.entry_name as entryName,
+        a.entry_image as entryImage,
+        a.entry_residence as entryResidence,
+        a.entry_marriage as entryMarriage,
+        a.entry_local_address as entryLocalAddress,
+        a.entry_mail as entryMail,
+        a.entry_phone as entryPhone,
+        a.entry_urgent as entryUrgent,
+        a.entry_urgent_phone as entryUrgentPhone,
+        a.entry_urgent_relation as entryUrgentRelation,
+        a.entry_has_licence as entryHasLicence,
+        a.entry_licence as entryLicence,
+        a.entry_drive_age as entryDriveAge,
+        a.entry_interest as entryInterest,
+        a.entry_has_sick as entryHasSick,
+        a.entry_sick as entrySick,
+        a.entry_channel as entryChannel,
+        a.entry_channel_name as entryChannelName,
+        a.entry_has_relative as entryHasRelative,
+        a.entry_validate as entryValidate,
+        a.create_time as createTime,
+        a.entry_complete as entryComplete,
+        a.entry_state as entryState,
+        a.state
+    </sql>
+
+    <sql id="BasicMapList">
+        b.bas_id as basId,
+        b.emp_gender as empGender,
+        b.emp_race as empRace,
+        b.emp_date as empDate,
+        b.emp_birth as empBirth,
+        b.emp_birthday as empBirthday,
+        b.emp_code as empCode,
+        b.emp_code_address as empCodeAddress,
+        b.emp_native_province as empNativeProvince,
+        b.emp_native_city as empNativeCity,
+        b.emp_native as empNative,
+        b.emp_education as empEducation,
+        b.emp_education_other as empEducationOther,
+        b.emp_relative as empRelative,
+        b.emp_relative_name as empRelativeName,
+        b.emp_relative_phone as empRelativePhone,
+        b.emp_relative_relation as empRelativeRelation,
+        b.emp_son as empSon,
+        b.emp_girl as empGirl,
+        b.emp_brother as empBrother,
+        b.emp_younger_brother as empYoungerBrother,
+        b.emp_sister as empSister,
+        b.emp_younger_sister as empYoungerSister
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        <include refid="BaseColumnList"/>
+        from
+        e_entry
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </select>
+
+    <!-- 获取入职申请的状态； -->
+    <select id="selectStateById" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select entry_complete, state from e_entry where entry_id = #{entryId}
+    </select>
+
+    <!-- 获取提交审核的入职申请信息； -->
+    <select id="selectTaskById" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select
+        entry_id, entry_name, task_id
+        from
+        e_entry
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state = 0
+    </select>
+
+    <!-- 根据查询码获取审核需要的信息； -->
+    <select id="selectApproveInfo" parameterType="java.lang.String" resultMap="BaseResultMap" useCache="true">
+        select
+        entry_id, process_state, task_id
+        from
+        e_entry
+        where
+        entry_validate = #{entryValidate,jdbcType=VARCHAR} and state = 1
+    </select>
+
+    <!-- 获取审核状态下的数据当前节点； -->
+    <select id="selectApproveNode" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select
+        process_state
+        from
+        e_entry
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state = 1
+    </select>
+
+    <!-- 查询数据是否为待审核状态； -->
+    <select id="checkEnableUpdate" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select count(*) from e_entry where entry_id = #{entryId} and state = 0
+    </select>
+
+    <!-- 查询数据是否为审核中状态； -->
+    <select id="checkEnableApprove" parameterType="java.lang.Integer" resultType="java.lang.Integer" useCache="true">
+        select count(*) from e_entry where entry_id = #{entryId} and state = 1
+    </select>
+
+    <!-- 查询数据是否允许审核入库； -->
+    <select id="checkEnableComplete" parameterType="com.qinfei.qferp.entity.employ.EmployEntry"
+            resultType="java.lang.Integer" useCache="true">
+        select count(*) from e_entry where entry_id = #{entryId} and state = 2 and entry_complete = #{entryComplete}
+    </select>
+
+    <!-- 根据身份证号码查询是否为已填写入职申请的人员，离职人员也可以再次录入； -->
+    <select id="checkRepeatByCode" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select count(*) from
+        e_entry a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        b.emp_code = #{empCode} and a.state not in (-1, 5)
+        <if test="entryCompanyCode != null and entryCompanyCode != ''">
+            and a.entry_company_code = #{entryCompanyCode}
+        </if>
+        <if test="entryId != null">
+            and a.entry_id &lt;&gt; #{entryId}
+        </if>
+    </select>
+
+    <!-- 根据身份证号码查询主键ID，包含离职人员； -->
+    <select id="selectIdByCode" parameterType="java.util.Map" resultType="java.lang.Integer" useCache="true">
+        select a.entry_id from
+        e_entry a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        b.emp_code = #{empCode} and a.state &lt;&gt; -1
+    </select>
+
+    <!-- 根据查询码查询相关的入职申请信息； -->
+    <select id="selectEntryInfo" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select
+        <include refid="EntryMapList"/>
+        ,
+        <include refid="BasicMapList"/>
+        from
+        e_entry a
+        left join e_employee_basic b on a.entry_id = b.entry_id
+        where a.state &lt;&gt; -1
+        <if test="entryId != null">
+            and a.entry_id = #{entryId}
+        </if>
+        <if test="entryValidate != null">
+            and a.entry_validate = #{entryValidate}
+        </if>
+    </select>
+
+    <!-- 根据提供的信息获取入职申请的查询码，仅限0-2状态； -->
+    <select id="selectEntryValidate" parameterType="java.util.Map" resultType="java.lang.String" useCache="true">
+      select
+        a.entry_validate
+      from
+        e_entry a
+      left join e_employee_basic b on a.entry_id = b.entry_id
+      where (a.state &gt;= 0 and a.state &lt;= 2) and a.entry_name = #{entryName} and a.entry_phone = #{entryPhone} and b.emp_code = #{empCode}
+    </select>
+
+    <!-- 根据查询码获取主键ID； -->
+    <select id="selectIdByValidate" parameterType="java.lang.String" resultType="java.lang.Integer" useCache="true">
+        select entry_id from e_entry where entry_complete = 0 and state = 2 and entry_validate = #{entryValidate}
+    </select>
+
+    <!-- 入职申请列表； -->
+    <select id="selectPageEntry" parameterType="java.util.Map" resultType="java.util.Map" useCache="true">
+        select * from e_entry a left join e_employee_basic b on a.entry_id = b.entry_id
+        <where>
+            a.state &lt;&gt; -1
+            <include refid="condition"/>
+        </where>
+        order by
+        <if test="sidx != null and sord != null">
+            ${sidx} ${sord}
+        </if>
+        <if test="sidx == null or sord == null">
+            a.entry_id desc
+        </if>
+    </select>
+
+    <!-- 获取录用流程所需的员工数据； -->
+    <select id="selectEmployInfoById" parameterType="java.lang.Integer" resultType="java.util.Map" useCache="true">
+        select
+            a.entry_id as entryId,
+            a.entry_name as empName,
+            b.emp_gender as empGender,
+            b.emp_birth as empBirth,
+            a.entry_marriage as empMarriage,
+            b.emp_education as empEducation,
+            b.emp_college as empCollege,
+            b.emp_major as empMajor,
+            b.emp_education_other as empEducationOther,
+            a.entry_local_address as empLocalAddress,
+            a.entry_company_code as entryCompanyCode,
+            a.entry_first_dept as entryFirstDept,
+            a.entry_dept as empDept,
+            a.entry_profession as empProfession
+        from
+          e_entry a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+          a.state = 0 and a.entry_id = #{entryId}
+    </select>
+
+    <!-- 根据主键ID查询入职申请资料； -->
+    <select id="selectEntryFileById" parameterType="java.lang.Integer" resultType="java.util.Map" useCache="true">
+        select
+          entry_image as entryImage,
+          entry_code_file as entryCodeFile,
+          entry_residence_file as entryResidenceFile,
+          entry_report as entryReport,
+          emp_education_file as empEducationFile,
+          emp_experience_file as empExperienceFile
+        from
+          e_entry a left join e_employee_basic b on a.entry_id = b.entry_id
+        where
+        a.entry_complete = 1 and a.state &gt;= 2 and a.entry_id = #{entryId}
+    </select>
+
+    <!-- 获取创建人信息，用于员工入职后记录； -->
+    <select id="selectCreateInfoById" parameterType="java.lang.Integer" resultMap="BaseResultMap" useCache="true">
+        select entry_id, entry_dept, entry_profession, create_id, create_time from e_entry where emp_id = #{empId} and state &lt;&gt; -1
+    </select>
+
+    <sql id="condition">
+        <if test="entryDept != null">
+            and a.entry_dept = #{entryDept}
+        </if>
+        <if test="companyCode != null">
+            and (a.entry_dept in (select id from sys_dept where company_code = #{companyCode} and state &gt; -2) or a.entry_company_code = #{companyCode})
+        </if>
+        <if test="entryProfession != null">
+            and a.entry_profession = #{entryProfession}
+        </if>
+        <if test="entryExpectSalary != null">
+            and a.entry_expect_salary like '%${entryExpectSalary}%'
+        </if>
+        <if test="entryName != null">
+            and a.entry_name like '%${entryName}%'
+        </if>
+        <if test="entryResidence != null">
+            and a.entry_residence = #{entryResidence}
+        </if>
+        <if test="entryMarriage != null">
+            and a.entry_marriage = #{entryMarriage}
+        </if>
+        <if test="entryLocalAddress != null">
+            and a.entry_local_address like '%${entryLocalAddress}%'
+        </if>
+        <if test="entryMail != null">
+            and a.entry_mail like '%${entryMail}%'
+        </if>
+        <if test="entryPhone != null">
+            and a.entry_phone like '%${entryPhone}%'
+        </if>
+        <if test="entryChannel != null">
+            and a.entry_channel = #{entryChannel}
+        </if>
+        <if test="entryChannelName != null">
+            and a.entry_channel_name like '%${entryChannelName}%'
+        </if>
+        <if test="entryInterest != null">
+            and a.entry_interest like '%${entryInterest}%'
+        </if>
+        <if test="entryComplete != null">
+            and a.entry_complete = #{entryComplete}
+        </if>
+        <if test="entryHasSick != null">
+            and a.entry_has_sick = #{entryHasSick}
+        </if>
+        <if test="entryHasRelative != null">
+            and a.entry_has_relative = #{entryHasRelative}
+        </if>
+        <if test="createTimeStart != null">
+            and a.create_time &gt;= #{createTimeStart}
+        </if>
+        <if test="createTimeEnd != null">
+            and a.create_time &lt;= STR_TO_DATE(CONCAT(#{createTimeEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="state != null">
+            and a.state = #{state}
+        </if>
+        <if test="entryExpectDateStart != null">
+            and a.entry_expect_date &gt;= #{entryExpectDateStart}
+        </if>
+        <if test="entryExpectDateEnd != null">
+            and a.entry_expect_date &lt;= #{entryExpectDateEnd}
+        </if>
+        <if test="entryIds != null">
+            and a.entry_id in
+            <foreach item="entryId" collection="entryIds" index="index" open="(" close=")" separator=",">
+                #{entryId}
+            </foreach>
+        </if>
+        <if test="empGender != null">
+            and b.emp_gender = #{empGender}
+        </if>
+        <if test="empRace != null">
+            and b.emp_race = #{empRace}
+        </if>
+        <if test="empCode != null">
+            and b.emp_code like '%${empCode}%'
+        </if>
+        <if test="empBirthStart != null">
+            and b.emp_birth &gt;= #{empBirthStart}
+        </if>
+        <if test="empBirthEnd != null">
+            and b.emp_birth &lt;= #{empBirthEnd}
+        </if>
+        <if test="empDateStart != null">
+            and b.emp_date &gt;= #{empDateStart}
+        </if>
+        <if test="empDateEnd != null">
+            and b.emp_date &lt;= STR_TO_DATE(concat(#{empDateEnd},' 23:59:59'),'%Y-%m-%d %T')
+        </if>
+        <if test="empRelative != null">
+            and b.emp_relative = #{empRelative}
+        </if>
+        <if test="empNativeProvince != null">
+            and b.emp_native_province = #{empNativeProvince}
+        </if>
+        <if test="empNativeCity != null">
+            and b.emp_native_city = #{empNativeCity}
+        </if>
+        <if test="empNative != null">
+            and b.emp_native like '%${empNative}%'
+        </if>
+        <if test="empEducation != null">
+            and b.emp_education = #{empEducation}
+        </if>
+        <if test="empEducationOther != null">
+            and b.emp_education_other like '%${empEducationOther}%'
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="com.qinfei.qferp.entity.employ.EmployEntry" useGeneratedKeys="true"
+            keyProperty="entryId">
+        insert into e_entry (
+        entry_id,
+        entry_company_code,
+        entry_first_dept,
+        entry_dept,
+        entry_profession,
+        entry_expect_salary,
+        entry_name,
+        entry_image,
+        entry_code_file,
+        entry_residence,
+        entry_residence_file,
+        entry_marriage,
+        entry_local_address,
+        entry_mail,
+        entry_phone,
+        entry_urgent,
+        entry_urgent_phone,
+        entry_urgent_relation,
+        entry_has_licence,
+        entry_licence,
+        entry_drive_age,
+        entry_interest,
+        entry_has_sick,
+        entry_sick,
+        entry_report,
+        entry_channel,
+        entry_channel_name,
+        entry_has_relative,
+        entry_file,
+        entry_validate,
+        entry_complete,
+        entry_expect_date,
+        emp_id,
+        task_id,
+        item_id,
+        process_state,
+        entry_state,
+        <include refid="EmployCommon.commonColumn"/>
+        ) values (
+        #{entryId,jdbcType=INTEGER},
+        #{entryCompanyCode,jdbcType=VARCHAR},
+        #{entryFirstDept,jdbcType=INTEGER},
+        #{entryDept,jdbcType=INTEGER},
+        #{entryProfession,jdbcType=INTEGER},
+        #{entryExpectSalary,jdbcType=VARCHAR},
+        #{entryName,jdbcType=VARCHAR},
+        #{entryImage,jdbcType=VARCHAR},
+        #{entryCodeFile,jdbcType=VARCHAR},
+        #{entryResidence,jdbcType=INTEGER},
+        #{entryResidenceFile,jdbcType=VARCHAR},
+        #{entryMarriage,jdbcType=INTEGER},
+        #{entryLocalAddress,jdbcType=VARCHAR},
+        #{entryMail,jdbcType=VARCHAR},
+        #{entryPhone,jdbcType=VARCHAR},
+        #{entryUrgent,jdbcType=VARCHAR},
+        #{entryUrgentPhone,jdbcType=VARCHAR},
+        #{entryUrgentRelation,jdbcType=VARCHAR},
+        #{entryHasLicence,jdbcType=INTEGER},
+        #{entryLicence,jdbcType=VARCHAR},
+        #{entryDriveAge,jdbcType=INTEGER},
+        #{entryInterest,jdbcType=VARCHAR},
+        #{entryHasSick,jdbcType=INTEGER},
+        #{entrySick,jdbcType=VARCHAR},
+        #{entryReport,jdbcType=VARCHAR},
+        #{entryChannel,jdbcType=INTEGER},
+        #{entryChannelName,jdbcType=VARCHAR},
+        #{entryHasRelative,jdbcType=INTEGER},
+        #{entryFile,jdbcType=VARCHAR},
+        #{entryValidate,jdbcType=VARCHAR},
+        #{entryComplete,jdbcType=INTEGER},
+        #{entryExpectDate,jdbcType=DATE},
+        #{empId,jdbcType=INTEGER},
+        #{taskId,jdbcType=VARCHAR},
+        #{itemId,jdbcType=INTEGER},
+        #{processState,jdbcType=INTEGER},
+        #{entryState,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnInsert"/>
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntry" useGeneratedKeys="true"
+            keyProperty="entryId">
+        insert into e_entry
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entryId != null">entry_id,</if>
+            <if test="entryCompanyCode != null and entryCompanyCode != ''">entry_company_code,</if>
+            <if test="entryFirstDept != null">entry_first_dept,</if>
+            <if test="entryDept != null">entry_dept,</if>
+            <if test="entryProfession != null">entry_profession,</if>
+            <if test="entryExpectSalary != null">entry_expect_salary,</if>
+            <if test="entryName != null">entry_name,</if>
+            <if test="entryImage != null">entry_image,</if>
+            <if test="entryCodeFile != null">entry_code_file,</if>
+            <if test="entryResidence != null">entry_residence,</if>
+            <if test="entryResidenceFile != null">entry_residence_file,</if>
+            <if test="entryMarriage != null">entry_marriage,</if>
+            <if test="entryLocalAddress != null">entry_local_address,</if>
+            <if test="entryMail != null">entry_mail,</if>
+            <if test="entryPhone != null">entry_phone,</if>
+            <if test="entryUrgent != null">entry_urgent,</if>
+            <if test="entryUrgentPhone != null">entry_urgent_phone,</if>
+            <if test="entryUrgentRelation != null">entry_urgent_relation,</if>
+            <if test="entryHasLicence != null">entry_has_licence,</if>
+            <if test="entryLicence != null">entry_licence,</if>
+            <if test="entryDriveAge != null">entry_drive_age,</if>
+            <if test="entryInterest != null">entry_interest,</if>
+            <if test="entryHasSick != null">entry_has_sick,</if>
+            <if test="entrySick != null">entry_sick,</if>
+            <if test="entryReport != null">entry_report,</if>
+            <if test="entryChannel != null">entry_channel,</if>
+            <if test="entryChannelName != null">entry_channel_name,</if>
+            <if test="entryHasRelative != null">entry_has_relative,</if>
+            <if test="entryFile != null">entry_file,</if>
+            <if test="entryValidate != null">entry_validate,</if>
+            <if test="entryComplete != null">entry_complete,</if>
+            <if test="entryExpectDate != null">entry_expect_date,</if>
+            <if test="empId != null">emp_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="processState != null">process_state,</if>
+            <if test="entryState != null">entry_state,</if>
+            <include refid="EmployCommon.createInfo"/>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entryId != null">#{entryId,jdbcType=INTEGER},</if>
+            <if test="entryCompanyCode != null and entryCompanyCode != ''">#{entryCompanyCode,jdbcType=VARCHAR},</if>
+            <if test="entryFirstDept != null">#{entryFirstDept,jdbcType=INTEGER},</if>
+            <if test="entryDept != null">#{entryDept,jdbcType=INTEGER},</if>
+            <if test="entryProfession != null">#{entryProfession,jdbcType=INTEGER},</if>
+            <if test="entryExpectSalary != null">#{entryExpectSalary,jdbcType=VARCHAR},</if>
+            <if test="entryName != null">#{entryName,jdbcType=VARCHAR},</if>
+            <if test="entryImage != null">#{entryImage,jdbcType=VARCHAR},</if>
+            <if test="entryCodeFile != null">#{entryCodeFile,jdbcType=VARCHAR},</if>
+            <if test="entryResidence != null">#{entryResidence,jdbcType=INTEGER},</if>
+            <if test="entryResidenceFile != null">#{entryResidenceFile,jdbcType=VARCHAR},</if>
+            <if test="entryMarriage != null">#{entryMarriage,jdbcType=INTEGER},</if>
+            <if test="entryLocalAddress != null">#{entryLocalAddress,jdbcType=VARCHAR},</if>
+            <if test="entryMail != null">#{entryMail,jdbcType=VARCHAR},</if>
+            <if test="entryPhone != null">#{entryPhone,jdbcType=VARCHAR},</if>
+            <if test="entryUrgent != null">#{entryUrgent,jdbcType=VARCHAR},</if>
+            <if test="entryUrgentPhone != null">#{entryUrgentPhone,jdbcType=VARCHAR},</if>
+            <if test="entryUrgentRelation != null">#{entryUrgentRelation,jdbcType=VARCHAR},</if>
+            <if test="entryHasLicence != null">#{entryHasLicence,jdbcType=INTEGER},</if>
+            <if test="entryLicence != null">#{entryLicence,jdbcType=VARCHAR},</if>
+            <if test="entryDriveAge != null">#{entryDriveAge,jdbcType=INTEGER},</if>
+            <if test="entryInterest != null">#{entryInterest,jdbcType=VARCHAR},</if>
+            <if test="entryHasSick != null">#{entryHasSick,jdbcType=INTEGER},</if>
+            <if test="entrySick != null">#{entrySick,jdbcType=VARCHAR},</if>
+            <if test="entryReport != null">#{entryReport,jdbcType=VARCHAR},</if>
+            <if test="entryChannel != null">#{entryChannel,jdbcType=INTEGER},</if>
+            <if test="entryChannelName != null">#{entryChannelName,jdbcType=VARCHAR},</if>
+            <if test="entryHasRelative != null">#{entryHasRelative,jdbcType=INTEGER},</if>
+            <if test="entryFile != null">#{entryFile,jdbcType=VARCHAR},</if>
+            <if test="entryValidate != null">#{entryValidate,jdbcType=VARCHAR},</if>
+            <if test="entryComplete != null">#{entryComplete,jdbcType=INTEGER},</if>
+            <if test="entryExpectDate != null">#{entryExpectDate,jdbcType=DATE},</if>
+            <if test="empId != null">#{empId,jdbcType=INTEGER},</if>
+            <if test="taskId != null">#{taskId,jdbcType=VARCHAR},</if>
+            <if test="itemId != null">#{itemId,jdbcType=INTEGER},</if>
+            <if test="processState != null">#{processState,jdbcType=INTEGER},</if>
+            <if test="entryState != null">#{entryState,jdbcType=INTEGER},</if>
+            <include refid="EmployCommon.createInfoValue"/>
+        </trim>
+    </insert>
+
+    <!--批量创建入职申请-->
+    <insert id="insertSelectiveFromExcel" parameterType="java.util.List" useGeneratedKeys="true"
+            keyProperty="entryId">
+        insert into e_entry
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            entry_company_code,
+            entry_first_dept,
+            entry_dept,
+            entry_profession,
+            entry_name,
+            entry_marriage,
+            entry_phone,
+            entry_urgent,
+            entry_urgent_phone,
+            entry_urgent_relation,
+            entry_channel,
+            entry_channel_name,
+            entry_validate,
+            entry_complete,
+            entry_expect_date,
+            emp_id,
+            create_id,
+            create_name,
+            create_time,
+            update_id,
+            update_name,
+            update_time,
+            entry_state,
+            state
+        </trim>
+        values
+        <foreach collection="list" item="element" index="index" open="(" separator="),(" close=")">
+            #{element.entryCompanyCode,jdbcType=VARCHAR},
+            #{element.entryFirstDept,jdbcType=INTEGER},
+            #{element.entryDept,jdbcType=INTEGER},
+            #{element.entryProfession,jdbcType=INTEGER},
+            #{element.entryName,jdbcType=VARCHAR},
+            #{element.entryMarriage,jdbcType=INTEGER},
+            #{element.entryPhone,jdbcType=VARCHAR},
+            #{element.entryUrgent,jdbcType=VARCHAR},
+            #{element.entryUrgentPhone,jdbcType=VARCHAR},
+            #{element.entryUrgentRelation,jdbcType=VARCHAR},
+            #{element.entryChannel,jdbcType=INTEGER},
+            #{element.entryChannelName,jdbcType=VARCHAR},
+            #{element.entryValidate,jdbcType=VARCHAR},
+            0,
+            #{element.entryExpectDate,jdbcType=DATE},
+            #{element.empId,jdbcType=INTEGER},
+            #{element.createId,jdbcType=INTEGER},
+            #{element.createName,jdbcType=VARCHAR},
+            #{element.createTime,jdbcType=TIMESTAMP},
+            #{element.updateId,jdbcType=INTEGER},
+            #{element.updateName,jdbcType=VARCHAR},
+            #{element.updateTime,jdbcType=TIMESTAMP},
+            #{element.entryHireState,jdbcType=INTEGER},
+            #{element.entryState,jdbcType=INTEGER}
+        </foreach>
+    </insert>
+
+    <!--更新empId-->
+    <update id="updateEmpIdByEntryId">
+        UPDATE e_entry eey,
+        e_employee ee
+        SET eey.emp_id = ee.emp_id
+        WHERE
+        eey.entry_id = ee.entry_id
+        <if test="list != null and list.size() > 0">
+            AND eey.entry_id IN
+            <foreach collection="list" item="element" index="index" open="(" close=")" separator=",">
+                #{element.entryId}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="updateFromExcel" parameterType="com.qinfei.qferp.excel.EmployeeExcelInfo">
+        update e_entry
+        <set>
+            entry_dept = #{empDept,jdbcType=INTEGER},
+            entry_profession = #{empPostId,jdbcType=INTEGER},
+            entry_name = #{empName,jdbcType=VARCHAR},
+            entry_marriage = #{empMarriage,jdbcType=INTEGER},
+            entry_phone = #{empPhone,jdbcType=VARCHAR},
+            entry_urgent = #{empUrgent,jdbcType=VARCHAR},
+            entry_urgent_phone = #{empUrgentPhone,jdbcType=VARCHAR},
+            update_id = #{updateId,jdbcType=INTEGER},
+            update_name = #{updateName,jdbcType=VARCHAR},
+            update_time = #{updateTime,jdbcType=TIMESTAMP},
+            state = #{entryState,jdbcType=INTEGER}
+        </set>
+        <where>
+            entry_name = #{empName,jdbcType=VARCHAR}
+            and entry_phone = #{empPhone,jdbcType=VARCHAR}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByEntryId" parameterType="com.qinfei.qferp.excel.EmployeeExcelInfo">
+        update e_entry
+        <set>
+            update_id = #{updateId,jdbcType=INTEGER},
+            update_name = #{updateName,jdbcType=VARCHAR},
+            update_time = #{updateTime,jdbcType=TIMESTAMP},
+            state = -1
+        </set>
+        <where>
+            entry_id = #{entryId,jdbcType=INTEGER}
+            and state &lt;&gt; -1
+        </where>
+    </update>
+
+    <update id="deleteByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_entry
+        <include refid="EmployCommon.deleteInfo"/>
+        where entry_id = #{entryId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 更新创建人信息； -->
+    <update id="updateCreateInfoById" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_entry
+        <set>
+            create_id = #{createId},
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_id = #{entryId} and state &lt;&gt; -1 and create_id is null
+    </update>
+
+    <!-- 批量更新状态； -->
+    <update id="updateStateByBatchId" parameterType="java.util.Map">
+        update
+        e_entry
+        <set>
+            <if test="entryValidate != null">
+                <choose>
+                    <when test="entryValidate == 0">
+                        entry_validate = null,
+                    </when>
+                    <otherwise>
+                        entry_validate = #{entryValidate},
+                    </otherwise>
+                </choose>
+            </if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where state &lt;&gt; -1
+        and entry_id in
+        <foreach item="entryId" collection="entryIds" index="index" open="(" close=")" separator=",">
+            #{entryId}
+        </foreach>
+    </update>
+
+    <!-- 根据员工ID更新状态信息； -->
+    <update id="updateStateByEmpId" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_entry
+        <set>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where emp_id = #{empId} and state &lt;&gt; -1
+    </update>
+
+    <!-- 根据主键ID完善入职申请资料； -->
+    <update id="completeEntryById" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_entry
+        <set>
+            <if test="entryImage != null">entry_image = #{entryImage},</if>
+            <if test="entryCodeFile != null">entry_code_file = #{entryCodeFile},</if>
+            <if test="entryResidenceFile != null">
+                entry_residence_file = #{entryResidenceFile},
+            </if>
+            <if test="entryReport != null">entry_report = #{entryReport},</if>
+            entry_complete = 1,
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where entry_complete = 0 and state = 2 and entry_id = #{entryId}
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update e_entry
+        <set>
+            <if test="entryCompanyCode != null and entryCompanyCode !=''">entry_company_code =  #{entryCompanyCode,jdbcType=VARCHAR},</if>
+            <if test="entryFirstDept != null">  entry_first_dept = #{entryFirstDept,jdbcType=INTEGER},</if>
+            <if test="entryDept != null">entry_dept = #{entryDept,jdbcType=INTEGER},</if>
+            <if test="entryProfession != null">entry_profession = #{entryProfession,jdbcType=INTEGER},</if>
+            <if test="entryExpectSalary != null">entry_expect_salary = #{entryExpectSalary,jdbcType=VARCHAR},</if>
+            <if test="entryName != null">entry_name = #{entryName,jdbcType=VARCHAR},</if>
+            <if test="entryImage != null">entry_image = #{entryImage,jdbcType=VARCHAR},</if>
+            <if test="entryCodeFile != null">entry_code_file = #{entryCodeFile,jdbcType=VARCHAR},</if>
+            <if test="entryResidence != null">entry_residence = #{entryResidence,jdbcType=INTEGER},</if>
+            <if test="entryResidenceFile != null">
+                entry_residence_file = #{entryResidenceFile,jdbcType=VARCHAR},
+            </if>
+            <if test="entryMarriage != null">entry_marriage = #{entryMarriage,jdbcType=INTEGER},</if>
+            <if test="entryLocalAddress != null">entry_local_address = #{entryLocalAddress,jdbcType=VARCHAR},</if>
+            <if test="entryMail != null">entry_mail = #{entryMail,jdbcType=VARCHAR},</if>
+            <if test="entryPhone != null">entry_phone = #{entryPhone,jdbcType=VARCHAR},</if>
+            <if test="entryUrgent != null">entry_urgent = #{entryUrgent,jdbcType=VARCHAR},</if>
+            <if test="entryUrgentPhone != null">entry_urgent_phone = #{entryUrgentPhone,jdbcType=VARCHAR},</if>
+            <if test="entryUrgentRelation != null">
+                entry_urgent_relation = #{entryUrgentRelation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryHasLicence != null">entry_has_licence = #{entryHasLicence,jdbcType=INTEGER},</if>
+            <if test="entryLicence != null">entry_licence = #{entryLicence,jdbcType=VARCHAR},</if>
+            <if test="entryDriveAge != null">entry_drive_age = #{entryDriveAge,jdbcType=INTEGER},</if>
+            <if test="entryInterest != null">entry_interest = #{entryInterest,jdbcType=VARCHAR},</if>
+            <if test="entryHasSick != null">entry_has_sick = #{entryHasSick,jdbcType=INTEGER},</if>
+            <if test="entrySick != null">entry_sick = #{entrySick,jdbcType=VARCHAR},</if>
+            <if test="entryReport != null">entry_report = #{entryReport,jdbcType=VARCHAR},</if>
+            <if test="entryChannel != null">entry_channel = #{entryChannel,jdbcType=INTEGER},</if>
+            <if test="entryChannelName != null">entry_channel_name = #{entryChannelName,jdbcType=VARCHAR},</if>
+            <if test="entryHasRelative != null">entry_has_relative = #{entryHasRelative,jdbcType=INTEGER},</if>
+            <if test="entryFile != null">entry_file = #{entryFile,jdbcType=VARCHAR},</if>
+            <if test="entryValidate != null">
+                <choose>
+                    <when test="entryValidate == 0">
+                        entry_validate = null,
+                    </when>
+                    <otherwise>
+                        entry_validate = #{entryValidate,jdbcType=VARCHAR},
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="entryComplete != null">entry_complete = #{entryComplete,jdbcType=INTEGER},</if>
+            <if test="entryExpectDate != null">entry_expect_date = #{entryExpectDate,jdbcType=DATE},</if>
+            <if test="empId != null">emp_id = #{empId,jdbcType=INTEGER},</if>
+            <if test="taskId != null">task_id = #{taskId,jdbcType=VARCHAR},</if>
+            <if test="itemId != null">item_id = #{itemId,jdbcType=INTEGER},</if>
+            <if test="processState != null">process_state = #{processState,jdbcType=INTEGER},</if>
+            <if test="entryState != null">entry_state = #{entryState,jdbcType=INTEGER},</if>
+            <include refid="EmployCommon.updateInfo"/>
+        </set>
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.employ.EmployEntry">
+        update
+        e_entry
+        set
+        entry_company_code =  #{entryCompanyCode,jdbcType=VARCHAR},
+        entry_first_dept = #{entryFirstDept,jdbcType=INTEGER},
+        entry_dept = #{entryDept,jdbcType=INTEGER},
+        entry_profession = #{entryProfession,jdbcType=INTEGER},
+        entry_expect_salary = #{entryExpectSalary,jdbcType=VARCHAR},
+        entry_name = #{entryName,jdbcType=VARCHAR},
+        entry_image = #{entryImage,jdbcType=VARCHAR},
+        entry_code_file = #{entryCodeFile,jdbcType=VARCHAR},
+        entry_residence = #{entryResidence,jdbcType=INTEGER},
+        entry_residence_file = #{entryResidenceFile,jdbcType=VARCHAR},
+        entry_marriage = #{entryMarriage,jdbcType=INTEGER},
+        entry_local_address = #{entryLocalAddress,jdbcType=VARCHAR},
+        entry_mail = #{entryMail,jdbcType=VARCHAR},
+        entry_phone = #{entryPhone,jdbcType=VARCHAR},
+        entry_urgent = #{entryUrgent,jdbcType=VARCHAR},
+        entry_urgent_phone = #{entryUrgentPhone,jdbcType=VARCHAR},
+        entry_urgent_relation = #{entryUrgentRelation,jdbcType=VARCHAR},
+        entry_has_licence = #{entryHasLicence,jdbcType=INTEGER},
+        entry_licence = #{entryLicence,jdbcType=VARCHAR},
+        entry_drive_age = #{entryDriveAge,jdbcType=INTEGER},
+        entry_interest = #{entryInterest,jdbcType=VARCHAR},
+        entry_has_sick = #{entryHasSick,jdbcType=INTEGER},
+        entry_sick = #{entrySick,jdbcType=VARCHAR},
+        entry_report = #{entryReport,jdbcType=VARCHAR},
+        entry_channel = #{entryChannel,jdbcType=INTEGER},
+        entry_channel_name = #{entryChannelName,jdbcType=VARCHAR},
+        entry_has_relative = #{entryHasRelative,jdbcType=INTEGER},
+        entry_file = #{entryFile,jdbcType=VARCHAR},
+        entry_validate = #{entryValidate,jdbcType=VARCHAR},
+        entry_complete = #{entryComplete,jdbcType=INTEGER},
+        entry_expect_date = #{entryExpectDate,jdbcType=DATE},
+        emp_id = #{empId,jdbcType=INTEGER},
+        task_id = #{taskId,jdbcType=VARCHAR},
+        item_id = #{itemId,jdbcType=INTEGER},
+        process_state = #{processState,jdbcType=INTEGER},
+        entry_state = #{entryState,jdbcType=INTEGER},
+        <include refid="EmployCommon.commonColumnUpdate"/>
+        where
+        entry_id = #{entryId,jdbcType=INTEGER} and state &lt;&gt; -1
+    </update>
+</mapper>

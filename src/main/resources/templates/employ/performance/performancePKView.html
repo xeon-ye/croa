@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{})">
+    <title>业务pk设置</title>
+    <link href="/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script type="text/javascript" src="/js/plugins/treeview/bootstrap-treeview.js"></script>
+    <script type="text/javascript" src="/js/employ/performance/performancePKView.js"></script>
+</head>
+<style>
+    .pkViewName {
+        position: absolute;
+        right: 200px;
+        top: 17px;
+    }
+
+    .pkDeptViewName {
+        position: absolute;
+        right: 185px;
+        top: 293px;
+    }
+
+    .pkViewNameBackground {
+        width: 882px;
+        height: 57px;
+        background-position: -59px -161px;
+        position: absolute;
+        right: 90px;
+    }
+
+    .pkDeptViewNameBackground {
+        width: 884px;
+        height: 65px;
+        background-position: -61px -628px;
+        position: absolute;
+        right: 90px;
+        top: 275px;
+    }
+
+    .pkViewBackground {
+        width: 882px;
+        height: 280px;
+        background-position: -59px -299px;
+        position: absolute;
+        right: 90px;
+        top: 57px;
+    }
+
+    .pkDeptViewBackground {
+        width: 882px;
+        height: 280px;
+        background-position: -59px -299px;
+        position: absolute;
+        right: 90px;
+        top: 5px;
+    }
+
+    .pkViewBackgroundCustomer {
+        width: 882px;
+        height: 280px;
+        position: absolute;
+        right: 90px;
+        top: 57px;
+        display: none;
+    }
+
+    .pkDeptViewBackgroundCustomer {
+        width: 882px;
+        height: 280px;
+        position: absolute;
+        right: 90px;
+        top: 5px;
+        display: none;
+    }
+
+    .pkTopBackground {
+        width: 882px;
+        height: 250px;
+        background-position: -71px -610px;
+        position: absolute;
+        right: 90px;
+        top: 70px;
+    }
+
+    .pkDeptTopBackground {
+        width: 717px;
+        height: 250px;
+        background-position: -33px -123px;
+        position: absolute;
+        right: 164px;
+        top: 12px;
+    }
+
+    .firstPeople {
+        position: absolute;
+        top: 235px;
+        right: 415px;
+    }
+
+    .firstDept {
+        position: absolute;
+        top: 209px;
+        right: 403px;
+    }
+
+    .secondPeople {
+        position: absolute;
+        top: 260px;
+        left: 159px;
+    }
+
+    .secondDept {
+        position: absolute;
+        top: 193px;
+        left: 103px;
+    }
+
+    .thirdPeople {
+        position: absolute;
+        top: 260px;
+        right: 226px;
+    }
+
+    .thirdDept {
+        position: absolute;
+        top: 191px;
+        right: 143px;
+    }
+
+    .peopleDiv {
+        width: 260px;
+        height: 20px;
+    }
+
+    div[background-id='splitImage'] {
+        background-image: url("/img/performance/employee_performance.png");
+    }
+
+    div[background-id='topSplitImage'] {
+        background-image: url("/img/performance/top_background.png");
+    }
+
+    div[background-id='topDeptSplitImage'] {
+        background-image: url("/img/performance/pkDept.png");
+    }
+
+    div[background-id='deptPkImage'] {
+        background-image: url("/img/performance/PK1.png");
+    }
+
+    .leftWinPic {
+        height: 64px;
+        width: 64px;
+        background-position: -133px -367px;
+        position: absolute;
+        right: 1px;
+        bottom: 1px;
+    }
+
+    .leftLosePic {
+        height: 68px;
+        width: 68px;
+        background-position: -548px -143px;
+        position: absolute;
+        right: -8px;
+        top: -7px;
+    }
+
+    .divPeopleAvatar {
+        position: relative;
+        width: 54px;
+        background-size: 54px 54px;
+        border-radius: 30px;
+    }
+
+    .divDeptPeopleAvatar {
+        position: relative;
+        width: 54px;
+        background-image: url('/img/icon_bumen.png');
+        background-size: 54px 54px;
+    }
+
+    .height54 {
+        height: 54px;
+    }
+
+    .top12 {
+        margin-top: 12px;
+    }
+
+    .top22 {
+        margin-top: 18px;
+    }
+
+    .padTop25 {
+        padding-top: 25px;
+    }
+
+    .peoplePosition {
+        width: 60px;
+        position: absolute;
+        left: 1px;
+        top: 59px;
+        padding-right: 1px;
+    }
+
+    .rightBarBackColor {
+        background-color: #5FB878 !important;
+    }
+
+    .processBarDeptBackColorLose {
+        background-color: #1E9FFF !important;
+    }
+
+    .processBarDeptBackColorWin {
+        background-color: #FF5722 !important;
+    }
+
+    .processBar {
+        background-color: #e2e2e2 !important;
+    }
+
+    .font-red {
+        color: red;
+    }
+
+    .rightBar {
+        background-color: #e2e2e2 !important;
+    }
+
+    .red-border {
+        height: 200px;
+    }
+
+    .win-dept {
+        background-position: -215px -402px;
+    }
+
+    .lose-dept {
+        background-position: -30px -402px;
+    }
+
+    .layui-progress-bar {
+        border-radius: 0;
+    }
+
+    .layui-progress {
+        border-radius: 0;
+    }
+
+    .hg {
+        width: 30px;
+        height: 16px;
+        background-image: url('/img/performance/hg.png');
+        position: relative;
+        right: 6px;
+        bottom: 15px;
+    }
+</style>
+<body>
+
+<div class="col-sm-12">
+    <input type="hidden" id="selectNode"/>
+    <div class="col-sm-3" id="leftDiv">
+        <div class="layui-form" id="leftDivTop">
+            <div class="col-sm-5">
+                <span class="form-control">当前年份</span>
+            </div>
+            <div class="col-sm-7">
+                <select lay-filter="yearSelect" id="yearSelect"
+                        class="form-control height18">
+                    <option value="-1">请选择年份</option>
+                </select>
+            </div>
+        </div>
+        <ul class="col-sm-12 text-left" id="pkTree">
+        </ul>
+    </div>
+
+    <div class="col-sm-9 text-left" style="width: 1117px!important;display: none;" id="content">
+        <div class="col-sm-12">
+            <div class="col-sm-12 text-center">
+                <div class="col-sm-12 text-center" style="position: relative;height: 354px;">
+                    <div class="pkViewNameBackground" background-id="topSplitImage"></div>
+                    <div class="pkViewBackground" id="pkViewBackground" background-id="topSplitImage"></div>
+                    <div class="pkViewBackgroundCustomer" id="pkViewBackgroundCustomer"></div>
+                    <div class="pkTopBackground" background-id="topSplitImage"></div>
+                    <div class="pkViewName peopleDiv" style="width: 700px">
+                        <span style="font-size: 25px;color: white" class="text-center" name="name">
+                            请选择左侧pk计划
+                        </span>
+                    </div>
+                    <div class="firstPeople">
+                        <div class="peopleDiv">
+                            <span class=" text-center" style="font-size: 18px;font-weight:bold" id="first"></span>
+                        </div>
+                        <div class="peopleDiv">
+                            <span class=" text-center font-red" style="font-size: 18px;font-weight:bold;margin-right: 6px;" id="firstProfit"></span>
+                        </div>
+                    </div>
+                    <div class="secondPeople">
+                        <div class="peopleDiv">
+                            <span class=" text-center" style="font-size: 18px;font-weight:bold" id="second"></span>
+                        </div>
+                        <div class="peopleDiv">
+                            <span class=" text-center font-red" style="font-size: 18px;font-weight:bold;margin-right: 6px;" id="secondProfit"></span>
+                        </div>
+                    </div>
+                    <div class="thirdPeople">
+                        <div class="peopleDiv">
+                            <span class="text-center" style="font-size: 18px;font-weight:bold" id="third"></span>
+                        </div>
+                        <div class="peopleDiv">
+                            <span class="text-center font-red" style="font-size: 18px;font-weight:bold;margin-right: 6px;" id="thirdProfit"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12" style="margin-left: 54px;margin-top: -16px;">
+                <label style="color: red">注：统计数据均为利润</label>
+            </div>
+            <div class="col-sm-12" style="padding-top: 20px">
+                <div class="col-sm-1"></div>
+                <div class="col-sm-5" id="leftContent">
+                </div>
+                <div class="col-sm-5" id="rightContent">
+                </div>
+                <div class="col-sm-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-9 text-left" style="width: 1117px!important;display: none;" id="contentDept">
+        <div class="col-sm-12">
+            <div class="col-sm-12 text-center">
+                <div class="col-sm-12 text-center" style="position: relative;height: 354px;">
+                    <div class="pkDeptViewBackground" id="pkDeptViewBackground" background-id="topSplitImage"></div>
+                    <div class="pkDeptViewBackgroundCustomer" id="pkDeptViewBackgroundCustomer"></div>
+                    <div class="pkDeptViewNameBackground" background-id=""></div>
+                    <div class="pkDeptTopBackground" background-id="topDeptSplitImage"></div>
+                    <div class="pkDeptViewName peopleDiv" style="width: 700px">
+                        <span style="font-size: 25px;color: #006ef4;" class="text-center" name="name">
+                            请选择左侧pk计划
+                        </span>
+                    </div>
+                    <div class="firstDept">
+                        <div class="peopleDiv">
+                            <span class=" text-center" style="font-size: 18px;font-weight:bold" id="firstDept"></span>
+                        </div>
+                    </div>
+                    <div class="secondDept">
+                        <div class="peopleDiv">
+                            <span class=" text-center" style="font-size: 18px;font-weight:bold" id="secondDept"></span>
+                        </div>
+                    </div>
+                    <div class="thirdDept">
+                        <div class="peopleDiv">
+                            <span class="text-center" style="font-size: 18px;font-weight:bold" id="thirdDept"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12" style="margin-left: 54px;margin-top: -16px;">
+                <label style="color: red">注：统计数据均为利润</label>
+            </div>
+            <div class="col-sm-12" id="deptDetailDiv">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="pkViewHtml" type="text/html">
+    <div class="form-group" style="height: 100px; margin-top: 10px">
+        {{if pkType == 0}}
+        <div class="col-sm-2 divPeopleAvatar height54" style="background-image: url({{leftAvatar ? leftAvatar : '/img/mrmrtx_1.png'}});">
+            {{/if}}
+            {{if pkType == 1}}
+            <div class="col-sm-2 divDeptPeopleAvatar height54" style="">
+                {{/if}}
+                <div class="{{leftWin > 0 ? 'leftWinPic' : 'leftLosePic'}}" background-id="splitImage"></div>
+                <div class="peoplePosition">
+                    <div class="leftName" style="width: 100px;height: 18px"><span>{{leftName}}</span></div>
+                    <div class="leftProfit" style="width: 100px;height: 18px"><span class="font-red">
+                {{if pkType == 0}}
+                    ￥{{leftProfit}}
+                {{/if}}
+                </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3 height54 padTop25" style="">
+                <div class="layui-progress">
+                    <div class="layui-progress-bar" lay-percent="{{leftRate}}%" style="width:{{leftRate}}%"></div>
+                </div>
+            </div>
+            <div class="col-sm-2 height54 top22">
+            <span>
+                <img src="{{leftWin == 0 ?'/img/performance/fair.png':'/img/performance/pkView.png'}}"/>
+            </span>
+            </div>
+            <div class="col-sm-3 height54 padTop25">
+                <div class="layui-progress rightBarBackColor">
+                    <div class="layui-progress-bar rightBar" lay-percent="{{leftRate}}%"
+                         style="width:{{leftRate}}%"></div>
+                </div>
+            </div>
+            {{if pkType == 0}}
+            <div class="col-sm-2 divPeopleAvatar height54" style="background-image: url({{rightAvatar ? rightAvatar : '/img/mrmrtx_1.png'}});">
+                {{/if}}
+                {{if pkType == 1}}
+                <div class="col-sm-2 divDeptPeopleAvatar height54" style="">
+                    {{/if}}
+                    <div class="{{leftWin < 0 ? 'leftWinPic' : 'leftLosePic'}}" background-id="splitImage"></div>
+                    <div class="peoplePosition">
+                        <div class="leftName" style="width: 100px;height: 18px"><span>{{rightName}}</span></div>
+                        <div class="leftProfit" style="width: 100px;height: 18px">
+                            <span class="font-red">
+                            {{if pkType == 0}}
+                            ￥{{rightProfit}}
+                            {{/if}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</script>
+
+<script id="deptPkViewHtml" type="text/html">
+    {{each data v i}}
+    <div class="col-sm-12">
+        <div class="col-sm-2 red-border {{v.leftWin != 0 ? 'win-dept' : 'lose-dept'}}"
+             background-id="topDeptSplitImage"></div>
+        <div class="col-sm-2 red-border"
+             style="padding-top: 78px;font-size: 20px;color: {{v.leftWin != 0 ? 'red' : 'blue'}}">
+            <div class="text-center">
+                <span>{{v.leftWin > 0 ? v.leftName : v.rightName}}</span>
+            </div>
+            <div class="text-center">
+                <span>￥***.***.**</span>
+            </div>
+        </div>
+        <div class="col-sm-4 red-border" style="padding-top: 100px;">
+            <div class="col-sm-12">
+                <div class="col-sm-5">
+                    <div class="layui-progress layui-progress-big">
+                        <div class="{{v.leftWin != 0 ? 'hg' : ''}}">
+                        </div>
+                        <div class="layui-progress-bar {{v.leftWin != 0 ? 'layui-bg-red' : 'layui-bg-blue'}}"
+                             lay-percent="{{v.leftWin > 0 ? v.leftRate : 100 - v.leftRate}}%"
+                             style="width:{{v.leftWin > 0 ? v.leftRate : 100 - v.leftRate}}%;"></div>
+                    </div>
+                </div>
+                <div class="col-sm-2" background-id="deptPkImage"
+                     style="height: 21px;width: 40px;">
+                </div>
+                <div class="col-sm-5">
+                    <div class="layui-progress layui-progress-big processBarDeptBackColorLose">
+                        <div class="layui-progress-bar layui-bg-blue processBar"
+                             lay-percent="{{v.leftWin > 0 ? v.leftRate : 100 - v.leftRate}}%"
+                             style="width:{{v.leftWin > 0 ? v.leftRate : 100 - v.leftRate}}%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 red-border"
+             style="padding-top: 78px;font-size: 20px;color: blue">
+            <div class="text-center">
+                <span>{{v.leftWin > 0 ? v.rightName : v.leftName}}</span>
+            </div>
+            <div class="text-center">
+                <span>￥***.***.**</span>
+            </div>
+        </div>
+        <div class="col-sm-2 red-border lose-dept"
+             background-id="topDeptSplitImage"></div>
+    </div>
+    {{/each}}
+</script>
+</body>
+</html>

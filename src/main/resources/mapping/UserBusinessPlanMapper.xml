@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.administrative.UserBusinessPlanMapper">
+    <sql id="selectColumn">
+        tbp.id,
+        tbp.title,
+        tbp.administrative_id as administrativeId,
+        tbp.dept_id as deptId,
+        tbp.dept_name as deptName,
+        tbp.application_date as application_date,
+        tbp.place,
+        tbp.place_type as placeType,
+        tbp.reason,
+        tbp.traffic,
+        tbp.travel_state_time as travelStateTime,
+        tbp.travel_end_time as travelEndTime,
+        tbp.number_day as numberDay,
+        tbp.travel_user as travelUser,
+        tbp.target,
+        tbp.trip,
+        tbp.cost_budget as costBudget,
+        tbp.note,
+        tbp.apply_id as applyId,
+        tbp.apply_name as applyName,
+        tbp.reviewer_user_id as reviewerUserId,
+        tbp.reviewer_user as reviewerUser,
+        tbp.approver_user_id as approverUserId,
+        tbp.approver_user AS approverUser,
+        tbp.separate,
+        tbp.field_user as fieldUser,
+        tbp.boy,
+        tbp.female,
+        tbp.state,
+        tbp.update_id as updateId,
+        tbp.update_user as updateUser,
+        tbp.update_time as updateTime,
+        tbp.create_id as createId,
+        tbp.create_user as createUser,
+        tbp.create_time as createTime,
+        tbp.picture,
+        tbp.picture_link  as pictureLink,
+        tbp.attachment,
+        tbp.attachment_link as attachmentLink,
+        tbp.item_id as itemId
+
+    </sql>
+    <update id="insertItemId" parameterType="com.qinfei.qferp.entity.administrative.UserBusinessPlan"  useGeneratedKeys="true"
+            keyProperty="id">
+        UPDATE t_business_plan set item_id =#{itemId} where administrative_id=#{administrativeId}
+    </update>
+    <update id="updateState" parameterType="com.qinfei.qferp.entity.administrative.UserBusinessPlan"  useGeneratedKeys="true"
+            keyProperty="id">
+        UPDATE t_business_plan set state =1 where administrative_id=#{id}
+    </update>
+
+    <update id="insertConclusionItemId" parameterType="com.qinfei.qferp.entity.administrative.UserBusinessConclusion"  useGeneratedKeys="true"
+            keyProperty="id">
+        UPDATE t_business_conclusion set item_conclusion_id =#{itemId} where administrative_id=#{administrativeId}
+    </update>
+    <insert id="insertBusiness" parameterType="com.qinfei.qferp.entity.administrative.UserBusinessPlan"  useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_business_plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="title !=null">title,</if>
+        <if test="administrativeId !=null">administrative_id,</if>
+        <if test="deptId !=null">dept_id,</if>
+        <if test="deptName !=null">dept_name,</if>
+        <if test="applicationDate !=null">application_date,</if>
+        <if test="place !=null"> place,</if>
+        <if test="placeType !=null">place_type,</if>
+        <if test="reason !=null"> reason,</if>
+        <if test="traffic !=null">traffic,</if>
+        <if test="travelStateTime !=null">travel_state_time,</if>
+        <if test="travelEndTime !=null">travel_end_time,</if>
+        <if test="numberDay !=null">number_day,</if>
+        <if test="travelUser !=null">travel_user,</if>
+        <if test="target !=null">target,</if>
+        <if test="trip !=null">trip,</if>
+        <if test="costBudget !=null">cost_budget,</if>
+        <if test="note!=null"> note,</if>
+        <if test="applyId !=null">apply_id,</if>
+        <if test="applyName !=null">apply_name,</if>
+        <if test="reviewerUserId !=null">reviewer_user_id,</if>
+        <if test="reviewerUser !=null">reviewer_user,</if>
+        <if test="approverUserId !=null">approver_user_id,</if>
+        <if test="approverUser !=null">approver_user,</if>
+        <if test="separate !=null">separate,</if>
+        <if test="fieldUser !=null"> field_user,</if>
+        <if test="boy !=null"> boy,</if>
+        <if test="female !=null"> female,</if>
+        <if test="state !=null"> state,</if>
+        <if test="updateId !=null"> update_id,</if>
+        <if test="updateUser !=null"> update_user,</if>
+        <if test="updateTime !=null"> update_time,</if>
+        <if test="createId !=null"> create_id,</if>
+        <if test="createUser !=null">create_user,</if>
+        <if test="createTime !=null">create_time,</if>
+        <if test="picture !=null">picture,</if>
+        <if test="pictureLink !=null"> picture_link,</if>
+        <if test="attachment !=null"> attachment,</if>
+        <if test="attachmentLink !=null">attachment_link</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title !=null">#{title},</if>
+            <if test="administrativeId !=null">#{administrativeId},</if>
+            <if test="deptId !=null">#{deptId},</if>
+            <if test="deptName !=null">#{deptName},</if>
+            <if test="applicationDate !=null">#{applicationDate},</if>
+            <if test="place !=null"> #{place},</if>
+            <if test="placeType !=null">#{placeType},</if>
+            <if test="reason !=null"> #{reason},</if>
+            <if test="traffic !=null">#{traffic},</if>
+            <if test="travelStateTime !=null">#{travelStateTime},</if>
+            <if test="travelEndTime !=null">#{travelEndTime},</if>
+            <if test="numberDay !=null">#{numberDay},</if>
+            <if test="travelUser !=null">#{travelUser},</if>
+            <if test="target !=null">#{target},</if>
+            <if test="trip !=null">#{trip},</if>
+            <if test="costBudget !=null">#{costBudget},</if>
+            <if test="note !=null"> #{note},</if>
+            <if test="applyId !=null">#{applyId},</if>
+            <if test="applyName !=null">#{applyName},</if>
+            <if test="reviewerUserId !=null">#{reviewerUserId},</if>
+            <if test="reviewerUser !=null">#{reviewerUser},</if>
+            <if test="approverUserId !=null">#{approverUserId},</if>
+            <if test="approverUser !=null">#{approverUser},</if>
+            <if test="separate !=null">#{separate},</if>
+            <if test="fieldUser !=null"> #{fieldUser},</if>
+            <if test="boy !=null"> #{boy},</if>
+            <if test="female !=null"> #{female},</if>
+            <if test="state !=null"> #{state},</if>
+            <if test="updateId !=null"> #{updateId},</if>
+            <if test="updateUser !=null">#{updateUser},</if>
+            <if test="updateTime !=null"> #{updateTime},</if>
+            <if test="createId !=null"> #{createId},</if>
+            <if test="createUser !=null">#{createUser},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="picture !=null">#{picture},</if>
+            <if test="pictureLink !=null"> #{pictureLink},</if>
+            <if test="attachment !=null"> #{attachment},</if>
+            <if test="attachmentLink !=null">#{attachmentLink}</if>
+        </trim>
+    </insert>
+    <select id="getById" resultType="com.qinfei.qferp.entity.administrative.UserBusinessPlan">
+        SELECT
+        <include refid="selectColumn" />
+        FROM  t_business_plan tbp where tbp.state>-2 AND  tbp.administrative_id=#{id}
+    </select>
+
+    <select id="getConclusion" resultType="com.qinfei.qferp.entity.administrative.UserBusinessConclusion">
+        SELECT
+	tbc.id id,
+	tbc.plan_id planId,
+	tbc.administrative_id administrativeId,
+	tbc.conclusion conclusion,
+	tbc.state state,
+	tbc.update_id updateId,
+	tbc.pic pic,
+	tbc.pic_link picLink,
+	tbc.attach attach,
+	tbc.attach_link attachLink,
+	tbc.item_conclusion_id itemConclusionId
+    FROM
+        t_business_conclusion tbc
+    WHERE
+        tbc.state >- 2
+     and tbc.administrative_id=#{id}
+
+    </select>
+
+
+    <update id="updateBusiness" parameterType="com.qinfei.qferp.entity.administrative.UserBusinessPlan">
+        update t_business_plan
+        <set>
+            <if test="title !=null">title = #{title},</if>
+            <if test="administrativeId !=null">administrative_id=#{administrativeId},</if>
+            <if test="deptId !=null">dept_id=#{deptId},</if>
+            <if test="deptName !=null">dept_name=#{deptName},</if>
+            <if test="applicationDate !=null">application_date=#{applicationDate},</if>
+            <if test="place !=null"> place=#{place},</if>
+            <if test="placeType !=null">place_type=#{placeType},</if>
+            <if test="reason !=null">reason= #{reason},</if>
+            <if test="traffic !=null">traffic=#{traffic},</if>
+            <if test="travelStateTime !=null">travel_state_time=#{travelStateTime},</if>
+            <if test="travelEndTime !=null">travel_end_time=#{travelEndTime},</if>
+            <if test="numberDay !=null">number_day=#{numberDay},</if>
+            <if test="travelUser !=null">travel_user=#{travelUser},</if>
+            <if test="target !=null">target=#{target},</if>
+            <if test="trip !=null">trip=#{trip},</if>
+            <if test="costBudget !=null">cost_budget=#{costBudget},</if>
+            <if test="note !=null"> note=#{note},</if>
+            <if test="applyId !=null">apply_id=#{applyId},</if>
+            <if test="applyName !=null">apply_name=#{applyName},</if>
+            <if test="reviewerUserId !=null">reviewer_user_id=#{reviewerUserId},</if>
+            <if test="reviewerUser !=null">reviewer_user=#{reviewerUser},</if>
+            <if test="approverUserId !=null">approver_user_id=#{approverUserId},</if>
+            <if test="approverUser !=null">approver_user=#{approverUser},</if>
+            <if test="separate !=null">separate=#{separate},</if>
+            <if test="fieldUser !=null"> field_user=#{fieldUser},</if>
+            <if test="boy !=null"> boy=#{boy},</if>
+            <if test="female !=null"> female=#{female},</if>
+            <if test="state !=null">state= #{state},</if>
+            <if test="updateId !=null">update_id= #{updateId},</if>
+            <if test="updateUser !=null">update_user=#{updateUser},</if>
+            <if test="updateTime !=null"> update_time=#{updateTime},</if>
+            <if test="createId !=null">create_id= #{createId},</if>
+            <if test="createUser !=null">create_user=#{createUser},</if>
+            <if test="createTime !=null">create_time=#{createTime},</if>
+            <if test="picture !=null">picture=#{picture},</if>
+            <if test="pictureLink !=null"> picture_link=#{pictureLink},</if>
+            <if test="attachment !=null"> attachment=#{attachment},</if>
+            <if test="attachmentLink !=null">attachment_link=#{attachmentLink}</if>
+        </set>
+        where id=#{id}
+    </update>
+    <update id="deleteBussiness" parameterType="java.lang.Integer">
+    UPDATE  t_business_plan
+    set state=-9
+    where administrative_id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectTask" resultType="java.lang.Integer">
+         SELECT
+        arv.LONG_ taskState
+    FROM
+        t_administrative ta
+    LEFT JOIN act_hi_taskinst aht ON ta.task_id = aht.ID_
+    LEFT JOIN act_ru_variable arv ON arv.PROC_INST_ID_ = aht.PROC_INST_ID_
+    WHERE
+        arv.NAME_ = 'state'
+    AND ta.id = #{id}
+    </select>
+    <insert id="addConclusion"  useGeneratedKeys="true" keyProperty="id">
+         insert into t_business_conclusion
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="planId !=null">plan_id,</if>
+        <if test="administrativeId !=null">administrative_id,</if>
+            <if test="conclusion !=null">conclusion,</if>
+            <if test="state !=null">state,</if>
+            <if test="updateId !=null">update_id,</if>
+            <if test="updateUser !=null">update_user,</if>
+            <if test="updateTime !=null">update_time,</if>
+            <if test="createId !=null">create_id,</if>
+            <if test="createUser !=null">create_user,</if>
+            <if test="createTime !=null">create_time,</if>
+            <if test="pic !=null">pic,</if>
+            <if test="picLink !=null">pic_link,</if>
+            <if test="attach !=null"> attach,</if>
+            <if test="attachLink !=null">attach_link</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="planId !=null">#{planId},</if>
+        <if test="administrativeId !=null">#{administrativeId},</if>
+            <if test="conclusion !=null">#{conclusion},</if>
+            <if test="state !=null"> #{state},</if>
+            <if test="updateId !=null"> #{updateId},</if>
+            <if test="updateUser !=null">#{updateUser},</if>
+            <if test="updateTime !=null"> #{updateTime},</if>
+            <if test="createId !=null"> #{createId},</if>
+            <if test="createUser !=null">#{createUser},</if>
+            <if test="createTime !=null">#{createTime},</if>
+            <if test="pic !=null">#{pic},</if>
+            <if test="picLink !=null"> #{picLink},</if>
+            <if test="attach !=null"> #{attach},</if>
+            <if test="attachLink !=null">#{attachLink}</if>
+        </trim>
+    </insert>
+    <select id="selectUserDirector" resultType="java.lang.String">
+        SELECT
+        sd.mgr_leader_name
+        FROM
+        sys_user su
+        LEFT JOIN sys_dept sd ON su.dept_id = sd.id
+        WHERE
+        su.id = #{id}
+        UNION
+        SELECT
+		su.`name`
+        FROM
+        sys_user su
+        LEFT JOIN sys_user_role sur ON su.id = sur.user_id
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        AND sr.state >- 2
+        WHERE
+        su.state >- 2
+        AND sr.type = #{type}
+        AND sr.CODE = #{code}
+        AND su.company_code = #{companyCode}
+        and su.handover_state=0
+    </select>
+
+    <select id="zj" resultType="java.lang.String">
+         SELECT
+		su.`name`
+        FROM
+        sys_user su
+        LEFT JOIN sys_user_role sur ON su.id = sur.user_id
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        AND sr.state >- 2
+        WHERE
+        su.state >- 2
+        AND sr.type =#{type}
+        AND sr.CODE =#{code}
+        AND su.company_code = #{companyCode}
+        and su.handover_state= 0
+    </select>
+
+    <delete id="deleteConclusion" parameterType="java.lang.Integer">
+               DELETE
+        FROM
+            t_business_conclusion
+        WHERE
+            plan_id = #{planId}
+    </delete>
+
+    <delete id="deleteCon" parameterType="java.lang.Integer">
+        DELETE
+        FROM
+        t_business_conclusion
+        WHERE
+        administrative_id = #{adminId}
+    </delete>
+
+    <select id="selectConclusion" resultType="java.lang.String">
+        select conclusion
+        from
+        t_business_conclusion
+        where
+        administrative_id=#{id}
+    </select>
+
+    <select id="selectItem" resultType="java.lang.Integer">
+        select item_conclusion_id
+        from
+        t_business_conclusion
+        where
+        administrative_id=#{id}
+    </select>
+
+    <select id="selectFile" resultType="com.qinfei.qferp.entity.administrative.UserBusinessConclusion">
+        select *
+        from
+        t_business_conclusion
+        where
+        plan_id=#{id}
+    </select>
+    <select id="getUser" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT *
+        FROM  sys_user
+        where id=#{userId}
+         and state>-2
+         and handover_state= 0
+    </select>
+
+    <select id="selectState" resultType="java.lang.Object">
+        SELECT
+        arv.LONG_ as taskState
+        FROM
+        t_administrative ta
+        LEFT JOIN act_hi_taskinst aht ON ta.task_id = aht.ID_
+        LEFT JOIN act_ru_variable arv ON arv.PROC_INST_ID_ = aht.PROC_INST_ID_
+        WHERE
+        arv.NAME_ = 'state'
+        AND ta.task_id = #{taskId}
+    </select>
+    <select id="getConclusion1" resultType="java.lang.Integer">
+        SELECT count(id)
+ FROM
+	t_business_conclusion
+WHERE
+	state >- 2
+AND administrative_id =#{id}
+
+    </select>
+    <select id="getReimbursement" resultType="java.lang.Integer">
+     select count(id) from  fee_reimbursement where administrative_id =#{id}
+    </select>
+</mapper>
+
+

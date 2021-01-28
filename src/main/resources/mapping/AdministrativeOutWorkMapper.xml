@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qinfei.qferp.mapper.administrative.AdministrativeOutWorkMapper">
+  <resultMap id="BaseResultMap" type="com.qinfei.qferp.entity.administrative.AdministrativeOutWork">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="emp_id" jdbcType="INTEGER" property="empId" />
+    <result column="emp_name" jdbcType="VARCHAR" property="empName" />
+    <result column="begin_time" jdbcType="TIMESTAMP" property="beginTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="reason" jdbcType="VARCHAR" property="reason" />
+    <result column="picture" jdbcType="VARCHAR" property="picture" />
+    <result column="picture_link" jdbcType="VARCHAR" property="pictureLink" />
+    <result column="attachment" jdbcType="VARCHAR" property="attachment" />
+    <result column="attachment_link" jdbcType="VARCHAR" property="attachmentLink" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_id" jdbcType="INTEGER" property="updateId" />
+    <result column="update_name" jdbcType="VARCHAR" property="updateName" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <result column="create_id" jdbcType="INTEGER" property="createId" />
+    <result column="create_name" jdbcType="VARCHAR" property="createName" />
+    <result column="administrative_id" jdbcType="INTEGER" property="administrativeId" />
+    <result column="time" jdbcType="DOUBLE" property="time" />
+    <result column="days" jdbcType="DOUBLE" property="days" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, emp_id, emp_name, begin_time, end_time, title, reason, picture, picture_link, 
+    attachment, attachment_link, create_time, update_id, update_name, update_time, state, 
+    version, create_id, create_name, administrative_id, time, days
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_administrative_out_work
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <!--根据行政流程id，获取数据-->
+  <select id="selectByAdministrativeId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_administrative_out_work
+    where administrative_id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_administrative_out_work
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <!--通过流程id伪删除-->
+  <delete id="deleteByAdmId" parameterType="java.lang.Integer">
+    delete from t_administrative_out_work
+    where administrative_id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <delete id="deleteById" parameterType="java.lang.Integer">
+    delete from t_administrative_out_work
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+
+  <insert id="insert" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeOutWork">
+    insert into t_administrative_out_work (id, emp_id, emp_name, 
+      begin_time, end_time, title, 
+      reason, picture, picture_link, 
+      attachment, attachment_link, create_time, 
+      update_id, update_name, update_time, 
+      state, version, create_id, 
+      create_name, administrative_id, time, 
+      days)
+    values (#{id,jdbcType=INTEGER}, #{empId,jdbcType=INTEGER}, #{empName,jdbcType=VARCHAR}, 
+      #{beginTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{title,jdbcType=VARCHAR},
+      #{reason,jdbcType=VARCHAR}, #{picture,jdbcType=VARCHAR}, #{pictureLink,jdbcType=VARCHAR}, 
+      #{attachment,jdbcType=VARCHAR}, #{attachmentLink,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateId,jdbcType=INTEGER}, #{updateName,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{state,jdbcType=INTEGER}, #{version,jdbcType=INTEGER}, #{createId,jdbcType=INTEGER}, 
+      #{createName,jdbcType=VARCHAR}, #{administrativeId,jdbcType=INTEGER}, #{time,jdbcType=DOUBLE}, 
+      #{days,jdbcType=DOUBLE})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeOutWork">
+    insert into t_administrative_out_work
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="empId != null">
+        emp_id,
+      </if>
+      <if test="empName != null">
+        emp_name,
+      </if>
+      <if test="beginTime != null">
+        begin_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="reason != null">
+        reason,
+      </if>
+      <if test="picture != null">
+        picture,
+      </if>
+      <if test="pictureLink != null">
+        picture_link,
+      </if>
+      <if test="attachment != null">
+        attachment,
+      </if>
+      <if test="attachmentLink != null">
+        attachment_link,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateId != null">
+        update_id,
+      </if>
+      <if test="updateName != null">
+        update_name,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="createId != null">
+        create_id,
+      </if>
+      <if test="createName != null">
+        create_name,
+      </if>
+      <if test="administrativeId != null">
+        administrative_id,
+      </if>
+      <if test="time != null">
+        time,
+      </if>
+      <if test="days != null">
+        days,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="empId != null">
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="beginTime != null">
+        #{beginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="reason != null">
+        #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="picture != null">
+        #{picture,jdbcType=VARCHAR},
+      </if>
+      <if test="pictureLink != null">
+        #{pictureLink,jdbcType=VARCHAR},
+      </if>
+      <if test="attachment != null">
+        #{attachment,jdbcType=VARCHAR},
+      </if>
+      <if test="attachmentLink != null">
+        #{attachmentLink,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="administrativeId != null">
+        #{administrativeId,jdbcType=INTEGER},
+      </if>
+      <if test="time != null">
+        #{time,jdbcType=DOUBLE},
+      </if>
+      <if test="days != null">
+        #{days,jdbcType=DOUBLE},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeOutWork">
+    update t_administrative_out_work
+    <set>
+      <if test="empId != null">
+        emp_id = #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="empName != null">
+        emp_name = #{empName,jdbcType=VARCHAR},
+      </if>
+      <if test="beginTime != null">
+        begin_time = #{beginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="reason != null">
+        reason = #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="picture != null">
+        picture = #{picture,jdbcType=VARCHAR},
+      </if>
+      <if test="pictureLink != null">
+        picture_link = #{pictureLink,jdbcType=VARCHAR},
+      </if>
+      <if test="attachment != null">
+        attachment = #{attachment,jdbcType=VARCHAR},
+      </if>
+      <if test="attachmentLink != null">
+        attachment_link = #{attachmentLink,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateId != null">
+        update_id = #{updateId,jdbcType=INTEGER},
+      </if>
+      <if test="updateName != null">
+        update_name = #{updateName,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=INTEGER},
+      </if>
+      <if test="createId != null">
+        create_id = #{createId,jdbcType=INTEGER},
+      </if>
+      <if test="createName != null">
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="administrativeId != null">
+        administrative_id = #{administrativeId,jdbcType=INTEGER},
+      </if>
+      <if test="time != null">
+        time = #{time,jdbcType=DOUBLE},
+      </if>
+      <if test="days != null">
+        days = #{days,jdbcType=DOUBLE},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qinfei.qferp.entity.administrative.AdministrativeOutWork">
+    update t_administrative_out_work
+    set emp_id = #{empId,jdbcType=INTEGER},
+      emp_name = #{empName,jdbcType=VARCHAR},
+      begin_time = #{beginTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      title = #{title,jdbcType=VARCHAR},
+      reason = #{reason,jdbcType=VARCHAR},
+      picture = #{picture,jdbcType=VARCHAR},
+      picture_link = #{pictureLink,jdbcType=VARCHAR},
+      attachment = #{attachment,jdbcType=VARCHAR},
+      attachment_link = #{attachmentLink,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_id = #{updateId,jdbcType=INTEGER},
+      update_name = #{updateName,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=INTEGER},
+      version = #{version,jdbcType=INTEGER},
+      create_id = #{createId,jdbcType=INTEGER},
+      create_name = #{createName,jdbcType=VARCHAR},
+      administrative_id = #{administrativeId,jdbcType=INTEGER},
+      time = #{time,jdbcType=DOUBLE},
+      days = #{days,jdbcType=DOUBLE}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

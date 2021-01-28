@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.bbs.TopicMapper">
+    <resultMap id="TopicMapper" type="com.qinfei.qferp.entity.bbs.Topic">
+        <id column="id" property="id"/>
+        <result column="forum_id" property="forumId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="update_user_name" property="updateUserName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="affix_name" property="affixName"/>
+        <result column="affix_link" property="affixLink"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="state" property="state"/>
+        <result column="sort" property="sort"/>
+        <result column="level" property="level"/>
+        <result column="company_code" property="companyCode"/>
+        <result column="picture" property="picture"/>
+        <result column="del_reason" property="delReason"/>
+        <result column="top_reason" property="topReason"/>
+        <result column="high_reason" property="highReason"/>
+        <result column="high_state" property="highState"/>
+        <result column="top_state" property="topState"/>
+    </resultMap>
+
+    <!--论坛列表显示-->
+    <select id="queryTopic" resultType="com.qinfei.qferp.entity.bbs.Topic" parameterType="java.util.Map" useCache="true">
+        select
+        count(case when r.state in(0,1,2) then 3 else NULL end) viewNum,
+        count(case when r.state = 1 then 1 else NULL end) likeNum,
+        count(case when r.state = 2 then 2 else NULL end) dislikeNum,
+        t.id,t.user_id,t.user_name,t.title,t.create_time,t.picture,t.state,t.top_state topState,t.high_state highState,
+        t.sort,t.level,t.high_reason highReason,t.top_reason topReason,t.image_sign
+         FROM bbs_topic t
+         LEFT JOIN bbs_record r on t.id = r.topic_id
+         where t.state>-2
+        <!--选中不是集团时，本人公司代码为集团，查询所有分公司的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode!='JT'">
+         and t.company_code = #{companyCode}
+        </if>
+        <!--选中集团时，本人公司代码为集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode=='JT'">
+         and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <!--选中不是集团时，本人公司代码不是集团，查询自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode!='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag=#{companyCode})
+        </if>
+        <!--选中集团时，本人公司代码不是集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode=='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <if test="forumId!=null and forumId!=''">
+         and t.forum_id = #{forumId}
+        </if>
+        <if test="titleQc!=null and titleQc!=''">
+        and (t.title like CONCAT('%',#{titleQc},'%') or t.content like CONCAT('%',#{titleQc},'%'))
+        </if>
+        <if test="topState!=null and topState!=''">
+         and t.top_state = #{topState}
+        </if>
+        <if test="highState!=null and highState!=''">
+            and t.high_state = #{highState}
+        </if>
+         group by t.id
+         order by t.sort asc,t.create_time desc
+    </select>
+
+    <!--论坛搜索列表显示-->
+    <select id="querySearchTopic" resultType="com.qinfei.qferp.entity.bbs.Topic" parameterType="java.util.Map" useCache="true">
+        select t.id,t.user_id,t.user_name,t.title,t.create_time,t.picture,t.state,t.sort,t.content,t.image_sign
+        FROM bbs_topic t
+        where t.state>-2
+        <!--选中不是集团时，本人公司代码为集团，查询所有分公司的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode!='JT'">
+            and t.company_code = #{companyCode}
+        </if>
+        <!--选中集团时，本人公司代码为集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode=='JT'">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <!--选中不是集团时，本人公司代码不是集团，查询自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode!='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag=#{companyCode})
+        </if>
+        <!--选中集团时，本人公司代码不是集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode=='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <if test="forumId!=null and forumId!=''">
+            and t.forum_id = #{forumId}
+        </if>
+        <if test="titleQc!=null and titleQc!=''">
+            and (t.title like CONCAT('%',#{titleQc},'%') or t.content like CONCAT('%',#{titleQc},'%'))
+        </if>
+        group by t.id
+        order by t.sort asc,t.create_time desc
+    </select>
+
+    <!--论坛评论，回复数统计-->
+    <select id="queryCommReplyNum" resultType="java.util.Map" parameterType="java.lang.Integer" useCache="true">
+       select t.id,count(t.replyId) replyNum,count(t.commentId) commNum from (
+            select bt.id, bt.forum_id AS fid, br.id as replyId, null as commentId from bbs_topic bt LEFT JOIN bbs_reply br on bt.id = br.topic_id
+            UNION ALL
+            select bt.id, bt.forum_id AS fid, null as replyId, bc.id as commentId from bbs_topic bt LEFT JOIN bbs_comment bc on bt.id = bc.topic_id
+          ) t
+        where t.fid=#{forumId}
+        <if test="list!=null and list.size>0">
+            and t.id in
+            <foreach item="item" collection="list" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        group BY t.id
+        order by t.id
+    </select>
+
+    <!--查询可见帖子总数-->
+    <select id="getTopicCount" resultType="java.lang.Integer">
+        select
+            count(*)
+        FROM
+        bbs_topic t
+        where t.state>-2
+        <!--选中不是集团时，本人公司代码为集团，查询所有分公司的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode!='JT'">
+            and t.company_code = #{companyCode}
+        </if>
+        <!--选中集团时，本人公司代码为集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode=='JT' and companyCode=='JT'">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <!--选中不是集团时，本人公司代码不是集团，查询自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode!='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag= #{companyCode})
+        </if>
+        <!--选中集团时，本人公司代码不是集团，查询集团默认可见和自己可以看到的帖子-->
+        <if test="userCompanyCode!='JT' and companyCode=='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <if test="forumId!=null and forumId!=''">
+            and t.forum_id = #{forumId}
+        </if>
+    </select>
+
+    <!--论坛工作台显示-->
+    <select id="queryTopicByWorkbench" resultType="java.util.Map" parameterType="java.util.Map">
+        select
+        count(case when r.state in(0,1,2) then 3 else NULL end) viewNum,
+        count(case when r.state = 1 then 1 else NULL end) likeNum,
+        count(case when r.state = 2 then 2 else NULL end) dislikeNum,
+        t.id,t.user_id,t.user_name,t.title,t.create_time,t.picture,t.state,t.top_state topState,t.high_state highState,
+        t.sort,t.level,t.forum_id,t.company_code,f.name forumName,f.moderator moderator,t.high_reason highReason,t.top_reason topReason
+         FROM bbs_topic t
+         LEFT JOIN bbs_forum f on t.forum_id=f.id
+         LEFT JOIN bbs_record r on t.id = r.topic_id
+         where t.state>-2
+        <if test="companyCode!='JT' and companyCode!=null">
+         and t.company_code = #{companyCode} and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag=#{companyCode})
+        </if>
+        <if test="companyCode=='JT'">
+         and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+         group by t.id
+         order by t.sort asc,t.create_time desc
+    </select>
+
+    <!--热门帖子推荐-->
+    <select id="queryHotTopic" resultType="java.util.Map" parameterType="java.util.Map">
+        select t.id,t.user_name,t.title,t.forum_id,t.company_code,t.create_time,t.picture,count(CASE when c.id then 1 else NULL END) commNum
+        FROM bbs_topic t
+        LEFT JOIN bbs_comment c on t.id = c.topic_id
+        where t.state>-2
+        <if test="userCompanyCode=='JT' and companyCode!='JT'">
+            and t.company_code = #{companyCode}
+        </if>
+        <if test="userCompanyCode=='JT' and companyCode=='JT'">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        <if test="userCompanyCode!='JT' and companyCode!='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag=#{companyCode})
+        </if>
+        <if test="userCompanyCode!='JT' and companyCode=='JT' and flag!=1">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag='JT')
+        </if>
+        and t.forum_id = #{forumId}
+        group by t.id
+        order by commNum DESC LIMIT 8
+    </select>
+
+    <!--首页推荐-->
+    <select id="queryFirstInfo" resultType="com.qinfei.qferp.entity.bbs.Topic" parameterType="java.util.Map">
+        select t.id,t.user_name,t.title,f.id forumId,f.name forumName,t.company_code,t.create_time,t.picture,
+        count(case when r.state in(0,1,2) then 3 else NULL end) viewNum,
+        count(case when r.state = 1 then 1 else NULL end) likeNum
+        FROM bbs_topic t
+        LEFT JOIN bbs_record r on t.id = r.topic_id
+        left join bbs_forum f on t.forum_id=f.id
+        where t.state>-2
+        <if test="companyCode!='JT'">
+            and t.id in (select DISTINCT topicId from bbs_relationship where userId=#{userId} or viewflag=#{companyCode})
+        </if>
+        group by t.id
+        order by likeNum DESC
+    </select>
+
+    <!--获取论坛首页板块信息的回复数-->
+    <select id="getForumReplyNum" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+            SELECT COUNT(r.id) replyNum
+			from bbs_topic t
+            LEFT JOIN bbs_reply r on t.id = r.topic_id
+            where t.state>-2 and t.forum_id=#{forumId}
+    </select>
+
+    <!--获取我发表的帖子的分页总数-->
+    <select id="queryPublishNum" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(t.id) FROM bbs_topic t
+        left join bbs_forum bf on bf.id=t.forum_id
+        where t.state>-2 and t.company_code = #{companyCode}
+        <if test="userId!=null and userId!=''">
+            and t.user_id = #{userId}
+        </if>
+        <if test="moderator!=null and moderator!=''">
+            and bf.moderator = #{moderator}
+        </if>
+        <if test="forumId!=null and forumId!=''">
+            and bf.id = #{forumId}
+        </if>
+    </select>
+
+    <!--获取我赞过的帖子的分页总数-->
+    <select id="queryPostNum" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(t.id) FROM bbs_topic t
+        left join bbs_record r on r.topic_id=t.id
+        where t.state>-2 and t.company_code = #{companyCode}
+        <if test="recordUserId!=null and recordUserId!=''">
+            and r.user_id = #{recordUserId}
+        </if>
+        <if test="postState!=null and postState!=''">
+            and r.state = #{postState}
+        </if>
+        <if test="forumId!=null and forumId!=''">
+            and t.forum_id = #{forumId}
+        </if>
+    </select>
+
+    <select id="queryPostStatistics" resultType="java.util.Map" parameterType="java.util.Map">
+        SELECT
+	        t.id,
+			count(
+				CASE
+				WHEN r.state IN (0, 1, 2) THEN
+					3
+				ELSE
+					NULL
+				END
+			) viewNum,
+			count(
+				CASE
+				WHEN r.state = 1 THEN
+					1
+				ELSE
+					NULL
+				END
+			) likeNum,
+			count(
+				CASE
+				WHEN r.state = 2 THEN
+					2
+				ELSE
+					NULL
+				END
+			) dislikeNum
+		FROM
+			bbs_topic t
+			LEFT JOIN bbs_record r ON t.id = r.topic_id
+		WHERE
+			t.state > - 2
+		AND t.company_code = #{companyCode}
+		<if test="ids!=null and ids.size>0">
+            and t.id in
+            <foreach collection="ids" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+		GROUP BY
+			t.id
+    </select>
+
+    <!--获取我回复的帖子的分页总数-->
+    <select id="queryReplyNum" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select t.id FROM bbs_topic t
+        left join bbs_reply r on r.topic_id=t.id
+        where t.state>-2 and t.company_code = #{companyCode}
+        <if test="replyUserId!=null and replyUserId!=''">
+            and r.reply_user_id = #{replyUserId}
+        </if>
+        group by t.id
+    </select>
+
+    <!--获取我回复的帖子的帖子列表-->
+    <select id="queryReplyTopic" resultType="com.qinfei.qferp.entity.bbs.Topic">
+        SELECT
+	    t.id,
+	    t.user_id,
+	    t.user_name,
+	    t.title,
+	    t.state,
+        t.create_time,
+	    f. NAME forumName,
+	    f.moderator moderator
+        FROM
+    	bbs_topic t
+        LEFT JOIN bbs_forum f ON t.forum_id = f.id
+        LEFT JOIN bbs_reply r ON t.id = r.topic_id
+        WHERE t.state >- 2
+        AND t.company_code = #{companyCode}
+        AND r.reply_user_id = #{replyUserId}
+        <if test="titleQc!=null and titleQc!=''">
+            and t.title like concat('%',#{titleQc},'%')
+        </if>
+        <!--<if test="forumId!=null">-->
+            <!--and t.forum_id =#{forumId}-->
+        <!--</if>-->
+        GROUP BY t.id
+    </select>
+
+    <!--获取我回复的帖子的点赞，阅读数统计-->
+    <select id="getReplyNumbersByTids" resultType="java.util.Map" parameterType="java.lang.Integer">
+         select
+         t.id,
+         count(case when r.state in(0,1,2) then 3 else NULL end) viewNum,
+         count(case when r.state = 1 then 1 else NULL end) likeNum,
+         count(case when r.state = 2 then 2 else NULL end) dislikeNum
+         FROM bbs_topic t
+         LEFT JOIN bbs_record r on t.id = r.topic_id
+         where t.state>-2
+         <if test="ids!=null and ids.size>0">
+             and t.id in
+             <foreach collection="ids" item="item" open="(" close=")" separator=",">
+                 #{item}
+             </foreach>
+         </if>
+        group by t.id
+    </select>
+    <!--修改帖子回显主题图单选框状态-->
+    <select id="queryTopicImage" parameterType="java.lang.String" resultType="com.qinfei.qferp.entity.bbs.Topic">
+        SELECT distinct bt.id,bt.title,bt.image_flag imageFlag,bt.image_url imageUrl,bt.image_name imageName from bbs_topic bt
+        LEFT JOIN bbs_relationship br on bt.id = br.topicId
+        where bt.image_flag=1 and
+        br.viewflag is NOT null and br.viewflag !='' and bt.state>-2
+        and bt.company_code=#{companyCode}
+        <if test="topicId!=null">
+            and bt.id=#{topicId}
+        </if>
+    </select>
+    <!--论坛首页推荐图片-->
+    <select id="queryFirstImage" parameterType="java.lang.String" resultType="com.qinfei.qferp.entity.bbs.Topic">
+        SELECT distinct bt.id,bt.title,bt.company_code companyCode,bt.image_flag imageFlag,bt.image_url imageUrl,bt.image_name imageName,bt.create_time createTime,count(bc.id) commNum
+        from bbs_topic bt
+        LEFT JOIN bbs_relationship br on bt.id = br.topicId
+        left join bbs_comment bc on bt.id = bc.topic_id
+        where bt.image_flag=1 and
+        br.viewflag is NOT null and br.viewflag !='' and bt.state>-2
+        and bt.company_code=#{companyCode}
+        GROUP BY bt.id
+        ORDER BY commNum desc,createTime DESC
+    </select>
+</mapper>

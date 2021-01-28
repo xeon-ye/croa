@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.study.TrainCourseMapper">
+    <sql id="selectColumn">
+      tc.id,
+      tc.title,
+      tc.course_plate as coursePlate,
+      tc.train_way as trainWay,
+      tc.sign_start_time as signStartTime,
+      tc.sign_end_time as signEndTime,
+      tc.train_start_time as trainStartTime,
+      tc.train_end_time as trainEndTime,
+      tc.train_address as trainAddress,
+      tc.train_grade as trainGrade,
+      tc.course_end_time as courseEndTime,
+      tc.course_pic as coursePic,
+      tc.course_enroll_flag as courseEnrollFlag,
+      tc.course_remake as courseRemake,
+      tc.course_integral as courseIntegral,
+      tc.course_score as courseScore,
+      tc.course_score_num as courseScoreNum,
+      tc.course_like_num as courseLikeNum,
+      tc.course_vent_num as courseVentNum,
+      tc.course_comment_num as courseCommentNum,
+      tc.course_sign_num as courseSignNum,
+      tc.course_complete_num as courseCompleteNum,
+      tc.create_id as createId,
+      tc.create_date as createDate,
+      tc.update_id as updateId,
+      tc.update_date as updateDate,
+      tc.company_code as companyCode,
+      tc.state,
+      tc.reject_reason as rejectReason
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as userCompanyCode
+    </sql>
+    <sql id="courseSignColumn">
+      tcs.id as signId,
+      tcs.user_id as userId,
+      tcs.complete_time as completeTime,
+      tcs.complete_rate as completeRate,
+      tcs.integral as integral,
+      tcs.score as score,
+      tcs.score_flag as scoreFlag,
+      tcs.like_flag as likeFlag,
+      tcs.vent_flag as ventFlag,
+      tcs.state as studentSignState
+    </sql>
+    <sql id="courseCommentColumn">
+      tcc.id as commentId,
+      tcc.course_id as courseId,
+      tcc.parent_id as parentId,
+      tcc.course_comment as courseComment,
+      tcc.create_id as commentCreateId,
+      tcc.create_date as commentCreateDate,
+      tcc.state as commentState
+    </sql>
+
+    <!--讲师信息-->
+    <resultMap id="courseMap" type="com.qinfei.qferp.entity.study.TrainCourse">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="coursePlate" property="coursePlate"/>
+        <result column="trainWay" property="trainWay"/>
+        <result column="signStartTime" property="signStartTime"/>
+        <result column="signEndTime" property="signEndTime"/>
+        <result column="trainStartTime" property="trainStartTime"/>
+        <result column="trainEndTime" property="trainEndTime"/>
+        <result column="trainAddress" property="trainAddress"/>
+        <result column="trainGrade" property="trainGrade"/>
+        <result column="courseEndTime" property="courseEndTime"/>
+        <result column="coursePic" property="coursePic"/>
+        <result column="courseEnrollFlag" property="courseEnrollFlag"/>
+        <result column="courseRemake" property="courseRemake"/>
+        <result column="courseIntegral" property="courseIntegral"/>
+        <result column="courseScore" property="courseScore"/>
+        <result column="courseScoreNum" property="courseScoreNum"/>
+        <result column="courseLikeNum" property="courseLikeNum"/>
+        <result column="courseVentNum" property="courseVentNum"/>
+        <result column="courseCommentNum" property="courseCommentNum"/>
+        <result column="courseSignNum" property="courseSignNum"/>
+        <result column="courseCompleteNum" property="courseCompleteNum"/>
+        <result column="createId" property="createId"/>
+        <result column="createDate" property="createDate"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="state" property="state"/>
+        <result column="rejectReason" property="rejectReason"/>
+        <result column="signRange" property="signRange"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+            <result column="sex" property="sex"/>
+            <result column="phone" property="phone"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="postId" property="postId"/>
+            <result column="postName" property="postName"/>
+            <result column="userCompanyCode" property="companyCode"/>
+        </association>
+        <collection property="courseSignList" ofType="com.qinfei.qferp.entity.study.TrainCourseSign">
+            <id column="signId" property="id"/>
+            <result column="userId" property="userId"/>
+            <result column="completeTime" property="completeTime"/>
+            <result column="completeRate" property="completeRate"/>
+            <result column="integral" property="integral"/>
+            <result column="score" property="score"/>
+            <result column="scoreFlag" property="scoreFlag"/>
+            <result column="likeFlag" property="likeFlag"/>
+            <result column="ventFlag" property="ventFlag"/>
+            <result column="studentSignState" property="state"/>
+        </collection>
+        <collection property="courseCommentList" ofType="com.qinfei.qferp.entity.study.TrainCourseComment">
+            <id column="commentId" property="id"/>
+            <result column="courseId" property="courseId"/>
+            <result column="parentId" property="parentId"/>
+            <result column="courseComment" property="courseComment"/>
+            <result column="commentCreateId" property="createId"/>
+            <result column="commentCreateDate" property="createDate"/>
+            <result column="commentState" property="state"/>
+        </collection>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT into t_train_course
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="coursePlate != null">course_plate,</if>
+            <if test="trainWay != null">train_way,</if>
+            <if test="signStartTime != null">sign_start_time,</if>
+            <if test="signEndTime != null">sign_end_time,</if>
+            <if test="trainStartTime != null">train_start_time,</if>
+            <if test="trainEndTime != null">train_end_time,</if>
+            <if test="trainAddress != null and trainAddress != ''">train_address,</if>
+            <if test="trainGrade != null">train_grade,</if>
+            <if test="courseEndTime != null">course_end_time,</if>
+            <if test="coursePic != null and coursePic != ''">course_pic,</if>
+            <if test="courseEnrollFlag != null">course_enroll_flag,</if>
+            <if test="courseRemake != null and courseRemake != ''">course_remake,</if>
+            <if test="courseIntegral != null">course_integral,</if>
+            <if test="courseScore != null">course_score,</if>
+            <if test="courseScoreNum != null">course_score_num,</if>
+            <if test="courseLikeNum != null">course_like_num,</if>
+            <if test="courseVentNum != null">course_vent_num,</if>
+            <if test="courseCommentNum != null">course_comment_num,</if>
+            <if test="courseSignNum != null">course_sign_num,</if>
+            <if test="courseCompleteNum != null">course_complete_num,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="companyCode != null and companyCode != ''">company_code,</if>
+            <if test="state != null">state</if>
+            <if test="rejectReason != null">reject_reason,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="coursePlate != null">#{coursePlate},</if>
+            <if test="trainWay != null">#{trainWay},</if>
+            <if test="signStartTime != null">#{signStartTime},</if>
+            <if test="signEndTime != null">#{signEndTime},</if>
+            <if test="trainStartTime != null">#{trainStartTime},</if>
+            <if test="trainEndTime != null">#{trainEndTime},</if>
+            <if test="trainAddress != null and trainAddress != ''">#{trainAddress},</if>
+            <if test="trainGrade != null">#{trainGrade},</if>
+            <if test="courseEndTime != null">#{courseEndTime},</if>
+            <if test="coursePic != null and coursePic != ''">#{coursePic},</if>
+            <if test="courseEnrollFlag != null">#{courseEnrollFlag},</if>
+            <if test="courseRemake != null and courseRemake != ''">#{courseRemake},</if>
+            <if test="courseIntegral != null">#{courseIntegral},</if>
+            <if test="courseScore != null">#{courseScore},</if>
+            <if test="courseScoreNum != null">#{courseScoreNum},</if>
+            <if test="courseLikeNum != null">#{courseLikeNum},</if>
+            <if test="courseVentNum != null">#{courseVentNum},</if>
+            <if test="courseSignNum != null">#{courseSignNum},</if>
+            <if test="courseCompleteNum != null">#{courseCompleteNum},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="companyCode != null and companyCode != ''">#{companyCode},</if>
+            <if test="state != null">#{state}</if>
+            <if test="rejectReason != null">#{rejectReason},</if>
+        </trim>
+    </insert>
+
+    <!--修改-->
+    <update id="updateById">
+        update t_train_course
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="coursePlate != null">course_plate = #{coursePlate},</if>
+            <if test="trainWay != null">train_way = #{trainWay},</if>
+            <if test="signStartTime != null">sign_start_time = #{signStartTime},</if>
+            <if test="signEndTime != null">sign_end_time = #{signEndTime},</if>
+            <if test="trainStartTime != null">train_start_time = #{trainStartTime},</if>
+            <if test="trainEndTime != null">train_end_time = #{trainEndTime},</if>
+            <if test="trainAddress != null and trainAddress != ''">train_address = #{trainAddress},</if>
+            <if test="trainGrade != null">train_grade = #{trainGrade},</if>
+            <if test="courseEndTime != null">course_end_time = #{courseEndTime},</if>
+            <if test="coursePic != null and coursePic != ''">course_pic = #{coursePic},</if>
+            <if test="courseEnrollFlag != null">course_enroll_flag = #{courseEnrollFlag},</if>
+            <if test="courseRemake != null and courseRemake != ''">course_remake = #{courseRemake},</if>
+            <if test="courseIntegral != null">course_integral = #{courseIntegral},</if>
+            <if test="courseScore != null">course_score = #{courseScore},</if>
+            <if test="courseScoreNum != null">course_score_num = #{courseScoreNum},</if>
+            <if test="courseLikeNum != null">course_like_num = #{courseLikeNum},</if>
+            <if test="courseVentNum != null">course_vent_num = #{courseVentNum},</if>
+            <if test="courseCommentNum != null">course_comment_num = #{courseCommentNum},</if>
+            <if test="courseSignNum != null">course_sign_num = #{courseSignNum},</if>
+            <if test="courseCompleteNum != null">course_complete_num = #{courseCompleteNum},</if>
+            <if test="state != null">state = #{state},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量修改-->
+    <update id="batchUpdate">
+        UPDATE t_train_course
+        <trim prefix="set" suffixOverrides=",">
+            update_date = now(),
+            update_id = #{updateId},
+            <trim prefix="course_integral = case " suffix="else course_integral end,">
+                <foreach collection="trainCourseList" item="trainCourse" index="index">
+                    <if test="trainCourse.courseIntegral != null">
+                        when id = #{trainCourse.id} then #{trainCourse.courseIntegral}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="reject_reason = case " suffix="else reject_reason end,">
+                <foreach collection="trainCourseList" item="trainCourse" index="index">
+                    <if test="trainCourse.rejectReason != null">
+                        when id = #{trainCourse.id} then #{trainCourse.rejectReason}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="state = case " suffix="else state end,">
+                <foreach collection="trainCourseList" item="trainCourse" index="index">
+                    <if test="trainCourse.state != null">
+                        when id = #{trainCourse.id} then #{trainCourse.state}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        id in
+        <foreach item="trainCourse" collection="trainCourseList" index="index" open="(" close=")" separator=",">
+            #{trainCourse.id}
+        </foreach>
+    </update>
+
+    <!--修改状态-->
+    <update id="updateStateById">
+        update t_train_course
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            state = #{state}
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--审核-->
+    <update id="auditById">
+        update t_train_course
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            state = #{state},
+            reject_reason = #{rejectReason},
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--批量审核-->
+    <update id="batchAuditById">
+        update t_train_course
+        <set>
+            update_date = now(),
+            update_id = #{updateId},
+            state = #{state},
+            reject_reason = #{rejectReason},
+        </set>
+        where id in
+        <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据讲师ID获取课程列表-->
+    <select id="listTrainCourseByTeacher" resultType="com.qinfei.qferp.entity.study.TrainCourse">
+        select <include refid="selectColumn"/>
+        from t_train_course tc
+        where tc.state <![CDATA[<>]]> -9
+        AND tc.create_id = #{createId}
+    </select>
+
+    <!--根据ID获取课程-->
+    <select id="getTrainCourseById" resultType="com.qinfei.qferp.entity.study.TrainCourse">
+        select <include refid="selectColumn"/>
+        from t_train_course tc
+        where tc.state <![CDATA[<>]]> -9 and id = #{id}
+    </select>
+
+    <!--根据ID列表获取课程集合-->
+    <select id="listTrainCourseByIds" resultType="com.qinfei.qferp.entity.study.TrainCourse">
+        select <include refid="selectColumn"/>
+        from t_train_course tc
+        where tc.state <![CDATA[<>]]> -9
+          and id in
+          <foreach item="id" collection="ids" index="index" open="(" close=")" separator=",">
+              #{id}
+          </foreach>
+    </select>
+
+    <!--根据ID获取课程详情-->
+    <select id="getTrainCourseDeailById" resultMap="courseMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="userColumn"/>,
+          <include refid="courseSignColumn"/>,
+          <include refid="courseCommentColumn"/>
+        FROM
+        t_train_course tc
+        INNER JOIN sys_user su ON tc.create_id = su.id
+        LEFT JOIN t_train_course_sign tcs ON tcs.course_id = tc.id
+        LEFT JOIN t_train_course_comment tcc ON tc.id = tcc.course_id
+        WHERE tc.state <![CDATA[<>]]> -9 and tc.id = #{id}
+    </select>
+
+    <!--根据ID获取课程详情，编辑使用-->
+    <select id="getCourseDetailById" resultType="java.util.Map">
+        SELECT
+          <include refid="selectColumn"/>,
+          GROUP_CONCAT(tcr.range_id) as signRange
+        FROM
+        t_train_course tc
+        LEFT JOIN t_train_course_range tcr ON tc.id = tcr.course_id
+        WHERE tc.state <![CDATA[<>]]> -9
+        AND tc.id = #{id}
+    </select>
+
+    <!--获取课程总数-->
+    <select id="getCourseTotal" resultType="java.lang.Integer">
+        SELECT
+          count(distinct tx.id)
+        FROM
+        (
+          SELECT
+            <include refid="selectColumn"/>,
+            <include refid="userColumn"/>,
+            '未设置' AS signRange
+          FROM
+            t_train_course tc
+          INNER JOIN sys_user su ON tc.create_id = su.id
+          WHERE tc.state <![CDATA[<>]]> -9
+            AND tc.course_enroll_flag = 0
+            <if test="courseEnrollFlag != null">
+                AND tc.course_enroll_flag = #{courseEnrollFlag}
+            </if>
+            <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                AND tc.company_code = #{companyCode}
+            </if>
+            <if test="title != null and title != ''">
+                AND tc.title LIKE CONCAT(#{title}, '%')
+            </if>
+            <if test="coursePlate != null">
+                AND tc.course_plate = #{coursePlate}
+            </if>
+            <if test="trainWay != null">
+                AND tc.train_way = #{trainWay}
+            </if>
+            <if test="state != null">
+                AND tc.state = #{state}
+            </if>
+            <if test="stateList != null and stateList.size() > 0">
+                AND tc.state IN
+                <foreach item="state" collection="stateList" index="index" open="(" close=")" separator=",">
+                    #{state}
+                </foreach>
+            </if>
+            <!--报名排除自己的课程-->
+            <if test="sign != null">
+                AND tc.sign_end_time >= now()
+                AND tc.create_id <![CDATA[<>]]> #{rangeUserId}
+            </if>
+            <if test="createId != null">
+                AND tc.create_id = #{createId}
+            </if>
+            GROUP BY tc.id
+            <if test="(courseEnrollFlag != 0) or sign != null">
+                UNION ALL
+                SELECT DISTINCT
+                <include refid="selectColumn"/>,
+                <include refid="userColumn"/>,
+                GROUP_CONCAT(tcr.range_id) AS signRange
+                FROM
+                t_train_course tc
+                INNER JOIN t_train_course_range tcr ON tc.id = tcr.course_id
+                INNER JOIN sys_user su ON tc.create_id = su.id
+                WHERE tc.state <![CDATA[<>]]> -9
+                AND tc.course_enroll_flag <![CDATA[<>]]> 0
+                <if test="courseEnrollFlag != null">
+                    AND tc.course_enroll_flag = #{courseEnrollFlag}
+                </if>
+                <if test="rangeIdList != null and rangeIdList.size() > 0">
+                    AND tcr.range_id IN
+                    <foreach item="id" collection="rangeIdList" index="index" open="(" close=")" separator=",">
+                        #{id}
+                    </foreach>
+                </if>
+                <if test="sign != null">
+                    <!--报名排除自己的课程，并且报名截止时间大于当前时间-->
+                    AND tc.sign_end_time >= now()
+                    AND tc.create_id <![CDATA[<>]]> #{rangeUserId}
+                    AND (
+                    (tc.course_enroll_flag = 1 AND tcr.range_id = #{rangeDeptId})
+                    OR (tc.course_enroll_flag = 3 AND tcr.range_id = #{rangeUserId})
+                    <if test="rangeRole != null and rangeRole.size() > 0">
+                        OR (tc.course_enroll_flag = 2 AND tcr.range_id IN
+                        <foreach item="id" collection="rangeRole" index="index" open="(" close=")" separator=",">
+                            #{id}
+                        </foreach>
+                        )
+                    </if>
+                    )
+                </if>
+                <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                    AND tc.company_code = #{companyCode}
+                </if>
+                <if test="title != null and title != ''">
+                    AND tc.title LIKE CONCAT(#{title}, '%')
+                </if>
+                <if test="coursePlate != null">
+                    AND tc.course_plate = #{coursePlate}
+                </if>
+                <if test="trainWay != null">
+                    AND tc.train_way = #{trainWay}
+                </if>
+                <if test="state != null">
+                    AND tc.state = #{state}
+                </if>
+                <if test="stateList != null and stateList.size() > 0">
+                    AND tc.state IN
+                    <foreach item="state" collection="stateList" index="index" open="(" close=")" separator=",">
+                        #{state}
+                    </foreach>
+                </if>
+                <if test="createId != null">
+                    AND tc.create_id = #{createId}
+                </if>
+                GROUP BY tc.id
+            </if>
+        ) tx
+    </select>
+
+    <!--根据参数查询课程列表-->
+    <select id="listCourseByParam" resultMap="courseMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="userColumn"/>,
+          '未设置' AS signRange
+        FROM
+          t_train_course tc
+        INNER JOIN sys_user su ON tc.create_id = su.id
+        WHERE tc.state <![CDATA[<>]]> -9
+          AND tc.course_enroll_flag = 0
+          <if test="courseEnrollFlag != null">
+              AND tc.course_enroll_flag = #{courseEnrollFlag}
+          </if>
+          <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+              AND tc.company_code = #{companyCode}
+          </if>
+          <if test="title != null and title != ''">
+              AND tc.title LIKE CONCAT(#{title}, '%')
+          </if>
+          <if test="coursePlate != null">
+              AND tc.course_plate = #{coursePlate}
+          </if>
+          <if test="trainWay != null">
+              AND tc.train_way = #{trainWay}
+          </if>
+          <if test="state != null">
+              AND tc.state = #{state}
+          </if>
+          <if test="stateList != null and stateList.size() > 0">
+              AND tc.state IN
+              <foreach item="state" collection="stateList" index="index" open="(" close=")" separator=",">
+                  #{state}
+              </foreach>
+          </if>
+          <!--报名排除自己的课程，并且报名截止时间大于当前时间-->
+          <if test="sign != null">
+              AND tc.sign_end_time >= now()
+              AND tc.create_id <![CDATA[<>]]> #{rangeUserId}
+          </if>
+          <if test="createId != null">
+              AND tc.create_id = #{createId}
+          </if>
+          GROUP BY tc.id
+          <if test="(courseEnrollFlag != 0) or sign != null">
+            UNION ALL
+            SELECT DISTINCT
+            <include refid="selectColumn"/>,
+            <include refid="userColumn"/>,
+            GROUP_CONCAT(tcr.range_id) AS signRange
+            FROM
+            t_train_course tc
+            INNER JOIN t_train_course_range tcr ON tc.id = tcr.course_id
+            INNER JOIN sys_user su ON tc.create_id = su.id
+            WHERE tc.state <![CDATA[<>]]> -9
+            AND tc.course_enroll_flag <![CDATA[<>]]> 0
+            <if test="courseEnrollFlag != null">
+                AND tc.course_enroll_flag = #{courseEnrollFlag}
+            </if>
+            <if test="rangeIdList != null and rangeIdList.size() > 0">
+                AND tcr.range_id IN
+                <foreach item="id" collection="rangeIdList" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="sign != null">
+                <!--报名排除自己的课程，并且报名截止时间大于当前时间-->
+                AND tc.sign_end_time >= now()
+                AND tc.create_id <![CDATA[<>]]> #{rangeUserId}
+                AND (
+                  (tc.course_enroll_flag = 1 AND tcr.range_id = #{rangeDeptId})
+                  OR (tc.course_enroll_flag = 3 AND tcr.range_id = #{rangeUserId})
+                  <if test="rangeRole != null and rangeRole.size() > 0">
+                      OR (tc.course_enroll_flag = 2 AND tcr.range_id IN
+                          <foreach item="id" collection="rangeRole" index="index" open="(" close=")" separator=",">
+                              #{id}
+                          </foreach>
+                      )
+                  </if>
+                )
+            </if>
+            <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+                AND tc.company_code = #{companyCode}
+            </if>
+            <if test="title != null and title != ''">
+                AND tc.title LIKE CONCAT(#{title}, '%')
+            </if>
+            <if test="coursePlate != null">
+                AND tc.course_plate = #{coursePlate}
+            </if>
+            <if test="trainWay != null">
+                AND tc.train_way = #{trainWay}
+            </if>
+            <if test="state != null">
+                AND tc.state = #{state}
+            </if>
+            <if test="stateList != null and stateList.size() > 0">
+                AND tc.state IN
+                <foreach item="state" collection="stateList" index="index" open="(" close=")" separator=",">
+                    #{state}
+                </foreach>
+            </if>
+            <if test="createId != null">
+                AND tc.create_id = #{createId}
+            </if>
+            GROUP BY tc.id
+        </if>
+    </select>
+
+    <!--根据课程和学员查询指定答题卡-->
+    <select id="getCourseByAnswerdCardId" resultType="com.qinfei.qferp.entity.study.TrainCourse">
+        SELECT
+            <include refid="selectColumn"/>
+        FROM
+        t_train_answer_card tac
+        INNER JOIN t_train_paper tp ON tac.paper_id = tp.id
+        INNER JOIN t_train_course tc ON tc.id = tp.course_id
+        WHERE
+        tac.state <![CDATA[<>]]> -9
+        AND tac.id = #{id}
+    </select>
+
+    <!--课程范围接口-->
+    <select id="listDeptByParam" resultType="java.util.Map">
+        SELECT
+            sd.id,
+        	sd.id as itemValue,
+        	sd.parent_id AS groupId,
+        	sd.`name`,
+        	sd.company_code AS companyCode
+        FROM
+        	sys_dept sd
+        WHERE
+        	sd.state > -2
+        <if test="name != null and name != ''">
+            AND sd.`name` LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND sd.company_code = #{companyCode}
+        </if>
+        order by sd.`level` desc
+    </select>
+    <select id="listUserByParam" resultType="java.util.Map">
+        SELECT
+          su.id,
+          su.id as itemValue,
+          su.dept_id AS groupId,
+          su.dept_name as groupName,
+          su.`name`,
+          su.post_id as postId,
+          su.post_name as postName,
+          su.company_code AS companyCode,
+          su.image
+        FROM
+        sys_user su
+        WHERE
+        su.state > -2
+        <if test="name != null and name != ''">
+            AND su.`name` LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="companyCode != null and companyCode != '' and companyCode != 'JT'">
+            AND su.company_code = #{companyCode}
+        </if>
+    </select>
+    <select id="listRoleByParam" resultType="java.util.Map">
+        SELECT
+          sr.type AS id,
+          CONCAT(sr.type, sr.`code`) AS itemValue,
+          sr.type AS groupId,
+          sr.`name`
+        FROM
+        sys_role sr
+        WHERE
+        sr.state > -2
+        <if test="name != null and name != ''">
+            AND sr.`name` LIKE CONCAT('%', #{name}, '%')
+        </if>
+    </select>
+</mapper>

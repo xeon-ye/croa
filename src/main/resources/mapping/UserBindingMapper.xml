@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qinfei.qferp.mapper.sys.UserBindingMapper">
+    <sql id="selectColumn">
+        ub.id,
+        ub.user_id as userId,
+        ub.union_id as unionId,
+        ub.create_date as createDate,
+        ub.create_id as createId,
+        ub.update_date as updateDate,
+        ub.update_id as updateId,
+        ub.state
+    </sql>
+    <sql id="userColumn">
+        su.id as sysUserId,
+        su.user_name as userName,
+        su.password as password,
+        su.name as name,
+        su.image as image,
+        su.sex as sex,
+        su.phone as phone,
+        su.qq as qq,
+        su.wechat as wechat,
+        su.email as email,
+        su.is_mgr as isMgr,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.company_code as companyCode
+    </sql>
+    <sql id="userAllColumn">
+        su.id,
+        su.no,
+        su.user_name as userName,
+        su.password,
+        su.name,
+        su.image,
+        su.sex,
+        su.phone,
+        su.qq,
+        su.wechat,
+        su.email,
+        su.is_mgr as isMgr,
+        su.mgr_id as mgrId,
+        su.remark,
+        su.login_ip as loginIp,
+        su.mac,
+        su.state,
+        su.creator,
+        su.create_time as createTime,
+        su.update_user_id as updateUserId,
+        su.update_time updateTime,
+        su.login_time as loginTime,
+        su.fail_num as failNum,
+        su.dept_id as deptId,
+        su.dept_name as deptName,
+        su.post_id as postId,
+        su.post_name as postName,
+        su.company_code as companyCode,
+        su.protected_cust_num as protectedCustNum,
+        su.save_cust_num as saveCustNum,
+        su.session_id as sessionId,
+        su.handover_state as handoverState
+    </sql>
+    <sql id="deptColumn">
+        sd.id as deptId,
+        sd.type,
+        sd.code,
+        sd.name as deptName,
+        sd.parent_id as parentId,
+        sd.level,
+        sd.state as deptState,
+        sd.creator as deptCreator,
+        sd.create_time as deptCreateTime,
+        sd.update_user_id as deptUpdateUserId,
+        sd.update_time as deptUpdateTime,
+        sd.mgr_id as deptMgrId,
+        sd.mgr_name as deptMgrName,
+        sd.mgr_leader_id as deptMgrLeaderId,
+        sd.mgr_leader_name as deptMgrLeaderName,
+        sd.company_code as deptCompanyCode,
+        sd.company_code_name as deptCompanyCodeName
+    </sql>
+
+    <!--根据unionID获取切换用户列表-->
+    <resultMap id="bindingResultMap" type="com.qinfei.qferp.entity.sys.UserBinding">
+        <id column="id" property="id"/>
+        <result column="userId" property="userId"/>
+        <result column="unionId" property="unionId"/>
+        <result column="createDate" property="createDate"/>
+        <result column="createId" property="createId"/>
+        <result column="updateDate" property="updateDate"/>
+        <result column="updateId" property="updateId"/>
+        <result column="state" property="state"/>
+        <association property="user" javaType="com.qinfei.qferp.entity.sys.User">
+            <id column="sysUserId" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="password" property="password"/>
+            <result column="name" property="name"/>
+            <result column="image" property="image"/>
+            <result column="sex" property="sex"/>
+            <result column="phone" property="phone"/>
+            <result column="qq" property="qq"/>
+            <result column="wechat" property="wechat"/>
+            <result column="email" property="email"/>
+            <result column="is_mgr" property="isMgr"/>
+            <result column="deptId" property="deptId"/>
+            <result column="deptName" property="deptName"/>
+            <result column="companyCode" property="companyCode"/>
+        </association>
+    </resultMap>
+    <!--根据用户ID获取用户信息-->
+    <resultMap id="userResultMap" type="com.qinfei.qferp.entity.sys.User">
+        <id column="id" property="id"/>
+        <result column="no" property="no"/>
+        <result column="userName" property="userName"/>
+        <result column="password" property="password"/>
+        <result column="name" property="name"/>
+        <result column="image" property="image"/>
+        <result column="sex" property="sex"/>
+        <result column="phone" property="phone"/>
+        <result column="qq" property="qq"/>
+        <result column="wechat" property="wechat"/>
+        <result column="email" property="email"/>
+        <result column="isMgr" property="isMgr"/>
+        <result column="mgrId" property="mgrId"/>
+        <result column="remark" property="remark"/>
+        <result column="loginIp" property="loginIp"/>
+        <result column="mac" property="mac"/>
+        <result column="state" property="state"/>
+        <result column="creator" property="creator"/>
+        <result column="createTime" property="createTime"/>
+        <result column="updateUserId" property="updateUserId"/>
+        <result column="updateTime" property="updateTime"/>
+        <result column="loginTime" property="loginTime"/>
+        <result column="failNum" property="failNum"/>
+        <result column="deptId" property="deptId"/>
+        <result column="deptName" property="deptName"/>
+        <result column="postId" property="postId"/>
+        <result column="postName" property="postName"/>
+        <result column="companyCode" property="companyCode"/>
+        <result column="protectedCustNum" property="protectedCustNum"/>
+        <result column="saveCustNum" property="saveCustNum"/>
+        <result column="sessionId" property="sessionId"/>
+        <result column="handoverState" property="handoverState"/>
+        <association property="dept" javaType="com.qinfei.qferp.entity.sys.Dept">
+            <id column="deptId" property="id"/>
+            <result column="type" property="type"/>
+            <result column="code" property="code"/>
+            <result column="deptName" property="name"/>
+            <result column="parentId" property="parentId"/>
+            <result column="level" property="level"/>
+            <result column="deptState" property="state"/>
+            <result column="deptCreator" property="creator"/>
+            <result column="deptCreateTime" property="createTime"/>
+            <result column="deptUpdateUserId" property="updateUserId"/>
+            <result column="deptUpdateTime" property="updateTime"/>
+            <result column="deptMgrId" property="mgrId"/>
+            <result column="deptMgrName" property="mgrName"/>
+            <result column="deptMgrLeaderId" property="mgrLeaderId"/>
+            <result column="deptMgrLeaderName" property="mgrLeaderName"/>
+            <result column="deptCompanyCode" property="companyCode"/>
+            <result column="deptCompanyCodeName" property="companyCodeName"/>
+        </association>
+    </resultMap>
+
+    <!--新增-->
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_user_binding
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="unionId != null and unionId != ''">union_id,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="createId != null">create_id,</if>
+            <if test="updateDate != null">update_date,</if>
+            <if test="updateId != null">update_id,</if>
+            <if test="state != null">state</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="unionId != null and unionId != ''">#{unionId},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="createId != null">#{createId},</if>
+            <if test="updateDate != null">#{updateDate},</if>
+            <if test="updateId != null">#{updateId},</if>
+            <if test="state != null">#{state}</if>
+        </trim>
+    </insert>
+
+    <!--批量新增-->
+    <insert id="saveBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT  into t_user_binding (
+        user_id,
+        union_id,
+        create_date,
+        create_id,
+        update_date,
+        update_id,
+        state
+        )
+        VALUES
+        <foreach collection="list" item="userBinding" index="index" separator=",">
+          (
+            #{userBinding.userId},
+            #{userBinding.unionId},
+            now(),
+            #{userBinding.createId},
+            now(),
+            #{userBinding.updateId},
+            0
+          )
+        </foreach>
+    </insert>
+
+    <!--修改绑定码-->
+    <update id="updateUnionByUserId">
+        update t_user_binding
+        SET
+          union_id = #{unionId},
+          update_id = #{updateId},
+          update_date = now()
+        where user_id = #{userId}
+    </update>
+
+    <!--根据用户ID修改绑定状态-->
+    <update id="updateStateByUserId">
+        update t_user_binding
+        SET
+          state = #{state},
+          update_id = #{updateId},
+          update_date = now()
+        where user_id = #{userId}
+    </update>
+
+    <!--根据用户ID获取unionID-->
+    <select id="getUserBindingByUserId" resultType="com.qinfei.qferp.entity.sys.UserBinding">
+        SELECT
+        	<include refid="selectColumn"/>
+        FROM
+        	t_user_binding ub
+        WHERE
+        	ub.state = 0
+        AND ub.user_id = #{userId}
+    </select>
+
+    <!--根据用户ID和unionID获取绑定信息-->
+    <select id="getUserBindingByUserIdAndUnion" resultType="com.qinfei.qferp.entity.sys.UserBinding">
+        SELECT
+        <include refid="selectColumn"/>
+        FROM
+        t_user_binding ub
+        WHERE
+        ub.state = 0
+        AND ub.user_id = #{userId}
+        AND ub.union_id = #{unionId}
+    </select>
+
+    <!--根据用户ID获取用户信息-->
+    <select id="getUserBindingInfoByUserId" resultMap="bindingResultMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="userColumn"/>
+        FROM
+        t_user_binding ub
+        INNER JOIN sys_user su on su.id = ub.user_id and su.state > -2
+        WHERE ub.state = 0
+        AND ub.user_id = #{userId}
+    </select>
+
+    <!--根据unionID获取切换用户列表-->
+    <select id="listUserBindingByUnionId" resultMap="bindingResultMap">
+        SELECT
+          <include refid="selectColumn"/>,
+          <include refid="userColumn"/>
+        FROM
+        t_user_binding ub
+        INNER JOIN sys_user su on su.id = ub.user_id and su.state > -2
+        WHERE
+        ub.state = 0
+        <if test="unionId != null and unionId != ''">
+            AND ub.union_id = #{unionId}
+        </if>
+        <if test="userId != null">
+            AND ub.user_id = #{userId}
+        </if>
+    </select>
+
+    <!--根据用户名和密码获取有效用户-->
+    <select id="getUserByUserNameAndPassword" resultType="com.qinfei.qferp.entity.sys.User">
+        SELECT
+          su.id,
+          su.user_name as userName,
+          su.password as password,
+          su.name as name,
+          su.image as image,
+          su.sex as sex,
+          su.phone as phone,
+          su.qq as qq,
+          su.wechat as wechat,
+          su.email as email,
+          su.is_mgr as isMgr,
+          su.dept_id as deptId,
+          su.dept_name as deptName,
+          su.company_code as companyCode
+        FROM
+          sys_user su
+        WHERE su.state > -2
+        AND su.user_name = #{userName}
+        AND su.password = #{password}
+    </select>
+
+    <!--根据用户ID获取用户信息-->
+    <select id="getUserInfoById" resultMap="userResultMap">
+        SELECT
+        	<include refid="userAllColumn"/>,
+        	<include refid="deptColumn"/>
+        FROM
+        	sys_user su
+        LEFT JOIN sys_dept sd ON su.dept_id = sd.id
+        WHERE
+        	su.state > -2
+        AND su.id = #{userId}
+    </select>
+
+</mapper>

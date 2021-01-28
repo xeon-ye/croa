@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head :: common_header(~{::title},~{::link},~{::script},~{::style})">
+
+    <title>讲师管理</title>
+    <link href="/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="/layui/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/js/plugins/laydate/theme/default/laydate.css">
+    <link href="/css/study/trainStudentManage.css" rel="stylesheet">
+    <script type="text/javascript" src="/layui/layui.js"></script>
+    <script src="/js/plugins/laydate/laydate.js"></script>
+    <script th:inline="javascript">
+        user = [[${session.user}]]
+    </script>
+    <script src="/js/plugins/toastr/toastr.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/js/study/trainStudentManage.js"></script>
+    <style>
+
+    </style>
+    <script th:inline="javascript">
+        $().ready(function () {
+            //使用layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //学员姓名
+                form.on('select(userId)', function(data){
+                    trainStudentManageObj.init();
+                });
+
+                //学员部门
+                form.on('select(deptId)', function(data){
+                    trainStudentManageObj.init();
+                });
+            });
+
+            //加载tab页
+            layui.use('element', function(){
+                var element = layui.element;
+                element.on('tab(docDemoTabBrief)', function(data){
+                    commonObj.tabChange(data.index);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!--顶部搜索-->
+<div class="topSearchOuter layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li id="trainStudentInfoTab" class="layui-this">学员基本信息</li>
+        <li id="trainStudentManageTab">学员管理</li>
+    </ul>
+</div>
+<!--下面内容-->
+<div class="bottomContentOuter layui-tab-content">
+    <!--学员管理-->
+    <div id="trainStudentInfo" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <!--学员展示页面-->
+        <div class="contentOuter trainStudent">
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-bottom: 0px;height: 82px;">
+                    <colgroup>
+                        <col width="8%">
+                        <col width="14%">
+                        <col width="15%">
+                        <col width="15%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                        <col width="12%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="学员姓名">
+                            <div class="ellipsisContent">
+                                学员姓名
+                            </div>
+                        </th>
+                        <th title="所属部门">
+                            <div class="ellipsisContent">
+                                所属部门
+                            </div>
+                        </th>
+                        <th title="职位">
+                            <div class="ellipsisContent">
+                                职位
+                            </div>
+                        </th>
+                        <th title="平均完成率(%)">
+                            <div class="ellipsisContent">
+                                平均完成率(%)
+                            </div>
+                        </th>
+                        <th title="平均完成时间(分钟)">
+                            <div class="ellipsisContent">
+                                平均完成时间(分钟)
+                            </div>
+                        </th>
+                        <th title="测试次数">
+                            <div class="ellipsisContent">
+                                测试次数
+                            </div>
+                        </th>
+                        <th title="积分">
+                            <div class="ellipsisContent">
+                                积分
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="trainStudentList">
+                    <!-- <tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="张三">
+                             <div class="ellipsisContent">
+                                 张三
+                             </div>
+                         </td>
+                         <td title="业务一部">
+                             <div class="ellipsisContent">
+                                 业务一部
+                             </div>
+                         </td>
+                         <td title="业务员">
+                             <div class="ellipsisContent">
+                                 业务员
+                             </div>
+                         </td>
+                         <td title="8.4">
+                             <div class="ellipsisContent">
+                                 8.4
+                             </div>
+                         </td>
+                         <td title="2.8">
+                             <div class="ellipsisContent">
+                                 2.8
+                             </div>
+                         </td>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="10">
+                             <div class="ellipsisContent">
+                                 10
+                             </div>
+                         </td>
+                     </tr>-->
+                    </tbody>
+                </table>
+                <!--课程列表-->
+                <div class="courseListWrap">
+                    <!--栏目-->
+                    <div class="courseTabWrap">
+                        <span data-type="all" class="courceTabActive" onclick="trainStudentInfoObj.tabChange(this);">全部</span>
+                        <span data-type="0" onclick="trainStudentInfoObj.tabChange(this);">正常</span>
+                        <span data-type="1" onclick="trainStudentInfoObj.tabChange(this);">迟到</span>
+                        <span data-type="2" onclick="trainStudentInfoObj.tabChange(this);">早退</span>
+                        <span data-type="3" onclick="trainStudentInfoObj.tabChange(this);">旷课</span>
+                        <span data-type="4" onclick="trainStudentInfoObj.tabChange(this);">未开始</span>
+                        <span data-type="5" onclick="trainStudentInfoObj.tabChange(this);">已结束</span>
+                    </div>
+                    <!--课程列表-->
+                    <div class="courseList">
+                        <!--课程栏目-->
+                        <!--<div class="courseItem">
+                            &lt;!&ndash;课程图片&ndash;&gt;
+                            <div class="coursePic"></div>
+                            &lt;!&ndash;课程内容&ndash;&gt;
+                            <div class="courseContentWrap">
+                                <div class="courseItemWrap">
+                                    <div class="coursePlate" title="业务板块">
+                                        <div class="ellipsisContent-100">
+                                            业务板块
+                                        </div>
+                                    </div>
+                                    <div class="courseTitle" title="课程标题">
+                                        <div class="ellipsisContent-100">
+                                            课程标题课程标题课程标题课程标题课程标题
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="courseItemWrap">
+                                    <div class="courseSignTime" title="2020.05.20 14:20~2020.05.20 14:20">
+                                        <i class="fa fa-calendar-minus-o"></i>&nbsp;
+                                        <div class="ellipsisContent-100">2020.05.20 14:20~2020.05.20 14:20</div>
+                                    </div>
+                                    <div class="courseAddress" title="地址">
+                                        <i class="fa fa-map-marker"></i>&nbsp;
+                                        <div class="ellipsisContent-100">
+                                            地址地址地址地址地址地址地址地址地址
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="courseItemWrap">
+                                    <span>讲师：</span>
+                                    <span class="courseTeacherName">邹丽</span>
+                                </div>
+                            </div>
+                            &lt;!&ndash;课程按钮&ndash;&gt;
+                            <div class="courseBtnWrap">
+                                <span class="courseStateBtn background-00A2FF">可评论</span>
+                                <span class="courseStateBtn background-43B9FF">未开始</span>
+                                <span class="courseStateBtn background-FFFFFF">已结束</span>
+                            </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--学员管理-->
+    <div id="trainStudentManage" class="tabContent" style="height: 100%;width: 100%;display: none;">
+        <!--管理员和讲师展示页面-->
+        <div class="contentOuter trainAdminAndTeacher">
+            <!--顶部搜索条件-->
+            <div class="searchParamOuter">
+                <form id="trainStudentForm" autocomplete="off" method="post" class="layui-form">
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            学员姓名:
+                        </label>
+                        <select name="userId" placeholder="讲师名称" class="form-control" lay-search lay-filter="userId">
+
+                        </select>
+                    </div>
+                    <div class="paramDiv layui-form">
+                        <label class="control-label">
+                            部门名称:
+                        </label>
+                        <select name="deptId" placeholder="部门名称" class="form-control" lay-search lay-filter="deptId">
+
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <!--备注信息-->
+            <div class="studentListExportBtnWrap">
+                <!--说明-->
+                <span style="flex:1;">
+                    *注意：平均完成率 = 报名课程完课率之和 / 报名课程数；平均完成时间 = 报名课程完课时间之和 / 报名课程数;
+                </span>
+                <!--导出按钮-->
+                <span id="studentListExportBtn" style="cursor: pointer;display: none;"
+                      class="blueBtn studentListExportBtn"
+                      onclick="trainStudentManageObj.trainStudentExport();">导出列表</span>
+            </div>
+
+            <!--内容列表-->
+            <div class="listContentOuter">
+                <table class="layui-table" lay-skin="line"
+                       style="table-layout:fixed;margin-bottom: 0px;margin-top: 0px;">
+                    <colgroup>
+                        <col width="6%">
+                        <col width="14%">
+                        <col width="15%">
+                        <col width="15%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                        <col width="10%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th title="序号">
+                            <div class="ellipsisContent">
+                                序号
+                            </div>
+                        </th>
+                        <th title="学员姓名">
+                            <div class="ellipsisContent">
+                                学员姓名
+                            </div>
+                        </th>
+                        <th title="所属部门">
+                            <div class="ellipsisContent">
+                                所属部门
+                            </div>
+                        </th>
+                        <th title="职位">
+                            <div class="ellipsisContent">
+                                职位
+                            </div>
+                        </th>
+                        <th title="平均完成率(%)">
+                            <div class="ellipsisContent">
+                                平均完成率(%)
+                            </div>
+                        </th>
+                        <th title="平均完成时间(分钟)">
+                            <div class="ellipsisContent">
+                                平均完成时间(分钟)
+                            </div>
+                        </th>
+                        <th title="测试次数">
+                            <div class="ellipsisContent">
+                                测试次数
+                            </div>
+                        </th>
+                        <th title="积分">
+                            <div class="ellipsisContent">
+                                积分
+                            </div>
+                        </th>
+                        <th title="操作">
+                            <div class="ellipsisContent">
+                                操作
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                </table>
+                <div class="tbodyWrap">
+                    <table class="layui-table" lay-skin="line" style="table-layout:fixed;margin-top: 0px;">
+                        <colgroup>
+                            <col width="6%">
+                            <col width="14%">
+                            <col width="15%">
+                            <col width="15%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                        </colgroup>
+                        <tbody class="trainStudentList">
+                           <!-- <tr>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="张三">
+                             <div class="ellipsisContent">
+                                 张三
+                             </div>
+                         </td>
+                         <td title="业务一部">
+                             <div class="ellipsisContent">
+                                 业务一部
+                             </div>
+                         </td>
+                         <td title="业务员">
+                             <div class="ellipsisContent">
+                                 业务员
+                             </div>
+                         </td>
+                         <td title="8.4">
+                             <div class="ellipsisContent">
+                                 8.4
+                             </div>
+                         </td>
+                         <td title="2.8">
+                             <div class="ellipsisContent">
+                                 2.8
+                             </div>
+                         </td>
+                         <td title="1">
+                             <div class="ellipsisContent">
+                                 1
+                             </div>
+                         </td>
+                         <td title="10">
+                             <div class="ellipsisContent">
+                                 10
+                             </div>
+                         </td>
+                         <td>
+                             <div class="ellipsisContent">
+                                 <button class="tableButton blueBtn" type="button" onclick="trainStudentManageObj.courseListModalShow();">
+                                     课程详情
+                                 </button>
+                             </div>
+                         </td>
+                     </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--分页插件-->
+            <div class="trainStudentListPager" style="text-align: center;"></div>
+        </div>
+    </div>
+</div>
+</body>
+<!--课程学员课程列表-->
+<div id="courseListModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                课程列表
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="trainStudentManageObj.courseListModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+            </div>
+        </div>
+
+        <div class="trainModalContentOuter">
+            <!--栏目-->
+            <div class="courseTabWrap">
+                <span data-type="all" class="courceTabActive" onclick="trainStudentManageObj.tabChange(this);">全部</span>
+                <span data-type="0" onclick="trainStudentManageObj.tabChange(this);">正常</span>
+                <span data-type="1" onclick="trainStudentManageObj.tabChange(this);">迟到</span>
+                <span data-type="2" onclick="trainStudentManageObj.tabChange(this);">早退</span>
+                <span data-type="3" onclick="trainStudentManageObj.tabChange(this);">旷课</span>
+            </div>
+            <!--课程列表-->
+            <div class="courseList">
+                <!--课程栏目-->
+                <!--<div class="courseItem" style="height: 130px;">
+                    &lt;!&ndash;课程图片&ndash;&gt;
+                    <div class="coursePic" style="width: 214px;height: 120px;background-image: url('/img/train/course_pic_default.png')"></div>
+                    &lt;!&ndash;课程内容&ndash;&gt;
+                    <div class="courseContentWrap">
+                        <div class="courseItemWrap">
+                            <div class="coursePlate" title="业务板块" style="max-width: 140px;">
+                                <div class="ellipsisContent-100">
+                                    业务板块
+                                </div>
+                            </div>
+                            <div class="courseTitle" title="课程标题">
+                                <div class="ellipsisContent-100">
+                                    课程标题课程标题课程标题课程标题课程标题
+                                </div>
+                            </div>
+                        </div>
+                        <div class="courseItemWrap">
+                            <div class="courseScore">
+                                <span class="cousreTotalStar"></span>
+                            </div>
+                            <div class="courseLike">
+                                <i class="fa fa-thumbs-up"></i>&nbsp;
+                                <div>点赞数</div>&nbsp;
+                                <div class="courseLikeNum">1</div>
+                            </div>
+                            <div class="courseVent">
+                                <i class="fa fa-thumbs-down"></i>&nbsp;
+                                <div>吐槽数</div>&nbsp;
+                                <div class="courseVentNum">1</div>
+                            </div>
+                            <div class="intergal" title="积分">
+                                <i class="fa fa-ils"></i>&nbsp;
+                                <div>积分</div>&nbsp;
+                                <div class="intergal">10</div>
+                            </div>
+                        </div>
+                        <div class="courseItemWrap">
+                            <div class="courseSignTime" title="2020.05.20 14:20~2020.05.20 14:20" style="max-width: 140px;">
+                                <i class="fa fa-calendar-minus-o"></i>&nbsp;
+                                <div class="ellipsisContent-100">2020.05.20 14:20~2020.05.20 14:20</div>
+                            </div>
+                            <div class="courseAddress" title="地址">
+                                <i class="fa fa-map-marker"></i>&nbsp;
+                                <div class="ellipsisContent-100">
+                                    地址地址地址地址地址地址地址地址地址
+                                </div>
+                            </div>
+                        </div>
+                        <div class="courseItemWrap">
+                            <span>讲师：</span>
+                            <span class="courseTeacherName">邹丽</span>
+                        </div>
+                    </div>
+                    &lt;!&ndash;课程按钮&ndash;&gt;
+                    <div class="courseBtnWrap">
+                        <span class="courseStateBtn background-43B9FF">正常</span>
+                        <span class="courseStateBtn background-EF7571">迟到</span>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+</div>
+<!--课程预览-->
+<div id="coursePreviewModal" style="display: none;">
+    <div class="trainModalCommon">
+        <!--顶部按钮-->
+        <div class="trainModalBtnOuter">
+            <div class="trainModalTitle">
+                课程预览
+            </div>
+            <div class="trainModalBtn">
+                <div onclick="coursePreviewObj.coursePreviewModalClose();">
+                    <i class="fa fa-close"></i>&nbsp;
+                    关闭
+                </div>
+            </div>
+        </div>
+
+        <!--表单内容-->
+        <div class="trainModalContentOuter">
+            <!--课程头部-->
+            <div class="courseTopWrap">
+                <!--课程图片-->
+                <div class="coursePic"></div>
+                <!--课程-->
+                <div class="courseWrap">
+                    <div class="courseItemWrap" style="height: 40px;">
+                        <div class="coursePlate" title="">
+                            <div class="ellipsisContent-100"></div>
+                        </div>
+                        <div class="courseTitle" title="">
+                            <div class="ellipsisContent-100">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap">
+                        <div class="courseScore">
+                            <span class="cousreTotalStar"></span>
+                            <span>(<span class="cousreScoreNum">0</span>个评分)</span>
+                        </div>
+                        <div class="courseLike">
+                            <i class="fa fa-thumbs-up"></i>&nbsp;
+                            <div>点赞数</div>&nbsp;
+                            <div class="courseLikeNum">0</div>
+                        </div>
+                        <div class="courseVent">
+                            <i class="fa fa-thumbs-down"></i>&nbsp;
+                            <div>吐槽数</div>&nbsp;
+                            <div class="courseVentNum">0</div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap">
+                        <div class="courseSignTime" title="">
+                            <i class="fa fa-calendar-minus-o"></i>&nbsp;
+                            <div class="ellipsisContent-100"></div>
+                        </div>
+                        <div class="courseAddress" title="">
+                            <i class="fa fa-map-marker"></i>&nbsp;
+                            <div class="ellipsisContent-100"></div>
+                        </div>
+                    </div>
+                    <div class="courseItemWrap" style="height: 40px;font-size: 16px;font-weight: bold;">
+                        <span>讲师：</span>
+                        <span class="courseTeacherName"></span>
+                    </div>
+                    <div class="courseItemWrap courseStateWrap" style="height: 40px;">
+                        <!--<div class="courseState background-6BB9DD" title="待审核">
+                            待审核
+                        </div>
+                        <div class="courseState background-00A2FF" title="待审核">
+                            进行中
+                        </div>
+                        <div class="courseState background-EEEEEE" title="待审核">
+                            已完成
+                        </div>-->
+                    </div>
+                </div>
+                <!--课程学分、报名人数、完课人数-->
+                <div class="courseParamWrap">
+                    <!--课程学分-->
+                    <div class="courseParamItem">
+                        <div class="courseValue courseScoreValue">0</div>
+                        <div class="courseValueName">课程学分</div>
+                    </div>
+                    <!--课程学分-->
+                    <div class="courseParamItem">
+                        <!--报名人数-->
+                        <div class="courseSignNumWrap">
+                            <div class="courseValue courseSignNum">0</div>
+                            <div class="courseValueName">报名人数</div>
+                        </div>
+                        <!--完课人数-->
+                        <div class="courseCompleteNumWrap">
+                            <div class="courseValue courseCompleteNum">0</div>
+                            <div class="courseValueName">完课人数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--课程内容-->
+            <div class="courseContentWrap">
+                <!--Tab切换-->
+                <div class="tabWrap">
+                    <span data-target="courseRemake" class="courceTabActive" onclick="coursePreviewObj.tabChange(this);">课程大纲</span>
+                    <span data-target="courseCommentWrap" onclick="coursePreviewObj.tabChange(this);">
+                        评论(<span class="courseCommentTotal">0</span>)
+                    </span>
+                </div>
+
+                <!--Tab对应内容-->
+                <div class="tabContentWrap">
+                    <!--课程大纲-->
+                    <div class="courseRemake">
+                    </div>
+
+                    <!--评论区域-->
+                    <div class="courseCommentWrap" style="display: none;">
+                        <!--评论-->
+                        <div class="courseComment">
+                            <!--栏目标题-->
+                            <div class="columnTitle">
+                                评论(评分每个学员仅允许一次)
+                            </div>
+                            <div class="columnContentWrap layui-form">
+                                <!---评论-->
+                                <div class="columnContentItem">
+                                    <textarea name="courseComment" placeholder="有虾米疑问，提出来大家交流交流" class="form-control"></textarea>
+                                </div>
+                                <!---发表评论按钮-->
+                                <div class="columnContentItem" style="height: 22px;">
+                                    <span class="commentBtn studentSignState0" onclick="coursePreviewObj.likeClick(this);">
+                                         点赞&nbsp;
+                                        <i class="fa fa-thumbs-o-up likeBtn"></i>&nbsp;
+                                    </span>
+                                    <span class="commentBtn studentSignState0" onclick="coursePreviewObj.ventClick(this);">
+                                        吐槽&nbsp;
+                                        <i class="fa fa-thumbs-o-down ventBtn"></i>
+                                    </span>
+                                    <span class="studentSignState0">评分：</span>
+                                    <span class="cousreStar">评分</span>
+                                    <span class="publishCommentBtn background-6BB9DD" title="发表评论" onclick="coursePreviewObj.publishComment(this);">
+                                        发表评论
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--评论列表-->
+                        <div class="courseCommentListWrap">
+                            <!--栏目标题-->
+                            <div class="columnTitle">评论详情</div>
+                            <!--评论列表-->
+                            <div class="columnContentWrap commentDetailList">
+                                <!--评论列表项-->
+                                <!--<div class="courseCommentItem">
+                                    &lt;!&ndash;用户名&ndash;&gt;
+                                    <div class="userWrap">
+                                        &lt;!&ndash;用户头像+姓名&ndash;&gt;
+                                        <div class="userItem" title="邹丽">
+                                            <div class="userPic"></div>
+                                            <div class="userName">
+                                                <div class="ellipsisContent">邹丽邹丽邹丽邹丽邹丽邹丽邹丽</div>
+                                            </div>
+                                        </div>
+
+                                        &lt;!&ndash;评分&ndash;&gt;
+                                        <div class="userScore"></div>
+                                    </div>
+
+                                    &lt;!&ndash;评论内容&ndash;&gt;
+                                    <div class="courseCommentInfo">
+                                        &lt;!&ndash;评论内容&ndash;&gt;
+                                        <div class="courseCommentContent">
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                            评论内容评论内容评论内容评论内容评论内容评论内容评论内容评论内容
+                                        </div>
+                                        <div class="courseCommentTime">
+                                            2019-12-12 14:30:20
+                                        </div>
+                                    </div>
+                                </div>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>
